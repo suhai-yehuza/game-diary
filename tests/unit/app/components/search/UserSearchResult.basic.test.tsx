@@ -137,8 +137,12 @@ describe('UserSearchResult', () => {
     expect(userCard).toHaveClass('flex', 'items-center', 'space-x-2');
     const mainContainer = userCard?.parentElement?.parentElement;
     expect(mainContainer).toHaveClass('flex', 'items-center', 'space-x-4', 'p-4');
-    expect(mainContainer).toHaveClass('bg-card', 'border', 'rounded-lg');
-    expect(mainContainer).toHaveClass('hover:bg-accent/50', 'cursor-pointer', 'transition-colors');
+    expect(mainContainer).toHaveClass('bg-neutral-50', 'border', 'rounded-lg');
+    expect(mainContainer).toHaveClass(
+      'hover:bg-neutral-100',
+      'cursor-pointer',
+      'transition-colors'
+    );
   });
 
   it('displays correct icons', () => {

@@ -8,35 +8,33 @@ import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 
 import { MemoizedReactionButton } from './MemoizedReactionButton';
 
-// Emoji categories for better organization - only using supported emojis from REACTION_EMOJIS
-const EMOJI_CATEGORIES = {
-  Reactions: [
-    REACTION_EMOJIS.THUMBS_UP,
-    REACTION_EMOJIS.THUMBS_DOWN,
-    REACTION_EMOJIS.LOVE,
-    REACTION_EMOJIS.LAUGH,
-    REACTION_EMOJIS.WOW,
-    REACTION_EMOJIS.SAD,
-    REACTION_EMOJIS.ANGRY,
-  ],
-  Sports: [
-    REACTION_EMOJIS.SOCCER,
-    REACTION_EMOJIS.BASKETBALL,
-    REACTION_EMOJIS.FOOTBALL,
-    REACTION_EMOJIS.BASEBALL,
-    REACTION_EMOJIS.TENNIS,
-    REACTION_EMOJIS.GOLF,
-  ],
-  Actions: [
-    REACTION_EMOJIS.FIRE,
-    REACTION_EMOJIS.MUSCLE,
-    REACTION_EMOJIS.CLAP,
-    REACTION_EMOJIS.ROCKET,
-    REACTION_EMOJIS.GOAT,
-    REACTION_EMOJIS.BULLSEYE,
-    REACTION_EMOJIS.EYES,
-  ],
-};
+// Primary reactions (most commonly used) - following industry best practices
+const PRIMARY_REACTIONS = [
+  REACTION_EMOJIS.THUMBS_UP,
+  REACTION_EMOJIS.LOVE,
+  REACTION_EMOJIS.LAUGH,
+  REACTION_EMOJIS.FIRE,
+  REACTION_EMOJIS.BASKETBALL,
+  REACTION_EMOJIS.CLAP,
+];
+
+// Secondary reactions (less commonly used)
+const SECONDARY_REACTIONS = [
+  REACTION_EMOJIS.THUMBS_DOWN,
+  REACTION_EMOJIS.WOW,
+  REACTION_EMOJIS.SAD,
+  REACTION_EMOJIS.ANGRY,
+  REACTION_EMOJIS.MUSCLE,
+  REACTION_EMOJIS.ROCKET,
+  REACTION_EMOJIS.GOAT,
+  REACTION_EMOJIS.BULLSEYE,
+  REACTION_EMOJIS.EYES,
+  REACTION_EMOJIS.SOCCER,
+  REACTION_EMOJIS.FOOTBALL,
+  REACTION_EMOJIS.BASEBALL,
+  REACTION_EMOJIS.TENNIS,
+  REACTION_EMOJIS.GOLF,
+];
 
 export const ReactionPicker = memo(function ReactionPicker({
   targetId,
@@ -48,7 +46,7 @@ export const ReactionPicker = memo(function ReactionPicker({
   showCount = true,
 }: IReactionPickerProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('Reactions');
+  const [showAllReactions, setShowAllReactions] = useState(false);
   const { groupedReactions, userReactions, toggleReaction, loading } = useReactions({
     targetId,
     targetType,
@@ -149,27 +147,10 @@ export const ReactionPicker = memo(function ReactionPicker({
             </button>
           </div>
 
-          {/* Category tabs */}
-          <div className="flex border-b border-gray-200 dark:border-gray-700">
-            {Object.keys(EMOJI_CATEGORIES).map(category => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
-                  selectedCategory === category
-                    ? 'text-blue-600 border-b-2 border-blue-600 dark:text-blue-400 dark:border-blue-400'
-                    : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          {/* Emoji grid */}
+          {/* Primary reactions */}
           <div className="p-4">
-            <div className="grid grid-cols-8 gap-2">
-              {EMOJI_CATEGORIES[selectedCategory as keyof typeof EMOJI_CATEGORIES].map(emoji => (
+            <div className="grid grid-cols-6 gap-2">
+              {PRIMARY_REACTIONS.map(emoji => (
                 <button
                   key={emoji}
                   onClick={() => {
@@ -189,6 +170,43 @@ export const ReactionPicker = memo(function ReactionPicker({
                 </button>
               ))}
             </div>
+
+            {/* Show more reactions button */}
+            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowAllReactions(!showAllReactions)}
+                className="w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              >
+                {showAllReactions ? 'Show less' : 'Show more reactions'}
+              </button>
+            </div>
+
+            {/* Secondary reactions (collapsible) */}
+            {showAllReactions && (
+              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-8 gap-2">
+                  {SECONDARY_REACTIONS.map(emoji => (
+                    <button
+                      key={emoji}
+                      onClick={() => {
+                        void handleReactionClick(emoji);
+                      }}
+                      disabled={loading}
+                      className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                        userReactions.has(emoji)
+                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300 ring-2 ring-blue-500'
+                          : 'hover:shadow-md'
+                      }`}
+                      aria-label={`React with ${emoji}`}
+                    >
+                      <span className="text-lg transition-transform group-hover:scale-110">
+                        {emoji}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Recently used section */}
             {groupedReactions.length > 0 && (

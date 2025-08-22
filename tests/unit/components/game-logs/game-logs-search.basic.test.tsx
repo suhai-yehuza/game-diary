@@ -167,7 +167,7 @@ describe('GameLogsSearch', () => {
       />
     );
 
-    const searchInput = screen.getByPlaceholderText('Search game logs...');
+    const searchInput = screen.getByPlaceholderText('Search by tags...');
     const select = screen.getByRole('combobox');
 
     expect(searchInput).toHaveValue('initial search');

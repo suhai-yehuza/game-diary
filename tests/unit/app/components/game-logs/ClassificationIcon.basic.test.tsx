@@ -33,24 +33,24 @@ describe('ClassificationIcon', () => {
   it('applies correct CSS classes for public classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PUBLIC} />);
     const icon = screen.getByTestId('eye-icon');
-    expect(icon).toHaveClass('w-4', 'h-4', 'text-green-600');
+    expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-success');
   });
 
   it('applies correct CSS classes for protected classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PROTECTED} />);
     const icon = screen.getByTestId('users-icon');
-    expect(icon).toHaveClass('w-4', 'h-4', 'text-yellow-600');
+    expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-warning');
   });
 
   it('applies correct CSS classes for private classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PRIVATE} />);
     const icon = screen.getByTestId('lock-icon');
-    expect(icon).toHaveClass('w-4', 'h-4', 'text-red-600');
+    expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-error');
   });
 
   it('applies correct CSS classes for unknown classification', () => {
     render(<ClassificationIcon classification="UNKNOWN" />);
     const icon = screen.getByTestId('eye-off-icon');
-    expect(icon).toHaveClass('w-4', 'h-4', 'text-gray-400');
+    expect(icon).toHaveClass('w-4', 'h-4', 'text-neutral-400');
   });
 });

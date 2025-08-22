@@ -28,11 +28,11 @@ export function NavItem({
     rounded-lg
     transition-all duration-200 ease-out
     active:scale-95
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
     ${
       isActive
-        ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border border-blue-300 dark:border-blue-800'
-        : 'bg-white text-gray-900 dark:text-gray-100 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 shadow-sm'
+        ? 'bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary border border-brand-primary/30 dark:border-brand-primary/40'
+        : 'bg-neutral-50 text-neutral-900 dark:text-neutral-100 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 shadow-sm'
     }
     ${className}
   `;
@@ -45,11 +45,11 @@ export function NavItem({
     whitespace-nowrap
     flex items-center w-full h-full
     rounded-md
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
     ${
       isActive
-        ? 'text-blue-600 dark:text-blue-600 bg-blue-50 dark:bg-blue-900/20'
-        : 'hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+        ? 'text-brand-primary dark:text-brand-primary bg-brand-primary/10 dark:bg-brand-primary/20'
+        : 'hover:text-neutral-900 dark:hover:text-neutral-100 hover:bg-neutral-100 dark:hover:bg-neutral-800'
     }
     ${className}
   `;

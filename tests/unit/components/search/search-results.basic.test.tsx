@@ -107,12 +107,12 @@ describe('SearchResults', () => {
   it('renders all sections when results are available', () => {
     render(<SearchResults results={mockResults} query="test" />);
 
-    expect(screen.getByText('Found 10 results for "test"')).toBeInTheDocument();
-    expect(screen.getByText('Users (2)')).toBeInTheDocument();
-    expect(screen.getByText('Games (2)')).toBeInTheDocument();
-    expect(screen.getByText('Game Logs (2)')).toBeInTheDocument();
-    expect(screen.getByText('Teams (2)')).toBeInTheDocument();
-    expect(screen.getByText('Players (2)')).toBeInTheDocument();
+    expect(screen.getByText('10 results found')).toBeInTheDocument();
+    expect(screen.getAllByText('Users (2)')).toHaveLength(2);
+    expect(screen.getAllByText('Games (2)')).toHaveLength(2);
+    expect(screen.getAllByText('Game Logs (2)')).toHaveLength(2);
+    expect(screen.getAllByText('Teams (2)')).toHaveLength(2);
+    expect(screen.getAllByText('Players (2)')).toHaveLength(2);
   });
 
   it('renders user results', () => {
@@ -154,20 +154,28 @@ describe('SearchResults', () => {
     render(<SearchResults results={mockResults} query="test" />);
 
     // Click on users filter
-    const usersFilter = screen.getByText('2 users');
+    const usersFilter = screen.getByText('Users (2)', {
+      selector: 'span[class*="bg-semantic-success"]',
+    });
     fireEvent.click(usersFilter);
 
-    expect(screen.getByText('Found 2 results for "test"')).toBeInTheDocument();
-    expect(screen.getByText('Users (2)')).toBeInTheDocument();
-    expect(screen.queryByText('Games (2)')).not.toBeInTheDocument();
+    expect(screen.getByText('10 results found')).toBeInTheDocument();
+    expect(
+      screen.getByText('Users (2)', { selector: 'span[class*="bg-brand-primary"]' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Games (2)', { selector: 'span[class*="bg-accent-orange"]' })
+    ).toBeInTheDocument();
   });
 
   it('shows no results message when no results are found', () => {
     render(<SearchResults results={mockEmptyResults} query="test" />);
 
-    expect(screen.getByText('No results found')).toBeInTheDocument();
+    expect(screen.getByText('No results found for "test"')).toBeInTheDocument();
     expect(
-      screen.getByText('Try searching for a different term or check your spelling.')
+      screen.getByText(
+        "Try adjusting your search terms or filters to find what you're looking for."
+      )
     ).toBeInTheDocument();
   });
 
@@ -198,33 +206,47 @@ describe('SearchResults', () => {
 
     render(<SearchResults results={singleResult} query="test" />);
 
-    expect(screen.getByText('1 user')).toBeInTheDocument();
+    expect(
+      screen.getByText('Users (1)', { selector: 'span[class*="bg-semantic-success"]' })
+    ).toBeInTheDocument();
   });
 
   it('filters to show only games when games filter is clicked', () => {
     render(<SearchResults results={mockResults} query="test" />);
 
-    const gamesFilter = screen.getByText('2 games');
+    const gamesFilter = screen.getByText('Games (2)', {
+      selector: 'span[class*="bg-accent-orange"]',
+    });
     fireEvent.click(gamesFilter);
 
-    expect(screen.getByText('Found 2 results for "test"')).toBeInTheDocument();
-    expect(screen.getByText('Games (2)')).toBeInTheDocument();
-    expect(screen.queryByText('Users (2)')).not.toBeInTheDocument();
+    expect(screen.getByText('10 results found')).toBeInTheDocument();
+    expect(
+      screen.getByText('Games (2)', { selector: 'span[class*="bg-brand-primary"]' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Users (2)', { selector: 'span[class*="bg-semantic-success"]' })
+    ).toBeInTheDocument();
   });
 
   it('returns to all results when all filter is clicked', () => {
     render(<SearchResults results={mockResults} query="test" />);
 
     // First click on users filter
-    const usersFilter = screen.getByText('2 users');
+    const usersFilter = screen.getByText('Users (2)', {
+      selector: 'span[class*="bg-semantic-success"]',
+    });
     fireEvent.click(usersFilter);
 
     // Then click on all filter
-    const allFilter = screen.getByText('10 total');
+    const allFilter = screen.getByText('All (10)', { selector: 'span[class*="bg-neutral-"]' });
     fireEvent.click(allFilter);
 
-    expect(screen.getByText('Found 10 results for "test"')).toBeInTheDocument();
-    expect(screen.getByText('Users (2)')).toBeInTheDocument();
-    expect(screen.getByText('Games (2)')).toBeInTheDocument();
+    expect(screen.getByText('10 results found')).toBeInTheDocument();
+    expect(
+      screen.getByText('Users (2)', { selector: 'span[class*="bg-semantic-success"]' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Games (2)', { selector: 'span[class*="bg-accent-orange"]' })
+    ).toBeInTheDocument();
   });
 });

@@ -34,26 +34,24 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
 
   return (
     <div
-      className="flex items-center space-x-4 p-4 bg-card border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+      className="flex items-center space-x-4 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
       onClick={handleClick}
     >
       <div className="flex-shrink-0">
-        <div className="w-10 h-10 bg-red-100 dark:bg-red-900 rounded-full flex items-center justify-center">
-          <div data-testid="building2-icon">
-            <Building2Icon className="w-5 h-5 text-red-600 dark:text-red-400" />
-          </div>
+        <div className="w-10 h-10 bg-semantic-error/10 dark:bg-semantic-error/20 rounded-full flex items-center justify-center">
+          <Building2Icon className="w-5 h-5 text-semantic-error" />
         </div>
       </div>
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-foreground truncate-white">
+          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
             {team.name && team.name.trim() !== '' ? team.name : 'Unknown Team'}
           </h3>
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-semantic-error/10 text-semantic-error border border-semantic-error/20">
             Team
           </span>
         </div>
-        <div className="flex items-center space-x-4 text-sm text-muted-foreground">
+        <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
           {team.nickname && <span className="font-medium">{team.nickname}</span>}
           {location && (
             <span className="flex items-center space-x-1">
@@ -62,7 +60,7 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
             </span>
           )}
         </div>
-        <div className="flex items-center space-x-2 text-xs text-muted-foreground mt-1">
+        <div className="flex items-center space-x-2 text-xs text-neutral-500 dark:text-neutral-500 mt-1">
           {conferenceDivision && <span>{conferenceDivision}</span>}
         </div>
       </div>

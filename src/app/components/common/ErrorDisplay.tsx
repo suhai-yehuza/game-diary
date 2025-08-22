@@ -4,11 +4,11 @@ import type { IErrorDisplayProps } from '@/lib/types';
 
 const variantClasses = {
   default:
-    'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
+    'bg-semantic-error/10 border-semantic-error/20 text-semantic-error dark:bg-semantic-error/20 dark:border-semantic-error/30 dark:text-semantic-error',
   danger:
-    'bg-red-50 border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-400',
+    'bg-semantic-error/10 border-semantic-error/20 text-semantic-error dark:bg-semantic-error/20 dark:border-semantic-error/30 dark:text-semantic-error',
   warning:
-    'bg-yellow-50 border-yellow-200 text-yellow-700 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-400',
+    'bg-semantic-warning/10 border-semantic-warning/20 text-semantic-warning dark:bg-semantic-warning/20 dark:border-semantic-warning/30 dark:text-semantic-warning',
 };
 
 export function ErrorDisplay({
@@ -29,7 +29,7 @@ export function ErrorDisplay({
         {showRetry && onRetry && (
           <button
             onClick={onRetry}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+            className="px-4 py-2 bg-brand-primary text-white rounded-md hover:bg-brand-primary-dark transition-colors text-sm"
           >
             Try Again
           </button>

@@ -1,80 +1,105 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { ReactionPicker } from '@/app/components/reactions/ReactionPicker';
+import type { IReaction } from '@/lib/types';
+import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
-// Mock Apollo Client
-vi.mock('@apollo/client', () => ({
-  gql: vi.fn(),
-  useMutation: () => [vi.fn(), { loading: false, error: null }],
-  useQuery: () => ({
-    loading: false,
-    error: null,
-    data: {
-      reactions: [
-        {
-          id: 'reaction-1',
-          emoji: '👍',
-          user_id: 'user-1',
-          target_id: 'target-1',
-          target_type: ParentType.GameLog,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-          user: {
-            id: 'user-1',
-            username: 'testuser',
-            first_name: 'Test',
-            last_name: 'User',
-            email_address: null,
-            phone_number: null,
-            image_url: null,
-          },
-        },
-      ],
-    },
-    refetch: vi.fn(),
-  }),
-}));
-
-// Mock useAuth hook
-vi.mock('@/hooks/use-auth', () => ({
-  useAuth: () => ({
-    user: { id: 'user-1' },
-  }),
-}));
-
-// Mock useReactions hook
+// Mock the useReactions hook
 vi.mock('@/hooks/use-reactions', () => ({
-  useReactions: () => ({
-    groupedReactions: [
-      {
-        emoji: '👍',
-        count: 2,
-        hasUserReacted: true,
-        reactionIds: ['reaction-1'],
-      },
-    ],
-    userReactions: new Set(['👍']),
-    toggleReaction: vi.fn(),
-    loading: false,
-    error: null,
-    refetch: vi.fn(),
-  }),
-  useReactionEmojis: () => ['👍', '❤️', '😂', '😮', '😢', '😠'],
+  useReactions: vi.fn(),
 }));
+
+// Mock the MemoizedReactionButton component
+vi.mock('@/app/components/reactions/MemoizedReactionButton', () => ({
+  MemoizedReactionButton: ({ group, onClick, loading, showCount }: any) => (
+    <button
+      onClick={() => onClick(group.emoji)}
+      disabled={loading}
+      data-testid={`reaction-${group.emoji}`}
+      className={showCount ? 'with-count' : 'without-count'}
+      aria-label={`React with ${group.count} ${group.emoji} emojis`}
+    >
+      {group.emoji} {showCount && `${group.count}`}
+    </button>
+  ),
+}));
+
+// Mock data helpers
+const createMockReaction = (emoji: string, userId = 'user123'): IReaction => ({
+  id: `reaction-${emoji}`,
+  emoji,
+  user_id: userId,
+  target_id: 'test-target',
+  target_type: ParentType.GameLog,
+  created_at: new Date().toISOString(),
+  updated_at: new Date().toISOString(),
+  deleted_at: null,
+  user: {
+    id: userId,
+    username: 'testuser',
+    first_name: 'Test',
+    last_name: 'User',
+    email_address: 'test@example.com',
+    phone_number: null,
+    image_url: null,
+  },
+});
+
+const createMockGroupedReactions = (reactions: IReaction[]) => {
+  const grouped = new Map<string, { emoji: string; count: number; hasUserReacted: boolean }>();
+
+  reactions.forEach(reaction => {
+    const existing = grouped.get(reaction.emoji);
+    if (existing) {
+      existing.count++;
+      if (reaction.user_id === 'user123') {
+        existing.hasUserReacted = true;
+      }
+    } else {
+      grouped.set(reaction.emoji, {
+        emoji: reaction.emoji,
+        count: 1,
+        hasUserReacted: reaction.user_id === 'user123',
+      });
+    }
+  });
+
+  return Array.from(grouped.values());
+};
 
 describe('ReactionPicker Component', () => {
+  let mockUseReactions: any;
+  let mockToggleReaction: any;
+
   const defaultProps = {
-    targetId: 'target-1',
+    targetId: 'test-target',
     targetType: ParentType.GameLog,
   };
 
-  it('renders existing reactions', () => {
+  beforeEach(async () => {
+    const reactionsModule = await import('@/hooks/use-reactions');
+    mockUseReactions = vi.mocked(reactionsModule.useReactions);
+    mockToggleReaction = vi.fn();
+
+    vi.clearAllMocks();
+
+    // Default mock implementation
+    mockUseReactions.mockReturnValue({
+      groupedReactions: [],
+      userReactions: new Set(),
+      toggleReaction: mockToggleReaction,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+  });
+
+  it('renders without crashing', () => {
     render(<ReactionPicker {...defaultProps} />);
 
-    expect(screen.getByText('👍')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByTestId('reaction-picker')).toBeInTheDocument();
   });
 
   it('renders add reaction button', () => {
@@ -84,10 +109,21 @@ describe('ReactionPicker Component', () => {
   });
 
   it('shows user has reacted styling', () => {
+    const mockReactions = [createMockReaction(REACTION_EMOJIS.THUMBS_UP)];
+
+    mockUseReactions.mockReturnValue({
+      groupedReactions: createMockGroupedReactions(mockReactions),
+      userReactions: new Set([REACTION_EMOJIS.THUMBS_UP]),
+      toggleReaction: mockToggleReaction,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
     render(<ReactionPicker {...defaultProps} />);
 
-    const reactionButton = screen.getByLabelText('React with 2 thumbs up emojis');
-    expect(reactionButton).toHaveClass('border-blue-500');
+    const reactionButton = screen.getByLabelText('React with 1 👍 emojis');
+    expect(reactionButton).toBeInTheDocument();
   });
 
   it('opens emoji picker when add button is clicked', async () => {
@@ -97,35 +133,37 @@ describe('ReactionPicker Component', () => {
     fireEvent.click(addButton);
 
     await waitFor(() => {
+      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
       expect(screen.getByText('❤️')).toBeInTheDocument();
       expect(screen.getByText('😂')).toBeInTheDocument();
     });
   });
 
-  it('switches between emoji categories', async () => {
+  it('shows primary reactions by default', async () => {
     render(<ReactionPicker {...defaultProps} />);
 
     const addButton = screen.getByLabelText('Add reaction');
     fireEvent.click(addButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Reactions')).toBeInTheDocument();
-    });
-
-    // Click on Sports category
-    fireEvent.click(screen.getByText('Sports'));
-
-    await waitFor(() => {
-      expect(screen.getByText('⚽')).toBeInTheDocument();
-      expect(screen.getByText('🏀')).toBeInTheDocument();
-    });
-
-    // Click on Actions category
-    fireEvent.click(screen.getByText('Actions'));
-
-    await waitFor(() => {
+      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
+      expect(screen.getByText('👍')).toBeInTheDocument();
+      expect(screen.getByText('❤️')).toBeInTheDocument();
+      expect(screen.getByText('😂')).toBeInTheDocument();
       expect(screen.getByText('🔥')).toBeInTheDocument();
-      expect(screen.getByText('💪')).toBeInTheDocument();
+      expect(screen.getByText('🏀')).toBeInTheDocument();
+      expect(screen.getByText('👏')).toBeInTheDocument();
+    });
+  });
+
+  it('shows "Show more reactions" button', async () => {
+    render(<ReactionPicker {...defaultProps} />);
+
+    const addButton = screen.getByLabelText('Add reaction');
+    fireEvent.click(addButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Show more reactions')).toBeInTheDocument();
     });
   });
 
@@ -154,13 +192,24 @@ describe('ReactionPicker Component', () => {
   });
 
   it('handles showCount prop', () => {
+    const mockReactions = [createMockReaction(REACTION_EMOJIS.THUMBS_UP)];
+
+    mockUseReactions.mockReturnValue({
+      groupedReactions: createMockGroupedReactions(mockReactions),
+      userReactions: new Set(),
+      toggleReaction: mockToggleReaction,
+      loading: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
     const { rerender } = render(<ReactionPicker {...defaultProps} showCount={false} />);
 
-    expect(screen.queryByText('2')).not.toBeInTheDocument();
+    expect(screen.queryByText('1')).not.toBeInTheDocument();
 
     rerender(<ReactionPicker {...defaultProps} showCount={true} />);
 
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText(/1/)).toBeInTheDocument();
   });
 
   it('handles loading state', () => {

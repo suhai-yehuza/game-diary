@@ -71,8 +71,7 @@ describe('DeleteGameLogModal', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     expect(screen.getByRole('heading', { name: /Delete Game Log/ })).toBeInTheDocument();
-    expect(screen.getByText('Are you sure?')).toBeInTheDocument();
-    expect(screen.getByText(/This action cannot be undone/)).toBeInTheDocument();
+    expect(screen.getAllByText(/This action cannot be undone/)).toHaveLength(2);
     expect(screen.getByText('Cancel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Delete Game Log' })).toBeInTheDocument();
   });
@@ -187,7 +186,7 @@ describe('DeleteGameLogModal', () => {
 
     render(<DeleteGameLogModal {...mockProps} />);
 
-    const deleteButton = screen.getByText('Deleting...');
+    const deleteButton = screen.getByText('Deleting...').closest('button');
     expect(deleteButton).toBeInTheDocument();
     expect(deleteButton).toBeDisabled();
   });
@@ -249,8 +248,9 @@ describe('DeleteGameLogModal', () => {
   it('has correct styling classes', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    const modal = screen.getByText('Are you sure?').closest('div')?.parentElement
-      ?.parentElement?.parentElement;
+    const modal = screen
+      .getByRole('heading', { name: /Delete Game Log/ })
+      .closest('[class*="fixed"]');
     expect(modal).toHaveClass('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'z-50');
   });
 
@@ -258,13 +258,16 @@ describe('DeleteGameLogModal', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     const title = screen.getByRole('heading', { name: /Delete Game Log/ });
-    expect(title).toHaveClass('text-red-600');
+    expect(title).toHaveClass('text-neutral-900', 'dark:text-neutral-100');
   });
 
   it('displays permanent deletion warning', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     expect(screen.getByText(/permanently delete/)).toBeInTheDocument();
-    expect(screen.getByText(/permanently delete/)).toHaveClass('font-bold', 'text-red-600');
+    expect(screen.getByText(/permanently delete/)).toHaveClass(
+      'font-semibold',
+      'text-semantic-error'
+    );
   });
 });

@@ -9,12 +9,12 @@ import type { IGameLogsSearchProps } from '@/lib/types';
 
 const searchFields = [
   { value: 'all', label: 'All Fields' },
-  { value: 'classification', label: 'Privacy' },
-  { value: 'watched_setting', label: 'Setting' },
-  { value: 'watched_scope', label: 'Scope' },
+  { value: 'team', label: 'Team' },
   { value: 'notes', label: 'Notes' },
   { value: 'tags', label: 'Tags' },
-  { value: 'team', label: 'Team' },
+  { value: 'classification', label: 'Privacy' },
+  { value: 'setting', label: 'Setting' },
+  { value: 'scope', label: 'Scope' },
 ];
 
 export function GameLogsSearch({
@@ -50,21 +50,23 @@ export function GameLogsSearch({
     >
       <div className="flex-1 relative">
         {!localSearchTerm && (
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4" />
         )}
         <input
           type="text"
-          placeholder="Search game logs..."
+          placeholder={
+            localSearchField === 'all' ? 'Search game logs...' : `Search by ${localSearchField}...`
+          }
           value={localSearchTerm}
           onChange={e => setLocalSearchTerm(e.target.value)}
-          className={`w-full border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 ${localSearchTerm ? 'pl-3 pr-10' : 'pl-10 pr-10'} ${
+          className={`w-full border border-neutral-200 dark:border-neutral-600 rounded-xl bg-neutral-50 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent shadow-sm transition-all duration-200 ${localSearchTerm ? 'pl-3 pr-10' : 'pl-10 pr-10'} ${
             isMobile ? 'py-3 text-base' : 'py-2.5 text-sm'
           }`}
         />
         {localSearchTerm && (
           <button
             onClick={handleClear}
-            className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-white hover:text-gray-200 transition-colors duration-200 ${
+            className={`absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-600 hover:text-neutral-800 transition-colors duration-200 ${
               isMobile ? 'p-2' : 'p-1'
             }`}
           >
@@ -76,9 +78,10 @@ export function GameLogsSearch({
       <select
         value={localSearchField}
         onChange={e => setLocalSearchField(e.target.value)}
-        className={`border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200 ${
+        className={`border border-neutral-200 dark:border-neutral-600 rounded-xl bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent shadow-sm transition-all duration-200 ${
           isMobile ? 'px-4 py-3 text-base' : 'px-3 py-2.5 text-sm'
         }`}
+        aria-label="Search field"
       >
         {searchFields.map(field => (
           <option key={field.value} value={field.value}>

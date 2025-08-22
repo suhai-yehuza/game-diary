@@ -50,7 +50,7 @@ function GameLogCard({ gameLog }) {
   return (
     <div>
       {/* Game log content */}
-      <GameLogComments gameLog={gameLog} />
+      <GameLogComments gameLog={gameLog} showComments={true} />
     </div>
   );
 }

@@ -199,7 +199,7 @@ describe('LiveGamesBanner', () => {
     const liveIndicator = screen.getByTestId('live-indicator');
     expect(liveIndicator).toBeInTheDocument();
     expect(liveIndicator).toHaveClass('animate-live-dot-glow');
-    expect(liveIndicator).toHaveClass('bg-red-500');
+    expect(liveIndicator).toHaveClass('bg-semantic-error');
     expect(liveIndicator).toHaveClass('rounded-full');
   });
 
@@ -518,7 +518,7 @@ describe('LiveGamesBanner', () => {
       const liveIndicator = screen.getByTestId('live-indicator');
 
       // Check for updated indicator size and color
-      expect(liveIndicator).toHaveClass('w-2.5', 'h-2.5', 'bg-red-500', 'flex-shrink-0');
+      expect(liveIndicator).toHaveClass('w-2.5', 'h-2.5', 'bg-semantic-error', 'flex-shrink-0');
     });
 
     it('has proper background gradient', () => {

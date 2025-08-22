@@ -66,12 +66,12 @@ describe('ErrorDisplay', () => {
     // Find the outer container that has the variant classes
     const container = screen.getByText('An error occurred').closest('div')?.parentElement;
     expect(container).toHaveClass(
-      'bg-red-50',
-      'border-red-200',
-      'text-red-700',
-      'dark:bg-red-900/20',
-      'dark:border-red-800',
-      'dark:text-red-400'
+      'bg-semantic-error/10',
+      'border-semantic-error/20',
+      'text-semantic-error',
+      'dark:bg-semantic-error/20',
+      'dark:border-semantic-error/30',
+      'dark:text-semantic-error'
     );
   });
 
@@ -81,12 +81,12 @@ describe('ErrorDisplay', () => {
     // Find the outer container that has the variant classes
     const container = screen.getByText('An error occurred').closest('div')?.parentElement;
     expect(container).toHaveClass(
-      'bg-red-50',
-      'border-red-200',
-      'text-red-700',
-      'dark:bg-red-900/20',
-      'dark:border-red-800',
-      'dark:text-red-400'
+      'bg-semantic-error/10',
+      'border-semantic-error/20',
+      'text-semantic-error',
+      'dark:bg-semantic-error/20',
+      'dark:border-semantic-error/30',
+      'dark:text-semantic-error'
     );
   });
 
@@ -96,12 +96,12 @@ describe('ErrorDisplay', () => {
     // Find the outer container that has the variant classes
     const container = screen.getByText('An error occurred').closest('div')?.parentElement;
     expect(container).toHaveClass(
-      'bg-yellow-50',
-      'border-yellow-200',
-      'text-yellow-700',
-      'dark:bg-yellow-900/20',
-      'dark:border-yellow-800',
-      'dark:text-yellow-400'
+      'bg-semantic-warning/10',
+      'border-semantic-warning/20',
+      'text-semantic-warning',
+      'dark:bg-semantic-warning/20',
+      'dark:border-semantic-warning/30',
+      'dark:text-semantic-warning'
     );
   });
 

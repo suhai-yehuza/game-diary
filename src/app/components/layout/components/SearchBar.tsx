@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 
 import { MOBILE_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
+import { SearchSuggestions } from '@/app/components/search/SearchSuggestions';
 
 // Common search input component
 function SearchInput({
@@ -12,6 +13,7 @@ function SearchInput({
   onChange,
   onFocus,
   onBlur,
+  onKeyDown,
   placeholder,
   className = '',
   autoFocus = false,
@@ -25,6 +27,7 @@ function SearchInput({
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFocus?: () => void;
   onBlur?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   placeholder: string;
   className?: string;
   autoFocus?: boolean;
@@ -37,16 +40,17 @@ function SearchInput({
   return (
     <div className="relative flex-1">
       {!value && (
-        <Search className="absolute left-2 top-2 h-4 w-4 text-gray-500 dark:text-gray-400" />
+        <Search className="absolute left-1.5 xs:left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 md:h-4 md:w-4 text-neutral-500 dark:text-neutral-400" />
       )}
       <input
         type="search"
         placeholder={placeholder}
-        className={`w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400 ${value ? 'pl-2' : 'pl-8'} ${className}`}
+        className={`w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 !text-neutral-900 dark:!text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 ${value ? 'pl-1.5 xs:pl-2 sm:pl-2.5 md:pl-3' : 'pl-6 xs:pl-7 sm:pl-8 md:pl-9'} ${className}`}
         value={value}
         onChange={onChange}
         onFocus={onFocus}
         onBlur={onBlur}
+        onKeyDown={onKeyDown}
         autoComplete={autoComplete}
         spellCheck={spellCheck}
         autoFocus={autoFocus}
@@ -71,7 +75,7 @@ function CloseButton({
   return (
     <button
       type="button"
-      className={`!text-white hover:!text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${className}`}
+      className={`!text-white hover:!text-neutral-200 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 ${className}`}
       aria-label={ariaLabel}
       onMouseDown={e => {
         e.preventDefault();
@@ -168,9 +172,22 @@ function useSearchLogic() {
   const handleSearch = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      setDebouncedQuery(search_query);
+      const trimmedQuery = search_query.trim();
+
+      // Immediate search on Enter (no debounce)
+      if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
+        const encodedQuery = encodeURIComponent(trimmedQuery);
+        if (pathname.startsWith('/protected/admin')) {
+          router.push(`/protected/admin/users?q=${encodedQuery}`);
+        } else {
+          router.push(`/search?q=${encodedQuery}`);
+        }
+      }
+
+      // Close suggestions
+      setIsFocused(false);
     },
-    [search_query]
+    [search_query, pathname, router, setIsFocused]
   );
 
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -184,6 +201,31 @@ function useSearchLogic() {
     setDebouncedQuery('');
   }, []);
 
+  // Handle keyboard events for better UX
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        const trimmedQuery = search_query.trim();
+
+        if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
+          const encodedQuery = encodeURIComponent(trimmedQuery);
+          if (pathname.startsWith('/protected/admin')) {
+            router.push(`/protected/admin/users?q=${encodedQuery}`);
+          } else {
+            router.push(`/search?q=${encodedQuery}`);
+          }
+        }
+
+        setIsFocused(false);
+      } else if (e.key === 'Escape') {
+        setIsFocused(false);
+        e.currentTarget.blur();
+      }
+    },
+    [search_query, pathname, router, setIsFocused]
+  );
+
   return {
     search_query,
     isFocused,
@@ -191,6 +233,7 @@ function useSearchLogic() {
     handleSearch,
     handleSearchChange,
     clearSearch,
+    handleKeyDown,
   };
 }
 
@@ -206,6 +249,7 @@ function SearchBarContent({
     handleSearch,
     handleSearchChange,
     clearSearch,
+    handleKeyDown,
   } = useSearchLogic();
   const pathname = usePathname();
 
@@ -227,50 +271,87 @@ function SearchBarContent({
 
   // Responsive form class for normal state
   const baseFormClass =
-    'relative max-w-[140px] sm:max-w-[180px] md:max-w-[220px] h-9 sm:h-11 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow flex items-center px-2 transition-all duration-200 text-xs sm:text-sm';
+    'relative max-w-[120px] xs:max-w-[140px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[240px] xl:max-w-[280px] h-8 xs:h-9 sm:h-10 md:h-11 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow flex items-center px-1.5 xs:px-2 sm:px-2.5 md:px-3 transition-all duration-200 text-xs xs:text-sm sm:text-sm md:text-base';
 
   // Expanded form class for focused state (responsive, no overlay)
   const expandedFormClass =
-    'relative w-full max-w-[95vw] sm:max-w-[300px] md:max-w-[400px] h-12 bg-white dark:bg-gray-800 backdrop-blur-sm border border-gray-300 dark:border-gray-600 shadow-2xl flex items-center px-2 sm:px-4 py-2 rounded-md transition-all duration-200 text-base z-[100]';
+    'relative w-full max-w-[95vw] xs:max-w-[calc(100vw-1rem)] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[700px] h-10 xs:h-11 sm:h-12 md:h-12 bg-white dark:bg-gray-800 backdrop-blur-sm border border-gray-300 dark:border-gray-600 shadow-2xl flex items-center px-2 xs:px-3 sm:px-4 md:px-5 py-2 rounded-md transition-all duration-200 text-sm xs:text-base sm:text-base md:text-lg z-[100]';
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = useCallback(
+    (suggestion: string) => {
+      // Update the search query with the selected suggestion
+      const event = {
+        target: { value: suggestion },
+      } as React.ChangeEvent<HTMLInputElement>;
+      handleSearchChange(event);
+
+      // Submit the search
+      const formEvent = new Event('submit', { bubbles: true, cancelable: true });
+      const form = document.querySelector('form');
+      if (form) {
+        form.dispatchEvent(formEvent);
+      }
+
+      // Close suggestions
+      setIsFocused(false);
+    },
+    [handleSearchChange, setIsFocused]
+  );
 
   // Only expand the searchbar in place, no overlay
   return (
-    <form
-      onSubmit={handleSearch}
-      className={isFocused ? expandedFormClass : baseFormClass}
-      tabIndex={-1}
-    >
-      <label htmlFor="search-input" className="sr-only">
-        Search
-      </label>
-      <SearchInput
-        id="search-input"
-        value={search_query}
-        onChange={handleSearchChange}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-        placeholder={getPlaceholder()}
-        className={isFocused ? 'h-11 md:h-11 text-base' : 'h-9 sm:h-11 text-xs sm:text-sm'}
-        autoFocus={autoFocus}
-        aria-label="Search"
-        data-testid="search"
-      />
-      {isFocused ? (
-        <CloseButton
-          onClick={() => setIsFocused(false)}
-          className="ml-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-          ariaLabel="Close search"
+    <div className="relative">
+      <form
+        onSubmit={handleSearch}
+        className={isFocused ? expandedFormClass : baseFormClass}
+        tabIndex={-1}
+      >
+        <label htmlFor="search-input" className="sr-only">
+          Search
+        </label>
+        <SearchInput
+          id="search-input"
+          value={search_query}
+          onChange={handleSearchChange}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+          onKeyDown={handleKeyDown}
+          placeholder={getPlaceholder()}
+          className={
+            isFocused
+              ? 'h-10 xs:h-11 sm:h-12 md:h-12 text-sm xs:text-base sm:text-base md:text-lg'
+              : 'h-8 xs:h-9 sm:h-10 md:h-11 text-xs xs:text-sm sm:text-sm md:text-base'
+          }
+          autoFocus={autoFocus}
+          aria-label="Search"
+          data-testid="search"
         />
-      ) : (
-        search_query && (
+        {isFocused ? (
           <CloseButton
-            onClick={clearSearch}
-            className="absolute right-2 top-1/2 -translate-y-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            ariaLabel="Clear search"
+            onClick={() => setIsFocused(false)}
+            className="ml-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            ariaLabel="Close search"
           />
-        )
-      )}
-    </form>
+        ) : (
+          search_query && (
+            <CloseButton
+              onClick={clearSearch}
+              className="absolute right-2 top-1/2 -translate-y-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              ariaLabel="Clear search"
+            />
+          )
+        )}
+      </form>
+
+      {/* Search Suggestions */}
+      <SearchSuggestions
+        query={search_query}
+        onSuggestionSelect={handleSuggestionSelect}
+        onClose={() => setIsFocused(false)}
+        isVisible={isFocused && search_query.length > 0}
+      />
+    </div>
   );
 }
 

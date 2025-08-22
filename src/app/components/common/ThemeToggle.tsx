@@ -42,13 +42,13 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
         className={`inline-flex items-center bg-[#18181b] dark:bg-[#18181b] rounded-full p-0.5 border border-[#27272a] ${className ?? ''}`}
       >
         <div className="flex items-center justify-center h-11 w-11 rounded-full bg-[#232329] text-white shadow mx-0.5">
-          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
         </div>
         <div className="flex items-center justify-center h-11 w-11 rounded-full text-[#71717a] mx-0.5">
-          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
         </div>
         <div className="flex items-center justify-center h-11 w-11 rounded-full text-[#71717a] mx-0.5">
-          <div className="w-4 h-4 bg-gray-300 rounded animate-pulse" />
+          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
         </div>
       </div>
     );
@@ -64,7 +64,7 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
           onClick={() => setTheme(themeOption.name)}
           onKeyDown={e => handleKeyDown(e, themeOption.name)}
           className={`flex items-center justify-center h-11 w-11 rounded-full transition-colors mx-0.5
-            ${theme === themeOption.name ? 'bg-[#232329] text-white shadow' : 'text-[#71717a] hover:text-white'} focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+            ${theme === themeOption.name ? 'bg-[#232329] text-white shadow' : 'text-[#71717a] hover:text-white'} focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
           `}
           aria-label={themeOption.label}
         >

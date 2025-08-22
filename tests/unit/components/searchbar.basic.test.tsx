@@ -14,6 +14,13 @@ vi.mock('next/navigation', () => ({
 vi.mock('lucide-react', () => ({
   Search: () => <span data-testid="search-icon">🔍</span>,
   X: () => <span data-testid="close-icon">✕</span>,
+  Clock: () => <span data-testid="clock-icon">Clock</span>,
+  TrendingUp: () => <span data-testid="trending-up-icon">TrendingUp</span>,
+  User: () => <span data-testid="user-icon">User</span>,
+  Trophy: () => <span data-testid="trophy-icon">Trophy</span>,
+  Gamepad2: () => <span data-testid="gamepad2-icon">Gamepad2</span>,
+  Building2: () => <span data-testid="building2-icon">Building2</span>,
+  Hash: () => <span data-testid="hash-icon">Hash</span>,
 }));
 
 import { SearchBar } from '@/app/components/layout/components/SearchBar';

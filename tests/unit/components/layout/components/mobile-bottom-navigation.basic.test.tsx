@@ -83,7 +83,7 @@ describe('MobileBottomNavigation', () => {
     render(<MobileBottomNavigation />);
 
     const searchButton = screen.getByTestId('search-icon').closest('a');
-    expect(searchButton).toHaveClass('text-blue-600');
+    expect(searchButton).toHaveClass('text-brand-primary');
   });
 
   it('handles menu button click', () => {
@@ -110,7 +110,7 @@ describe('MobileBottomNavigation', () => {
     render(<MobileBottomNavigation />);
 
     const menuButton = screen.getByTestId('menu-icon').closest('button');
-    expect(menuButton).toHaveClass('text-blue-600');
+    expect(menuButton).toHaveClass('text-brand-primary');
   });
 
   it('provides haptic feedback on touch', () => {
@@ -192,7 +192,7 @@ describe('MobileBottomNavigation', () => {
     render(<MobileBottomNavigation />);
 
     const dashboardLink = screen.getByText('Dashboard').closest('a');
-    expect(dashboardLink).toHaveClass('text-blue-600');
+    expect(dashboardLink).toHaveClass('text-brand-primary');
   });
 
   it('handles root path correctly', () => {
@@ -201,6 +201,6 @@ describe('MobileBottomNavigation', () => {
     render(<MobileBottomNavigation />);
 
     const homeLink = screen.getByTestId('home-icon').closest('a');
-    expect(homeLink).toHaveClass('text-blue-600');
+    expect(homeLink).toHaveClass('text-brand-primary');
   });
 });

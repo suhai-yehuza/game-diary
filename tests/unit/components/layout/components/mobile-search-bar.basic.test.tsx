@@ -258,7 +258,10 @@ describe('MobileSearchBar', () => {
       'bg-transparent',
       'border-none',
       'outline-none',
-      'text-base'
+      'text-sm',
+      'xs:text-base',
+      'sm:text-lg',
+      'md:text-xl'
     );
   });
 

@@ -190,30 +190,69 @@ export function AdminAuditLogsContent() {
     void fetchLogs();
   }, []);
 
+  const getCategoryColor = (category: string) => {
+    const isDark = resolvedTheme === 'dark';
+
+    switch (category.toLowerCase()) {
+      case 'authentication':
+        return isDark
+          ? 'bg-blue-900/20 text-blue-300 border-blue-700'
+          : 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'authorization':
+        return isDark
+          ? 'bg-purple-900/20 text-purple-300 border-purple-700'
+          : 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'data_access':
+        return isDark
+          ? 'bg-indigo-900/20 text-indigo-300 border-indigo-700'
+          : 'bg-indigo-100 text-indigo-800 border-indigo-300';
+      case 'encryption':
+        return isDark
+          ? 'bg-teal-900/20 text-teal-300 border-teal-700'
+          : 'bg-teal-100 text-teal-800 border-teal-300';
+      case 'key_management':
+        return isDark
+          ? 'bg-cyan-900/20 text-cyan-300 border-cyan-700'
+          : 'bg-cyan-100 text-cyan-800 border-cyan-300';
+      case 'rls_access':
+        return isDark
+          ? 'bg-sky-900/20 text-sky-300 border-sky-700'
+          : 'bg-sky-100 text-sky-800 border-sky-300';
+      case 'security':
+        return isDark
+          ? 'bg-rose-900/20 text-rose-300 border-rose-700'
+          : 'bg-rose-100 text-rose-800 border-rose-300';
+      default:
+        return isDark
+          ? 'bg-neutral-800 text-neutral-200 border-neutral-700'
+          : 'bg-neutral-600 text-white border-neutral-700';
+    }
+  };
+
   const getSeverityColor = (severity: string) => {
     const isDark = resolvedTheme === 'dark';
 
     switch (severity.toLowerCase()) {
       case 'critical':
         return isDark
-          ? 'bg-red-900/20 text-red-200 border-red-800'
-          : 'bg-red-600 text-white border-red-700';
+          ? 'bg-red-900/20 text-red-300 border-red-700'
+          : 'bg-red-100 text-red-800 border-red-300';
       case 'high':
         return isDark
-          ? 'bg-orange-900/20 text-orange-200 border-orange-800'
-          : 'bg-orange-600 text-white border-orange-700';
+          ? 'bg-orange-900/20 text-orange-300 border-orange-700'
+          : 'bg-orange-100 text-orange-800 border-orange-300';
       case 'medium':
         return isDark
-          ? 'bg-yellow-900/20 text-yellow-200 border-yellow-800'
-          : 'bg-yellow-600 text-white border-yellow-700';
+          ? 'bg-yellow-900/20 text-yellow-300 border-yellow-700'
+          : 'bg-yellow-100 text-yellow-800 border-yellow-300';
       case 'low':
         return isDark
-          ? 'bg-green-900/20 text-green-200 border-green-800'
-          : 'bg-green-600 text-white border-green-700';
+          ? 'bg-green-900/20 text-green-300 border-green-700'
+          : 'bg-green-100 text-green-800 border-green-300';
       default:
         return isDark
-          ? 'bg-gray-800 text-gray-200 border-gray-700'
-          : 'bg-gray-600 text-white border-gray-700';
+          ? 'bg-neutral-800 text-neutral-200 border-neutral-700'
+          : 'bg-neutral-600 text-white border-neutral-700';
     }
   };
 
@@ -383,9 +422,9 @@ export function AdminAuditLogsContent() {
 
     const getSortIcon = () => {
       if (isAsc) {
-        return <ArrowUp data-testid="arrow-up" className="h-4 w-4 text-yellow-300" />;
+        return <ArrowUp data-testid="arrow-up" className="h-4 w-4 text-white" />;
       } else if (isDesc) {
-        return <ArrowDown data-testid="arrow-down" className="h-4 w-4 text-yellow-300" />;
+        return <ArrowDown data-testid="arrow-down" className="h-4 w-4 text-white" />;
       } else {
         return (
           <ArrowUpDown
@@ -717,11 +756,7 @@ export function AdminAuditLogsContent() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
-                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                                resolvedTheme === 'dark'
-                                  ? 'bg-blue-900/20 text-blue-200 border-blue-800'
-                                  : 'bg-blue-600 text-white border-blue-700'
-                              }`}
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryColor(log.category)}`}
                             >
                               {log.category}
                             </span>
@@ -744,11 +779,11 @@ export function AdminAuditLogsContent() {
                               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                                 log.success
                                   ? resolvedTheme === 'dark'
-                                    ? 'bg-green-900/20 text-green-200 border-green-800'
-                                    : 'bg-green-600 text-white border-green-700'
+                                    ? 'bg-green-900/20 text-green-300 border-green-700'
+                                    : 'bg-green-100 text-green-800 border-green-300'
                                   : resolvedTheme === 'dark'
-                                    ? 'bg-red-900/20 text-red-200 border-red-800'
-                                    : 'bg-red-600 text-white border-red-700'
+                                    ? 'bg-red-900/20 text-red-300 border-red-700'
+                                    : 'bg-red-100 text-red-800 border-red-300'
                               }`}
                             >
                               {log.success ? 'Success' : 'Failed'}
@@ -756,7 +791,7 @@ export function AdminAuditLogsContent() {
                           </td>
                           <td className="px-6 py-4 text-sm text-foreground">
                             <div
-                              className="truncate-white max-w-xs"
+                              className="max-w-xs truncate"
                               title={log.description ?? 'No description'}
                             >
                               {log.description ?? 'No description'}

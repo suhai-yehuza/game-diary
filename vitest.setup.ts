@@ -143,6 +143,7 @@ vi.mock('lucide-react', () => {
     Heart: createMockIcon('Heart'),
     UserPlus: createMockIcon('UserPlus'),
     Home: createMockIcon('Home'),
+    Clock: createMockIcon('Clock'),
   };
 
   return {

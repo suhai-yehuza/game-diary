@@ -385,6 +385,28 @@ describe('Tabs Components', () => {
       expect(screen.getByText('Content')).toBeInTheDocument();
     });
 
+    it('throws error when TabsTrigger is used outside Tabs context', () => {
+      // Suppress console.error for this test since we expect an error
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      expect(() => {
+        render(<TabsTrigger value="tab1">Tab 1</TabsTrigger>);
+      }).toThrow('Tabs components must be used within a Tabs component');
+
+      consoleSpy.mockRestore();
+    });
+
+    it('throws error when TabsContent is used outside Tabs context', () => {
+      // Suppress console.error for this test since we expect an error
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+      expect(() => {
+        render(<TabsContent value="tab1">Content</TabsContent>);
+      }).toThrow('Tabs components must be used within a Tabs component');
+
+      consoleSpy.mockRestore();
+    });
+
     it('handles no content', () => {
       render(
         <Tabs value="tab1" onValueChange={vi.fn()}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import { Comment } from '@/app/components/comments/Comment';
@@ -10,12 +10,7 @@ import { useGameLogComments, useDeleteComment, useUpdateComment } from '@/hooks/
 import type { IComment, IGameLogCommentsProps } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
-export function GameLogComments({
-  gameLog,
-  showComments = false,
-  onToggleComments,
-}: IGameLogCommentsProps) {
-  const [isExpanded, setIsExpanded] = useState(showComments);
+export function GameLogComments({ gameLog, showComments = false }: IGameLogCommentsProps) {
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [optimisticDeletedComments, setOptimisticDeletedComments] = useState<Set<string>>(
     new Set()
@@ -24,7 +19,7 @@ export function GameLogComments({
     Map<string, IComment>
   >(new Map());
 
-  // Only load comments when expanded to reduce initial load
+  // Load comments when component is rendered and showComments is true
   const {
     comments,
     loading,
@@ -32,16 +27,12 @@ export function GameLogComments({
     loadMoreComments,
     refetch,
     commentsTotalCount,
-  } = useGameLogComments(gameLog.id, isExpanded ? 5 : 0);
+  } = useGameLogComments(gameLog.id, showComments ? 5 : 0);
 
   const { deleteComment } = useDeleteComment();
   const { updateComment: _updateComment } = useUpdateComment();
 
-  const handleToggleExpanded = () => {
-    const newExpanded = !isExpanded;
-    setIsExpanded(newExpanded);
-    onToggleComments?.(newExpanded);
-  };
+  // Remove toggle functionality since parent handles it
 
   const handleLoadMore = () => {
     void loadMoreComments();
@@ -102,36 +93,22 @@ export function GameLogComments({
 
   // Get comment count from game log data or from loaded comments
   const commentCount =
-    isExpanded && commentsTotalCount !== undefined
+    showComments && commentsTotalCount !== undefined
       ? commentsTotalCount
       : (gameLog.totalCommentCount ?? 0);
 
   return (
     <div className="p-4" data-testid="game-log-comments">
-      <div className="flex items-center justify-between mb-3">
+      <div className="mb-3">
         <div className="flex items-center space-x-2">
-          <MessageCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-          <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          <MessageCircle className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
+          <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Comments {commentCount > 0 ? `(${commentCount})` : ''}
           </span>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleToggleExpanded}
-            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4" />
-            ) : (
-              <ChevronRight className="h-4 w-4" />
-            )}
-          </Button>
-        </div>
       </div>
 
-      {isExpanded && (
+      <div className="pt-0">
         <div className="pt-0">
           {/* Comment Form */}
           {showCommentForm && (
@@ -169,7 +146,9 @@ export function GameLogComments({
           {/* Loading State */}
           {loading && (
             <div className="text-center py-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</div>
+              <div className="text-sm text-neutral-500 dark:text-neutral-400">
+                Loading comments...
+              </div>
             </div>
           )}
 
@@ -181,7 +160,7 @@ export function GameLogComments({
                 onClick={() => {
                   void handleLoadMore();
                 }}
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-brand-primary hover:text-brand-primary/80 dark:text-brand-primary dark:hover:text-brand-primary/80"
               >
                 Load more comments
               </Button>
@@ -194,7 +173,7 @@ export function GameLogComments({
               <Button
                 variant="outline"
                 onClick={() => setShowCommentForm(true)}
-                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                className="text-brand-primary hover:text-brand-primary/80 dark:text-brand-primary dark:hover:text-brand-primary/80"
               >
                 Add a comment
               </Button>
@@ -209,7 +188,7 @@ export function GameLogComments({
             </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

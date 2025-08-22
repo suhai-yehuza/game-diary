@@ -93,30 +93,30 @@ export function Comment({
 
   return (
     <div className="mb-4">
-      <Card className="border-l-4 border-l-blue-500 bg-white dark:bg-gray-800">
+      <Card className="border-l-4 border-l-brand-primary bg-neutral-50 dark:bg-neutral-800">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              <div className="w-8 h-8 rounded-full bg-brand-primary/10 dark:bg-brand-primary/20 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-medium text-brand-primary dark:text-brand-primary">
                   {displayComment.user.first_name?.[0] || displayComment.user.username?.[0] || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
                     {displayComment.user.first_name ||
                       displayComment.user.username ||
                       'Unknown User'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-neutral-500">
                     {format(new Date(displayComment.created_at), 'MMM dd, yyyy HH:mm')}
                   </span>
                   {displayComment.updated_at !== displayComment.created_at && (
-                    <span className="text-xs text-gray-400">(edited)</span>
+                    <span className="text-xs text-neutral-400">(edited)</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">
                   {displayComment.content}
                 </p>
               </div>
@@ -125,7 +125,7 @@ export function Comment({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-white" />
+                    <MoreHorizontal className="h-4 w-4 text-neutral-600 dark:text-neutral-100" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -133,7 +133,7 @@ export function Comment({
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                  <DropdownMenuItem onClick={handleDelete} className="text-semantic-error">
                     <Trash2 className="mr-2 h-4 w-4" />
                     Delete
                   </DropdownMenuItem>
@@ -149,7 +149,7 @@ export function Comment({
                 variant="ghost"
                 size="sm"
                 onClick={handleReply}
-                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
               >
                 <Reply className="h-4 w-4 mr-1" />
                 Reply
@@ -162,10 +162,10 @@ export function Comment({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowRepliesState(!showRepliesState)}
-                className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
               >
                 <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-gray-900 dark:text-white">
+                <span className="text-neutral-900 dark:text-neutral-100">
                   {displayComment.totalChildCommentCount}{' '}
                   {displayComment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
                 </span>
@@ -187,9 +187,9 @@ export function Comment({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                    className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
                   >
-                    <MoreHorizontal className="h-4 w-4 text-gray-600 dark:text-white" />
+                    <MoreHorizontal className="h-4 w-4 text-neutral-600 dark:text-neutral-100" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
@@ -197,7 +197,7 @@ export function Comment({
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-600">
+                  <DropdownMenuItem onClick={handleDelete} className="text-semantic-error">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </DropdownMenuItem>

@@ -23,7 +23,7 @@ describe('Button', () => {
     render(<Button>Default Button</Button>);
 
     const button = screen.getByRole('button', { name: 'Default Button' });
-    expect(button).toHaveClass('bg-primary', 'text-primary-foreground', 'hover:bg-primary/90');
+    expect(button).toHaveClass('bg-brand-primary', 'text-white', 'hover:bg-brand-primary-dark');
   });
 
   it('renders with outline variant', () => {
@@ -32,10 +32,10 @@ describe('Button', () => {
     const button = screen.getByRole('button', { name: 'Outline Button' });
     expect(button).toHaveClass(
       'border',
-      'border-input',
-      'bg-background',
-      'hover:bg-accent',
-      'hover:text-accent-foreground'
+      'border-neutral-200',
+      'bg-neutral-50',
+      'hover:bg-neutral-100',
+      'hover:text-neutral-900'
     );
   });
 
@@ -43,18 +43,14 @@ describe('Button', () => {
     render(<Button variant="ghost">Ghost Button</Button>);
 
     const button = screen.getByRole('button', { name: 'Ghost Button' });
-    expect(button).toHaveClass('hover:bg-accent', 'hover:text-accent-foreground');
+    expect(button).toHaveClass('hover:bg-neutral-100', 'hover:text-neutral-900');
   });
 
   it('renders with destructive variant', () => {
     render(<Button variant="destructive">Destructive Button</Button>);
 
     const button = screen.getByRole('button', { name: 'Destructive Button' });
-    expect(button).toHaveClass(
-      'bg-destructive',
-      'text-destructive-foreground',
-      'hover:bg-destructive/90'
-    );
+    expect(button).toHaveClass('bg-semantic-error', 'text-white', 'hover:bg-semantic-error/90');
   });
 
   it('renders with default size', () => {
@@ -132,7 +128,7 @@ describe('Button', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Combined Button' });
-    expect(button).toHaveClass('border', 'border-input', 'bg-background', 'h-11', 'px-8');
+    expect(button).toHaveClass('border', 'border-neutral-200', 'bg-neutral-50', 'h-11', 'px-8');
   });
 
   it('renders with complex children', () => {

@@ -114,7 +114,7 @@ export function GameLogsTable() {
   if (!user) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">Please sign in to view game logs.</p>
+        <p className="text-neutral-600">Please sign in to view game logs.</p>
       </div>
     );
   }
@@ -124,8 +124,8 @@ export function GameLogsTable() {
   if (hasError) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600">Error loading game logs. Please try again.</p>
-        <p className="text-sm text-gray-500 mt-2">
+        <p className="text-semantic-error">Error loading game logs. Please try again.</p>
+        <p className="text-sm text-neutral-500 mt-2">
           {hasError.message || 'An unexpected error occurred'}
         </p>
       </div>

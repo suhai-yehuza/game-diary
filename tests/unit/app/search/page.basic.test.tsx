@@ -42,6 +42,31 @@ vi.mock('@/hooks/use-live-games', () => ({
   }),
 }));
 
+// Mock SearchBar component
+vi.mock('@/app/components/layout/components/SearchBar', () => ({
+  SearchBar: ({ autoFocus, isFocused, setIsFocused }: any) => (
+    <div data-testid="search-bar" data-auto-focus={autoFocus} data-is-focused={isFocused}>
+      <input
+        type="search"
+        placeholder="Global search..."
+        data-testid="search-input"
+        onFocus={() => setIsFocused?.(true)}
+        onBlur={() => setIsFocused?.(false)}
+      />
+    </div>
+  ),
+  useMobileDetection: () => false,
+  useSearchLogic: () => ({
+    search_query: '',
+    isFocused: false,
+    setIsFocused: vi.fn(),
+    handleSearch: vi.fn(),
+    handleSearchChange: vi.fn(),
+    clearSearch: vi.fn(),
+    handleKeyDown: vi.fn(),
+  }),
+}));
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
   <MenuProvider>
     <div data-testid="test-wrapper">{children}</div>
@@ -58,7 +83,9 @@ describe('SearchPage', () => {
     render(<SearchPage />, { wrapper: TestWrapper });
 
     expect(screen.getByText('Start searching')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Search games, teams, players...')).toBeInTheDocument();
+    expect(
+      screen.getByText('Enter a search term above to find users and game logs.')
+    ).toBeInTheDocument();
   });
 
   it('renders search page title', () => {

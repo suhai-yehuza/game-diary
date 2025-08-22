@@ -4,6 +4,30 @@ import { NextResponse } from 'next/server';
 import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@src/lib/db';
 
+// Data sanitization function to remove sensitive/encrypted fields
+function sanitizeUserData(user: Record<string, unknown>) {
+  const {
+    password_hash: _password_hash,
+    encrypted_first_name: _encrypted_first_name,
+    encrypted_last_name: _encrypted_last_name,
+    encrypted_email_address: _encrypted_email_address,
+    encrypted_phone_number: _encrypted_phone_number,
+    ...safeUser
+  } = user;
+
+  return safeUser;
+}
+
+function sanitizeGameLogData(gameLog: Record<string, unknown>) {
+  const {
+    encrypted_notes: _encrypted_notes,
+    encrypted_tags: _encrypted_tags,
+    ...safeGameLog
+  } = gameLog;
+
+  return safeGameLog;
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ table: string }> }) {
   try {
     const { table } = await params;
@@ -37,7 +61,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         const userColumns = ['id', 'email', 'username', 'first_name', 'last_name'];
         const userSearchCondition = buildSearchCondition(search, searchField, userColumns);
         const orderByClause = buildOrderByClause('created_at');
-        query = sql`SELECT * FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        // Only select safe, non-encrypted fields for display
+        query = sql`SELECT id, username, first_name, last_name, email_address, created_at, updated_at FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM users ${userSearchCondition ? sql.raw(userSearchCondition) : sql``}`;
         break;
       }
@@ -51,7 +76,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
         const orderByClause = buildOrderByClause('created_at');
         // Use the base table name for all game log variants
         const baseTableName = 'game_logs';
-        query = sql`SELECT * FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+        // Only select safe, non-encrypted fields for display
+        query = sql`SELECT id, user_id, game_id, rating_for_game, classification, watched_setting, watched_scope, created_at, updated_at FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
         countQuery = sql`SELECT COUNT(*) as total FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
         break;
       }
@@ -132,8 +158,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       db.execute(countQuery),
     ]);
 
-    const data = dataResult.rows;
+    let data: Record<string, unknown>[] = dataResult.rows;
     const { total } = countResult.rows[0] as { total: string };
+
+    // Sanitize data based on table type
+    if (table === 'users') {
+      data = data.map(sanitizeUserData);
+    } else if (table.includes('game_logs')) {
+      data = data.map(sanitizeGameLogData);
+    }
 
     return NextResponse.json({
       success: true,

@@ -184,7 +184,7 @@ export function LiveGamesBanner() {
             <div className="flex items-center space-x-2.5 pointer-events-auto bg-black/20 backdrop-blur-sm rounded-full px-3 py-1.5 border border-white/10">
               <div
                 data-testid="live-indicator"
-                className="w-2.5 h-2.5 bg-red-500 rounded-full animate-live-dot-glow flex-shrink-0"
+                className="w-2.5 h-2.5 bg-semantic-error rounded-full animate-live-dot-glow flex-shrink-0"
               />
               <span className="text-sm font-semibold tracking-wide whitespace-nowrap">
                 {displayGames.length} {displayGames.length === 1 ? 'Live Game' : 'Live Games'}

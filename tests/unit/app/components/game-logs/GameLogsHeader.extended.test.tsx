@@ -169,7 +169,12 @@ describe('GameLogsHeader Extended Tests', () => {
       render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
       const title = screen.getByText('Game Logs');
-      expect(title).toHaveClass('font-bold', 'text-gray-900', 'dark:text-gray-100', 'text-2xl');
+      expect(title).toHaveClass(
+        'font-bold',
+        'text-neutral-900',
+        'dark:text-neutral-100',
+        'text-2xl'
+      );
     });
 
     it('applies correct button classes', () => {
@@ -180,8 +185,8 @@ describe('GameLogsHeader Extended Tests', () => {
         'flex',
         'items-center',
         'gap-2',
-        'bg-blue-600',
-        'hover:bg-blue-700',
+        'bg-brand-primary',
+        'hover:bg-brand-primary-dark',
         'text-white',
         'rounded-xl',
         'font-semibold',
@@ -189,7 +194,7 @@ describe('GameLogsHeader Extended Tests', () => {
         'hover:shadow-xl',
         'focus:outline-none',
         'focus:ring-2',
-        'focus:ring-blue-400',
+        'focus:ring-brand-primary',
         'transition-all',
         'duration-200'
       );

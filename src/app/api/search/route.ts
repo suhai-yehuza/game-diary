@@ -5,6 +5,65 @@ import { NextResponse } from 'next/server';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
 
+// Data sanitization function to remove sensitive/encrypted fields
+function sanitizeUserData(user: Record<string, unknown>) {
+  const {
+    password_hash: _password_hash,
+    encrypted_first_name: _encrypted_first_name,
+    encrypted_last_name: _encrypted_last_name,
+    encrypted_email_address: _encrypted_email_address,
+    encrypted_phone_number: _encrypted_phone_number,
+    phone_number: _phone_number, // This might be encrypted
+    ...safeUser
+  } = user;
+
+  // Check if any remaining fields contain encrypted data
+  const sanitizedUser = { ...safeUser };
+
+  // Remove any fields that look like encrypted data (contain iv, content, tag)
+  Object.keys(sanitizedUser).forEach(key => {
+    const value = sanitizedUser[key];
+    if (
+      typeof value === 'string' &&
+      value.includes('"iv"') &&
+      value.includes('"content"') &&
+      value.includes('"tag"')
+    ) {
+      console.warn(`Removing encrypted field from user data: ${key}`);
+      delete sanitizedUser[key];
+    }
+  });
+
+  return sanitizedUser;
+}
+
+function sanitizeGameLogData(gameLog: Record<string, unknown>) {
+  const {
+    encrypted_notes: _encrypted_notes,
+    encrypted_tags: _encrypted_tags,
+    ...safeGameLog
+  } = gameLog;
+
+  // Check if any remaining fields contain encrypted data
+  const sanitizedGameLog = { ...safeGameLog };
+
+  // Remove any fields that look like encrypted data (contain iv, content, tag)
+  Object.keys(sanitizedGameLog).forEach(key => {
+    const value = sanitizedGameLog[key];
+    if (
+      typeof value === 'string' &&
+      value.includes('"iv"') &&
+      value.includes('"content"') &&
+      value.includes('"tag"')
+    ) {
+      console.warn(`Removing encrypted field from game log data: ${key}`);
+      delete sanitizedGameLog[key];
+    }
+  });
+
+  return sanitizedGameLog;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -292,11 +351,15 @@ export async function GET(request: NextRequest) {
     const totalPlayers = parseInt((playersCountResult.rows[0]?.count as string) ?? '0');
     const totalResults = totalUsers + totalGameLogs + totalGames + totalTeams + totalPlayers;
 
+    // Sanitize user data to remove any encrypted fields
+    const sanitizedUsers = usersResult.rows.map(sanitizeUserData);
+    const sanitizedGameLogs = gameLogsResult.rows.map(sanitizeGameLogData);
+
     return NextResponse.json({
       success: true,
       data: {
-        users: usersResult.rows,
-        gameLogs: gameLogsResult.rows,
+        users: sanitizedUsers,
+        gameLogs: sanitizedGameLogs,
         games: gamesResult.rows,
         teams: teamsResult.rows,
         players: playersResult.rows,

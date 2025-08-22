@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 
 import { GameLogCard } from '@/app/components/game-logs/GameLogCard';
@@ -95,7 +96,10 @@ describe('GameLogCard Extended Tests', () => {
       render(<GameLogCard log={mockGameLog} />);
 
       expect(screen.getByText('Home')).toBeInTheDocument();
-      expect(screen.getByText('Home')).toHaveClass('bg-green-100', 'dark:bg-green-900');
+      expect(screen.getByText('Home')).toHaveClass(
+        'bg-semantic-success/10',
+        'dark:bg-semantic-success/20'
+      );
     });
 
     it('does not render watched_setting when absent', () => {
@@ -109,7 +113,10 @@ describe('GameLogCard Extended Tests', () => {
       render(<GameLogCard log={mockGameLog} />);
 
       expect(screen.getByText('Alone')).toBeInTheDocument();
-      expect(screen.getByText('Alone')).toHaveClass('bg-purple-100', 'dark:bg-purple-900');
+      expect(screen.getByText('Alone')).toHaveClass(
+        'bg-accent-purple/10',
+        'dark:bg-accent-purple/20'
+      );
     });
 
     it('does not render watched_scope when absent', () => {
@@ -162,7 +169,7 @@ describe('GameLogCard Extended Tests', () => {
         return Boolean(
           element?.textContent?.includes('Watched:') &&
             element?.textContent?.match(/Watched:\s*[A-Za-z]{3}\s+\d{1,2},\s+\d{4}/) &&
-            element?.className?.includes('text-gray-500')
+            element?.className?.includes('text-neutral-500')
         );
       });
 
@@ -225,8 +232,23 @@ describe('GameLogCard Extended Tests', () => {
   });
 
   describe('Comments Section', () => {
-    it('renders comments section', () => {
+    it('renders comments toggle button', () => {
       render(<GameLogCard log={mockGameLog} />);
+
+      const commentsButton = screen.getByRole('button', { name: /comments/i });
+      expect(commentsButton).toBeInTheDocument();
+      expect(commentsButton).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('renders comments section when expanded', async () => {
+      const user = userEvent.setup();
+      render(<GameLogCard log={mockGameLog} />);
+
+      const commentsButton = screen.getByRole('button', { name: /comments/i });
+
+      await act(async () => {
+        await user.click(commentsButton);
+      });
 
       const commentsSection = screen.getByTestId('game-log-comments-inner');
       expect(commentsSection).toBeInTheDocument();
@@ -364,6 +386,39 @@ describe('GameLogCard Extended Tests', () => {
       render(<GameLogCard log={logWithEmptyNames} />);
 
       expect(screen.getByText('@Unknown User')).toBeInTheDocument();
+    });
+  });
+
+  describe('Comment Count Display', () => {
+    it('displays comment count when totalCommentCount is greater than 0', () => {
+      const logWithComments = { ...mockGameLog, totalCommentCount: 5 };
+      render(<GameLogCard log={logWithComments} />);
+
+      expect(screen.getByText('Comments (5)')).toBeInTheDocument();
+    });
+
+    it('does not display comment count when totalCommentCount is 0', () => {
+      const logWithNoComments = { ...mockGameLog, totalCommentCount: 0 };
+      render(<GameLogCard log={logWithNoComments} />);
+
+      expect(screen.getByText('Comments')).toBeInTheDocument();
+      expect(screen.queryByText('Comments (0)')).not.toBeInTheDocument();
+    });
+
+    it('does not display comment count when totalCommentCount is undefined', () => {
+      const logWithUndefinedComments = { ...mockGameLog, totalCommentCount: undefined };
+      render(<GameLogCard log={logWithUndefinedComments} />);
+
+      expect(screen.getByText('Comments')).toBeInTheDocument();
+      expect(screen.queryByText(/Comments \(\d+\)/)).not.toBeInTheDocument();
+    });
+
+    it('does not display comment count when totalCommentCount is null', () => {
+      const logWithNullComments = { ...mockGameLog, totalCommentCount: undefined };
+      render(<GameLogCard log={logWithNullComments} />);
+
+      expect(screen.getByText('Comments')).toBeInTheDocument();
+      expect(screen.queryByText(/Comments \(\d+\)/)).not.toBeInTheDocument();
     });
   });
 });
