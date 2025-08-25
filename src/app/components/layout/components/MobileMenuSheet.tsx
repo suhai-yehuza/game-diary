@@ -25,11 +25,10 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
     setCurrentY(e.touches[0].clientY);
 
     // Haptic feedback on touch start
-      try {
-        navigator.vibrate(10);
-      } catch (e) {
-        // Ignore haptic feedback errors
-      }
+    try {
+      navigator.vibrate(10);
+    } catch (_e) {
+      // Ignore haptic feedback errors
     }
   };
 

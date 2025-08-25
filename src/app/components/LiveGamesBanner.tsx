@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import React, { useState, useEffect, useCallback } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
@@ -37,6 +38,7 @@ function getDisplayGames(realGames: IGameResponse[] | null): IGameResponse[] {
  * Enhanced LiveGamesBanner component with industry-standard features
  */
 export function LiveGamesBanner() {
+  const router = useRouter();
   const { games } = useLiveGames();
   const { shouldDisplayBanner, isClient } = useBannerVisibility();
   const [isPaused, setIsPaused] = useState(false);
@@ -67,13 +69,16 @@ export function LiveGamesBanner() {
   const handleMouseLeave = useCallback(() => setIsPaused(false), []);
 
   // Haptic feedback for mobile interactions
-  const handleGameClick = useCallback((gameId: number) => {
-    if ('vibrate' in navigator) {
-      navigator.vibrate(10);
-    }
-    // Navigate to game detail page
-    router.push(`/sports/game/${gameId}`);
-  }, [router]);
+  const handleGameClick = useCallback(
+    (gameId: number) => {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(10);
+      }
+      // Navigate to game detail page
+      router.push(`/sports/game/${gameId}`);
+    },
+    [router]
+  );
 
   // Use the banner visibility hook to determine if we should render
   if (!shouldDisplayBanner || !isClient) {
@@ -315,11 +320,10 @@ export function LiveGamesBanner() {
             className="group text-xs font-semibold hover:bg-white/20 transition-all duration-200 flex items-center space-x-1 xs:space-x-1 sm:space-x-1.5 bg-black/40 backdrop-blur-md rounded-full px-1 xs:px-1.5 sm:px-2 md:px-2.5 py-0.5 xs:py-0.5 sm:py-1 border border-white/20 hover:border-white/30 flex-shrink-0 mr-1 xs:mr-2 sm:mr-0 sm:-mr-4 md:-mr-8 lg:-mr-12 xl:-mr-16 2xl:-mr-20 shadow-lg"
             aria-label="View all live games"
             onClick={() => {
-                try {
-                  navigator.vibrate(10);
-                } catch (e) {
-                  // Ignore vibrate errors
-                }
+              try {
+                navigator.vibrate(10);
+              } catch (_e) {
+                // Ignore vibrate errors
               }
             }}
           >
