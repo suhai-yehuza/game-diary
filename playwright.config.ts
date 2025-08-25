@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 import { APP_CONFIG, getAppUrl, isLocalhostTarget, getPort } from '@src/lib/config/app.config';
 
 /**
- * Simplified Playwright configuration
+ * Optimized Playwright configuration for maximum speed
  *
  * Usage:
  * - Default: pnpm playwright test
@@ -10,7 +10,7 @@ import { APP_CONFIG, getAppUrl, isLocalhostTarget, getPort } from '@src/lib/conf
  * - Specific directory: pnpm playwright test tests/e2e/functional/
  */
 
-// Common browser launch arguments for Chromium-based browsers
+// Optimized browser launch arguments for maximum speed
 const chromiumArgs = [
   '--disable-dev-shm-usage',
   '--no-sandbox',
@@ -21,24 +21,55 @@ const chromiumArgs = [
   '--disable-background-timer-throttling',
   '--disable-backgrounding-occluded-windows',
   '--disable-renderer-backgrounding',
+  '--disable-extensions',
+  '--disable-logging',
+  '--disable-notifications',
+  '--disable-permissions-api',
+  '--disable-background-networking',
+  '--disable-component-extensions-with-background-pages',
+  '--disable-client-side-phishing-detection',
+  '--disable-hang-monitor',
+  '--disable-prompt-on-repost',
+  '--disable-domain-reliability',
+  '--disable-features=TranslateUI',
+  '--disable-ipc-flooding-protection',
+  '--memory-pressure-off',
+  '--max_old_space_size=4096',
 ];
 
-// Common browser launch arguments for mobile Chromium devices
+// Optimized mobile Chromium arguments
 const mobileChromiumArgs = [
   '--disable-dev-shm-usage',
   '--no-sandbox',
   '--disable-setuid-sandbox',
   '--disable-gpu',
   '--disable-web-security',
+  '--disable-extensions',
+  '--disable-logging',
+  '--disable-notifications',
+  '--disable-permissions-api',
+  '--disable-background-networking',
+  '--disable-component-extensions-with-background-pages',
+  '--disable-client-side-phishing-detection',
+  '--disable-hang-monitor',
+  '--disable-prompt-on-repost',
+  '--disable-domain-reliability',
+  '--disable-features=TranslateUI',
+  '--disable-ipc-flooding-protection',
+  '--memory-pressure-off',
+  '--max_old_space_size=4096',
 ];
 
-// WebKit-specific arguments (minimal, as WebKit doesn't support many Chrome flags)
-const webkitArgs: string[] = [];
+// Optimized WebKit arguments - WebKit has different supported flags than Chromium
+const webkitArgs = [
+  // WebKit-specific arguments that are actually supported
+  '--no-startup-window',
+];
 
 const baseURL = getAppUrl();
 const port = getPort();
 
-// Web server configuration
+// Optimized web server configuration
 const webServerConfig = {
   command: `NODE_ENV=development API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p ${port}`,
   url: `http://localhost:${port}`,
@@ -50,7 +81,7 @@ const webServerConfig = {
 
 // Debug logging for CI environments
 if (process.env.CI) {
-  console.log('🔍 Playwright Configuration Debug:');
+  console.log('🔍 Optimized Playwright Configuration Debug:');
   console.log('  CI Environment:', process.env.CI);
   console.log('  DEPLOYMENT_URL:', process.env.DEPLOYMENT_URL);
   console.log('  VERCEL_URL:', process.env.VERCEL_URL);
@@ -69,12 +100,12 @@ export default defineConfig({
   // Test discovery
   testDir: './tests/e2e',
 
-  // Timeouts and retries
-  timeout: APP_CONFIG.TEST_TIMEOUT,
-  fullyParallel: false,
+  // Optimized timeouts and retries for speed
+  timeout: process.env.CI ? 30000 : APP_CONFIG.TEST_TIMEOUT, // Reduced timeout in CI
+  fullyParallel: true, // Enable full parallelism for maximum speed
   forbidOnly: !!process.env.CI,
-  retries: 2,
-  workers: process.env.CI ? 2 : 4,
+  retries: process.env.CI ? 1 : 2, // Reduced retries in CI for speed
+  workers: process.env.CI ? 4 : 6, // Increased workers for maximum speed
 
   // Web server configuration
   webServer: isLocalhostTarget() ? webServerConfig : undefined,
@@ -86,7 +117,10 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions: { args: chromiumArgs },
+        launchOptions: {
+          args: chromiumArgs,
+          headless: true, // Ensure headless for CI speed
+        },
       },
     },
     // Additional browsers for comprehensive testing
@@ -94,25 +128,39 @@ export default defineConfig({
       name: 'webkit',
       use: {
         ...devices['Desktop Safari'],
-        launchOptions: { args: webkitArgs },
+        launchOptions: {
+          args: webkitArgs,
+          headless: true, // Ensure headless for CI speed
+        },
       },
     },
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        launchOptions: {
+          headless: true, // Ensure headless for CI speed
+        },
+      },
     },
     {
       name: 'Mobile Chrome',
       use: {
         ...devices['Pixel 5'],
-        launchOptions: { args: mobileChromiumArgs },
+        launchOptions: {
+          args: mobileChromiumArgs,
+          headless: true, // Ensure headless for CI speed
+        },
       },
     },
     {
       name: 'iPhone',
       use: {
         ...devices['iPhone 12'],
-        launchOptions: { args: webkitArgs },
+        launchOptions: {
+          args: webkitArgs,
+          headless: true, // Ensure headless for CI speed
+        },
       },
     },
     {
@@ -123,18 +171,22 @@ export default defineConfig({
         deviceScaleFactor: 1,
         userAgent:
           'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+        launchOptions: {
+          args: chromiumArgs,
+          headless: true, // Ensure headless for CI speed
+        },
       },
     },
   ],
 
-  // Shared use settings
+  // Optimized shared use settings
   use: {
     baseURL,
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
-    actionTimeout: APP_CONFIG.TEST_ACTION_TIMEOUT,
-    navigationTimeout: APP_CONFIG.TEST_NAVIGATION_TIMEOUT,
+    actionTimeout: process.env.CI ? 10000 : APP_CONFIG.TEST_ACTION_TIMEOUT, // Reduced in CI
+    navigationTimeout: process.env.CI ? 15000 : APP_CONFIG.TEST_NAVIGATION_TIMEOUT, // Reduced in CI
     launchOptions: {
       args: [],
     },
@@ -152,10 +204,15 @@ export default defineConfig({
       hasTouch: false,
       javaScriptEnabled: true,
       acceptDownloads: true,
+      // Optimize context for speed
+      bypassCSP: true,
+      extraHTTPHeaders: {
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
     },
   },
 
-  // Reporter configuration
+  // Optimized reporter configuration
   reporter: process.env.CI
     ? [
         ['list'],

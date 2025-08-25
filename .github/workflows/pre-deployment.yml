@@ -394,11 +394,11 @@ jobs:
           CI: 'true'
           DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
         run: |
-          echo "Running E2E tests on Chromium..."
-          # Run tests with explicit CI configuration to ensure artifacts are generated
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --reporter=list,json,junit,html
+          echo "Running E2E tests on Chromium with optimized configuration..."
+          # Run tests with optimized CI configuration for maximum speed
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
 
       - name: Stop Development Server
         if: always()
@@ -505,11 +505,11 @@ jobs:
           CI: 'true'
           DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
         run: |
-          echo "Running E2E tests on WebKit..."
-          # Run tests with explicit CI configuration to ensure artifacts are generated
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --reporter=list,json,junit,html
+          echo "Running E2E tests on WebKit with optimized configuration..."
+          # Run tests with optimized CI configuration for maximum speed
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
 
       - name: Stop Development Server (WebKit)
         if: always()
@@ -620,11 +620,11 @@ jobs:
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
-          echo "Running E2E tests on Firefox..."
-          # Run tests with explicit CI configuration to ensure artifacts are generated
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --reporter=list,json,junit,html
+          echo "Running E2E tests on Firefox with optimized configuration..."
+          # Run tests with optimized CI configuration for maximum speed
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
 
       - name: Stop Development Server (Firefox)
         if: always()
@@ -735,11 +735,11 @@ jobs:
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
-          echo "Running E2E tests on Mobile..."
-          # Run tests with explicit CI configuration to ensure artifacts are generated
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          echo "Running E2E tests on Mobile with optimized configuration..."
+          # Run tests with optimized CI configuration for maximum speed
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
 
       - name: Stop Development Server (Mobile)
         if: always()
