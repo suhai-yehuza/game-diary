@@ -1150,16 +1150,24 @@ body {
 
 /* Live indicator animation */
 @keyframes liveDotGlow {
-  0%,
-  100% {
-    box-shadow: 0 0 5px currentColor;
+  0% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
     opacity: 1;
   }
   50% {
     box-shadow:
-      0 0 15px currentColor,
-      0 0 25px currentColor;
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
     opacity: 0.8;
+  }
+  100% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+    opacity: 1;
   }
 }
 
@@ -1167,7 +1175,7 @@ body {
   animation: liveDotGlow 2s ease-in-out infinite;
 }
 
-/* Scroll animations */
+/* Enhanced scroll animation with better performance */
 @keyframes scrollLeft {
   from {
     transform: translateX(0);
@@ -1179,6 +1187,11 @@ body {
 
 .animate-scroll-left {
   animation: scrollLeft 25s linear infinite;
+}
+
+/* Pause animation on hover for better UX */
+.animate-scroll-left:hover {
+  animation-play-state: paused;
 }
 
 /* Spring animations */
@@ -1466,4 +1479,194 @@ footer a:hover {
 .floating-component-secondary {
   position: fixed;
   z-index: 30;
+}
+
+/* Enhanced Live Games Banner Styles */
+@keyframes liveDotGlow {
+  0% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
+    opacity: 0.8;
+  }
+  100% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+    opacity: 1;
+  }
+}
+
+.animate-live-dot-glow {
+  animation: liveDotGlow 2s ease-in-out infinite;
+}
+
+/* Last Updated Indicator pulse animation */
+@keyframes updatePulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.animate-update-pulse {
+  animation: updatePulse 2s ease-in-out infinite;
+}
+
+/* Enhanced scroll animation with better performance */
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-scroll-left {
+  animation: scrollLeft 25s linear infinite;
+}
+
+/* Pause animation on hover for better UX */
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* Mobile-specific optimizations */
+@media (max-width: 640px) {
+  .animate-scroll-left {
+    animation-duration: 18s; /* Faster on mobile for better engagement */
+  }
+
+  /* Reduce animation on devices that prefer reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-scroll-left {
+      animation: none;
+    }
+
+    .animate-live-dot-glow {
+      animation: none;
+    }
+
+    .animate-update-pulse {
+      animation: none;
+    }
+  }
+}
+
+/* Extra small viewport optimizations */
+@media (max-width: 475px) {
+  .animate-scroll-left {
+    animation-duration: 15s; /* Even faster for very small screens */
+  }
+
+  /* Optimize for very small screens */
+  .live-games-banner-xs {
+    min-height: 2rem;
+  }
+
+  /* Reduce spacing for tiny screens */
+  .xs-compact-spacing {
+    gap: 0.125rem;
+  }
+}
+
+/* Very small viewport optimizations */
+@media (max-width: 375px) {
+  .animate-scroll-left {
+    animation-duration: 12s; /* Fastest for very small screens */
+  }
+
+  /* Further optimize for iPhone SE and similar small devices */
+  .live-games-banner-vs {
+    min-height: 1.75rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .animate-scroll-left {
+    animation-duration: 22s; /* Medium speed for tablets */
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1025px) {
+  .animate-scroll-left {
+    animation-duration: 25s; /* Slower for desktop for better readability */
+  }
+}
+
+/* Enhanced focus styles for accessibility */
+.live-games-focus:focus {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
+/* Loading animation for live games banner */
+@keyframes liveGamesSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-live-games-spin {
+  animation: liveGamesSpin 1s linear infinite;
+}
+
+/* Hover effects for game items */
+.game-item-hover {
+  transition: all 0.2s ease-in-out;
+}
+
+.game-item-hover:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.game-item-hover:active {
+  transform: translateY(0);
+}
+
+/* Mobile touch feedback */
+@media (hover: none) and (pointer: coarse) {
+  .game-item-hover:active {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: scale(0.98);
+  }
+}
+
+/* Mobile-specific banner optimizations */
+@media (max-width: 640px) {
+  /* Ensure banner doesn't interfere with mobile navigation */
+  .live-games-banner-mobile {
+    height: auto;
+    min-height: 2.5rem;
+  }
+
+  /* Optimize touch targets for mobile */
+  .mobile-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-width: 640px) and (orientation: landscape) {
+  .animate-scroll-left {
+    animation-duration: 15s; /* Even faster for landscape mobile */
+  }
 }

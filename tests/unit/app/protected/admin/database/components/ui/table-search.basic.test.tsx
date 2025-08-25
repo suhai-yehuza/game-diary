@@ -96,9 +96,12 @@ describe('TableSearch', () => {
     const searchInput = screen.getByPlaceholderText('Search...');
     expect(searchInput).toHaveClass(
       'w-full',
-      'pl-10',
-      'pr-10',
-      'py-2',
+      'pl-7',
+      'sm:pl-10',
+      'pr-8',
+      'sm:pr-10',
+      'py-1.5',
+      'sm:py-2',
       'border',
       'border-border',
       'rounded-md',
@@ -108,7 +111,8 @@ describe('TableSearch', () => {
       'focus:outline-none',
       'focus:ring-2',
       'focus:ring-ring',
-      'focus:border-transparent'
+      'focus:border-transparent',
+      'text-sm'
     );
   });
 
@@ -117,8 +121,10 @@ describe('TableSearch', () => {
 
     const dropdown = screen.getByDisplayValue('All Fields');
     expect(dropdown).toHaveClass(
-      'px-3',
-      'py-2',
+      'px-2',
+      'sm:px-3',
+      'py-1.5',
+      'sm:py-2',
       'border',
       'border-border',
       'rounded-md',
@@ -129,7 +135,10 @@ describe('TableSearch', () => {
       'focus:ring-ring',
       'focus:border-transparent',
       'appearance-none',
-      'pr-8'
+      'pr-6',
+      'sm:pr-8',
+      'text-sm',
+      'min-w-0'
     );
   });
 

@@ -15,11 +15,11 @@ export function PaginationInfo({
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="flex items-center justify-between mb-4">
-      <div className="text-sm text-muted-foreground">
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+      <div className="text-xs sm:text-sm text-muted-foreground">
         {startItem}-{endItem} of {formatNumberShort(totalCount)} total {itemLabel}
       </div>
-      <div className="text-sm text-muted-foreground">
+      <div className="text-xs sm:text-sm text-muted-foreground">
         Page{' '}
         <span className="font-semibold text-emerald-600 dark:text-emerald-400">{currentPage}</span>{' '}
         of {totalPages}

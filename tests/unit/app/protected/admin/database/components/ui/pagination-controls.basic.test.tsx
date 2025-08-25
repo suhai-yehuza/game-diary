@@ -91,7 +91,15 @@ describe('PaginationControls', () => {
     const { container } = render(<PaginationControls {...defaultProps} />);
 
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveClass('flex', 'items-center', 'justify-center', 'space-x-2', 'mt-4');
+    expect(wrapper).toHaveClass(
+      'flex',
+      'flex-col',
+      'sm:flex-row',
+      'items-center',
+      'justify-center',
+      'gap-2',
+      'mt-4'
+    );
   });
 
   it('renders page number with correct styling', () => {
@@ -99,7 +107,8 @@ describe('PaginationControls', () => {
 
     const pageNumber = screen.getByText('Page 5');
     expect(pageNumber).toHaveClass(
-      'text-sm',
+      'text-xs',
+      'sm:text-sm',
       'font-medium',
       'text-emerald-600',
       'dark:text-emerald-400'

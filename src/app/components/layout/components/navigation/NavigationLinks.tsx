@@ -25,42 +25,71 @@ export function NavigationLinks({
     if (isMobile && closeMenu) closeMenu();
   };
 
-  const navItems = [
-    {
-      href: '/',
-      label: 'Home',
-    },
-    ...Object.values(SPORTS_CONFIG).map(sport => ({
-      href: sport.href,
-      label: sport.name,
-    })),
-    {
-      href: '/sports/all-sports',
-      label: 'All Sports',
-    },
-  ];
-
   const navClass = isStacked
-    ? 'flex flex-col gap-3 h-full text-xs sm:text-sm font-medium m-0 p-0'
+    ? 'flex flex-col gap-4 h-full text-base font-medium m-0 p-0'
     : 'flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0';
 
   return (
     <nav className={navClass}>
-      {navItems.map(({ href, label }) => (
+      {/* Sports Section */}
+      {isStacked && (
+        <div className="mb-2">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+            Sports
+          </h3>
+        </div>
+      )}
+
+      {/* Home */}
+      <NavItem
+        href="/"
+        isActive={isActive('/')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        closeMenu={closeMenu}
+        aria-current={isActive('/') ? 'page' : undefined}
+      >
+        Home
+      </NavItem>
+
+      {/* Sports Links */}
+      {Object.values(SPORTS_CONFIG).map(sport => (
         <NavItem
-          key={href}
-          href={href}
-          isActive={isActive(href)}
+          key={sport.href}
+          href={sport.href}
+          isActive={isActive(sport.href)}
           onClick={handleNavClick}
           isStacked={isStacked}
           closeMenu={closeMenu}
-          aria-current={isActive(href) ? 'page' : undefined}
+          aria-current={isActive(sport.href) ? 'page' : undefined}
         >
-          {label}
+          {sport.name}
         </NavItem>
       ))}
+
+      <NavItem
+        href="/sports/all-sports"
+        isActive={isActive('/sports/all-sports')}
+        onClick={handleNavClick}
+        isStacked={isStacked}
+        closeMenu={closeMenu}
+        aria-current={isActive('/sports/all-sports') ? 'page' : undefined}
+      >
+        All Sports
+      </NavItem>
+
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
+
+      {/* Account Section */}
+      {isStacked && (
+        <div className="mt-6 mb-2">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+            Account
+          </h3>
+        </div>
+      )}
+
       {/* User Dashboard + Admin */}
       <NavItem
         href="/protected/user"
@@ -71,10 +100,12 @@ export function NavigationLinks({
       >
         Dashboard
       </NavItem>
+
       {/* Add spacing between Dashboard and Admin */}
       <div className="my-1 lg:my-0 lg:mx-2" />
+
       {/* Only show Admin nav link for authenticated users with admin role */}
-      <AdminNavWithAuth isActive={isActive} isStacked={isStacked} />
+      <AdminNavWithAuth isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />
     </nav>
   );
 }

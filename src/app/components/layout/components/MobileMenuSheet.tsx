@@ -23,6 +23,11 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
     setIsDragging(true);
     setStartY(e.touches[0].clientY);
     setCurrentY(e.touches[0].clientY);
+
+    // Haptic feedback on touch start
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
@@ -39,6 +44,10 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
     const threshold = 100; // Minimum distance to trigger close
 
     if (deltaY > threshold) {
+      // Haptic feedback on successful close
+      if ('vibrate' in navigator) {
+        navigator.vibrate(20);
+      }
       setIsMenuExpanded(false);
     }
   };
@@ -104,7 +113,7 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
       {/* Backdrop */}
       <div
         ref={overlayRef}
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300 ease-out"
         onClick={() => setIsMenuExpanded(false)}
         aria-hidden="true"
       />
@@ -112,7 +121,7 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl lg:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl lg:hidden max-h-[85vh] flex flex-col transform transition-transform duration-300 ease-out"
         style={{
           transform: `translateY(${translateY}px)`,
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -125,24 +134,24 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
         aria-label="Navigation menu"
       >
         {/* Drag Handle */}
-        <div className="flex justify-center pt-3 pb-2">
+        <div className="flex justify-center pt-4 pb-3">
           <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
         </div>
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
           <button
             onClick={() => setIsMenuExpanded(false)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             aria-label="Close menu"
           >
-            <X className="w-5 h-5 text-gray-800 dark:text-gray-200" />
+            <X className="w-6 h-6 text-gray-800 dark:text-gray-200" />
           </button>
         </div>
 
         {/* Navigation Content */}
-        <div className="px-6 py-4 max-h-[60vh] overflow-y-auto text-gray-900 dark:text-gray-100">
+        <div className="flex-1 px-6 py-6 overflow-y-auto text-gray-900 dark:text-gray-100">
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={isMenuExpanded}
@@ -153,8 +162,16 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+          <div className="text-sm text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-2">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+              />
+            </svg>
             Swipe down to close
           </div>
         </div>

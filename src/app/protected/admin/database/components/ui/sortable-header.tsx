@@ -57,7 +57,7 @@ export function SortableHeader({
     <th
       role="columnheader"
       className={`
-        px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0
+        px-2 sm:px-6 py-2 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0 whitespace-nowrap
         transition-all duration-200 ease-in-out
         ${disabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-emerald-500/20 active:bg-emerald-500/30'}
         ${isActive ? 'bg-emerald-500/30' : ''}
@@ -67,7 +67,7 @@ export function SortableHeader({
     >
       <div className="flex items-center justify-between group">
         <span className="font-medium">{children}</span>
-        {!disabled && <div className="flex items-center ml-2">{getSortIcon()}</div>}
+        {!disabled && <div className="flex items-center ml-1 sm:ml-2">{getSortIcon()}</div>}
       </div>
     </th>
   );

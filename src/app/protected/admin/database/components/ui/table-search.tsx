@@ -43,34 +43,34 @@ export function TableSearch({
   };
 
   return (
-    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+    <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-4 sm:mb-6">
       {/* Search Input */}
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
         <input
           type="text"
           value={localSearchTerm}
           onChange={e => handleSearchChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full pl-10 pr-10 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
+          className="w-full pl-7 sm:pl-10 pr-8 sm:pr-10 py-1.5 sm:py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent text-sm"
         />
         {localSearchTerm && (
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
-            <X className="h-4 w-4" />
+            <X className="h-3 w-3 sm:h-4 sm:w-4" />
           </button>
         )}
       </div>
 
       {/* Search Field Dropdown */}
-      <div className="relative">
+      <div className="relative flex-shrink-0">
         <select
           value={searchField}
           onChange={e => handleFieldChange(e.target.value)}
-          className="px-3 py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent appearance-none pr-8"
+          className="px-2 sm:px-3 py-1.5 sm:py-2 border border-border rounded-md bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent appearance-none pr-6 sm:pr-8 text-sm min-w-0"
         >
           {searchFields.map(field => (
             <option key={field.value} value={field.value}>
@@ -78,9 +78,9 @@ export function TableSearch({
             </option>
           ))}
         </select>
-        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+        <div className="absolute right-2 sm:right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
           <svg
-            className="h-4 w-4 text-muted-foreground"
+            className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export function TableSearch({
 
       {/* Clear Button */}
       {localSearchTerm && (
-        <Button onClick={handleClear} variant="outline" size="sm">
+        <Button onClick={handleClear} variant="outline" size="sm" className="text-xs flex-shrink-0">
           Clear
         </Button>
       )}

@@ -27,7 +27,8 @@ describe('ErrorDisplay', () => {
 
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveClass(
-      'p-4',
+      'p-3',
+      'sm:p-4',
       'bg-destructive/10',
       'border',
       'border-destructive/20',
@@ -39,7 +40,7 @@ describe('ErrorDisplay', () => {
     render(<ErrorDisplay error="Test error message" />);
 
     const errorText = screen.getByText('Test error message');
-    expect(errorText).toHaveClass('text-destructive', 'text-sm');
+    expect(errorText).toHaveClass('text-destructive', 'text-xs', 'sm:text-sm');
   });
 
   it('handles long error messages', () => {
@@ -91,11 +92,11 @@ describe('ErrorDisplay', () => {
     const { rerender } = render(<ErrorDisplay error="First error" />);
 
     const firstError = screen.getByText('First error');
-    expect(firstError).toHaveClass('text-destructive', 'text-sm');
+    expect(firstError).toHaveClass('text-destructive', 'text-xs', 'sm:text-sm');
 
     rerender(<ErrorDisplay error="Second error" />);
 
     const secondError = screen.getByText('Second error');
-    expect(secondError).toHaveClass('text-destructive', 'text-sm');
+    expect(secondError).toHaveClass('text-destructive', 'text-xs', 'sm:text-sm');
   });
 });

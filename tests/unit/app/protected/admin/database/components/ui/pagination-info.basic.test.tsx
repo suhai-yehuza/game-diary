@@ -99,7 +99,15 @@ describe('PaginationInfo', () => {
     );
 
     const wrapper = container.firstChild as HTMLElement;
-    expect(wrapper).toHaveClass('flex', 'items-center', 'justify-between', 'mb-4');
+    expect(wrapper).toHaveClass(
+      'flex',
+      'flex-col',
+      'sm:flex-row',
+      'sm:items-center',
+      'sm:justify-between',
+      'gap-2',
+      'mb-4'
+    );
   });
 
   it('renders with correct text styling', () => {
@@ -108,7 +116,7 @@ describe('PaginationInfo', () => {
     const totalCountElement = screen.getByText('1-20 of 100 total users');
     const currentPageElement = screen.getByText('1');
 
-    expect(totalCountElement).toHaveClass('text-sm', 'text-muted-foreground');
+    expect(totalCountElement).toHaveClass('text-xs', 'sm:text-sm', 'text-muted-foreground');
     expect(currentPageElement).toHaveClass(
       'font-semibold',
       'text-emerald-600',

@@ -204,9 +204,9 @@ export function AdminDatabaseContent() {
           )}
 
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary" className="text-xs">
                   {tablePagination
                     ? `${tablePagination.total} total records`
                     : `${tableDataForTable.length} records`}
@@ -214,20 +214,23 @@ export function AdminDatabaseContent() {
                 <LastUpdated />
               </div>
               {tablePagination && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-xs sm:text-sm text-muted-foreground">
                   Page {currentTablePage} of {tablePagination.pages}
                 </div>
               )}
             </div>
 
-            <div className="h-96 w-full border rounded-md">
-              <div className="p-4">
+            <div className="h-80 sm:h-96 w-full border rounded-md">
+              <div className="p-2 sm:p-4">
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                  <table className="w-full text-xs sm:text-sm">
                     <thead>
                       <tr className="border-b">
                         {config.fields.map(field => (
-                          <th key={field} className="text-left p-2 font-medium">
+                          <th
+                            key={field}
+                            className="text-left p-1 sm:p-2 font-medium whitespace-nowrap"
+                          >
                             {field}
                           </th>
                         ))}
@@ -240,8 +243,8 @@ export function AdminDatabaseContent() {
                             colSpan={config.fields.length}
                             className="text-center py-8 text-muted-foreground"
                           >
-                            <Database className="mx-auto h-12 w-12 mb-4 opacity-50" />
-                            <p>
+                            <Database className="mx-auto h-8 w-8 sm:h-12 sm:w-12 mb-4 opacity-50" />
+                            <p className="text-xs sm:text-sm">
                               No data loaded. Click &quot;Fetch Data&quot; to load{' '}
                               {config.title.toLowerCase()}.
                             </p>
@@ -258,9 +261,9 @@ export function AdminDatabaseContent() {
                             className="border-b hover:bg-neutral-50"
                           >
                             {config.fields.map(field => (
-                              <td key={field} className="p-2 text-xs">
+                              <td key={field} className="p-1 sm:p-2 text-xs">
                                 <div
-                                  className="max-w-32 truncate-white"
+                                  className="max-w-20 sm:max-w-32 truncate"
                                   title={formatValue(row[field], field)}
                                 >
                                   {formatValue(row[field], field)}
@@ -274,16 +277,17 @@ export function AdminDatabaseContent() {
                   </table>
                 </div>
                 {tablePagination && tablePagination.pages > 1 && (
-                  <div className="mt-4 flex items-center justify-center gap-2">
+                  <div className="mt-4 flex flex-col sm:flex-row items-center justify-center gap-2">
                     <Button
                       onClick={() => handlePageChange(currentTablePage - 1)}
                       disabled={currentTablePage <= 1 || loading[tableName]}
                       size="sm"
                       variant="outline"
+                      className="text-xs"
                     >
                       Previous
                     </Button>
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs sm:text-sm text-muted-foreground">
                       Page {currentTablePage} of {tablePagination.pages}
                     </span>
                     <Button
@@ -291,6 +295,7 @@ export function AdminDatabaseContent() {
                       disabled={currentTablePage >= tablePagination.pages || loading[tableName]}
                       size="sm"
                       variant="outline"
+                      className="text-xs"
                     >
                       Next
                     </Button>
@@ -306,10 +311,10 @@ export function AdminDatabaseContent() {
 
   return (
     <ErrorBoundary componentName="AdminDatabaseContent">
-      <div className="container mx-auto p-6 h-full flex flex-col">
+      <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 md:px-6 h-full flex flex-col">
         <div className="space-y-2 flex-shrink-0 mb-4">
-          <h1 className="text-2xl font-bold">Database Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-bold">Database Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             View and manage database tables. This page allows you to fetch and display data from
             various tables in the system.
           </p>
@@ -319,20 +324,20 @@ export function AdminDatabaseContent() {
           onValueChange={setActiveTab}
           className="flex-1 flex flex-col min-h-0"
         >
-          <TabsList className="flex flex-col md:flex-row w-full md:space-x-2 space-y-2 md:space-y-0 bg-transparent p-0 border-0 mb-4">
+          <TabsList className="flex flex-wrap md:flex-row w-full md:space-x-2 space-y-2 md:space-y-0 bg-transparent p-0 border-0 mb-4 overflow-x-auto">
             {Object.entries(tableConfigs).map(([key, config]) => (
               <TabsTrigger
                 key={key}
                 value={key}
-                className="flex items-center gap-2 px-4 py-2 mx-1 rounded-md border transition-all duration-200
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 mx-0.5 sm:mx-1 rounded-md border transition-all duration-200 text-xs sm:text-sm flex-shrink-0
             bg-neutral-100 text-neutral-700 border-neutral-200 shadow-sm
             dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-600
             hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-neutral-100
             data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-md
             dark:data-[state=active]:bg-blue-500 dark:data-[state=active]:text-white dark:data-[state=active]:border-blue-500 dark:data-[state=active]:shadow-md"
               >
-                <config.icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{config.title}</span>
+                <config.icon className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">{config.title}</span>
               </TabsTrigger>
             ))}
           </TabsList>

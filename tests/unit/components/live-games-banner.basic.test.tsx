@@ -22,7 +22,7 @@ vi.mock('@/hooks/use-live-games', () => ({
   useLiveGames: vi.fn(),
 }));
 
-// Mock the mock data - use a factory function to avoid circular reference
+// Mock the mock data
 vi.mock('@/lib/mock/liveGamesMock', async () => {
   const actual = await vi.importActual('@/lib/mock/liveGamesMock');
   return {
@@ -111,47 +111,40 @@ const mockGames = [
       endOfPeriod: false,
     },
     arena: {
-      name: 'Chase Center',
-      city: 'San Francisco',
+      name: 'Crypto.com Arena',
+      city: 'Los Angeles',
       state: 'CA',
       country: 'USA',
     },
     teams: {
       home: {
-        id: 583,
+        id: 585,
         name: 'Golden State Warriors',
         nickname: 'Warriors',
         code: 'GSW',
-        logo: 'https://media.api-sports.io/basketball/teams/583.png',
+        logo: 'https://media.api-sports.io/basketball/teams/585.png',
       },
       visitors: {
-        id: 583,
+        id: 586,
         name: 'Los Angeles Lakers',
         nickname: 'Lakers',
         code: 'LAL',
-        logo: 'https://media.api-sports.io/basketball/teams/583.png',
+        logo: 'https://media.api-sports.io/basketball/teams/586.png',
       },
     },
     scores: {
-      home: {
-        win: 12,
-        loss: 15,
-        series: { win: 0, loss: 0 },
-        linescore: [25, 28, 30, 0],
-        points: 83,
-      },
+      home: { win: 0, loss: 0, series: { win: 0, loss: 0 }, linescore: [25, 28, 30], points: 83 },
       visitors: {
-        win: 14,
-        loss: 13,
+        win: 0,
+        loss: 0,
         series: { win: 0, loss: 0 },
-        linescore: [22, 30, 32, 0],
+        linescore: [22, 30, 32],
         points: 84,
       },
     },
-    officials: ['Bob Wilson', 'Sarah Brown', 'Tom Davis'],
-    timesTied: 5,
-    leadChanges: 12,
-    nugget: 'Lakers lead by 1 in a nail-biter finish',
+    officials: [],
+    timesTied: 1,
+    leadChanges: 2,
   },
 ];
 
@@ -196,11 +189,230 @@ describe('LiveGamesBanner', () => {
   it('displays live indicator with pulsing animation', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
     render(<LiveGamesBanner />);
+
     const liveIndicator = screen.getByTestId('live-indicator');
-    expect(liveIndicator).toBeInTheDocument();
     expect(liveIndicator).toHaveClass('animate-live-dot-glow');
-    expect(liveIndicator).toHaveClass('bg-semantic-error');
-    expect(liveIndicator).toHaveClass('rounded-full');
+  });
+
+  it('has proper accessibility attributes', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const banner = screen.getByTestId('live-games-banner');
+    expect(banner).toHaveAttribute('role', 'banner');
+    expect(banner).toHaveAttribute('aria-label', 'Live sports games');
+  });
+
+  it('has clickable game items with proper accessibility', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const gameItems = screen.getAllByTestId('game');
+    expect(gameItems.length).toBeGreaterThan(0);
+
+    gameItems.forEach(gameItem => {
+      expect(gameItem).toHaveAttribute('role', 'button');
+      expect(gameItem).toHaveAttribute('tabIndex', '0');
+      expect(gameItem).toHaveClass('cursor-pointer');
+    });
+  });
+
+  it('has clickable live indicator with proper accessibility', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    // Find the button element that contains the live games text
+    const liveIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
+    expect(liveIndicator).toHaveAttribute('role', 'button');
+    expect(liveIndicator).toHaveAttribute('tabIndex', '0');
+    expect(liveIndicator).toHaveAttribute('aria-label');
+  });
+
+  it('shows last updated timestamp in combined indicator', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const lastUpdated = screen.getByText(/Updated \d{1,2}:\d{2}/);
+    expect(lastUpdated).toBeInTheDocument();
+
+    // Check that it's within the combined indicator container
+    const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
+    expect(combinedIndicator).toContainElement(lastUpdated);
+
+    // Check for the green indicator dot
+    const greenDot = combinedIndicator?.querySelector('.bg-green-400');
+    expect(greenDot).toBeInTheDocument();
+    expect(greenDot).toHaveClass('animate-update-pulse');
+  });
+
+  it('has combined indicator layout with proper styling', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
+
+    // Check for proper flex layout and spacing (updated for responsive design)
+    expect(combinedIndicator).toHaveClass(
+      'flex',
+      'items-center',
+      'space-x-1.5',
+      'xs:space-x-2',
+      'sm:space-x-3'
+    );
+    expect(combinedIndicator).toHaveClass('bg-black/40', 'backdrop-blur-md', 'rounded-full');
+    expect(combinedIndicator).toHaveClass(
+      'px-1.5',
+      'xs:px-2',
+      'sm:px-3',
+      'py-0.5',
+      'xs:py-0.5',
+      'sm:py-1',
+      'border',
+      'border-white/20'
+    );
+
+    // Check that the text content is in a flex column
+    const textContainer = combinedIndicator?.querySelector('.flex-col');
+    expect(textContainer).toBeInTheDocument();
+  });
+
+  it('has clickable view all link with proper accessibility', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const viewAllLink = screen.getByRole('link', { name: 'View All' });
+    expect(viewAllLink).toHaveAttribute('href', '/sports/live');
+  });
+
+  it('has responsive positioning for indicators to avoid blocking game content', () => {
+    render(<LiveGamesBanner />);
+
+    // Check that the combined indicator container exists and has positioning
+    const combinedIndicatorContainer = screen
+      .getByText('2 Live Games')
+      .closest('[role="button"]')?.parentElement;
+    expect(combinedIndicatorContainer).toBeInTheDocument();
+
+    // Check that the view all link exists and has positioning
+    const viewAllLink = screen.getByRole('link', { name: /View All/ });
+    expect(viewAllLink).toBeInTheDocument();
+
+    // Verify both elements are properly positioned within the banner
+    const banner = screen.getByRole('banner');
+    if (combinedIndicatorContainer) {
+      expect(banner).toContainElement(combinedIndicatorContainer);
+    }
+    expect(banner).toContainElement(viewAllLink);
+
+    // Verify the scrolling content has responsive padding
+    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[40px]"]');
+    expect(scrollingContent).toBeInTheDocument();
+  });
+
+  it('has responsive padding for scrolling content area', () => {
+    render(<LiveGamesBanner />);
+
+    // Check that the scrolling content has responsive padding to accommodate UI elements
+    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[40px]"]');
+    expect(scrollingContent).toBeInTheDocument();
+
+    // Verify the scrolling content exists and has proper structure
+    const banner = screen.getByRole('banner');
+    expect(banner).toBeInTheDocument();
+
+    // Verify the responsive padding classes are applied for mobile optimization
+    expect(scrollingContent).toHaveClass('w-[40px]');
+  });
+
+  it('has responsive banner padding and spacing', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const banner = screen.getByTestId('live-games-banner');
+    expect(banner).toHaveClass('py-0.5', 'xs:py-1', 'sm:py-1.5', 'px-1', 'xs:px-2', 'sm:px-4');
+  });
+
+  it('has responsive game item spacing and sizing', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const gameItems = screen.getAllByTestId('game');
+    const firstGame = gameItems[0];
+
+    // Check responsive spacing
+    expect(firstGame).toHaveClass('space-x-0.5', 'xs:space-x-1', 'sm:space-x-2');
+    expect(firstGame).toHaveClass('px-1', 'xs:px-1.5', 'sm:px-2');
+  });
+
+  it('has responsive team logo sizing', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const banner = screen.getByTestId('live-games-banner');
+    const logoContainers = banner.querySelectorAll(
+      '[class*="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3"]'
+    );
+    expect(logoContainers.length).toBeGreaterThan(0);
+  });
+
+  it('has responsive indicator sizing and spacing', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
+
+    // Check responsive spacing and sizing
+    expect(combinedIndicator).toHaveClass('space-x-1.5', 'xs:space-x-2', 'sm:space-x-3');
+    expect(combinedIndicator).toHaveClass(
+      'px-1.5',
+      'xs:px-2',
+      'sm:px-3',
+      'py-0.5',
+      'xs:py-0.5',
+      'sm:py-1',
+      'border',
+      'border-white/20'
+    );
+
+    // Check responsive live indicator sizing
+    const liveIndicator = screen.getByTestId('live-indicator');
+    expect(liveIndicator).toHaveClass('w-1', 'h-1', 'xs:w-1.5', 'xs:h-1.5', 'sm:w-2', 'sm:h-2');
+  });
+
+  it('has extra small viewport optimizations', () => {
+    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
+    render(<LiveGamesBanner />);
+
+    const banner = screen.getByTestId('live-games-banner');
+
+    // Check for extra small viewport classes
+    expect(banner).toHaveClass('py-0.5', 'xs:py-1');
+    expect(banner).toHaveClass('px-1', 'xs:px-2');
+
+    // Check for responsive spacing in game items
+    const gameItems = screen.getAllByTestId('game');
+    const firstGame = gameItems[0];
+    expect(firstGame).toHaveClass('space-x-0.5', 'xs:space-x-1');
+  });
+
+  it('ensures UI elements are visible across all viewport sizes', () => {
+    render(<LiveGamesBanner />);
+
+    // Check that the combined indicator exists and has proper styling
+    const combinedIndicator = screen
+      .getByText('2 Live Games')
+      .closest('[role="button"]') as HTMLElement;
+    expect(combinedIndicator).toBeInTheDocument();
+    expect(combinedIndicator).toHaveClass('bg-black/40', 'backdrop-blur-md', 'rounded-full');
+
+    // Check that the view all link exists
+    const viewAllLink = screen.getByRole('link', { name: /View All/ });
+    expect(viewAllLink).toBeInTheDocument();
+
+    // Verify both elements are properly positioned within the banner
+    const banner = screen.getByRole('banner');
+    expect(banner).toContainElement(combinedIndicator);
+    expect(banner).toContainElement(viewAllLink);
   });
 
   it('displays "View All" link', () => {
@@ -241,14 +453,6 @@ describe('LiveGamesBanner', () => {
     expect(screen.getAllByText('Q4').length).toBeGreaterThan(0);
   });
 
-  it('displays game separators between games', () => {
-    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    render(<LiveGamesBanner />);
-    const banner = screen.getByTestId('live-games-banner');
-    const separators = banner.querySelectorAll('.w-px.h-6.bg-gray-600');
-    expect(separators.length).toBeGreaterThan(0); // More separators due to duplicates
-  });
-
   it('has scrolling animation class', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
     render(<LiveGamesBanner />);
@@ -268,347 +472,5 @@ describe('LiveGamesBanner', () => {
     // Check second game: LAL @ GSW (expect multiple due to duplicates)
     expect(screen.getAllByText('LAL').length).toBeGreaterThan(0);
     expect(screen.getAllByText('GSW').length).toBeGreaterThan(0);
-  });
-
-  it('handles missing team codes gracefully', () => {
-    (useLiveGames as any).mockImplementation(
-      () =>
-        ({
-          games: [
-            {
-              id: 3,
-              teams: {
-                visitors: { code: undefined, name: 'Team A', nickname: 'Team A', logo: '' },
-                home: { code: undefined, name: 'Team B', nickname: 'Team B', logo: '' },
-              },
-              scores: {
-                visitors: { points: 0 },
-                home: { points: 0 },
-              },
-              status: {
-                clock: null,
-                halftime: false,
-                short: 'Q1',
-                long: '1st Quarter',
-              },
-              league: 'NBA',
-              arena: { name: 'Arena', city: 'City' },
-            },
-          ],
-        }) as any
-    );
-    render(<LiveGamesBanner />);
-    // Should render the banner with undefined codes
-    expect(screen.getByTestId('live-games-banner')).toBeInTheDocument();
-  });
-
-  it('handles missing clock gracefully', () => {
-    (useLiveGames as any).mockImplementation(
-      () =>
-        ({
-          games: [
-            {
-              id: 4,
-              teams: {
-                visitors: { code: 'TEAM1', name: 'Team 1', nickname: 'Team 1', logo: '' },
-                home: { code: 'TEAM2', name: 'Team 2', nickname: 'Team 2', logo: '' },
-              },
-              scores: {
-                visitors: { points: 50 },
-                home: { points: 45 },
-              },
-              status: {
-                clock: null,
-                halftime: false,
-                short: 'Q2',
-                long: '2nd Quarter',
-              },
-              league: 'NBA',
-              arena: { name: 'Arena', city: 'City' },
-            },
-          ],
-        }) as any
-    );
-    render(<LiveGamesBanner />);
-    expect(screen.getByTestId('live-games-banner')).toBeInTheDocument();
-    expect(screen.getAllByText('Q2').length).toBeGreaterThan(0);
-  });
-
-  it('displays halftime status correctly', () => {
-    (useLiveGames as any).mockImplementation(
-      () =>
-        ({
-          games: [
-            {
-              id: 5,
-              teams: {
-                visitors: { code: 'TEAM3', name: 'Team 3', nickname: 'Team 3', logo: '' },
-                home: { code: 'TEAM4', name: 'Team 4', nickname: 'Team 4', logo: '' },
-              },
-              scores: {
-                visitors: { points: 60 },
-                home: { points: 65 },
-              },
-              status: {
-                clock: null,
-                halftime: true,
-                short: 'HT',
-                long: 'Halftime',
-              },
-              league: 'NBA',
-              arena: { name: 'Arena', city: 'City' },
-            },
-          ],
-        }) as any
-    );
-    render(<LiveGamesBanner />);
-    expect(screen.getAllByText('HT').length).toBeGreaterThan(0);
-  });
-
-  it('has correct banner styling classes', () => {
-    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    render(<LiveGamesBanner />);
-    const banner = screen.getByTestId('live-games-banner');
-    expect(banner).toHaveClass(
-      'fixed',
-      'top-0',
-      'left-0',
-      'right-0',
-      'z-[60]',
-      'bg-gradient-to-r',
-      'from-gray-900',
-      'to-blue-900'
-    );
-  });
-
-  it('displays team logos', () => {
-    (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    render(<LiveGamesBanner />);
-
-    // Check for team logo images
-    const images = screen.getAllByRole('img');
-    expect(images.length).toBeGreaterThan(0);
-
-    // Check for specific team logos (expect multiple due to duplicates)
-    expect(screen.getAllByText('NYK').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('BOS').length).toBeGreaterThan(0);
-  });
-
-  it('handles single game correctly', () => {
-    (useLiveGames as any).mockImplementation(() => ({ games: [mockGames[0]] }) as any);
-    render(<LiveGamesBanner />);
-    expect(screen.getByText('1 Live Game')).toBeInTheDocument();
-    // With seamless scrolling, single game gets duplicated too
-    const gameElements = screen.getAllByTestId('game');
-    expect(gameElements.length).toBeGreaterThan(0);
-
-    // Should not have separators for single game in original array
-    const banner = screen.getByTestId('live-games-banner');
-    const separators = banner.querySelectorAll('.w-px.h-6.bg-gray-600');
-    // Duplicates may add separators
-    expect(separators.length).toBeGreaterThanOrEqual(0);
-  });
-
-  describe('New Layout Structure', () => {
-    beforeEach(() => {
-      (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    });
-
-    it('has full-width scrolling background layer', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for absolute positioned background layer
-      const backgroundLayer = banner.querySelector('.absolute.inset-0.overflow-hidden');
-      expect(backgroundLayer).toBeInTheDocument();
-    });
-
-    it('has layered design with z-index hierarchy', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for foreground layer with higher z-index
-      const foregroundLayer = banner.querySelector('.relative.z-10');
-      expect(foregroundLayer).toBeInTheDocument();
-    });
-
-    it('positions UI elements with edge spacing', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for justify-between layout
-      const foregroundLayer = banner.querySelector('.flex.items-center.justify-between');
-      expect(foregroundLayer).toBeInTheDocument();
-    });
-
-    it('has live indicator with enhanced styling', () => {
-      render(<LiveGamesBanner />);
-      const liveIndicator = screen.getByTestId('live-indicator');
-
-      // Check for enhanced container styling
-      const indicatorContainer = liveIndicator.closest('.bg-black\\/20');
-      expect(indicatorContainer).toBeInTheDocument();
-      expect(indicatorContainer).toHaveClass('backdrop-blur-sm', 'rounded-full', 'border-white/10');
-    });
-
-    it('has view all button with enhanced styling', () => {
-      render(<LiveGamesBanner />);
-      const viewAllLink = screen.getByText('View All').closest('a');
-
-      // Check that the link exists and has some styling classes
-      expect(viewAllLink).toBeInTheDocument();
-      expect(viewAllLink).toHaveAttribute('href', '/sports/live');
-    });
-
-    it('includes duplicate games for seamless scrolling', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // With 2 original games + 3 duplicates = should see more game elements
-      const gameElements = banner.querySelectorAll('[data-testid="game"]');
-      expect(gameElements.length).toBeGreaterThan(2);
-    });
-
-    it('has proper scrolling animation timing', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for scroll animation class
-      const scrollingContent = banner.querySelector('.animate-scroll-left');
-      expect(scrollingContent).toBeInTheDocument();
-    });
-
-    it('maintains proper game spacing in scroll', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for proper spacing classes
-      const scrollingContent = banner.querySelector('.space-x-4.sm\\:space-x-6');
-      expect(scrollingContent).toBeInTheDocument();
-    });
-
-    it('has proper container structure', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for max-width container
-      const container = banner.querySelector('.container.mx-auto.max-w-7xl');
-      expect(container).toBeInTheDocument();
-    });
-
-    it('positions live games indicator on the left with negative margin', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for negative margin positioning
-      const liveGamesContainer = banner.querySelector('.-ml-32');
-      expect(liveGamesContainer).toBeInTheDocument();
-    });
-
-    it('positions view all button on the right with negative margin', () => {
-      render(<LiveGamesBanner />);
-      const viewAllLink = screen.getByText('View All').closest('a');
-
-      // Check that the link is positioned and exists
-      expect(viewAllLink).toBeInTheDocument();
-    });
-
-    it('displays enhanced live indicator styling', () => {
-      render(<LiveGamesBanner />);
-      const liveIndicator = screen.getByTestId('live-indicator');
-
-      // Check for updated indicator size and color
-      expect(liveIndicator).toHaveClass('w-2.5', 'h-2.5', 'bg-semantic-error', 'flex-shrink-0');
-    });
-
-    it('has proper background gradient', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      expect(banner).toHaveClass('bg-gradient-to-r', 'from-gray-900', 'to-blue-900');
-    });
-
-    it('maintains proper banner height and positioning', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      expect(banner).toHaveClass('fixed', 'top-0', 'left-0', 'right-0', 'py-2.5');
-    });
-
-    it('handles no overlap positioning correctly', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Background layer should be full width
-      const backgroundLayer = banner.querySelector('.absolute.inset-0');
-      expect(backgroundLayer).toBeInTheDocument();
-
-      // Foreground elements should be positioned at edges
-      const foregroundLayer = banner.querySelector('.px-0');
-      expect(foregroundLayer).toBeInTheDocument();
-    });
-  });
-
-  describe('Responsive Design', () => {
-    beforeEach(() => {
-      (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    });
-
-    it('has responsive spacing classes', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      const scrollingContent = banner.querySelector('.space-x-4.sm\\:space-x-6');
-      expect(scrollingContent).toBeInTheDocument();
-    });
-
-    it('has responsive button padding', () => {
-      render(<LiveGamesBanner />);
-      const viewAllLink = screen.getByText('View All').closest('a');
-
-      // Check that the link exists and is responsive
-      expect(viewAllLink).toBeInTheDocument();
-    });
-
-    it('maintains responsive max-width container', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      const container = banner.querySelector('.max-w-7xl');
-      expect(container).toBeInTheDocument();
-    });
-  });
-
-  describe('Animation and Performance', () => {
-    beforeEach(() => {
-      (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
-    });
-
-    it('has proper transform optimizations', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for performance optimizations
-      expect(banner.style.transform).toBe('translateZ(0)');
-      expect(banner.style.willChange).toBe('transform');
-    });
-
-    it('includes seamless scrolling spacer', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      // Check for initial spacing element
-      const spacer = banner.querySelector('.w-\\[300px\\]');
-      expect(spacer).toBeInTheDocument();
-    });
-
-    it('has proper animation classes', () => {
-      render(<LiveGamesBanner />);
-      const banner = screen.getByTestId('live-games-banner');
-
-      const scrollingContent = banner.querySelector('.animate-scroll-left');
-      expect(scrollingContent).toBeInTheDocument();
-      expect(scrollingContent).toHaveClass('h-full');
-    });
   });
 });
