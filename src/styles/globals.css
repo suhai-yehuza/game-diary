@@ -1482,27 +1482,7 @@ footer a:hover {
 }
 
 /* Enhanced Live Games Banner Styles */
-@keyframes liveDotGlow {
-  0% {
-    box-shadow:
-      0 0 5px currentColor,
-      0 0 10px currentColor;
-    opacity: 1;
-  }
-  50% {
-    box-shadow:
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 30px currentColor;
-    opacity: 0.8;
-  }
-  100% {
-    box-shadow:
-      0 0 5px currentColor,
-      0 0 10px currentColor;
-    opacity: 1;
-  }
-}
+/* Removed duplicate @keyframes liveDotGlow block */
 
 .animate-live-dot-glow {
   animation: liveDotGlow 2s ease-in-out infinite;
