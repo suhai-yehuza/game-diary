@@ -220,15 +220,17 @@ export default function TableWithSearch<T extends { id: string | number }>({
       key={row.id}
       className="transition-all duration-200 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
     >
-      <td className="px-6 py-4 text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800">
+      <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
         {index + 1}
       </td>
       {typedColumns.map(col => (
         <td
           key={String(col.key)}
-          className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+          className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
         >
-          {col.render ? col.render(row[col.key], row) : (row[col.key] as React.ReactNode)}
+          <div className="max-w-20 sm:max-w-32 truncate" title={String(row[col.key])}>
+            {col.render ? col.render(row[col.key], row) : (row[col.key] as React.ReactNode)}
+          </div>
         </td>
       ))}
     </tr>
@@ -242,7 +244,7 @@ export default function TableWithSearch<T extends { id: string | number }>({
 
   return (
     <ErrorBoundary componentName={tableName + 'Table'}>
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {/* Search Component */}
         <TableSearch
           searchTerm={searchTerm}
@@ -266,7 +268,7 @@ export default function TableWithSearch<T extends { id: string | number }>({
 
         {/* Table */}
         <div
-          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden relative shadow-sm"
+          className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden relative shadow-sm mx-2 sm:mx-0"
           data-table-container="true"
         >
           {/* Loading overlay - only show when loading and not on initial load */}
@@ -279,53 +281,65 @@ export default function TableWithSearch<T extends { id: string | number }>({
             </div>
           )}
 
-          <div className="overflow-x-auto">
-            <table
-              key={`${tableName}-table`}
-              className="w-full transition-all duration-200 ease-in-out"
-            >
-              <thead className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-800 dark:to-teal-900 border-b-2 border-emerald-500 dark:border-emerald-600">
-                <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0">
-                    #
-                  </th>
-                  {typedColumns.map(col => (
-                    <React.Fragment key={String(col.key)}>
-                      <SortableHeader
-                        sortKey={String(col.key)}
-                        currentSortKey={sortKey}
-                        currentSortDirection={sortDirection}
-                        onSort={col.sortable !== false ? handleSort : noopSort}
-                      >
-                        {col.label}
-                      </SortableHeader>
-                    </React.Fragment>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
-                {loading && isInitialMount.current ? (
-                  <tr>
-                    <td colSpan={typedColumns.length + 1} className="px-6 py-4 text-center">
-                      <div className="flex items-center justify-center">
-                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                        <span className="ml-2">Loading {itemLabel}...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : sortedData.length === 0 ? (
-                  <tr>
-                    <td colSpan={typedColumns.length + 1} className="px-6 py-4 text-center">
-                      {searchTerm
-                        ? `No ${itemLabel} found matching "${searchTerm}".`
-                        : `No ${itemLabel} found.`}
-                    </td>
-                  </tr>
-                ) : (
-                  sortedData.map((row, index) => <TableRow key={row.id} row={row} index={index} />)
-                )}
-              </tbody>
-            </table>
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="min-w-full inline-block align-middle">
+              <div className="overflow-hidden">
+                <table
+                  key={`${tableName}-table`}
+                  className="w-full transition-all duration-200 ease-in-out min-w-full"
+                >
+                  <thead className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-800 dark:to-teal-900 border-b-2 border-emerald-500 dark:border-emerald-600">
+                    <tr>
+                      <th className="px-2 sm:px-6 py-2 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0 whitespace-nowrap">
+                        #
+                      </th>
+                      {typedColumns.map(col => (
+                        <React.Fragment key={String(col.key)}>
+                          <SortableHeader
+                            sortKey={String(col.key)}
+                            currentSortKey={sortKey}
+                            currentSortDirection={sortDirection}
+                            onSort={col.sortable !== false ? handleSort : noopSort}
+                          >
+                            {col.label}
+                          </SortableHeader>
+                        </React.Fragment>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white dark:bg-slate-900 divide-y divide-slate-100 dark:divide-slate-800">
+                    {loading && isInitialMount.current ? (
+                      <tr>
+                        <td
+                          colSpan={typedColumns.length + 1}
+                          className="px-2 sm:px-6 py-2 sm:py-4 text-center"
+                        >
+                          <div className="flex items-center justify-center">
+                            <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-primary" />
+                            <span className="ml-2 text-xs sm:text-sm">Loading {itemLabel}...</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ) : sortedData.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={typedColumns.length + 1}
+                          className="px-2 sm:px-6 py-2 sm:py-4 text-center text-xs sm:text-sm"
+                        >
+                          {searchTerm
+                            ? `No ${itemLabel} found matching "${searchTerm}".`
+                            : `No ${itemLabel} found.`}
+                        </td>
+                      </tr>
+                    ) : (
+                      sortedData.map((row, index) => (
+                        <TableRow key={row.id} row={row} index={index} />
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 

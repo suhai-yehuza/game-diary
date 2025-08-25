@@ -41,8 +41,18 @@ function isAdminRouteActive(isActive: (path: string) => boolean): boolean {
 }
 
 // E2E test version of admin nav (no hooks)
-function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
+function AdminNavE2E({
+  isActive,
+  closeMenu,
+}: {
+  isActive: (path: string) => boolean;
+  closeMenu?: () => void;
+}) {
   const isAdminActive = isAdminRouteActive(isActive);
+
+  const handleLinkClick = () => {
+    if (closeMenu) closeMenu();
+  };
 
   return (
     <DropdownMenu>
@@ -64,6 +74,7 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
             href="/protected/admin/database"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Database Management
           </Link>
@@ -73,6 +84,7 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
             href="/protected/admin/audit-logs"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Audit Logs
           </Link>
@@ -82,6 +94,7 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
             href="/protected/admin/experimental"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Experimental
           </Link>
@@ -91,8 +104,18 @@ function AdminNavE2E({ isActive }: { isActive: (path: string) => boolean }) {
   );
 }
 
-function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) {
+function AdminNavContent({
+  isActive,
+  closeMenu,
+}: {
+  isActive: (path: string) => boolean;
+  closeMenu?: () => void;
+}) {
   const isAdminActive = isAdminRouteActive(isActive);
+
+  const handleLinkClick = () => {
+    if (closeMenu) closeMenu();
+  };
 
   return (
     <DropdownMenu>
@@ -114,6 +137,7 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
             href="/protected/admin/database"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Database Management
           </Link>
@@ -123,6 +147,7 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
             href="/protected/admin/audit-logs"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Audit Logs
           </Link>
@@ -132,6 +157,7 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
             href="/protected/admin/experimental"
             className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
             role="menuitem"
+            onClick={handleLinkClick}
           >
             Experimental
           </Link>
@@ -141,25 +167,33 @@ function AdminNavContent({ isActive }: { isActive: (path: string) => boolean }) 
   );
 }
 
-export function AdminNav({ isActive }: { isActive: (path: string) => boolean }) {
+export function AdminNav({
+  isActive,
+  closeMenu,
+}: {
+  isActive: (path: string) => boolean;
+  closeMenu?: () => void;
+}) {
   // Use E2E test version for test environments, but only if we're actually in E2E mode
   if (
     typeof window !== 'undefined' &&
     window.location.hostname === 'localhost' &&
     process.env.E2E_MOCK_MODE === 'true'
   ) {
-    return <AdminNavE2E isActive={isActive} />;
+    return <AdminNavE2E isActive={isActive} closeMenu={closeMenu} />;
   }
-  return <AdminNavContent isActive={isActive} />;
+  return <AdminNavContent isActive={isActive} closeMenu={closeMenu} />;
 }
 
 // Safe wrapper for AdminNav that handles Clerk context
 function AdminNavWithAuthSafe({
   isActive,
   isStacked = false,
+  closeMenu,
 }: {
   isActive: (path: string) => boolean;
   isStacked?: boolean;
+  closeMenu?: () => void;
 }) {
   // Always call the hook first to satisfy React's rules
   const isAdmin = useIsAdmin();
@@ -167,6 +201,10 @@ function AdminNavWithAuthSafe({
   if (!isAdmin) {
     return null;
   }
+
+  const handleLinkClick = () => {
+    if (closeMenu) closeMenu();
+  };
 
   return isStacked ? (
     <div className="mt-12 w-full flex justify-center">
@@ -187,6 +225,7 @@ function AdminNavWithAuthSafe({
               href="/protected/admin/database"
               className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               role="menuitem"
+              onClick={handleLinkClick}
             >
               Database Management
             </Link>
@@ -196,6 +235,7 @@ function AdminNavWithAuthSafe({
               href="/protected/admin/audit-logs"
               className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               role="menuitem"
+              onClick={handleLinkClick}
             >
               Audit Logs
             </Link>
@@ -205,6 +245,7 @@ function AdminNavWithAuthSafe({
               href="/protected/admin/experimental"
               className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               role="menuitem"
+              onClick={handleLinkClick}
             >
               Experimental
             </Link>
@@ -213,7 +254,7 @@ function AdminNavWithAuthSafe({
       </DropdownMenu>
     </div>
   ) : (
-    <AdminNav isActive={isActive} />
+    <AdminNav isActive={isActive} closeMenu={closeMenu} />
   );
 }
 
@@ -221,24 +262,30 @@ function AdminNavWithAuthSafe({
 function AdminNavWithAuthWrapper({
   isActive,
   isStacked = false,
+  closeMenu,
 }: {
   isActive: (path: string) => boolean;
   isStacked?: boolean;
+  closeMenu?: () => void;
 }) {
   // Don't render during SSO callbacks to prevent useSession errors
   if (isSSOCallback()) {
     return null;
   }
 
-  return <AdminNavWithAuthSafe isActive={isActive} isStacked={isStacked} />;
+  return <AdminNavWithAuthSafe isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />;
 }
 
 export function AdminNavWithAuth({
   isActive,
   isStacked = false,
+  closeMenu,
 }: {
   isActive: (path: string) => boolean;
   isStacked?: boolean;
+  closeMenu?: () => void;
 }) {
-  return <AdminNavWithAuthWrapper isActive={isActive} isStacked={isStacked} />;
+  return (
+    <AdminNavWithAuthWrapper isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />
+  );
 }

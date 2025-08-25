@@ -22,17 +22,18 @@ export function NavItem({
   // Modern mobile styling with proper touch targets
   const mobileStackedClasses = `
     w-full max-w-sm mx-auto
-    min-h-[56px] px-4 py-3
+    min-h-[56px] px-6 py-4
     flex items-center justify-center
     text-base font-medium
-    rounded-lg
+    rounded-xl
     transition-all duration-200 ease-out
-    active:scale-95
+    active:scale-98
     focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
+    shadow-sm
     ${
       isActive
-        ? 'bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary border border-brand-primary/30 dark:border-brand-primary/40'
-        : 'bg-neutral-50 text-neutral-900 dark:text-neutral-100 dark:bg-neutral-800 hover:bg-neutral-100 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700 shadow-sm'
+        ? 'bg-brand-primary/10 dark:bg-brand-primary/20 text-brand-primary dark:text-brand-primary border-2 border-brand-primary/30 dark:border-brand-primary/40 shadow-md'
+        : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
     }
     ${className}
   `;
