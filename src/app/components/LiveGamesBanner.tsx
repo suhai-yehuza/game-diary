@@ -315,8 +315,11 @@ export function LiveGamesBanner() {
             className="group text-xs font-semibold hover:bg-white/20 transition-all duration-200 flex items-center space-x-1 xs:space-x-1 sm:space-x-1.5 bg-black/40 backdrop-blur-md rounded-full px-1 xs:px-1.5 sm:px-2 md:px-2.5 py-0.5 xs:py-0.5 sm:py-1 border border-white/20 hover:border-white/30 flex-shrink-0 mr-1 xs:mr-2 sm:mr-0 sm:-mr-4 md:-mr-8 lg:-mr-12 xl:-mr-16 2xl:-mr-20 shadow-lg"
             aria-label="View all live games"
             onClick={() => {
-              if ('vibrate' in navigator) {
-                navigator.vibrate(10);
+                try {
+                  navigator.vibrate(10);
+                } catch (e) {
+                  // Ignore vibrate errors
+                }
               }
             }}
           >
