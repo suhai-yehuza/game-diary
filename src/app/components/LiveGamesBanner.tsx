@@ -72,8 +72,8 @@ export function LiveGamesBanner() {
       navigator.vibrate(10);
     }
     // Navigate to game detail page
-    window.location.href = `/sports/game/${gameId}`;
-  }, []);
+    router.push(`/sports/game/${gameId}`);
+  }, [router]);
 
   // Use the banner visibility hook to determine if we should render
   if (!shouldDisplayBanner || !isClient) {
