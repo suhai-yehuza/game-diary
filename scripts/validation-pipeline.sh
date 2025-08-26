@@ -1242,7 +1242,10 @@ start_e2e_server() {
     if [[ "$E2E_TEST_SUITE" == "live-games" ]] || [[ "$E2E_TEST_SUITE" == "mock-verification" ]]; then
         pnpm dev:mock -p "$E2E_PORT" &
     else
-        pnpm dev -p "$E2E_PORT" &
+        # Enable mock mode for E2E tests to avoid rate limiting
+        export E2E_MOCK_MODE=true
+        export API_MOCK_MODE=true
+        pnpm dev:mock -p "$E2E_PORT" &
     fi
 
     E2E_SERVER_PID=$!
@@ -1351,6 +1354,9 @@ run_e2e_test_suite() {
     # Set environment variables for the test
     export PORT="$E2E_PORT"
     export LOCALHOST_URL="$LOCALHOST_URL"
+    # Enable mock mode for E2E tests to avoid rate limiting
+    export E2E_MOCK_MODE=true
+    export API_MOCK_MODE=true
 
     # Run the tests
     log_info "🧪 Running $suite tests on port $E2E_PORT..."

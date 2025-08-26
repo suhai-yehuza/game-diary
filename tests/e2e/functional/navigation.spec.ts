@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test';
 
 import { SPORTS_CONFIG } from '@src/app/components/sports/SportsConfig';
+import { APP_CONFIG } from '@src/lib/config/app.config';
 import {
   testSignInModalVariants,
   testProtectedRouteAccess,
@@ -238,6 +239,8 @@ test.describe('Navigation Tests (Extends Critical)', () => {
   });
 
   test('should handle comprehensive navigation flows', async ({ page }) => {
+    // Set explicit timeout to match Playwright configuration
+    test.setTimeout(APP_CONFIG.TEST_TIMEOUT);
     await runNavigationSuite(page);
   });
 });

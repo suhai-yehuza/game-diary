@@ -273,6 +273,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: ./scripts/server-manager.sh start test --port=3000
 
       - name: Run E2E Mock Verification (All Browsers)
@@ -285,7 +287,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
-          DEPLOYMENT_URL: 'http://localhost:3000'
+          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
@@ -364,6 +366,8 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: |
           echo "🚀 Starting development server on port 3000..."
           pnpm dev:mock -p 3000 > /dev/null 2>&1 &
@@ -372,7 +376,7 @@ jobs:
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s ${{ env.E2E_CHROMIUM_URL }} > /dev/null 2>&1; then
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -392,13 +396,16 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
-          DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
+          E2E_CHROMIUM_URL: 'http://localhost:3000'
+          DEPLOYMENT_URL: 'http://localhost:3000'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: |
           echo "Running E2E tests on Chromium with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --reporter=list,json,junit,html
 
       - name: Stop Development Server
         if: always()
@@ -475,6 +482,9 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+          E2E_WEBKIT_URL: 'http://localhost:3001'
         run: |
           echo "🚀 Starting development server on port 3001..."
           pnpm dev:mock -p 3001 > /dev/null 2>&1 &
@@ -483,7 +493,7 @@ jobs:
           # Wait for server to be ready
           echo "⏳ Waiting for server to be ready..."
           for i in {1..30}; do
-            if curl -s ${{ env.E2E_WEBKIT_URL }} > /dev/null 2>&1; then
+            if curl -s http://localhost:3001 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
@@ -503,13 +513,16 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
-          DEPLOYMENT_URL: ${{ env.E2E_WEBKIT_URL }}
+          E2E_WEBKIT_URL: 'http://localhost:3001'
+          DEPLOYMENT_URL: 'http://localhost:3001'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
         run: |
           echo "Running E2E tests on WebKit with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --reporter=list,json,junit,html
 
       - name: Stop Development Server (WebKit)
         if: always()
@@ -616,15 +629,16 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          E2E_FIREFOX_URL: 'http://localhost:3002'
           DEPLOYMENT_URL: 'http://localhost:3002'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
           echo "Running E2E tests on Firefox with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --reporter=list,json,junit,html
 
       - name: Stop Development Server (Firefox)
         if: always()
@@ -731,15 +745,16 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          E2E_MOBILE_URL: 'http://localhost:3003'
           DEPLOYMENT_URL: 'http://localhost:3003'
           E2E_MOCK_MODE: 'true'
           API_MOCK_MODE: 'true'
         run: |
           echo "Running E2E tests on Mobile with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
-          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --timeout=30000 --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
 
       - name: Stop Development Server (Mobile)
         if: always()

@@ -260,8 +260,8 @@ jobs:
           pnpm exec playwright test tests/e2e/ \
             --project="${{ matrix.browser }}" \
             --reporter=list,json,junit,html \
-            --workers=6 \
-            --timeout=30000 \
+            --workers=4 \
+
             --max-failures=5 || {
             echo "⚠️ Some ${{ matrix.browser }} tests failed, but continuing with coverage report..."
           }

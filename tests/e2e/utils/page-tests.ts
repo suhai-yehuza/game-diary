@@ -7,7 +7,9 @@ import {
   checkAccessibilityBasics,
 } from '@tests/e2e/utils/page-checks';
 import { checkPerformanceMetrics, checkForConsoleErrors } from '@tests/e2e/utils/performance';
-import { TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
+import { safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
+
+import { TIMEOUT_CONFIG } from './timeout-config';
 
 /**
  * Page test utilities for E2E tests
@@ -61,7 +63,7 @@ export async function testDashboardPage(page: Page): Promise<void> {
 
   // Check for dashboard-specific elements
   const dashboardContent = page.locator('[data-testid="dashboard"], .dashboard, main');
-  await expect(dashboardContent).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+  await expect(dashboardContent).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
 }
 
 /**
@@ -72,7 +74,7 @@ export async function testMultiplePages(
   paths: string[],
   options: { timeout?: number } = {}
 ): Promise<void> {
-  const { timeout = TIMEOUTS.MEDIUM } = options;
+  const { timeout = TIMEOUT_CONFIG.ELEMENT_VISIBLE } = options;
 
   for (const path of paths) {
     console.log(`🔍 Testing page: ${path}`);
@@ -107,20 +109,20 @@ export async function testSearchFunctionality(page: Page): Promise<void> {
 
   // Check search form
   const searchForm = page.locator('form[role="search"], [data-testid="search-form"]');
-  await expect(searchForm).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+  await expect(searchForm).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
 
   // Check search input
   const searchInput = page.locator(
     'input[type="search"], input[name="search"], [data-testid="search-input"]'
   );
-  await expect(searchInput).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+  await expect(searchInput).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
 
   // Test basic search
   await searchInput.fill('test');
   await searchInput.press('Enter');
 
   // Wait for search results or no results message
-  await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM });
+  await page.waitForLoadState('domcontentloaded', { timeout: TIMEOUT_CONFIG.DOM_CONTENT_LOADED });
 }
 
 /**
@@ -139,7 +141,7 @@ export async function testSportsPage(page: Page, sport: string): Promise<void> {
 
   // Check for sports-specific content
   const sportsContent = page.locator('[data-testid="sports-content"], .sports-content, main');
-  await expect(sportsContent).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+  await expect(sportsContent).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
 
   // Check for live games or standings
   const liveGames = page.locator('[data-testid="live-games"], .live-games');

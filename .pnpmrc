@@ -14,3 +14,9 @@ suppress-deprecation-warnings=true
 
 # Disable telemetry and scripts for CI/CD
 enable-pre-post-scripts=false
+
+# npm registry configuration for CI environments
+registry=https://registry.npmjs.org/
+fetch-retries=3
+fetch-retry-mintimeout=5000
+fetch-retry-maxtimeout=60000

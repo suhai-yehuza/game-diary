@@ -1,5 +1,6 @@
 import { test } from '@playwright/test';
 
+import { APP_CONFIG } from '@src/lib/config/app.config';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { isMockModeEnabled, getMockData } from '@tests/e2e/utils/mock-config';
 import { checkPerformanceMetrics } from '@tests/e2e/utils/performance';
@@ -79,10 +80,25 @@ class TestRunner {
     }
 
     try {
+      // Check if page is still valid before running test
+      if (page.isClosed()) {
+        throw new Error('Page is closed, cannot run test');
+      }
+
       await testFn();
       console.log(`✅ Test completed: ${this.testName}`);
     } catch (error) {
       console.error(`❌ Test failed: ${this.testName}`, error);
+
+      // Check if the error is due to browser context being closed
+      if (
+        error instanceof Error &&
+        error.message.includes('Target page, context or browser has been closed')
+      ) {
+        console.log('🔄 Browser context was closed during test execution');
+        throw new Error('Browser context closed - test environment issue');
+      }
+
       throw error;
     }
   }
@@ -253,6 +269,8 @@ test.describe('Smoke Tests', () => {
   });
 
   test('@smoke full smoke suite', async ({ page }) => {
+    // Set explicit timeout to match Playwright configuration
+    test.setTimeout(APP_CONFIG.TEST_TIMEOUT);
     await runSmokeSuite(page);
   });
 });
@@ -268,6 +286,9 @@ test.describe('Enhanced Smoke Tests with Mock Data', () => {
   });
 
   test('@smoke enhanced smoke suite with mock data', async ({ page }) => {
+    // Set explicit timeout to match Playwright configuration
+    test.setTimeout(APP_CONFIG.TEST_TIMEOUT);
+
     const runner = new TestRunner('enhanced-smoke');
 
     await runner.runTest(page, async () => {

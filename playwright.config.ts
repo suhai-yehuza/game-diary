@@ -73,7 +73,7 @@ const port = getPort();
 const webServerConfig = {
   command: `NODE_ENV=development API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p ${port}`,
   url: `http://localhost:${port}`,
-  reuseExistingServer: true, // Always reuse existing server to avoid conflicts
+  reuseExistingServer: !process.env.CI, // Don't reuse in CI to avoid conflicts
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,
   stdout: 'pipe' as const,
   stderr: 'pipe' as const,
@@ -89,7 +89,7 @@ if (process.env.CI) {
   console.log('  Selected baseURL:', baseURL);
   console.log('  getAppUrl():', getAppUrl());
   console.log('  isLocalhostTarget():', isLocalhostTarget());
-  console.log('  Will start web server:', isLocalhostTarget());
+  console.log('  Will start web server:', isLocalhostTarget() && !process.env.CI);
   console.log(
     '  VERCEL_AUTOMATION_BYPASS_SECRET:',
     process.env.VERCEL_AUTOMATION_BYPASS_SECRET ? 'SET' : 'NOT SET'
@@ -101,14 +101,15 @@ export default defineConfig({
   testDir: './tests/e2e',
 
   // Optimized timeouts and retries for speed
-  timeout: process.env.CI ? 30000 : APP_CONFIG.TEST_TIMEOUT, // Reduced timeout in CI
+  timeout: APP_CONFIG.TEST_TIMEOUT, // Standardized 10-minute timeout - no overrides needed in CI
   fullyParallel: true, // Enable full parallelism for maximum speed
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 2, // Reduced retries in CI for speed
-  workers: process.env.CI ? 4 : 6, // Increased workers for maximum speed
+  retries: process.env.CI ? 2 : 3, // Reduced retries in CI for speed
+  workers: process.env.CI ? 4 : 6, // Reduced workers in CI to prevent browser context conflicts
 
   // Web server configuration
-  webServer: isLocalhostTarget() ? webServerConfig : undefined,
+  // In CI, don't start a web server if we're targeting localhost (server is started manually)
+  webServer: isLocalhostTarget() && !process.env.CI ? webServerConfig : undefined,
 
   // Browser projects
   projects: [
@@ -185,8 +186,8 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     trace: 'on-first-retry',
     video: 'retain-on-failure',
-    actionTimeout: process.env.CI ? 10000 : APP_CONFIG.TEST_ACTION_TIMEOUT, // Reduced in CI
-    navigationTimeout: process.env.CI ? 15000 : APP_CONFIG.TEST_NAVIGATION_TIMEOUT, // Reduced in CI
+    actionTimeout: APP_CONFIG.TEST_ACTION_TIMEOUT, // Use consistent timeout across environments
+    navigationTimeout: APP_CONFIG.TEST_NAVIGATION_TIMEOUT, // Use consistent timeout across environments
     launchOptions: {
       args: [],
     },

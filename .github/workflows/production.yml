@@ -167,16 +167,32 @@ jobs:
           NEW_WORKFLOW_NAME="Production Deployment (1 Business Day Soak Period)"
           OLD_WORKFLOW_NAME="Production Deployment" # <-- Set this to your previous workflow name
 
-          # Try to get the latest deployment from the new workflow name first
+          # Try to get the latest deployment from the new workflow name first (check both staging and master branches)
           PRODUCTION_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${NEW_WORKFLOW_NAME// /%20}&branch=main&status=completed&conclusion=success&per_page=1" | \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${NEW_WORKFLOW_NAME// /%20}&branch=staging&status=completed&conclusion=success&per_page=1" | \
             jq -r '.workflow_runs[0] // empty')
 
-          # If no deployment found with new workflow name, try the old workflow name
+          # If no deployment found with new workflow name on staging, try master branch
           if [ -z "$PRODUCTION_DEPLOYMENT" ]; then
-            echo "No deployment found with new workflow name, trying old workflow name..."
+            echo "No deployment found with new workflow name on staging, trying master branch..."
             PRODUCTION_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${OLD_WORKFLOW_NAME// /%20}&branch=main&status=completed&conclusion=success&per_page=1" | \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${NEW_WORKFLOW_NAME// /%20}&branch=master&status=completed&conclusion=success&per_page=1" | \
+              jq -r '.workflow_runs[0] // empty')
+          fi
+
+          # If no deployment found with new workflow name, try the old workflow name on staging
+          if [ -z "$PRODUCTION_DEPLOYMENT" ]; then
+            echo "No deployment found with new workflow name, trying old workflow name on staging..."
+            PRODUCTION_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${OLD_WORKFLOW_NAME// /%20}&branch=staging&status=completed&conclusion=success&per_page=1" | \
+              jq -r '.workflow_runs[0] // empty')
+          fi
+
+          # If no deployment found with old workflow name on staging, try master branch
+          if [ -z "$PRODUCTION_DEPLOYMENT" ]; then
+            echo "No deployment found with old workflow name on staging, trying master branch..."
+            PRODUCTION_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${OLD_WORKFLOW_NAME// /%20}&branch=master&status=completed&conclusion=success&per_page=1" | \
               jq -r '.workflow_runs[0] // empty')
           fi
 
