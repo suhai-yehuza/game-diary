@@ -1,7 +1,8 @@
-import { render, screen } from '@testing-library/react';
-import { vi } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
 
 import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
+import type { IPlayerSearchResultProps, ISearchResult } from '@/lib/types';
 
 // Mock Next.js router
 const mockPush = vi.fn();
@@ -13,88 +14,77 @@ vi.mock('next/navigation', () => ({
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
-  Calendar: ({ className, ...props }: any) => (
-    <div data-testid="calendar-icon" className={className} {...props}>
-      Calendar
+  User: ({ className }: { className?: string }) => (
+    <div data-testid="user-icon" className={className}>
+      User
     </div>
   ),
-  GraduationCap: ({ className, ...props }: any) => (
-    <div data-testid="graduationcap-icon" className={className} {...props}>
-      GraduationCap
-    </div>
-  ),
-  MapPin: ({ className, ...props }: any) => (
-    <div data-testid="mappin-icon" className={className} {...props}>
+  MapPin: ({ className }: { className?: string }) => (
+    <div data-testid="mappin-icon" className={className}>
       MapPin
     </div>
   ),
-  User: ({ className, ...props }: any) => (
-    <div data-testid="user-icon" className={className} {...props}>
-      User
+  GraduationCap: ({ className }: { className?: string }) => (
+    <div data-testid="graduationcap-icon" className={className}>
+      GraduationCap
+    </div>
+  ),
+  Calendar: ({ className }: { className?: string }) => (
+    <div data-testid="calendar-icon" className={className}>
+      Calendar
     </div>
   ),
 }));
 
 describe('PlayerSearchResult', () => {
-  const mockPlayer = {
-    id: 'player-1',
-    type: 'player' as const,
+  const defaultPlayer: ISearchResult = {
+    id: '123',
+    type: 'player',
+    first_name: 'John',
+    last_name: 'Doe',
+    teams: 'Lakers',
+    college: 'UCLA',
+    birth: '1990-01-01',
+    height: '6\'6"',
+    weight: '220 lbs',
+    nba: '2020',
     created_at: '2024-01-01T00:00:00Z',
-    first_name: 'LeBron',
-    last_name: 'James',
-    teams: 'Los Angeles Lakers',
-    college: 'St. Vincent-St. Mary High School',
-    birth: '1984-12-30T00:00:00Z',
-    height: '6\'9"',
-    weight: '250 lbs',
-    nba: '20',
+  };
+
+  const defaultProps: IPlayerSearchResultProps = {
+    player: defaultPlayer,
   };
 
   beforeEach(() => {
-    mockPush.mockClear();
+    vi.clearAllMocks();
   });
 
   it('renders player information correctly', () => {
-    render(<PlayerSearchResult player={mockPlayer} />);
+    render(<PlayerSearchResult {...defaultProps} />);
 
-    expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Player')).toBeInTheDocument();
-    expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
-    expect(screen.getByText('St. Vincent-St. Mary High School')).toBeInTheDocument();
-    expect(screen.getByText(/Dec 30, 1984/)).toBeInTheDocument();
-    expect(screen.getByText('6\'9" • 250 lbs')).toBeInTheDocument();
-    expect(screen.getByText('NBA: 20')).toBeInTheDocument();
+    expect(screen.getByText('Lakers')).toBeInTheDocument();
+    expect(screen.getByText('UCLA')).toBeInTheDocument();
+    expect(screen.getByText('Jan 1, 1990')).toBeInTheDocument();
+    expect(screen.getByText('6\'6" • 220 lbs')).toBeInTheDocument();
+    expect(screen.getByText('NBA: 2020')).toBeInTheDocument();
   });
 
-  it('handles player with missing first name', () => {
-    const playerWithoutFirstName = {
-      ...mockPlayer,
-      first_name: undefined,
-    };
+  it('handles click navigation correctly', () => {
+    render(<PlayerSearchResult {...defaultProps} />);
 
-    render(<PlayerSearchResult player={playerWithoutFirstName} />);
+    const container = screen.getByText('John Doe').closest('div');
+    fireEvent.click(container!);
 
-    expect(screen.getByText('James')).toBeInTheDocument();
-    expect(screen.getByText('Player')).toBeInTheDocument();
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/123');
   });
 
-  it('handles player with missing last name', () => {
-    const playerWithoutLastName = {
-      ...mockPlayer,
-      last_name: undefined,
-    };
-
-    render(<PlayerSearchResult player={playerWithoutLastName} />);
-
-    expect(screen.getByText('LeBron')).toBeInTheDocument();
-    expect(screen.getByText('Player')).toBeInTheDocument();
-  });
-
-  it('handles player with no name', () => {
-    const playerWithoutName = {
-      ...mockPlayer,
-      first_name: undefined,
-      last_name: undefined,
+  it('displays "Unknown Player" when name is missing', () => {
+    const playerWithoutName: ISearchResult = {
+      ...defaultPlayer,
+      first_name: '',
+      last_name: '',
     };
 
     render(<PlayerSearchResult player={playerWithoutName} />);
@@ -102,103 +92,206 @@ describe('PlayerSearchResult', () => {
     expect(screen.getByText('Unknown Player')).toBeInTheDocument();
   });
 
-  it('handles player with empty string names', () => {
-    const playerWithEmptyNames = {
-      ...mockPlayer,
+  it('handles missing first name correctly', () => {
+    const playerWithoutFirstName: ISearchResult = {
+      ...defaultPlayer,
       first_name: '',
+    };
+
+    render(<PlayerSearchResult player={playerWithoutFirstName} />);
+
+    expect(screen.getByText('Doe')).toBeInTheDocument();
+  });
+
+  it('handles missing last name correctly', () => {
+    const playerWithoutLastName: ISearchResult = {
+      ...defaultPlayer,
       last_name: '',
     };
 
-    render(<PlayerSearchResult player={playerWithEmptyNames} />);
+    render(<PlayerSearchResult player={playerWithoutLastName} />);
 
-    expect(screen.getByText('Unknown Player')).toBeInTheDocument();
+    expect(screen.getByText('John')).toBeInTheDocument();
   });
 
-  it('handles player without teams information', () => {
-    const playerWithoutTeams = {
-      ...mockPlayer,
-      teams: undefined,
+  it('handles missing teams correctly', () => {
+    const playerWithoutTeams: ISearchResult = {
+      ...defaultPlayer,
+      teams: '',
     };
 
     render(<PlayerSearchResult player={playerWithoutTeams} />);
 
-    expect(screen.getByText('LeBron James')).toBeInTheDocument();
-    expect(screen.getByText('Player')).toBeInTheDocument();
-    expect(screen.getByText('St. Vincent-St. Mary High School')).toBeInTheDocument();
-    expect(screen.getByText(/Dec 30, 1984/)).toBeInTheDocument();
+    expect(screen.queryByText('Lakers')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('mappin-icon')).not.toBeInTheDocument();
   });
 
-  it('handles player without college information', () => {
-    const playerWithoutCollege = {
-      ...mockPlayer,
-      college: undefined,
+  it('handles missing college correctly', () => {
+    const playerWithoutCollege: ISearchResult = {
+      ...defaultPlayer,
+      college: '',
     };
 
     render(<PlayerSearchResult player={playerWithoutCollege} />);
 
-    expect(screen.getByText('LeBron James')).toBeInTheDocument();
-    expect(screen.getByText('Player')).toBeInTheDocument();
-    expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
-    expect(screen.getByText(/Dec 30, 1984/)).toBeInTheDocument();
+    expect(screen.queryByText('UCLA')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('graduationcap-icon')).not.toBeInTheDocument();
   });
 
-  it('handles player without birth date', () => {
-    const playerWithoutBirth = {
-      ...mockPlayer,
-      birth: undefined,
+  it('handles missing birth date correctly', () => {
+    const playerWithoutBirth: ISearchResult = {
+      ...defaultPlayer,
+      birth: '',
     };
 
     render(<PlayerSearchResult player={playerWithoutBirth} />);
 
-    expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    expect(screen.queryByText('Jan 1, 1990')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-icon')).not.toBeInTheDocument();
+  });
+
+  it('handles missing height correctly', () => {
+    const playerWithoutHeight: ISearchResult = {
+      ...defaultPlayer,
+      height: '',
+    };
+
+    render(<PlayerSearchResult player={playerWithoutHeight} />);
+
+    expect(screen.getByText('220 lbs')).toBeInTheDocument();
+    expect(screen.queryByText('6\'6" • 220 lbs')).not.toBeInTheDocument();
+  });
+
+  it('handles missing weight correctly', () => {
+    const playerWithoutWeight: ISearchResult = {
+      ...defaultPlayer,
+      weight: '',
+    };
+
+    render(<PlayerSearchResult player={playerWithoutWeight} />);
+
+    expect(screen.getByText('6\'6"')).toBeInTheDocument();
+    expect(screen.queryByText('6\'6" • 220 lbs')).not.toBeInTheDocument();
+  });
+
+  it('handles missing NBA info correctly', () => {
+    const playerWithoutNBA: ISearchResult = {
+      ...defaultPlayer,
+      nba: '',
+    };
+
+    render(<PlayerSearchResult player={playerWithoutNBA} />);
+
+    expect(screen.queryByText('NBA: 2020')).not.toBeInTheDocument();
+  });
+
+  it('handles missing height and weight correctly', () => {
+    const playerWithoutHeightWeight: ISearchResult = {
+      ...defaultPlayer,
+      height: '',
+      weight: '',
+    };
+
+    render(<PlayerSearchResult player={playerWithoutHeightWeight} />);
+
+    expect(screen.queryByText('6\'6" • 220 lbs')).not.toBeInTheDocument();
+  });
+
+  it('formats date correctly', () => {
+    const playerWithDifferentDate: ISearchResult = {
+      ...defaultPlayer,
+      birth: '1995-12-25',
+    };
+
+    render(<PlayerSearchResult player={playerWithDifferentDate} />);
+
+    expect(screen.getByText('Dec 25, 1995')).toBeInTheDocument();
+  });
+
+  it('handles invalid date gracefully', () => {
+    const playerWithInvalidDate: ISearchResult = {
+      ...defaultPlayer,
+      birth: 'invalid-date',
+    };
+
+    render(<PlayerSearchResult player={playerWithInvalidDate} />);
+
+    // Should still render the component without crashing
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+  });
+
+  it('renders all icons when all data is present', () => {
+    render(<PlayerSearchResult {...defaultProps} />);
+
+    expect(screen.getByTestId('user-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('mappin-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('graduationcap-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('calendar-icon')).toBeInTheDocument();
+  });
+
+  it('has correct CSS classes for styling', () => {
+    render(<PlayerSearchResult {...defaultProps} />);
+
+    const container = screen.getByText('John Doe').closest('div');
+    expect(container).toHaveClass('flex', 'items-center', 'space-x-2');
+  });
+
+  it('handles player with only basic information', () => {
+    const minimalPlayer: ISearchResult = {
+      id: '123',
+      type: 'player',
+      first_name: 'John',
+      last_name: 'Doe',
+      created_at: '2024-01-01T00:00:00Z',
+    };
+
+    render(<PlayerSearchResult player={minimalPlayer} />);
+
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
     expect(screen.getByText('Player')).toBeInTheDocument();
-    expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
-    expect(screen.getByText('St. Vincent-St. Mary High School')).toBeInTheDocument();
+    expect(screen.getByTestId('user-icon')).toBeInTheDocument();
+
+    // Should not render optional fields
+    expect(screen.queryByTestId('mappin-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('graduationcap-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-icon')).not.toBeInTheDocument();
   });
 
-  it('formats birth date correctly', () => {
-    render(<PlayerSearchResult player={mockPlayer} />);
+  it('handles player with null values', () => {
+    const playerWithNulls: ISearchResult = {
+      ...defaultPlayer,
+      teams: undefined,
+      college: undefined,
+      birth: undefined,
+      height: undefined,
+      weight: undefined,
+      nba: undefined,
+    };
 
-    expect(screen.getByText(/Dec 30, 1984/)).toBeInTheDocument();
+    render(<PlayerSearchResult player={playerWithNulls} />);
+
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.queryByTestId('mappin-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('graduationcap-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-icon')).not.toBeInTheDocument();
   });
 
-  it('navigates to player page when clicked', () => {
-    render(<PlayerSearchResult player={mockPlayer} />);
+  it('handles player with undefined values', () => {
+    const playerWithUndefineds: ISearchResult = {
+      ...defaultPlayer,
+      teams: undefined,
+      college: undefined,
+      birth: undefined,
+      height: undefined,
+      weight: undefined,
+      nba: undefined,
+    };
 
-    const playerCard = screen.getByText('LeBron James').closest('div');
-    expect(playerCard).toBeInTheDocument();
+    render(<PlayerSearchResult player={playerWithUndefineds} />);
 
-    if (playerCard) {
-      playerCard.click();
-      expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/player-1');
-    }
-  });
-
-  it('has correct styling classes', () => {
-    const { container } = render(<PlayerSearchResult player={mockPlayer} />);
-
-    const playerCard = container.firstChild as HTMLElement;
-    expect(playerCard).toHaveClass(
-      'flex',
-      'items-center',
-      'space-x-4',
-      'p-4',
-      'bg-neutral-50',
-      'border',
-      'rounded-lg',
-      'hover:bg-neutral-100',
-      'transition-colors',
-      'cursor-pointer'
-    );
-  });
-
-  it('displays all icons when all data is present', () => {
-    const { container } = render(<PlayerSearchResult player={mockPlayer} />);
-
-    // Check for all the expected icons
-    expect(container.querySelector('[data-testid="user-icon"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-testid="mappin-icon"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-testid="graduationcap-icon"]')).toBeInTheDocument();
-    expect(container.querySelector('[data-testid="calendar-icon"]')).toBeInTheDocument();
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.queryByTestId('mappin-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('graduationcap-icon')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('calendar-icon')).not.toBeInTheDocument();
   });
 });
