@@ -3,7 +3,7 @@ import { expect } from '@playwright/test';
 
 import { isCI } from '@/lib/utils/env-loader';
 
-import { TIMEOUTS } from './test-utils';
+import { TIMEOUT_CONFIG } from './timeout-config';
 
 /**
  * Performance and error checking utilities for E2E tests
@@ -15,7 +15,7 @@ import { TIMEOUTS } from './test-utils';
  */
 export async function checkPerformanceMetrics(page: Page): Promise<any> {
   // Wait for page to fully load before measuring performance
-  await page.waitForLoadState('networkidle', { timeout: TIMEOUTS.MEDIUM });
+  await page.waitForLoadState('domcontentloaded', { timeout: TIMEOUT_CONFIG.DOM_CONTENT_LOADED });
 
   const metrics = await page.evaluate(() => {
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
@@ -141,7 +141,7 @@ export async function checkForNetworkErrors(page: Page): Promise<void> {
   });
 
   // Wait a bit for any failed requests to appear
-  await page.waitForLoadState('networkidle');
+  await page.waitForLoadState('domcontentloaded', { timeout: TIMEOUT_CONFIG.DOM_CONTENT_LOADED });
 
   // Filter out common non-critical failures
   const criticalFailures = failedRequests.filter(

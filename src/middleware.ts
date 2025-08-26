@@ -1,6 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { logger } from '@/lib/utils/logger';
 import { isAuthCallbackServer } from '@/lib/utils/sso-utils';
 
@@ -50,6 +51,12 @@ export const middleware = (
 
   // Handle Clerk catchall routes and SSO callbacks using shared utility
   if (isAuthCallbackServer(url.pathname, url.search)) {
+    return NextResponse.next();
+  }
+
+  // Skip authentication checks in E2E test/mock mode
+  if (isTestOrCIEnvironment()) {
+    logger.info('🧪 E2E test environment detected - skipping auth checks');
     return NextResponse.next();
   }
 

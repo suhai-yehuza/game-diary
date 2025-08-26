@@ -115,7 +115,16 @@ export interface IAuthState {
 
 export async function getAuthState(page: Page): Promise<IAuthState> {
   const isConfigured = isClerkConfigured();
-  const isMobile = await page.evaluate(() => window.innerWidth < 1024);
+
+  // Handle potential navigation interruptions
+  let isMobile = false;
+  try {
+    isMobile = await page.evaluate(() => window.innerWidth < 1024);
+  } catch (error) {
+    console.warn('⚠️ Could not determine mobile state due to navigation:', error);
+    isMobile = false;
+  }
+
   const isTestEnvironment =
     isConfigured &&
     (process.env.E2E_MOCK_MODE === 'true' ||
