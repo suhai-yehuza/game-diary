@@ -66,7 +66,7 @@ export function PendingFriendshipCard({
         <CardContent className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
             <Image
-              src={recipient?.image_url ?? '/avatars/default-user-avatar.svg'}
+              src={recipient?.image_url || '/avatars/default-user-avatar.svg'}
               alt={recipientName}
               width={40}
               height={40}
@@ -102,7 +102,7 @@ export function PendingFriendshipCard({
       <CardContent className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Image
-            src={recipient?.image_url ?? '/avatars/default-user-avatar.svg'}
+            src={recipient?.image_url || '/avatars/default-user-avatar.svg'}
             alt={recipientName}
             width={40}
             height={40}

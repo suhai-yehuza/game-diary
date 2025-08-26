@@ -92,6 +92,17 @@ RELEASE_BODY=$(echo "$LATEST_RELEASE" | jq -r '.body')
 DEPLOYMENT_ID=$(echo "$RELEASE_BODY" | grep -o 'Deployment ID: [0-9]*' | cut -d' ' -f3)
 WORKFLOW_RUN_ID=$(echo "$RELEASE_BODY" | grep -o 'Workflow Run ID: [0-9]*' | cut -d' ' -f4)
 
+# Validate extraction of deployment details
+if [ -z "$DEPLOYMENT_ID" ]; then
+    log_error "Deployment ID not found in release body. The expected pattern 'Deployment ID: <number>' is missing."
+    exit 1
+fi
+
+if [ -z "$WORKFLOW_RUN_ID" ]; then
+    log_error "Workflow Run ID not found in release body. The expected pattern 'Workflow Run ID: <number>' is missing."
+    exit 1
+fi
+
 # Get specific field or all information
 if [ "$FIELD" = "all" ]; then
     log_success "Latest $ENVIRONMENT deployment information:"

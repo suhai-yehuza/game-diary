@@ -298,10 +298,7 @@ jobs:
             chmod +x scripts/create-deployment-release.sh
             ./scripts/create-deployment-release.sh production "$CURRENT_COMMIT" "$DEPLOYMENT_ID" "$WORKFLOW_RUN_ID"
 
-            # Capture outputs
-            echo "release_id=$(cat $GITHUB_OUTPUT | grep 'release_id=' | cut -d'=' -f2)" >> $GITHUB_OUTPUT
-            echo "release_url=$(cat $GITHUB_OUTPUT | grep 'release_url=' | cut -d'=' -f2)" >> $GITHUB_OUTPUT
-            echo "release_tag=$(cat $GITHUB_OUTPUT | grep 'release_tag=' | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+            # Outputs are written directly by scripts/create-deployment-release.sh to $GITHUB_OUTPUT
           else
             echo "Deployment release script not found, skipping release creation"
           fi
