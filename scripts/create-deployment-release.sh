@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Function to log messages
 log() {
-    echo -e "${BLUE}[$(date +%Y-%m-%d\ %H:%M:%S)]${NC} $1"
+    echo -e "${BLUE}[$(date "+%Y-%m-%d %H:%M:%S")]${NC} $1"
 }
 
 log_error() {
