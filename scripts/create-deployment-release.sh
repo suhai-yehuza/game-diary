@@ -14,7 +14,7 @@ NC='\033[0m' # No Color
 
 # Function to log messages
 log() {
-    echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
+    echo -e "${BLUE}[$(date +%Y-%m-%d\ %H:%M:%S)]${NC} $1"
 }
 
 log_error() {
@@ -85,7 +85,7 @@ log "Creating deployment release for $ENVIRONMENT environment..."
 
 # Create release tag name
 RELEASE_TAG="deploy/$ENVIRONMENT/$(date +%Y%m%d-%H%M%S)"
-RELEASE_TITLE="$ENVIRONMENT Deployment - $(date +%Y-%m-%d %H:%M:%S UTC)"
+RELEASE_TITLE="$ENVIRONMENT Deployment - $(date +%Y-%m-%d\ %H:%M:%S\ UTC)"
 
 # Create release body
 RELEASE_BODY=$(cat <<EOF
