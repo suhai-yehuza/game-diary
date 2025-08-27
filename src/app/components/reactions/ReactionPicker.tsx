@@ -52,6 +52,7 @@ export const ReactionPicker = memo(function ReactionPicker({
     targetType,
   });
   const popoverRef = useRef<HTMLDivElement>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleReactionClick = useCallback(
     async (emoji: string) => {
@@ -59,7 +60,12 @@ export const ReactionPicker = memo(function ReactionPicker({
       // Don't close immediately for better UX - let user see the reaction being added
       // Check if window is available (for SSR/test environments)
       if (typeof window !== 'undefined') {
-        setTimeout(() => setIsOpen(false), 300);
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        // Set new timeout and store reference
+        timeoutRef.current = setTimeout(() => setIsOpen(false), 300);
       } else {
         // In SSR/test environments, close immediately
         setIsOpen(false);
@@ -100,6 +106,15 @@ export const ReactionPicker = memo(function ReactionPicker({
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div className={`flex flex-wrap gap-1.5 ${className || ''}`} data-testid="reaction-picker">

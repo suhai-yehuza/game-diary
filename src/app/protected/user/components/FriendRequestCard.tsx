@@ -33,7 +33,7 @@ export function FriendRequestCard({
       <CardContent className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3">
           <Image
-            src={requester?.image_url ?? '/avatars/default-user-avatar.svg'}
+            src={requester?.image_url || '/avatars/default-user-avatar.svg'}
             alt={requesterName}
             width={40}
             height={40}

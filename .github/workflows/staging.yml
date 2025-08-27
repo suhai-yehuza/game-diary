@@ -43,28 +43,50 @@ jobs:
           echo "Current commit: $CURRENT_COMMIT"
           echo "current-commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
 
-          # Get the last staging deployment commit from GitHub API
-          echo "Fetching last staging deployment info..."
+          # Get the last staging deployment commit from GitHub releases
+          echo "Fetching last staging deployment info from GitHub releases..."
 
-          # Get the latest successful staging deployment
-          STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=success&per_page=1" | \
-            jq -r '.workflow_runs[0] // empty')
+          # Try to get the latest staging deployment from releases
+          if [ -f "scripts/get-latest-deployment.sh" ]; then
+            # Make script executable if needed
+            chmod +x scripts/get-latest-deployment.sh
 
-          if [ -z "$STAGING_DEPLOYMENT" ]; then
-            echo "No previous staging deployment found, proceeding with deployment"
-            echo "has-new-commits=true" >> $GITHUB_OUTPUT
-            echo "last-staging-commit=none" >> $GITHUB_OUTPUT
-            echo "has-recent-failures=false" >> $GITHUB_OUTPUT
-            echo "last-failed-commit=none" >> $GITHUB_OUTPUT
-            exit 0
+            # Get latest staging deployment
+            if LAST_STAGING_COMMIT=$(./scripts/get-latest-deployment.sh staging commit_hash 2>/dev/null); then
+              echo "Found staging deployment in GitHub releases:"
+              echo "  Commit: $LAST_STAGING_COMMIT"
+              echo "last-staging-commit=$LAST_STAGING_COMMIT" >> $GITHUB_OUTPUT
+            else
+              echo "No previous staging deployment found in GitHub releases, proceeding with deployment"
+              echo "has-new-commits=true" >> $GITHUB_OUTPUT
+              echo "last-staging-commit=none" >> $GITHUB_OUTPUT
+              echo "has-recent-failures=false" >> $GITHUB_OUTPUT
+              echo "last-failed-commit=none" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          else
+            echo "Deployment script not found, falling back to workflow search..."
+
+            # Fallback to old method for backward compatibility
+            STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=staging.yml&branch=staging&status=completed&conclusion=success&per_page=1" | \
+              jq -r '.workflow_runs[0] // empty')
+
+            if [ -z "$STAGING_DEPLOYMENT" ]; then
+              echo "No previous staging deployment found, proceeding with deployment"
+              echo "has-new-commits=true" >> $GITHUB_OUTPUT
+              echo "last-staging-commit=none" >> $GITHUB_OUTPUT
+              echo "has-recent-failures=false" >> $GITHUB_OUTPUT
+              echo "last-failed-commit=none" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            # Get the commit hash from the last staging deployment
+            LAST_STAGING_COMMIT=$(echo "$STAGING_DEPLOYMENT" | jq -r '.head_sha')
+            LAST_STAGING_TIME=$(echo "$STAGING_DEPLOYMENT" | jq -r '.created_at')
+            echo "Last staging deployment commit: $LAST_STAGING_COMMIT"
+            echo "last-staging-commit=$LAST_STAGING_COMMIT" >> $GITHUB_OUTPUT
           fi
-
-          # Get the commit hash from the last staging deployment
-          LAST_STAGING_COMMIT=$(echo "$STAGING_DEPLOYMENT" | jq -r '.head_sha')
-          LAST_STAGING_TIME=$(echo "$STAGING_DEPLOYMENT" | jq -r '.created_at')
-          echo "Last staging deployment commit: $LAST_STAGING_COMMIT"
-          echo "last-staging-commit=$LAST_STAGING_COMMIT" >> $GITHUB_OUTPUT
 
           # Note: We no longer block deployments based on previous failures
           # The deployment will succeed or fail based on the current commit's jobs
@@ -121,6 +143,48 @@ jobs:
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
+  # Create deployment release for tracking
+  create-deployment-release:
+    name: Create Deployment Release
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: success()
+    outputs:
+      release-id: ${{ steps.create-release.outputs.release_id }}
+      release-url: ${{ steps.create-release.outputs.release_url }}
+      release-tag: ${{ steps.create-release.outputs.release_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: staging
+
+      - name: Create Deployment Release
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating deployment release for tracking..."
+
+          # Get current commit hash
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+
+          # Get deployment ID from Vercel (this would need to be passed from the deploy job)
+          # For now, we'll use the workflow run ID as a proxy
+          DEPLOYMENT_ID="${{ github.run_id }}"
+          WORKFLOW_RUN_ID="${{ github.run_id }}"
+
+          # Create the release
+          if [ -f "scripts/create-deployment-release.sh" ]; then
+            chmod +x scripts/create-deployment-release.sh
+            ./scripts/create-deployment-release.sh staging "$CURRENT_COMMIT" "$DEPLOYMENT_ID" "$WORKFLOW_RUN_ID"
+
+            # Outputs are written directly by scripts/create-deployment-release.sh to $GITHUB_OUTPUT
+          else
+            echo "Deployment release script not found, skipping release creation"
+          fi
+
   # Handle case when deployment is skipped due to no new commits
   deployment-skipped:
     name: Deployment Skipped (No New Commits)
@@ -158,7 +222,7 @@ jobs:
 
   staging-summary:
     name: Staging Deployment Summary
-    needs: [validation, deploy, deployment-skipped]
+    needs: [validation, deploy, deployment-skipped, create-deployment-release]
     runs-on: ubuntu-latest
     if: always()
     steps:
