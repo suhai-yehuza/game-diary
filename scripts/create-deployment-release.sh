@@ -85,7 +85,7 @@ log "Creating deployment release for $ENVIRONMENT environment..."
 
 # Create release tag name
 RELEASE_TAG="deploy/$ENVIRONMENT/$(date +%Y%m%d-%H%M%S)"
-RELEASE_TITLE="$ENVIRONMENT Deployment - $(date +%Y-%m-%d\ %H:%M:%S\ UTC)"
+RELEASE_TITLE="$ENVIRONMENT Deployment - $(date "+%Y-%m-%d %H:%M:%S UTC")"
 
 # Create release body
 RELEASE_BODY=$(cat <<EOF
