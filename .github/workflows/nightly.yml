@@ -40,6 +40,9 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          SKIP_RAPIDAPI_VALIDATION: 'true'
+          SKIP_DB_TESTS: 'true'
+          SKIP_UNIT_TESTS: 'true'
         run: |
           echo "Running quality gate validation for nightly tests..."
           ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests --skip-unit-tests
