@@ -30,10 +30,10 @@ describe('UserSearchResult', () => {
     render(<UserSearchResult user={mockUser} />);
 
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByText('johndoe')).toBeInTheDocument();
     expect(screen.getByText('Joined Jan 15, 2023')).toBeInTheDocument();
     expect(screen.getByText('john.doe@example.com')).toBeInTheDocument();
-    expect(screen.getAllByText('User')).toHaveLength(3); // One in badge, two in icons
+    expect(screen.getAllByText('User')).toHaveLength(2); // One in badge, one in icon
   });
 
   it('handles user with missing first name', () => {
@@ -44,8 +44,8 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithoutFirstName} />);
 
-    expect(screen.getByText('johndoe')).toBeInTheDocument();
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByTestId('username-line')).toBeInTheDocument();
+    expect(screen.getAllByText('johndoe')).toHaveLength(2); // One in title, one in username line
   });
 
   it('handles user with missing last name', () => {
@@ -56,8 +56,8 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithoutLastName} />);
 
-    expect(screen.getByText('johndoe')).toBeInTheDocument();
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByTestId('username-line')).toBeInTheDocument();
+    expect(screen.getAllByText('johndoe')).toHaveLength(2); // One in title, one in username line
   });
 
   it('handles user with no names', () => {
@@ -71,7 +71,7 @@ describe('UserSearchResult', () => {
     render(<UserSearchResult user={userWithoutNames} />);
 
     expect(screen.getByText('Unknown User')).toBeInTheDocument();
-    expect(screen.getByText('@unknown')).toBeInTheDocument();
+    expect(screen.getByText('unknown')).toBeInTheDocument();
   });
 
   it('handles user with empty string names', () => {
@@ -83,7 +83,8 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithEmptyNames} />);
 
-    expect(screen.getByText('johndoe')).toBeInTheDocument();
+    expect(screen.getByTestId('username-line')).toBeInTheDocument();
+    expect(screen.getAllByText('johndoe')).toHaveLength(2); // One in title, one in username line
   });
 
   it('handles user without email', () => {
@@ -127,20 +128,19 @@ describe('UserSearchResult', () => {
     const userCard = screen.getByText('John Doe').closest('div');
     fireEvent.click(userCard!);
 
-    expect(mockPush).toHaveBeenCalledWith('/protected/user');
+    expect(mockPush).toHaveBeenCalledWith('/users/user-1');
   });
 
   it('has correct styling classes', () => {
     render(<UserSearchResult user={mockUser} />);
 
     const userCard = screen.getByText('John Doe').closest('div');
-    expect(userCard).toHaveClass('flex', 'items-center', 'space-x-2');
+    expect(userCard).toHaveClass('flex', 'items-center', 'space-x-3', 'mb-2');
     const mainContainer = userCard?.parentElement?.parentElement;
-    expect(mainContainer).toHaveClass('flex', 'items-center', 'space-x-4', 'p-4');
-    expect(mainContainer).toHaveClass('bg-neutral-50', 'border', 'rounded-lg');
     expect(mainContainer).toHaveClass(
-      'hover:bg-neutral-100',
-      'cursor-pointer',
+      'flex',
+      'items-start',
+      'justify-between',
       'transition-colors'
     );
   });
@@ -148,7 +148,7 @@ describe('UserSearchResult', () => {
   it('displays correct icons', () => {
     render(<UserSearchResult user={mockUser} />);
 
-    expect(screen.getAllByTestId('user-icon')).toHaveLength(2); // One in avatar, one in username
+    expect(screen.getAllByTestId('user-icon')).toHaveLength(1); // One in avatar
     expect(screen.getByTestId('calendar-icon')).toBeInTheDocument();
   });
 
@@ -162,7 +162,7 @@ describe('UserSearchResult', () => {
     render(<UserSearchResult user={minimalUser} />);
 
     expect(screen.getByText('Unknown User')).toBeInTheDocument();
-    expect(screen.getByText('@unknown')).toBeInTheDocument();
+    expect(screen.getByText('unknown')).toBeInTheDocument();
     expect(screen.getByText(/Joined (Dec 31, 2022|Jan 1, 2023)/)).toBeInTheDocument();
   });
 
@@ -170,7 +170,7 @@ describe('UserSearchResult', () => {
     render(<UserSearchResult user={mockUser} />);
 
     expect(screen.getByText('John Doe')).toBeInTheDocument();
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByText('johndoe')).toBeInTheDocument();
   });
 
   it('handles edge case with whitespace-only names', () => {
@@ -182,7 +182,7 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithWhitespaceNames} />);
 
-    expect(screen.getByText('@johndoe')).toBeInTheDocument();
+    expect(screen.getByText('johndoe')).toBeInTheDocument();
   });
 
   it('handles special characters in names', () => {
@@ -230,7 +230,7 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithSpecialUsername} />);
 
-    expect(screen.getByText('@user_name-123')).toBeInTheDocument();
+    expect(screen.getByText('user_name-123')).toBeInTheDocument();
   });
 
   it('handles very long username', () => {
@@ -241,7 +241,7 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithLongUsername} />);
 
-    expect(screen.getByText('@verylongusernamethatexceedsnormallength')).toBeInTheDocument();
+    expect(screen.getByText('verylongusernamethatexceedsnormallength')).toBeInTheDocument();
   });
 
   it('handles empty email string', () => {
@@ -264,16 +264,7 @@ describe('UserSearchResult', () => {
 
     render(<UserSearchResult user={userWithEmptyUsername} />);
 
-    // Check for the span containing both @ and unknown by looking for the specific span
-    const usernameSpan = screen.getByText((content, element) => {
-      return !!(
-        element?.tagName === 'SPAN' &&
-        element?.textContent?.includes('@') &&
-        element?.textContent?.includes('unknown') &&
-        !element?.textContent?.includes('Joined')
-      );
-    });
-    expect(usernameSpan).toBeInTheDocument();
+    expect(screen.getByText('unknown')).toBeInTheDocument();
   });
 
   it('formats edge case dates correctly', () => {
@@ -299,15 +290,6 @@ describe('UserSearchResult', () => {
     render(<UserSearchResult user={userWithNulls} />);
 
     expect(screen.getByText('Unknown User')).toBeInTheDocument();
-    // Check for the span containing both @ and unknown by looking for the specific span
-    const usernameSpan = screen.getByText((content, element) => {
-      return !!(
-        element?.tagName === 'SPAN' &&
-        element?.textContent?.includes('@') &&
-        element?.textContent?.includes('unknown') &&
-        !element?.textContent?.includes('Joined')
-      );
-    });
-    expect(usernameSpan).toBeInTheDocument();
+    expect(screen.getByText('unknown')).toBeInTheDocument();
   });
 });

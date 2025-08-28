@@ -118,7 +118,7 @@ function safeMapGameLogArray(edges: unknown): IGameLog[] {
 }
 
 export function useGameLogs(options: IGameLogsOptions = {}) {
-  const { filters = {}, pagination = {} } = options;
+  const { filters = {}, pagination = {}, skip = false } = options;
   // Separate state for gameLogs and friendsGameLogs
   const [gameLogs, setGameLogs] = useState<IGameLog[]>([]);
   const [gameLogsEndCursor, setGameLogsEndCursor] = useState<string | null>(null);
@@ -137,6 +137,7 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
         filters,
         pagination,
       },
+      skip, // Skip the query if skip is true
       fetchPolicy: 'cache-and-network',
       errorPolicy: 'all',
       // Add better error handling for rate limiting

@@ -2,20 +2,9 @@
 
 import { useEffect, useState } from 'react';
 
-interface ISearchMetrics {
-  totalSearches: number;
-  averageSearchTime: number;
-  zeroResultSearches: number;
-  mostPopularQueries: Array<{ query: string; count: number }>;
-  searchSuccessRate: number;
-}
+import type { ISearchMetrics, ISearchPerformanceMonitorProps } from '@/lib/types';
 
-interface ISearchPerformanceMonitorProps {
-  query: string;
-  resultsCount: number;
-  searchTime: number;
-  onMetricsUpdate?: (metrics: ISearchMetrics) => void;
-}
+// Interfaces moved to src/lib/types/components.types.ts
 
 export function SearchPerformanceMonitor({
   query,

@@ -18,12 +18,6 @@ import {
 } from '@/lib/utils/encryption';
 import { logger } from '@src/lib/utils/logger';
 
-interface UserRecord {
-  id: string;
-  email_address: string | null;
-  phone_number: string | null;
-}
-
 async function encryptExistingUsers() {
   const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
   if (!databaseUrl) {

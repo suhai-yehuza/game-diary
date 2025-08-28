@@ -100,7 +100,7 @@ export function MobileSearchBar() {
                   {/* Search Input */}
                   <div className="flex items-center px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4">
                     {!searchQuery && (
-                      <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-gray-500 dark:text-gray-400 mr-2 xs:mr-3 sm:mr-3 md:mr-4" />
+                      <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 search-icon-enhanced mr-2 xs:mr-3 sm:mr-3 md:mr-4" />
                     )}
                     <input
                       ref={inputRef}
@@ -108,7 +108,7 @@ export function MobileSearchBar() {
                       value={searchQuery}
                       onChange={handleInputChange}
                       placeholder="Search games, teams, players..."
-                      className={`flex-1 bg-transparent border-none outline-none text-sm xs:text-base sm:text-lg md:text-xl !text-neutral-900 dark:!text-white placeholder:text-neutral-500 dark:placeholder:text-neutral-400 ${searchQuery ? 'pl-0' : 'pl-0'}`}
+                      className={`flex-1 bg-transparent border-none outline-none text-sm xs:text-base sm:text-lg md:text-xl search-input-enhanced search-placeholder-enhanced ${searchQuery ? 'pl-0' : 'pl-0'}`}
                       autoComplete="off"
                       spellCheck="false"
                     />

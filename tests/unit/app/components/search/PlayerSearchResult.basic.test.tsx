@@ -34,6 +34,21 @@ vi.mock('lucide-react', () => ({
       Calendar
     </div>
   ),
+  Ruler: ({ className }: { className?: string }) => (
+    <div data-testid="ruler-icon" className={className}>
+      Ruler
+    </div>
+  ),
+  Trophy: ({ className }: { className?: string }) => (
+    <div data-testid="trophy-icon" className={className}>
+      Trophy
+    </div>
+  ),
+  ArrowRight: ({ className }: { className?: string }) => (
+    <div data-testid="arrowright-icon" className={className}>
+      ArrowRight
+    </div>
+  ),
 }));
 
 describe('PlayerSearchResult', () => {
@@ -66,9 +81,8 @@ describe('PlayerSearchResult', () => {
     expect(screen.getByText('Player')).toBeInTheDocument();
     expect(screen.getByText('Lakers')).toBeInTheDocument();
     expect(screen.getByText('UCLA')).toBeInTheDocument();
-    expect(screen.getByText('Jan 1, 1990')).toBeInTheDocument();
     expect(screen.getByText('6\'6" • 220 lbs')).toBeInTheDocument();
-    expect(screen.getByText('NBA: 2020')).toBeInTheDocument();
+    expect(screen.getByText('NBA Player')).toBeInTheDocument();
   });
 
   it('handles click navigation correctly', () => {
@@ -77,7 +91,7 @@ describe('PlayerSearchResult', () => {
     const container = screen.getByText('John Doe').closest('div');
     fireEvent.click(container!);
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/123');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/players/123');
   });
 
   it('displays "Unknown Player" when name is missing', () => {
@@ -146,8 +160,8 @@ describe('PlayerSearchResult', () => {
 
     render(<PlayerSearchResult player={playerWithoutBirth} />);
 
-    expect(screen.queryByText('Jan 1, 1990')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('calendar-icon')).not.toBeInTheDocument();
+    // Date is not displayed in the current component version
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 
   it('handles missing height correctly', () => {
@@ -182,7 +196,7 @@ describe('PlayerSearchResult', () => {
 
     render(<PlayerSearchResult player={playerWithoutNBA} />);
 
-    expect(screen.queryByText('NBA: 2020')).not.toBeInTheDocument();
+    expect(screen.queryByText('NBA Player')).not.toBeInTheDocument();
   });
 
   it('handles missing height and weight correctly', () => {
@@ -205,7 +219,8 @@ describe('PlayerSearchResult', () => {
 
     render(<PlayerSearchResult player={playerWithDifferentDate} />);
 
-    expect(screen.getByText('Dec 25, 1995')).toBeInTheDocument();
+    // Date is not displayed in the current component version
+    expect(screen.getByText('John Doe')).toBeInTheDocument();
   });
 
   it('handles invalid date gracefully', () => {
@@ -226,14 +241,13 @@ describe('PlayerSearchResult', () => {
     expect(screen.getByTestId('user-icon')).toBeInTheDocument();
     expect(screen.getByTestId('mappin-icon')).toBeInTheDocument();
     expect(screen.getByTestId('graduationcap-icon')).toBeInTheDocument();
-    expect(screen.getByTestId('calendar-icon')).toBeInTheDocument();
   });
 
   it('has correct CSS classes for styling', () => {
     render(<PlayerSearchResult {...defaultProps} />);
 
     const container = screen.getByText('John Doe').closest('div');
-    expect(container).toHaveClass('flex', 'items-center', 'space-x-2');
+    expect(container).toHaveClass('flex', 'items-center', 'space-x-3', 'mb-2');
   });
 
   it('handles player with only basic information', () => {

@@ -17,6 +17,7 @@ export interface ILatestGamesOptions {
   limit?: number;
   skip?: boolean;
   forceRealData?: boolean;
+  seasons?: number[]; // New parameter to specify which seasons to fetch
 }
 
 function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
@@ -29,7 +30,7 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
 }
 
 export function useLatestGames(options: ILatestGamesOptions = {}) {
-  const { limit = 20, skip = false, forceRealData = false } = options;
+  const { limit: _limit = 20, skip = false, forceRealData = false, seasons } = options;
   const latestSeason = getLatestNbaSeason();
 
   const [latestGames, setLatestGames] = useState<IGameResponse[]>([]);
@@ -51,42 +52,57 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
           (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
           isTestOrCIEnvironment();
 
-      const endpoint = useMockData
-        ? '/api/mock-server?action=mock-data&type=nba-games'
-        : `/api/proxy/games?season=${latestSeason}&league=standard`;
+      let allGames: IGameResponse[] = [];
 
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
+      if (useMockData) {
+        // For mock data, fetch from mock endpoint
+        const response = await fetch('/api/mock-server?action=mock-data&type=nba-games');
+        if (!response.ok) {
+          throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
 
-      const data = (await response.json()) as unknown;
-
-      let games: IGameResponse[] = [];
-
-      // Handle mock server response format
-      if (useMockData && typeof data === 'object' && data !== null && 'data' in data) {
-        const mockData = (data as { data: unknown }).data;
-        if (isGamesApiResponse(mockData)) {
-          games = mockData.response || [];
+        const data = (await response.json()) as unknown;
+        if (typeof data === 'object' && data !== null && 'data' in data) {
+          const mockData = (data as { data: unknown }).data;
+          if (isGamesApiResponse(mockData)) {
+            allGames = mockData.response || [];
+          }
         }
       } else {
-        // Handle regular API response
-        if (isGamesApiResponse(data)) {
-          games = data.response || [];
-        }
+        // For real data, fetch from specified seasons or default to latest season
+        const seasonsToFetch = seasons && seasons.length > 0 ? seasons : [latestSeason];
+
+        // Fetch games from all specified seasons
+        const seasonPromises = seasonsToFetch.map(async season => {
+          const response = await fetch(`/api/proxy/games?season=${season}&league=standard`);
+          if (!response.ok) {
+            throw new Error(
+              `API request failed for season ${season}: ${response.status} ${response.statusText}`
+            );
+          }
+
+          const data = (await response.json()) as unknown;
+          if (isGamesApiResponse(data)) {
+            return data.response || [];
+          }
+          return [];
+        });
+
+        const seasonResults = await Promise.all(seasonPromises);
+        allGames = seasonResults.flat();
       }
 
-      // Sort games by date (most recent first) and limit
-      const sortedGames = games
-        .sort((a, b) => {
-          const dateA = new Date(a.date.start).getTime();
-          const dateB = new Date(b.date.start).getTime();
-          return dateB - dateA; // Descending order
-        })
-        .slice(0, limit);
+      // Sort games by date (most recent first)
+      const sortedGames = allGames.sort((a, b) => {
+        const dateA = new Date(a.date.start).getTime();
+        const dateB = new Date(b.date.start).getTime();
+        return dateB - dateA; // Descending order
+      });
 
-      setLatestGames(sortedGames);
+      // Apply limit if specified
+      const limitedGames = _limit ? sortedGames.slice(0, _limit) : sortedGames;
+
+      setLatestGames(limitedGames);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
@@ -94,7 +110,7 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [latestSeason, limit, skip, forceRealData]);
+  }, [latestSeason, skip, forceRealData, seasons, _limit]);
 
   useEffect(() => {
     void fetchLatestGames();

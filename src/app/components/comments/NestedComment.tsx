@@ -93,14 +93,14 @@ export function NestedComment({
                   <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                     {comment.user.first_name || comment.user.username || 'Unknown User'}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-theme-muted">
                     {format(new Date(comment.created_at), 'MMM dd, yyyy HH:mm')}
                   </span>
                   {comment.updated_at !== comment.created_at && (
-                    <span className="text-xs text-gray-400">(edited)</span>
+                    <span className="text-xs text-theme-tertiary">(edited)</span>
                   )}
                 </div>
-                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                <p className="text-sm text-theme-secondary whitespace-pre-wrap">
                   {comment.content}
                 </p>
               </div>

@@ -1,0 +1,200 @@
+'use client';
+
+import { Calendar, Clock, Building2, Trophy, Star, CalendarDays, X } from 'lucide-react';
+
+import { Card, CardContent } from '@/app/components/ui/Card';
+import type { IGameResponse, IGameCardProps } from '@/lib/types';
+
+// Interface moved to src/lib/types/components.types.ts
+
+export function GameCard({ game }: IGameCardProps) {
+  const formatGameDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
+
+  const formatGameTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
+  };
+
+  const getStatusColor = (status: string | null | undefined) => {
+    if (!status || typeof status !== 'string') {
+      return 'text-neutral-700 bg-neutral-200 dark:text-neutral-300 dark:bg-neutral-800';
+    }
+
+    switch (status.toLowerCase()) {
+      case 'ft':
+      case 'finished':
+        return 'text-green-900 bg-green-100 dark:text-green-300 dark:bg-green-900/30';
+      case 'live':
+      case 'q1':
+      case 'q2':
+      case 'q3':
+      case 'q4':
+      case 'ot':
+        return 'text-red-900 bg-red-100 dark:text-red-300 dark:bg-red-900/30';
+      case 'scheduled':
+      case 'ns':
+        return 'text-blue-900 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30';
+      case 'cancelled':
+      case 'postponed':
+        return 'text-orange-900 bg-orange-100 dark:text-orange-300 dark:bg-orange-900/30';
+      default:
+        return 'text-gray-900 bg-gray-200 dark:text-gray-300 dark:bg-gray-800';
+    }
+  };
+
+  const getDisplayStatus = (game: IGameResponse) => {
+    const status = game.status?.short;
+    const statusLong = game.status?.long;
+    const gameDate = new Date(game.date.start);
+    const now = new Date();
+
+    // Handle both string and number status values
+    const statusStr = typeof status === 'string' ? status : String(status || '');
+    if (!statusStr) return 'Unknown';
+
+    const statusLower = statusStr.toLowerCase();
+    const statusLongLower = statusLong?.toLowerCase() || '';
+
+    // Check if it's a past scheduled game (should be cancelled)
+    const isPastScheduled =
+      (statusLower === 'ns' || statusLower === '1' || statusLongLower === 'scheduled') &&
+      gameDate <= now;
+
+    // Check if it's a postponed game (should be cancelled)
+    const isPostponed = statusLongLower === 'postponed';
+
+    if (isPastScheduled || isPostponed) {
+      return 'Cancelled';
+    }
+
+    // Return the original status for other cases
+    return statusLong || statusStr;
+  };
+
+  const getStatusIcon = (status: string | null | undefined) => {
+    if (!status || typeof status !== 'string')
+      return <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />;
+
+    switch (status.toLowerCase()) {
+      case 'ft':
+      case 'finished':
+        return <Trophy className="w-4 h-4 text-green-700 dark:text-green-400" />;
+      case 'live':
+      case 'q1':
+      case 'q2':
+      case 'q3':
+      case 'q4':
+      case 'ot':
+        return <Star className="w-4 h-4 text-red-700 dark:text-red-400" />;
+      case 'scheduled':
+      case 'ns':
+        return <CalendarDays className="w-4 h-4 text-blue-700 dark:text-blue-400" />;
+      case 'cancelled':
+      case 'postponed':
+        return <X className="w-4 h-4 text-orange-700 dark:text-orange-400" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />;
+    }
+  };
+
+  const handleCardClick = () => {
+    window.location.href = `/sports/nba/games/${game.id}`;
+  };
+
+  return (
+    <div
+      onClick={handleCardClick}
+      className="cursor-pointer transition-transform duration-200 hover:scale-[1.02]"
+      role="button"
+      tabIndex={0}
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleCardClick();
+        }
+      }}
+      aria-label={`View details for ${game.teams.visitors.name} vs ${game.teams.home.name}`}
+    >
+      <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced">
+        <CardContent className="p-3 sm:p-4 lg:p-6">
+          <div className="flex flex-col gap-3 sm:gap-4">
+            {/* Teams and Score */}
+            <div className="flex-1">
+              <div className="flex items-center justify-center mb-2 sm:mb-3">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
+                  <div className="text-center min-w-0 flex-1">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white truncate">
+                      {game.teams.visitors.name ?? 'Away Team'}
+                    </div>
+                    <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                      {game.scores?.visitors?.points ?? '-'}
+                    </div>
+                  </div>
+                  <div className="game-meta-text text-base sm:text-lg font-medium flex-shrink-0">
+                    @
+                  </div>
+                  <div className="text-center min-w-0 flex-1">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white truncate">
+                      {game.teams.home.name ?? 'Home Team'}
+                    </div>
+                    <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                      {game.scores?.home?.points ?? '-'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Game Details */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 lg:gap-4 text-xs sm:text-sm game-details-text">
+                <div className="flex items-center gap-1 min-w-0">
+                  <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{formatGameDate(game.date.start)}</span>
+                </div>
+                <div className="flex items-center gap-1 min-w-0">
+                  <Clock className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">{formatGameTime(game.date.start)}</span>
+                </div>
+                {game.arena?.name && (
+                  <div className="flex items-center gap-1 min-w-0">
+                    <Building2 className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="truncate">{game.arena.name}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 min-w-0">
+                  <Trophy className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                  <span className="truncate">
+                    {game.season ? `${game.season}-${game.season + 1} Season` : 'Unknown Season'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Status */}
+            <div className="flex items-center justify-end">
+              <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                {getStatusIcon(game.status?.short)}
+                <div
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium truncate ${getStatusColor(getDisplayStatus(game))}`}
+                >
+                  {getDisplayStatus(game)}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

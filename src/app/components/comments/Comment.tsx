@@ -109,14 +109,14 @@ export function Comment({
                       displayComment.user.username ||
                       'Unknown User'}
                   </span>
-                  <span className="text-xs text-neutral-500">
+                  <span className="text-xs text-theme-muted">
                     {format(new Date(displayComment.created_at), 'MMM dd, yyyy HH:mm')}
                   </span>
                   {displayComment.updated_at !== displayComment.created_at && (
-                    <span className="text-xs text-neutral-400">(edited)</span>
+                    <span className="text-xs text-theme-tertiary">(edited)</span>
                   )}
                 </div>
-                <p className="text-sm text-neutral-700 dark:text-neutral-300 whitespace-pre-wrap">
+                <p className="text-sm text-theme-secondary whitespace-pre-wrap">
                   {displayComment.content}
                 </p>
               </div>

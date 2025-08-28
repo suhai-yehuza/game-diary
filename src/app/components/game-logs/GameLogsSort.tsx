@@ -42,7 +42,7 @@ export function GameLogsSort({
 
   const getSortIcon = (key: string) => {
     if (sortKey !== key) {
-      return <ArrowUpDown className="w-4 h-4 text-neutral-400" />;
+      return <ArrowUpDown className="w-4 h-4 text-white" />;
     }
     return sortDirection === 'asc' ? (
       <ArrowUp className="w-4 h-4 text-brand-primary" />
@@ -53,56 +53,49 @@ export function GameLogsSort({
 
   return (
     <div
-      className={`flex flex-col gap-3 mb-4 ${isMobile ? 'space-y-3' : 'sm:flex-row sm:items-center sm:justify-between sm:gap-2'}`}
+      className={`${isMobile ? 'flex-col' : 'sm:flex-row sm:items-center sm:justify-between'}`}
       data-testid="game-logs-sort"
     >
-      <div
-        className={`flex flex-col gap-2 ${isMobile ? 'space-y-2' : 'sm:flex-row sm:items-center sm:gap-2'}`}
-      >
-        <span
-          className={`font-bold text-neutral-900 dark:text-neutral-100 ${
-            isMobile ? 'text-sm' : 'text-sm'
-          }`}
-        >
-          Sort by:
-        </span>
-        <div className={`flex flex-wrap gap-2 ${isMobile ? 'gap-1' : 'gap-2'}`}>
-          {sortOptions.map((option: { key: string; label: string }) => (
-            <button
-              key={option.key}
-              onClick={() => handleSort(option.key)}
-              className={`flex items-center gap-1 rounded-xl border transition-all duration-200 shadow-sm hover:shadow-md ${
-                sortKey === option.key
-                  ? 'bg-brand-primary/10 dark:bg-brand-primary/20 border-brand-primary/30 dark:border-brand-primary/40 text-brand-primary dark:text-brand-primary shadow-md'
-                  : 'bg-neutral-50 dark:bg-neutral-800 border-neutral-200 dark:border-neutral-600 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700'
-              } ${isMobile ? 'px-3 py-2.5 text-xs min-h-[44px]' : 'px-3 py-2 text-sm'}`}
-            >
-              {getSortIcon(option.key)}
-              <span className={isMobile ? 'text-xs' : 'text-sm'}>{option.label}</span>
-            </button>
-          ))}
-
+      {/* Sort Controls */}
+      <div className="space-y-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-2">
+          <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100">Sort by:</h4>
           {sortKey && (
             <button
               onClick={() => onSort('', null)}
-              className={`text-neutral-800 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-neutral-200 transition-all duration-200 ${
-                isMobile
-                  ? 'px-3 py-2.5 text-xs min-h-[44px] rounded-xl border border-neutral-200 dark:border-neutral-600 shadow-sm hover:shadow-md'
-                  : 'px-2 py-1 text-xs'
-              }`}
+              className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 transition-colors duration-200"
             >
               Clear
             </button>
           )}
         </div>
-      </div>
-      {displayedCount !== undefined && totalCount !== undefined && (
+
         <div
-          className={`font-bold text-neutral-900 dark:text-neutral-100 ${
-            isMobile ? 'text-sm text-center' : 'text-sm'
-          }`}
+          className={`grid gap-2 mb-4 ${isMobile ? 'grid-cols-2' : 'grid-cols-3 sm:grid-cols-4 lg:grid-cols-5'}`}
         >
-          Displaying {displayedCount} of {totalCount} {classification ?? 'game logs'}
+          {sortOptions.map((option: { key: string; label: string }) => (
+            <button
+              key={option.key}
+              onClick={() => handleSort(option.key)}
+              className={`flex items-center justify-center gap-1.5 rounded-md border transition-all duration-200 ${
+                sortKey === option.key
+                  ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary shadow-md'
+                  : 'bg-neutral-800 dark:bg-neutral-800 border-neutral-600 dark:border-neutral-600 text-white dark:text-white'
+              } ${isMobile ? 'px-2 py-2.5 text-xs' : 'px-3 py-2 text-sm'}`}
+            >
+              {getSortIcon(option.key)}
+              <span className="truncate">{option.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results Summary */}
+      {displayedCount !== undefined && totalCount !== undefined && (
+        <div className="flex items-center justify-between pt-6 pb-3 border-t border-gray-200 dark:border-gray-700">
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {displayedCount} of {totalCount} {classification ?? 'game logs'}
+          </span>
         </div>
       )}
     </div>

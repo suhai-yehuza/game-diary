@@ -44,10 +44,11 @@ export async function testLiveGamesBanner(page: Page, options: ILiveGamesTestOpt
   const gamesCount = banner.locator(`text=${MOCK_GAMES.length} Live Games`);
   await expect(gamesCount).toBeVisible();
 
-  // Check for "View All" link
-  const viewAllLink = banner.getByRole('link', { name: 'View All' });
-  await expect(viewAllLink).toBeVisible();
-  await expect(viewAllLink).toHaveAttribute('href', '/sports/live');
+  // Check for games count button (replaces "View All" link)
+  const gamesCountButton = banner.getByRole('button', {
+    name: new RegExp(`${MOCK_GAMES.length} live games currently playing, click to view all`),
+  });
+  await expect(gamesCountButton).toBeVisible();
 }
 
 /**

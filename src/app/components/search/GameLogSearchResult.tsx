@@ -3,7 +3,7 @@
 import { Calendar, Gamepad2, Star, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { IGameLogSearchResultProps } from '@/lib/types';
+import type { IGameLogSearchResultProps } from '@/lib/types/components.types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -18,56 +18,86 @@ export function GameLogSearchResult({ gameLog }: IGameLogSearchResultProps) {
   const router = useRouter();
 
   const handleClick = () => {
-    router.push(`/protected/user`);
+    // Navigate to the user page
+    router.push('/protected/user');
   };
 
   return (
     <div
-      className="flex items-center space-x-4 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
+      className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 cursor-pointer overflow-hidden"
       onClick={handleClick}
     >
-      <div className="flex-shrink-0">
-        <div className="w-10 h-10 bg-accent-purple/10 dark:bg-accent-purple/20 rounded-full flex items-center justify-center">
-          <Gamepad2 className="w-5 h-5 text-accent-purple" />
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-purple-50/30 to-transparent dark:from-purple-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="relative flex items-start space-x-4">
+        {/* Enhanced Avatar */}
+        <div className="flex-shrink-0">
+          <div className="w-14 h-14 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+            <Gamepad2 className="w-7 h-7 text-white" />
+          </div>
         </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
-            {gameLog.away_team_nickname && gameLog.home_team_nickname
-              ? `${gameLog.away_team_nickname} @ ${gameLog.home_team_nickname}`
-              : `Game Log #${gameLog.game_id ?? 'unknown'}`}
-          </h3>
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-accent-purple/10 text-accent-purple border border-accent-purple/20">
-            Game Log
-          </span>
+
+        {/* Game Log Information */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-3 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                  {gameLog.away_team_nickname && gameLog.home_team_nickname
+                    ? `${gameLog.away_team_nickname} @ ${gameLog.home_team_nickname}`
+                    : `Game Log #${gameLog.game_id ?? 'unknown'}`}
+                </h3>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
+                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-1.5" />
+                  Game Log
+                </span>
+              </div>
+
+              {/* User Info */}
+              <div className="flex items-center space-x-1 mb-3">
+                <User className="w-4 h-4 text-gray-400" />
+                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                  @{gameLog.username ?? 'unknown'}
+                </span>
+              </div>
+
+              <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
+                <div className="flex items-center space-x-1.5">
+                  <Calendar className="w-4 h-4" />
+                  <span>{formatDate(gameLog.created_at)}</span>
+                </div>
+
+                {gameLog.rating_for_game !== undefined && gameLog.rating_for_game !== null && (
+                  <div className="flex items-center space-x-1.5">
+                    <Star className="w-4 h-4" />
+                    <span>{gameLog.rating_for_game}/5</span>
+                  </div>
+                )}
+
+                {gameLog.home_team_city && (
+                  <div className="flex items-center space-x-1.5">
+                    <span>• {gameLog.home_team_city}</span>
+                  </div>
+                )}
+              </div>
+
+              {gameLog.classification && (
+                <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+                  Classification: {gameLog.classification}
+                </div>
+              )}
+            </div>
+
+            {/* Action indicator with prompt */}
+            <div className="flex-shrink-0 ml-4 flex flex-col items-end">
+              <Gamepad2 className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300" />
+              <span className="text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                View Details
+              </span>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
-          <span className="flex items-center space-x-1">
-            <User className="w-3 h-3" />
-            <span>@{gameLog.username ?? 'unknown'}</span>
-          </span>
-          {gameLog.rating_for_game !== undefined && gameLog.rating_for_game !== null && (
-            <span className="flex items-center space-x-1">
-              <Star className="w-3 h-3" />
-              <span>{gameLog.rating_for_game}/5</span>
-            </span>
-          )}
-          <span className="flex items-center space-x-1">
-            <Calendar className="w-3 h-3" />
-            <span>{formatDate(gameLog.created_at)}</span>
-          </span>
-          {gameLog.home_team_city && (
-            <span className="flex items-center space-x-1">
-              <span>• {gameLog.home_team_city}</span>
-            </span>
-          )}
-        </div>
-        {gameLog.classification && (
-          <p className="text-xs text-neutral-500 dark:text-neutral-500 mt-1">
-            Classification: {gameLog.classification}
-          </p>
-        )}
       </div>
     </div>
   );

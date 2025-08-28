@@ -4,6 +4,35 @@ import { describe, it, expect, vi } from 'vitest';
 
 import { GameLogCard } from '@/app/components/game-logs/GameLogCard';
 
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  ExternalLink: ({ className }: any) => (
+    <div data-testid="external-link" className={className}>
+      ExternalLink
+    </div>
+  ),
+  Loader2: ({ className }: any) => (
+    <div data-testid="loader-2" className={className}>
+      Loader2
+    </div>
+  ),
+  MessageCircle: ({ className }: any) => (
+    <div data-testid="message-circle" className={className}>
+      MessageCircle
+    </div>
+  ),
+  ChevronDown: ({ className }: any) => (
+    <div data-testid="chevron-down" className={className}>
+      ChevronDown
+    </div>
+  ),
+  ChevronUp: ({ className }: any) => (
+    <div data-testid="chevron-up" className={className}>
+      ChevronUp
+    </div>
+  ),
+}));
+
 // Mock components
 vi.mock('@/app/components/comments/GameLogComments', () => ({
   GameLogComments: ({ gameLog }: any) => (

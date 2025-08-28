@@ -241,6 +241,19 @@ export const GET_GAME_LOGS = gql`
       }
       totalCount
     }
+    friendsGameLogs(pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
   }
   ${GAME_LOG_FRAGMENT}
   ${GAME_FRAGMENT}

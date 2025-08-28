@@ -1,63 +1,81 @@
 @import 'tailwindcss';
 
+/* =================================================================
+   DESIGN SYSTEM FOUNDATION
+   ================================================================= */
+
 @layer base {
   :root {
-    /* Enhanced Color System - Industry Best Practices */
+    /* ===== Core Design Tokens ===== */
 
-    /* Primary Brand Colors - Sports Theme */
-    --primary-blue: 221 83% 53%; /* Blue-600 - Primary brand color */
-    --primary-blue-dark: 221 83% 43%; /* Blue-700 - Primary hover */
-    --primary-blue-light: 221 83% 63%; /* Blue-500 - Primary light */
+    /* Brand Colors - Primary Palette */
+    --color-brand-primary: 221 83% 53%; /* Blue-600 */
+    --color-brand-primary-hover: 221 83% 43%; /* Blue-700 */
+    --color-brand-primary-light: 221 83% 63%; /* Blue-500 */
 
-    /* Secondary Brand Colors */
-    --secondary-green: 142 76% 36%; /* Green-600 - Success, positive actions */
-    --secondary-green-dark: 142 76% 26%; /* Green-700 - Success hover */
-    --secondary-green-light: 142 76% 46%; /* Green-500 - Success light */
-
-    /* Accent Colors */
-    --accent-orange: 25 95% 53%; /* Orange-500 - Live indicators, highlights */
-    --accent-purple: 262 83% 58%; /* Purple-500 - Premium features */
-    --accent-blue: 221 83% 53%; /* Blue-600 - Players, navigation */
+    /* Brand Colors - Secondary Palette */
+    --color-brand-secondary: 142 76% 36%; /* Green-600 */
+    --color-brand-secondary-hover: 142 76% 26%; /* Green-700 */
+    --color-brand-secondary-light: 142 76% 46%; /* Green-500 */
 
     /* Semantic Colors */
-    --success: 142 76% 36%; /* Green-600 */
-    --warning: 38 92% 50%; /* Amber-500 */
-    --error: 0 84% 60%; /* Red-500 */
-    --info: 221 83% 53%; /* Blue-600 */
+    --color-success: 142 76% 36%; /* Green-600 */
+    --color-warning: 38 92% 50%; /* Amber-500 */
+    --color-error: 0 84% 60%; /* Red-500 */
+    --color-info: 221 83% 53%; /* Blue-600 */
 
-    /* Neutral Scale - Consistent Hierarchy */
-    --neutral-50: 0 0% 98%; /* Lightest background */
-    --neutral-100: 0 0% 96%; /* Light background */
-    --neutral-200: 0 0% 90%; /* Border, divider */
-    --neutral-300: 0 0% 83%; /* Disabled text */
-    --neutral-400: 0 0% 64%; /* Placeholder text */
-    --neutral-500: 0 0% 45%; /* Secondary text */
-    --neutral-600: 0 0% 32%; /* Primary text */
-    --neutral-700: 0 0% 25%; /* Strong text */
-    --neutral-800: 0 0% 15%; /* Headings */
-    --neutral-900: 0 0% 9%; /* Strongest text */
+    /* Accent Colors */
+    --color-accent-orange: 25 95% 53%; /* Live indicators */
+    --color-accent-purple: 262 83% 58%; /* Premium features */
 
-    /* Legacy CSS Variables - Updated for consistency */
+    /* Neutral Scale - Light Theme */
+    --color-neutral-50: 0 0% 98%; /* Lightest bg */
+    --color-neutral-100: 0 0% 96%; /* Light bg */
+    --color-neutral-200: 0 0% 90%; /* Borders */
+    --color-neutral-300: 0 0% 83%; /* Disabled */
+    --color-neutral-400: 0 0% 64%; /* Placeholder */
+    --color-neutral-500: 0 0% 45%; /* Secondary text */
+    --color-neutral-600: 0 0% 32%; /* Primary text */
+    --color-neutral-700: 0 0% 25%; /* Strong text */
+    --color-neutral-800: 0 0% 15%; /* Headings */
+    --color-neutral-900: 0 0% 9%; /* Strongest text */
+
+    /* Semantic Theme Tokens */
+    --color-text-primary: var(--color-neutral-900);
+    --color-text-secondary: var(--color-neutral-800);
+    --color-text-tertiary: var(--color-neutral-700);
+    --color-text-muted: var(--color-neutral-600);
+
+    --color-bg-primary: var(--color-neutral-50);
+    --color-bg-secondary: var(--color-neutral-100);
+    --color-bg-card: 0 0% 100%;
+
+    --color-border-primary: var(--color-neutral-200);
+    --color-border-secondary: var(--color-neutral-300);
+
+    /* Legacy Shadcn/UI Variables */
     --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-    --primary: 221 83% 53%;
+    --foreground: var(--color-neutral-900);
+    --card: var(--color-bg-card);
+    --card-foreground: var(--color-neutral-900);
+    --popover: var(--color-bg-card);
+    --popover-foreground: var(--color-neutral-900);
+    --primary: var(--color-brand-primary);
     --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84% 60%;
+    --secondary: var(--color-neutral-100);
+    --secondary-foreground: var(--color-neutral-900);
+    --muted: var(--color-neutral-100);
+    --muted-foreground: var(--color-neutral-500);
+    --accent: var(--color-neutral-100);
+    --accent-foreground: var(--color-neutral-900);
+    --destructive: var(--color-error);
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 221 83% 53%;
+    --border: var(--color-border-primary);
+    --input: var(--color-border-primary);
+    --ring: var(--color-brand-primary);
     --radius: 0.5rem;
+
+    /* Chart Colors */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
@@ -66,61 +84,54 @@
   }
 
   .dark {
-    /* Dark Theme - Enhanced Color System */
+    /* Dark Theme Overrides */
+    --color-neutral-50: 0 0% 9%; /* Darkest bg */
+    --color-neutral-100: 0 0% 15%; /* Dark bg */
+    --color-neutral-200: 0 0% 25%; /* Borders */
+    --color-neutral-300: 0 0% 32%; /* Disabled */
+    --color-neutral-400: 0 0% 45%; /* Placeholder */
+    --color-neutral-500: 0 0% 64%; /* Secondary text */
+    --color-neutral-600: 0 0% 83%; /* Primary text */
+    --color-neutral-700: 0 0% 90%; /* Strong text */
+    --color-neutral-800: 0 0% 96%; /* Headings */
+    --color-neutral-900: 0 0% 98%; /* Strongest text */
 
-    /* Primary Brand Colors - Dark Theme */
-    --primary-blue: 217 91% 60%; /* Blue-400 - Primary brand color */
-    --primary-blue-dark: 217 91% 50%; /* Blue-500 - Primary hover */
-    --primary-blue-light: 217 91% 70%; /* Blue-300 - Primary light */
+    /* Adjusted brand colors for dark theme */
+    --color-brand-primary: 217 91% 60%; /* Blue-400 */
+    --color-brand-primary-hover: 217 91% 50%; /* Blue-500 */
+    --color-brand-primary-light: 217 91% 70%; /* Blue-300 */
 
-    /* Secondary Brand Colors - Dark Theme */
-    --secondary-green: 142 71% 45%; /* Green-500 - Success, positive actions */
-    --secondary-green-dark: 142 71% 35%; /* Green-600 - Success hover */
-    --secondary-green-light: 142 71% 55%; /* Green-400 - Success light */
+    --color-brand-secondary: 142 71% 45%; /* Green-500 */
+    --color-brand-secondary-hover: 142 71% 35%; /* Green-600 */
+    --color-brand-secondary-light: 142 71% 55%; /* Green-400 */
 
-    /* Accent Colors - Dark Theme */
-    --accent-orange: 25 95% 53%; /* Orange-500 - Live indicators */
-    --accent-purple: 262 83% 58%; /* Purple-500 - Premium features */
-    --accent-blue: 217 91% 60%; /* Blue-400 - Players, navigation */
+    --color-info: 217 91% 60%; /* Blue-400 */
+    --color-success: 142 71% 45%; /* Green-500 */
 
-    /* Semantic Colors - Dark Theme */
-    --success: 142 71% 45%; /* Green-500 */
-    --warning: 38 92% 50%; /* Amber-500 */
-    --error: 0 84% 60%; /* Red-500 */
-    --info: 217 91% 60%; /* Blue-400 */
+    --color-bg-card: 0 0% 9%;
 
-    /* Neutral Scale - Dark Theme */
-    --neutral-50: 0 0% 9%; /* Darkest background */
-    --neutral-100: 0 0% 15%; /* Dark background */
-    --neutral-200: 0 0% 25%; /* Border, divider */
-    --neutral-300: 0 0% 32%; /* Disabled text */
-    --neutral-400: 0 0% 45%; /* Placeholder text */
-    --neutral-500: 0 0% 64%; /* Secondary text */
-    --neutral-600: 0 0% 83%; /* Primary text */
-    --neutral-700: 0 0% 90%; /* Strong text */
-    --neutral-800: 0 0% 96%; /* Headings */
-    --neutral-900: 0 0% 98%; /* Strongest text */
-
-    /* Legacy CSS Variables - Dark Theme */
-    --background: 0 0% 9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 64%;
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 98%;
+    /* Legacy dark theme updates */
+    --background: var(--color-neutral-50);
+    --foreground: var(--color-neutral-900);
+    --card: var(--color-bg-card);
+    --card-foreground: var(--color-neutral-900);
+    --popover: var(--color-bg-card);
+    --popover-foreground: var(--color-neutral-900);
+    --primary: var(--color-brand-primary);
+    --primary-foreground: var(--color-neutral-50);
+    --secondary: var(--color-neutral-100);
+    --secondary-foreground: var(--color-neutral-900);
+    --muted: var(--color-neutral-100);
+    --muted-foreground: var(--color-neutral-500);
+    --accent: var(--color-neutral-100);
+    --accent-foreground: var(--color-neutral-900);
     --destructive: 0 63% 31%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 25%;
-    --input: 0 0% 25%;
+    --border: var(--color-border-primary);
+    --input: var(--color-border-primary);
     --ring: 224 76% 48%;
+
+    /* Dark chart colors */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
@@ -129,550 +140,144 @@
   }
 }
 
-/* Enhanced Color Utility Classes */
+/* =================================================================
+   THEME-AWARE UTILITY CLASSES
+   ================================================================= */
+
 @layer utilities {
-  /* Brand Colors */
-  .bg-brand-primary {
-    background-color: hsl(var(--primary-blue));
+  /* === Text Colors === */
+  .text-theme-primary {
+    color: hsl(var(--color-text-primary)) !important;
   }
-  .bg-brand-primary-dark {
-    background-color: hsl(var(--primary-blue-dark));
+  .text-theme-secondary {
+    color: hsl(var(--color-text-secondary)) !important;
   }
-  .bg-brand-primary-light {
-    background-color: hsl(var(--primary-blue-light));
+  .text-theme-tertiary {
+    color: hsl(var(--color-text-tertiary)) !important;
   }
-  .text-brand-primary {
-    color: hsl(var(--primary-blue));
-  }
-  .text-brand-primary-dark {
-    color: hsl(var(--primary-blue-dark));
-  }
-  .text-brand-primary-light {
-    color: hsl(var(--primary-blue-light));
+  .text-theme-muted {
+    color: hsl(var(--color-text-muted)) !important;
   }
 
-  .bg-brand-secondary {
-    background-color: hsl(var(--secondary-green));
+  /* === Background Colors === */
+  .bg-theme-primary {
+    background-color: hsl(var(--color-bg-primary)) !important;
   }
-  .bg-brand-secondary-dark {
-    background-color: hsl(var(--secondary-green-dark));
+  .bg-theme-secondary {
+    background-color: hsl(var(--color-bg-secondary)) !important;
   }
-  .bg-brand-secondary-light {
-    background-color: hsl(var(--secondary-green-light));
+  .bg-theme-card {
+    background-color: hsl(var(--color-bg-card)) !important;
+  }
+
+  /* === Border Colors === */
+  .border-theme {
+    border-color: hsl(var(--color-border-primary)) !important;
+  }
+  .border-theme-secondary {
+    border-color: hsl(var(--color-border-secondary)) !important;
+  }
+
+  /* === Brand Colors === */
+  .text-brand-primary {
+    color: hsl(var(--color-brand-primary));
   }
   .text-brand-secondary {
-    color: hsl(var(--secondary-green));
+    color: hsl(var(--color-brand-secondary));
   }
-  .text-brand-secondary-dark {
-    color: hsl(var(--secondary-green-dark));
+  .bg-brand-primary {
+    background-color: hsl(var(--color-brand-primary));
   }
-  .text-brand-secondary-light {
-    color: hsl(var(--secondary-green-light));
+  .hover\:bg-brand-primary-dark {
+    background-color: hsl(var(--color-brand-primary-hover));
   }
-
-  /* Semantic Colors */
-  .bg-semantic-success {
-    background-color: hsl(var(--success));
+  .bg-brand-primary\/10 {
+    background-color: hsl(var(--color-brand-primary) / 0.1);
   }
-  .bg-semantic-warning {
-    background-color: hsl(var(--warning));
+  .border-brand-primary\/30 {
+    border-color: hsl(var(--color-brand-primary) / 0.3);
   }
-  .bg-semantic-error {
-    background-color: hsl(var(--error));
+  .bg-brand-secondary {
+    background-color: hsl(var(--color-brand-secondary));
   }
-  .bg-semantic-info {
-    background-color: hsl(var(--info));
+  .hover\:bg-brand-secondary-dark {
+    background-color: hsl(var(--color-brand-secondary-hover));
   }
 
+  /* === Semantic Colors === */
   .text-semantic-success {
-    color: hsl(var(--success));
+    color: hsl(var(--color-success));
   }
   .text-semantic-warning {
-    color: hsl(var(--warning));
+    color: hsl(var(--color-warning));
   }
   .text-semantic-error {
-    color: hsl(var(--error));
+    color: hsl(var(--color-error));
   }
   .text-semantic-info {
-    color: hsl(var(--info));
+    color: hsl(var(--color-info));
   }
 
-  /* Accent Colors */
-  .bg-accent-orange {
-    background-color: hsl(var(--accent-orange));
+  .bg-semantic-success {
+    background-color: hsl(var(--color-success));
   }
-  .bg-accent-purple {
-    background-color: hsl(var(--accent-purple));
+  .bg-semantic-warning {
+    background-color: hsl(var(--color-warning));
   }
-  .bg-accent-blue {
-    background-color: hsl(var(--accent-blue));
+  .bg-semantic-error {
+    background-color: hsl(var(--color-error));
+  }
+  .bg-semantic-info {
+    background-color: hsl(var(--color-info));
   }
 
+  /* === Accent Colors === */
   .text-accent-orange {
-    color: hsl(var(--accent-orange));
+    color: hsl(var(--color-accent-orange));
   }
   .text-accent-purple {
-    color: hsl(var(--accent-purple));
+    color: hsl(var(--color-accent-purple));
   }
-  .text-accent-blue {
-    color: hsl(var(--accent-blue));
+  .bg-accent-orange {
+    background-color: hsl(var(--color-accent-orange));
   }
-
-  /* Neutral Colors */
-  .bg-neutral-50 {
-    background-color: hsl(var(--neutral-50));
-  }
-  .bg-neutral-100 {
-    background-color: hsl(var(--neutral-100));
-  }
-  .bg-neutral-200 {
-    background-color: hsl(var(--neutral-200));
-  }
-  .bg-neutral-300 {
-    background-color: hsl(var(--neutral-300));
-  }
-  .bg-neutral-400 {
-    background-color: hsl(var(--neutral-400));
-  }
-  .bg-neutral-500 {
-    background-color: hsl(var(--neutral-500));
-  }
-  .bg-neutral-600 {
-    background-color: hsl(var(--neutral-600));
-  }
-  .bg-neutral-700 {
-    background-color: hsl(var(--neutral-700));
-  }
-  .bg-neutral-800 {
-    background-color: hsl(var(--neutral-800));
-  }
-  .bg-neutral-900 {
-    background-color: hsl(var(--neutral-900));
-  }
-
-  .text-neutral-50 {
-    color: hsl(var(--neutral-50));
-  }
-  .text-neutral-100 {
-    color: hsl(var(--neutral-100));
-  }
-  .text-neutral-200 {
-    color: hsl(var(--neutral-200));
-  }
-  .text-neutral-300 {
-    color: hsl(var(--neutral-300));
-  }
-  .text-neutral-400 {
-    color: hsl(var(--neutral-400));
-  }
-  .text-neutral-500 {
-    color: hsl(var(--neutral-500));
-  }
-  .text-neutral-600 {
-    color: hsl(var(--neutral-600));
-  }
-  .text-neutral-700 {
-    color: hsl(var(--neutral-700));
-  }
-  .text-neutral-800 {
-    color: hsl(var(--neutral-800));
-  }
-  .text-neutral-900 {
-    color: hsl(var(--neutral-900));
+  .bg-accent-purple {
+    background-color: hsl(var(--color-accent-purple));
   }
 }
+
+/* =================================================================
+   BASE STYLES & RESET
+   ================================================================= */
 
 @layer base {
   * {
     border-color: hsl(var(--border));
   }
+
+  html {
+    overflow-x: hidden;
+    max-width: 100vw;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
   body {
     background-color: hsl(var(--background));
     color: hsl(var(--foreground));
     overflow-x: hidden;
     max-width: 100vw;
-  }
-  html {
-    overflow-x: hidden;
-    max-width: 100vw;
-  }
-}
-
-body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-}
-
-/* Carousel animations */
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* Modern Mobile Optimizations */
-@media (max-width: 768px) {
-  /* Enhanced touch interactions */
-  button,
-  a,
-  [role='button'] {
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-    touch-action: manipulation;
-  }
-
-  /* Improved scrolling */
-  html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Better text rendering */
-  body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
-
-  /* Safe area support */
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
-
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  .safe-area-left {
-    padding-left: env(safe-area-inset-left);
-  }
-
-  .safe-area-right {
-    padding-right: env(safe-area-inset-right);
-  }
-
-  /* Modern mobile navigation patterns */
-  .mobile-bottom-nav {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  /* Improved focus states for mobile */
-  button:focus-visible,
-  a:focus-visible,
-  [role='button']:focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
-
-  /* Better touch targets */
-  .touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* Modern mobile animations */
-  .mobile-scale-tap:active {
-    transform: scale(0.95);
-  }
-
-  .mobile-lift-tap:active {
-    transform: translateY(1px);
-  }
-
-  /* Improved mobile shadows */
-  .mobile-shadow {
-    box-shadow:
-      0 4px 6px -1px rgba(0, 0, 0, 0.1),
-      0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  }
-
-  .mobile-shadow-lg {
-    box-shadow:
-      0 10px 15px -3px rgba(0, 0, 0, 0.1),
-      0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  }
-
-  /* Modern mobile borders */
-  .mobile-border {
-    border: 1px solid rgba(0, 0, 0, 0.1);
-  }
-
-  .dark .mobile-border {
-    border-color: rgba(255, 255, 255, 0.1);
-  }
 }
 
-/* Mobile Optimizations */
-@media (max-width: 1024px) {
-  /* Hide scrollbar but keep functionality */
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+/* =================================================================
+   COMPONENT STYLES & LEGACY SUPPORT
+   ================================================================= */
 
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
-
-  /* Prevent text selection on buttons */
-  button {
-    -webkit-tap-highlight-color: transparent;
-    user-select: none;
-  }
-
-  /* Smooth scrolling */
-  html {
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Better mobile typography */
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
-
-  /* Improved mobile spacing */
-  .mobile-spacing {
-    padding: 1rem;
-  }
-
-  .mobile-spacing-lg {
-    padding: 1.5rem;
-  }
-
-  /* Mobile-specific button styles */
-  button,
-  input[type='button'],
-  input[type='submit'],
-  input[type='reset'] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-
-  /* Mobile input improvements */
-  input[type='text'],
-  input[type='email'],
-  input[type='password'],
-  input[type='search'],
-  textarea {
-    font-size: 16px; /* Prevents zoom on iOS */
-    min-height: 44px;
-  }
-
-  /* Mobile paragraph spacing */
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.6;
-    margin-bottom: 1rem;
-  }
-}
-
-/* Enhanced mobile interactions */
-@media (max-width: 640px) {
-  .chart-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Mobile-specific animations */
-  .mobile-fade-in {
-    animation: mobileFadeIn 0.3s ease-out;
-  }
-
-  .mobile-slide-up {
-    animation: mobileSlideUp 0.3s ease-out;
-  }
-
-  /* Mobile gesture support */
-  .mobile-gesture {
-    touch-action: pan-y pinch-zoom;
-  }
-
-  /* Mobile-specific shadows */
-  .mobile-elevation {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  }
-
-  .mobile-elevation-lg {
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  }
-}
-
-@media (max-width: 480px) {
-  /* Ultra-mobile optimizations */
-  body {
-    font-size: 14px;
-  }
-
-  p,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    line-height: 1.5;
-  }
-
-  /* Mobile-specific spacing */
-  .mobile-compact {
-    padding: 0.75rem;
-  }
-
-  .mobile-compact-lg {
-    padding: 1rem;
-  }
-}
-
-/* Mobile animations */
-@keyframes mobileFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes mobileSlideUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-/* Modern mobile navigation styles */
-.mobile-nav-enter {
-  transform: translateY(100%);
-}
-
-.mobile-nav-enter-active {
-  transform: translateY(0);
-  transition: transform 300ms ease-out;
-}
-
-.mobile-nav-exit {
-  transform: translateY(0);
-}
-
-.mobile-nav-exit-active {
-  transform: translateY(100%);
-  transition: transform 300ms ease-in;
-}
-
-/* Mobile overlay styles */
-.mobile-overlay {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-}
-
-/* Mobile tab bar styles */
-.mobile-tab-bar {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.dark .mobile-tab-bar {
-  background: rgba(17, 24, 39, 0.95);
-  border-top-color: rgba(255, 255, 255, 0.1);
-}
-
-/* Mobile search styles */
-.mobile-search {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.dark .mobile-search {
-  background: rgba(17, 24, 39, 0.95);
-}
-
-/* Mobile filter drawer */
-.mobile-filter-drawer {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.dark .mobile-filter-drawer {
-  background: rgba(17, 24, 39, 0.98);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Mobile action sheet */
-.mobile-action-sheet {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-}
-
-.dark .mobile-action-sheet {
-  background: rgba(17, 24, 39, 0.98);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
-}
-
-/* Hide scrollbar utilities */
-.scrollbar-hide {
-  -ms-overflow-style: none; /* Internet Explorer 10+ */
-  scrollbar-width: none; /* Firefox */
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none; /* Safari and Chrome */
-}
-
-/* Enhanced touch targets for mobile */
-.touch-target {
-  min-height: 44px;
-  min-width: 44px;
-}
-
-/* Improved focus states for accessibility */
-.focus-visible:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-}
-
-/* Smooth transitions for all interactive elements */
-.interactive {
-  transition: all 0.2s ease-in-out;
-}
-
-/* Enhanced button states */
+/* === Enhanced Button Components === */
 .btn-primary {
   @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400;
 }
@@ -681,686 +286,1110 @@ body {
   @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400;
 }
 
-/* Card enhancements */
+/* === Enhanced Card Components === */
 .card-enhanced {
   @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200;
 }
 
-/* Input enhancements */
+/* === Enhanced Input Components === */
 .input-enhanced {
   @apply border border-gray-300 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm transition-all duration-200;
 }
 
-/* Modern mobile navigation styles */
-.mobile-nav-enter {
-  transform: translateY(100%);
+/* === Legacy NBA-specific classes (preserved for compatibility) === */
+.live-games-count {
+  color: rgb(0, 0, 0) !important;
 }
+.dark .live-games-count {
+  color: rgb(209, 213, 219) !important;
+}
+
+.live-games-title {
+  color: rgb(0, 0, 0) !important;
+}
+.dark .live-games-title {
+  color: rgb(255, 255, 255) !important;
+}
+
+.last-updated-text {
+  color: rgb(107, 114, 128) !important;
+}
+.dark .last-updated-text {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-page-description {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-page-description {
+  color: rgb(209, 213, 219) !important;
+}
+
+.nba-card-description {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 - darker for better contrast */
+}
+.dark .nba-card-description {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 */
+}
+
+/* === Navigation Card Description Override (Higher Specificity) === */
+a .nba-card-description,
+.group .nba-card-description,
+a.group .nba-card-description,
+a.group p.nba-card-description {
+  color: rgb(31, 41, 55) !important; /* Ensure it overrides link colors */
+}
+.dark a .nba-card-description,
+.dark .group .nba-card-description,
+.dark a.group .nba-card-description,
+.dark a.group p.nba-card-description {
+  color: rgb(209, 213, 219) !important;
+}
+
+/* === Ultra High Specificity Override === */
+a.group.block p.nba-card-description.mb-3 {
+  color: rgb(31, 41, 55) !important; /* Very dark text for light theme */
+}
+.dark a.group.block p.nba-card-description.mb-3 {
+  color: rgb(209, 213, 219) !important; /* Light text for dark theme */
+}
+
+.nba-empty-state-text {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-empty-state-text {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-section-header {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-section-header {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-game-details-text {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-game-details-text {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-team-nickname {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-team-nickname {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-results-summary {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-results-summary {
+  color: rgb(156, 163, 175) !important;
+}
+
+.nba-games-title {
+  color: rgb(17, 24, 39) !important;
+}
+.dark .nba-games-title {
+  color: rgb(255, 255, 255) !important;
+}
+
+.nba-games-description {
+  color: rgb(31, 41, 55) !important;
+}
+.dark .nba-games-description {
+  color: rgb(209, 213, 219) !important;
+}
+
+.nba-hub-title {
+  color: rgb(17, 24, 39) !important;
+}
+.dark .nba-hub-title {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* === News Cards - Enhanced Light Theme Contrast === */
+.news-meta-text {
+  color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for light theme */
+}
+.dark .news-meta-text {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+}
+
+.news-title {
+  color: rgb(17, 24, 39) !important; /* text-gray-900 - very dark for light theme */
+}
+.dark .news-title {
+  color: rgb(255, 255, 255) !important; /* text-white */
+}
 
-.mobile-nav-enter-active {
-  transform: translateY(0);
-  transition: transform 300ms ease-out;
+.news-description {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 - darker for light theme */
 }
+.dark .news-description {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 */
+}
 
-.mobile-nav-exit {
-  transform: translateY(0);
+.news-source-badge {
+  color: rgb(75, 85, 99) !important; /* darker text for light theme */
+  background-color: rgb(243, 244, 246) !important; /* light background */
+}
+.dark .news-source-badge {
+  color: rgb(156, 163, 175) !important; /* light text for dark theme */
+  background-color: rgb(55, 65, 81) !important; /* dark background */
 }
 
-.mobile-nav-exit-active {
-  transform: translateY(100%);
-  transition: transform 300ms ease-in;
+/* === Game Cards - Enhanced Light Theme Contrast === */
+.game-details-text {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 - stronger contrast for light theme */
 }
+.dark .game-details-text {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
+}
 
-/* Mobile overlay styles */
-.mobile-overlay {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+.game-meta-text {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 - stronger contrast for light theme */
+}
+.dark .game-meta-text {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
 }
 
-/* Mobile tab bar styles */
-.mobile-tab-bar {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+/* Game card text elements with high specificity */
+.game-card-enhanced .text-gray-900 {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
 }
+.dark .game-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
+}
 
-.dark .mobile-tab-bar {
-  background: rgba(17, 24, 39, 0.95);
-  border-top-color: rgba(255, 255, 255, 0.1);
+.game-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
+.dark .game-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
 }
 
-/* Mobile search styles */
-.mobile-search {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+/* Enhanced game card backgrounds for better contrast */
+.game-card-enhanced {
+  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  border: 1px solid rgb(203, 213, 225) !important; /* Slightly darker border for definition */
 }
+.dark .game-card-enhanced {
+  background-color: rgb(31, 41, 55) !important; /* Dark gray background in dark theme */
+  border: 1px solid rgb(55, 65, 81) !important; /* Dark border for dark theme */
+}
 
-.dark .mobile-search {
-  background: rgba(17, 24, 39, 0.95);
+/* Game card date, time, and venue text */
+.game-card-enhanced .truncate {
+  color: rgb(31, 41, 55) !important; /* Dark text for light theme */
+}
+.dark .game-card-enhanced .truncate {
+  color: rgb(209, 213, 219) !important; /* Light text for dark theme */
 }
 
-/* Mobile filter drawer */
-.mobile-filter-drawer {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+/* === Team Cards - Enhanced to match game cards === */
+.team-card-enhanced {
+  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  border: 1px solid rgb(209, 213, 219) !important; /* Darker border for better definition */
 }
+.dark .team-card-enhanced {
+  background-color: rgb(31, 41, 55) !important; /* Same dark gray background as game cards */
+  border: 1px solid rgb(55, 65, 81) !important; /* Same border as game cards */
+}
 
-.dark .mobile-filter-drawer {
-  background: rgba(17, 24, 39, 0.98);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+/* Team card text elements with high specificity */
+.team-card-enhanced .text-gray-900 {
+  color: rgb(17, 24, 39) !important; /* Darker text for maximum contrast in light theme */
+}
+.dark .team-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
 }
 
-/* Mobile action sheet */
-.mobile-action-sheet {
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+/* Team card enhanced button styling */
+.team-card-enhanced button {
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
 }
 
-.dark .mobile-action-sheet {
-  background: rgba(17, 24, 39, 0.98);
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+.team-card-enhanced button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
-/* Pull to refresh */
-.pull-to-refresh {
-  overflow: hidden;
+/* Specific styling for team card buttons */
+.team-card-button {
+  color: white !important;
+  font-weight: 500 !important;
+  border: 1px solid !important;
 }
 
-.pull-to-refresh-indicator {
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  font-size: 14px;
-  transition: all 0.2s ease;
+.team-card-enhanced .team-card-button {
+  color: white !important;
 }
 
-.pull-to-refresh-indicator.active {
-  color: #3b82f6;
+.dark .team-card-enhanced .team-card-button {
+  color: white !important;
 }
 
-/* Swipe actions */
-.swipe-action {
-  overflow: hidden;
-  position: relative;
+.team-card-enhanced .text-gray-700 {
+  color: rgb(55, 65, 81) !important; /* Darker gray for better contrast */
 }
+.dark .team-card-enhanced .text-gray-700 {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
+}
 
-.swipe-action-content {
-  transition: transform 0.2s ease;
+.team-card-enhanced .text-gray-600 {
+  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-600 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
 }
 
-.swipe-action-actions {
-  position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  align-items: stretch;
+.team-card-enhanced .text-gray-500 {
+  color: rgb(107, 114, 128) !important; /* Darker gray for better contrast */
 }
+.dark .team-card-enhanced .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
 
-/* Bottom sheet */
-.bottom-sheet {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 20px 20px 0 0;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
-  transform: translateY(100%);
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 50;
+.team-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
 }
 
-.dark .bottom-sheet {
-  background: #1f2937;
-  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+.team-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
 }
+.dark .team-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
 
-.bottom-sheet.active {
-  transform: translateY(0);
+/* === Player Cards - Enhanced to match game cards === */
+.player-card-enhanced {
+  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  border: 1px solid rgb(156, 163, 175) !important; /* Darker border for better definition */
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important; /* Subtle shadow for depth */
 }
+.dark .player-card-enhanced {
+  background-color: rgb(31, 41, 55) !important; /* Same dark gray background as game cards */
+  border: 1px solid rgb(55, 65, 81) !important; /* Same border as game cards */
+}
 
-/* Gesture handler */
-.gesture-handler {
-  touch-action: pan-y;
+/* Player card text elements with high specificity for maximum contrast */
+.player-card-enhanced .text-gray-900 {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
+}
+.dark .player-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
 }
 
-/* Safe area utilities */
-.safe-area-top {
-  padding-top: env(safe-area-inset-top);
+.player-card-enhanced .text-gray-700 {
+  color: rgb(31, 41, 55) !important; /* Much darker gray for better contrast */
 }
+.dark .player-card-enhanced .text-gray-700 {
+  color: rgb(229, 231, 235) !important; /* Light gray for dark theme */
+}
 
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+.player-card-enhanced .text-gray-600 {
+  color: rgb(55, 65, 81) !important; /* Much darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-600 {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
 }
 
-.safe-area-left {
-  padding-left: env(safe-area-inset-left);
+.player-card-enhanced .text-gray-500 {
+  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
 }
+.dark .player-card-enhanced .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
 
-.safe-area-right {
-  padding-right: env(safe-area-inset-right);
+.player-card-enhanced .text-gray-400 {
+  color: rgb(107, 114, 128) !important; /* Much darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
 }
 
-/* Modern mobile animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+.player-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
 }
+.dark .player-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
 
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+/* === Team Filters - Enhanced contrast with team cards === */
+.team-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(51, 65, 85),
+    rgb(30, 41, 59)
+  ) !important; /* Dark background in light theme */
+  border: 1px solid rgb(71, 85, 105) !important; /* Slate border */
+}
+.dark .team-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(248, 250, 252),
+    rgb(241, 245, 249)
+  ) !important; /* Light background in dark theme */
+  border: 1px solid rgb(203, 213, 225) !important; /* Light border */
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.2s ease-out;
+/* Team filters text colors - flipped from team cards */
+.team-filters-enhanced .text-gray-900,
+.team-filters-enhanced h3,
+.team-filters-enhanced .text-white,
+.team-filters-enhanced .text-slate-100 {
+  color: rgb(255, 255, 255) !important; /* White text for dark background in light theme */
 }
+.dark .team-filters-enhanced .text-gray-900,
+.dark .team-filters-enhanced h3,
+.dark .team-filters-enhanced .text-white,
+.dark .team-filters-enhanced .text-slate-100 {
+  color: rgb(17, 24, 39) !important; /* Dark text for light background in dark theme */
+}
 
-.animate-fade-out {
-  animation: fadeOut 0.2s ease-out;
+/* Team filters icon colors - flipped from team cards */
+.team-filters-enhanced .text-blue-400 {
+  color: rgb(96, 165, 250) !important; /* Light blue for dark background in light theme */
+}
+.dark .team-filters-enhanced .text-blue-400 {
+  color: rgb(37, 99, 235) !important; /* Dark blue for light background in dark theme */
 }
 
-@keyframes slideInUp {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+.team-filters-enhanced .text-red-400 {
+  color: rgb(248, 113, 113) !important; /* Light red for dark background in light theme */
 }
+.dark .team-filters-enhanced .text-red-400 {
+  color: rgb(220, 38, 38) !important; /* Dark red for light background in dark theme */
+}
 
-@keyframes slideInDown {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+/* Team filters input and dropdown styling - ensure visibility */
+.team-filters-enhanced input,
+.team-filters-enhanced select {
+  background-color: rgb(248, 250, 252) !important; /* Light background for inputs */
+  color: rgb(17, 24, 39) !important; /* Dark text for readability */
+  border-color: rgb(203, 213, 225) !important; /* Light border */
 }
 
-@keyframes slideOutUp {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-100%);
-  }
+.dark .team-filters-enhanced input,
+.dark .team-filters-enhanced select {
+  background-color: rgb(255, 255, 255) !important; /* White background for inputs in dark theme */
+  color: rgb(17, 24, 39) !important; /* Dark text for readability */
+  border-color: rgb(203, 213, 225) !important; /* Light border */
 }
 
-@keyframes slideOutDown {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
+/* Force input text color with higher specificity */
+.team-filters-enhanced input[type='text'],
+.team-filters-enhanced input[type='search'],
+.team-filters-enhanced input:focus,
+.team-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important; /* Force dark text */
+  background-color: rgb(248, 250, 252) !important; /* Force light background */
 }
 
-.animate-slide-in-up {
-  animation: slideInUp 0.3s ease-out;
+.dark .team-filters-enhanced input[type='text'],
+.dark .team-filters-enhanced input[type='search'],
+.dark .team-filters-enhanced input:focus,
+.dark .team-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important; /* Force dark text */
+  background-color: rgb(255, 255, 255) !important; /* Force white background */
 }
 
-.animate-slide-in-down {
-  animation: slideInDown 0.3s ease-out;
+/* Placeholder text visibility */
+.team-filters-enhanced input::placeholder {
+  color: rgb(107, 114, 128) !important; /* Gray placeholder text */
+}
+.dark .team-filters-enhanced input::placeholder {
+  color: rgb(107, 114, 128) !important; /* Gray placeholder text */
 }
 
-.animate-slide-out-up {
-  animation: slideOutUp 0.3s ease-in;
+/* Dropdown arrow visibility */
+.team-filters-enhanced select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
 }
+.dark .team-filters-enhanced select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+}
 
-.animate-slide-out-down {
-  animation: slideOutDown 0.3s ease-in;
+/* Dropdown option visibility - force visible text */
+.team-filters-enhanced select option {
+  background-color: rgb(255, 255, 255) !important; /* White background for options */
+  color: rgb(17, 24, 39) !important; /* Dark text for options */
+}
+.dark .team-filters-enhanced select option {
+  background-color: rgb(255, 255, 255) !important; /* White background for options */
+  color: rgb(17, 24, 39) !important; /* Dark text for options */
 }
 
-@keyframes scaleIn {
-  from {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Force select text visibility with higher specificity */
+.team-filters-enhanced select,
+.team-filters-enhanced select:focus,
+.team-filters-enhanced select:active,
+.team-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important; /* Dark text */
+  background-color: rgb(248, 250, 252) !important; /* Light background */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* Force text color for webkit browsers */
 }
+.dark .team-filters-enhanced select,
+.dark .team-filters-enhanced select:focus,
+.dark .team-filters-enhanced select:active,
+.dark .team-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important; /* Dark text */
+  background-color: rgb(255, 255, 255) !important; /* White background */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* Force text color for webkit browsers */
+}
 
-@keyframes scaleOut {
-  from {
-    transform: scale(1);
-    opacity: 1;
-  }
-  to {
-    transform: scale(0.9);
-    opacity: 0;
-  }
+/* Ultra high specificity for select elements */
+html body .team-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+html body .dark .team-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
 }
 
-.animate-scale-in {
-  animation: scaleIn 0.2s ease-out;
+/* === Game Log Modal - Force text colors for swapped backgrounds === */
+.game-log-modal * {
+  color: rgb(255, 255, 255) !important;
 }
 
-.animate-scale-out {
-  animation: scaleOut 0.2s ease-in;
+.dark .game-log-modal * {
+  color: rgb(17, 24, 39) !important;
 }
 
-/* Stagger animations for lists */
-.stagger-children > * {
-  animation: fadeIn 0.3s ease-out forwards;
+/* === Game Log Modal Input Fields - Force proper contrast === */
+.game-log-modal input,
+.game-log-modal select,
+.game-log-modal textarea {
+  background-color: rgb(31, 41, 55) !important;
+  color: rgb(255, 255, 255) !important;
+  border-color: rgb(75, 85, 99) !important;
 }
 
-.stagger-children > *:nth-child(1) {
-  animation-delay: 0.1s;
+.game-log-modal input::placeholder,
+.game-log-modal textarea::placeholder {
+  color: rgb(156, 163, 175) !important;
 }
 
-.stagger-children > *:nth-child(2) {
-  animation-delay: 0.2s;
+.dark .game-log-modal input,
+.dark .game-log-modal select,
+.dark .game-log-modal textarea {
+  background-color: rgb(255, 255, 255) !important;
+  color: rgb(17, 24, 39) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-.stagger-children > *:nth-child(3) {
-  animation-delay: 0.3s;
+.dark .game-log-modal input::placeholder,
+.dark .game-log-modal textarea::placeholder {
+  color: rgb(107, 114, 128) !important;
 }
 
-.stagger-children > *:nth-child(4) {
-  animation-delay: 0.4s;
+/* === Game Log Modal Search Dropdown - Force proper contrast === */
+.game-log-modal .absolute {
+  background-color: rgb(31, 41, 55) !important;
+  border-color: rgb(75, 85, 99) !important;
 }
 
-.stagger-children > *:nth-child(5) {
-  animation-delay: 0.5s;
+.game-log-modal .absolute * {
+  color: rgb(255, 255, 255) !important;
 }
 
-.stagger-children > *:nth-child(6) {
-  animation-delay: 0.6s;
+.game-log-modal .absolute .text-neutral-600,
+.game-log-modal .absolute .text-neutral-400,
+.game-log-modal .absolute .text-neutral-500 {
+  color: rgb(156, 163, 175) !important;
 }
 
-.stagger-children > *:nth-child(7) {
-  animation-delay: 0.7s;
+.dark .game-log-modal .absolute {
+  background-color: rgb(255, 255, 255) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-.stagger-children > *:nth-child(8) {
-  animation-delay: 0.8s;
+.dark .game-log-modal .absolute * {
+  color: rgb(17, 24, 39) !important;
 }
 
-.stagger-children > *:nth-child(9) {
-  animation-delay: 0.9s;
+.dark .game-log-modal .absolute .text-neutral-600,
+.dark .game-log-modal .absolute .text-neutral-400,
+.dark .game-log-modal .absolute .text-neutral-500 {
+  color: rgb(75, 85, 99) !important;
 }
 
-.stagger-children > *:nth-child(10) {
-  animation-delay: 1s;
+/* === Game Log Cards - Enhanced to match other cards === */
+.game-log-card-enhanced {
+  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  border: 1px solid rgb(156, 163, 175) !important; /* Darker border for better definition */
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important; /* Subtle shadow for depth */
 }
+.dark .game-log-card-enhanced {
+  background-color: rgb(31, 41, 55) !important; /* Same dark gray background as other cards */
+  border: 1px solid rgb(55, 65, 81) !important; /* Same border as other cards */
+}
 
-/* Hover effects */
-.hover-lift {
-  transition: transform 0.2s ease;
+/* Game log card text elements with high specificity for maximum contrast */
+.game-log-card-enhanced .text-gray-900 {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
+}
+.dark .game-log-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
 }
 
-.hover-lift:hover {
-  transform: translateY(-2px);
+.game-log-card-enhanced .text-gray-700 {
+  color: rgb(31, 41, 55) !important; /* Much darker gray for better contrast */
 }
+.dark .game-log-card-enhanced .text-gray-700 {
+  color: rgb(229, 231, 235) !important; /* Light gray for dark theme */
+}
 
-.hover-scale {
-  transition: transform 0.2s ease;
+.game-log-card-enhanced .text-gray-600 {
+  color: rgb(55, 65, 81) !important; /* Much darker gray for better contrast */
+}
+.dark .game-log-card-enhanced .text-gray-600 {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
 }
 
-.hover-scale:hover {
-  transform: scale(1.05);
+.game-log-card-enhanced .text-gray-500 {
+  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
 }
+.dark .game-log-card-enhanced .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
 
-/* Mobile tap effects */
-.tap-scale {
-  transition: transform 0.1s ease;
+.game-log-card-enhanced .text-gray-400 {
+  color: rgb(107, 114, 128) !important; /* Much darker gray for better contrast */
+}
+.dark .game-log-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
 }
 
-.tap-scale:active {
-  transform: scale(0.95);
+.game-log-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
 }
+.dark .game-log-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
 
-/* Collapse animations */
-.collapse-enter {
-  max-height: 0;
-  overflow: hidden;
+/* Game log card hover effects */
+.game-log-card-enhanced:hover {
+  background-color: rgb(241, 245, 249) !important; /* Slightly darker on hover */
+}
+.dark .game-log-card-enhanced:hover {
+  background-color: rgb(37, 47, 63) !important; /* Lighter on hover in dark theme */
 }
 
-.collapse-enter-active {
-  max-height: 500px;
-  transition: max-height 0.3s ease-out;
+/* === Game Filters - Enhanced contrast with game cards === */
+.game-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(51, 65, 85),
+    rgb(30, 41, 59)
+  ) !important; /* Dark background in light theme */
+  border: 1px solid rgb(71, 85, 105) !important; /* Slate border */
 }
+.dark .game-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(248, 250, 252),
+    rgb(241, 245, 249)
+  ) !important; /* Light background in dark theme */
+  border: 1px solid rgb(203, 213, 225) !important; /* Light border */
+}
 
-.collapse-exit {
-  max-height: 500px;
-  overflow: hidden;
+/* Game filters text colors - flipped from game cards */
+.game-filters-enhanced .text-gray-900,
+.game-filters-enhanced h3,
+.game-filters-enhanced .text-white,
+.game-filters-enhanced .text-slate-100 {
+  color: rgb(255, 255, 255) !important; /* White text for dark background in light theme */
+}
+.dark .game-filters-enhanced .text-gray-900,
+.dark .game-filters-enhanced h3,
+.dark .game-filters-enhanced .text-white,
+.dark .game-filters-enhanced .text-slate-100 {
+  color: rgb(17, 24, 39) !important; /* Dark text for light background in dark theme */
 }
 
-.collapse-exit-active {
-  max-height: 0;
-  transition: max-height 0.3s ease-in;
+/* Game filters icon colors */
+.game-filters-enhanced .text-blue-400 {
+  color: rgb(96, 165, 250) !important;
 }
+.dark .game-filters-enhanced .text-blue-400 {
+  color: rgb(37, 99, 235) !important;
+}
 
-/* Slide animations */
-@keyframes slideInRight {
-  from {
-    transform: translateX(100%);
-  }
-  to {
-    transform: translateX(0);
-  }
+.game-filters-enhanced .text-red-400 {
+  color: rgb(248, 113, 113) !important;
+}
+.dark .game-filters-enhanced .text-red-400 {
+  color: rgb(220, 38, 38) !important;
 }
 
-@keyframes slideOutRight {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
+/* Game filters input and dropdown styling */
+.game-filters-enhanced input,
+.game-filters-enhanced select {
+  background-color: rgb(248, 250, 252) !important;
+  color: rgb(17, 24, 39) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-.animate-slide-in-right {
-  animation: slideInRight 0.3s ease-out;
+.dark .game-filters-enhanced input,
+.dark .game-filters-enhanced select {
+  background-color: rgb(255, 255, 255) !important;
+  color: rgb(17, 24, 39) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-.animate-slide-out-right {
-  animation: slideOutRight 0.3s ease-in;
+/* Force game filters input visibility */
+.game-filters-enhanced input[type='text'],
+.game-filters-enhanced input[type='search'],
+.game-filters-enhanced input:focus,
+.game-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
 }
 
-/* Bottom sheet animations */
-@keyframes slideUpFromBottom {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
+.dark .game-filters-enhanced input[type='text'],
+.dark .game-filters-enhanced input[type='search'],
+.dark .game-filters-enhanced input:focus,
+.dark .game-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
 }
 
-@keyframes slideDownToBottom {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(100%);
-  }
+/* Force game filters select visibility */
+.game-filters-enhanced select,
+.game-filters-enhanced select:focus,
+.game-filters-enhanced select:active,
+.game-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
 }
+.dark .game-filters-enhanced select,
+.dark .game-filters-enhanced select:focus,
+.dark .game-filters-enhanced select:active,
+.dark .game-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
 
-.animate-slide-up-from-bottom {
-  animation: slideUpFromBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+html body .game-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+html body .dark .game-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
 }
 
-.animate-slide-down-to-bottom {
-  animation: slideDownToBottom 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* === Player Filters - Enhanced contrast with player cards === */
+.player-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(51, 65, 85),
+    rgb(30, 41, 59)
+  ) !important; /* Dark background in light theme */
+  border: 1px solid rgb(71, 85, 105) !important; /* Slate border */
 }
+.dark .player-filters-enhanced {
+  background: linear-gradient(
+    to right,
+    rgb(248, 250, 252),
+    rgb(241, 245, 249)
+  ) !important; /* Light background in dark theme */
+  border: 1px solid rgb(203, 213, 225) !important; /* Light border */
+}
 
-/* Overlay animations */
-@keyframes overlayShow {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Player filters text colors - flipped from player cards */
+.player-filters-enhanced .text-gray-900,
+.player-filters-enhanced h3,
+.player-filters-enhanced .text-white,
+.player-filters-enhanced .text-slate-100 {
+  color: rgb(255, 255, 255) !important; /* White text for dark background in light theme */
+}
+.dark .player-filters-enhanced .text-gray-900,
+.dark .player-filters-enhanced h3,
+.dark .player-filters-enhanced .text-white,
+.dark .player-filters-enhanced .text-slate-100 {
+  color: rgb(17, 24, 39) !important; /* Dark text for light background in dark theme */
 }
 
-@keyframes overlayHide {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
+/* Player filters icon colors */
+.player-filters-enhanced .text-blue-400 {
+  color: rgb(96, 165, 250) !important;
 }
+.dark .player-filters-enhanced .text-blue-400 {
+  color: rgb(37, 99, 235) !important;
+}
 
-.animate-overlay-show {
-  animation: overlayShow 0.2s ease-out;
+.player-filters-enhanced .text-red-400 {
+  color: rgb(248, 113, 113) !important;
 }
+.dark .player-filters-enhanced .text-red-400 {
+  color: rgb(220, 38, 38) !important;
+}
 
-.animate-overlay-hide {
-  animation: overlayHide 0.2s ease-in;
+/* Player filters input and dropdown styling */
+.player-filters-enhanced input,
+.player-filters-enhanced select {
+  background-color: rgb(248, 250, 252) !important;
+  color: rgb(17, 24, 39) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-/* Button pulse animation */
-@keyframes buttonPulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+.dark .player-filters-enhanced input,
+.dark .player-filters-enhanced select {
+  background-color: rgb(255, 255, 255) !important;
+  color: rgb(17, 24, 39) !important;
+  border-color: rgb(203, 213, 225) !important;
 }
 
-.animate-button-pulse {
-  animation: buttonPulse 2s ease-in-out infinite;
+/* Force player filters input visibility */
+.player-filters-enhanced input[type='text'],
+.player-filters-enhanced input[type='search'],
+.player-filters-enhanced input:focus,
+.player-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
 }
 
-/* Live indicator animation */
-@keyframes liveDotGlow {
-  0% {
-    box-shadow:
-      0 0 5px currentColor,
-      0 0 10px currentColor;
-    opacity: 1;
-  }
-  50% {
-    box-shadow:
-      0 0 10px currentColor,
-      0 0 20px currentColor,
-      0 0 30px currentColor;
-    opacity: 0.8;
-  }
-  100% {
-    box-shadow:
-      0 0 5px currentColor,
-      0 0 10px currentColor;
-    opacity: 1;
-  }
+.dark .player-filters-enhanced input[type='text'],
+.dark .player-filters-enhanced input[type='search'],
+.dark .player-filters-enhanced input:focus,
+.dark .player-filters-enhanced input:active {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
 }
 
-.animate-live-dot-glow {
-  animation: liveDotGlow 2s ease-in-out infinite;
+/* Force player filters select visibility */
+.player-filters-enhanced select,
+.player-filters-enhanced select:focus,
+.player-filters-enhanced select:active,
+.player-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+.dark .player-filters-enhanced select,
+.dark .player-filters-enhanced select:focus,
+.dark .player-filters-enhanced select:active,
+.dark .player-filters-enhanced select:hover {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
 }
 
-/* Enhanced scroll animation with better performance */
-@keyframes scrollLeft {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-100%);
-  }
+html body .player-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(248, 250, 252) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
 }
+html body .dark .player-filters-enhanced select {
+  color: rgb(17, 24, 39) !important;
+  background-color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
 
-.animate-scroll-left {
-  animation: scrollLeft 25s linear infinite;
+/* NBA Hub navigation cards - consistent with game cards */
+.nba-nav-card {
+  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  border: 1px solid rgb(203, 213, 225) !important; /* Consistent border */
+}
+.dark .nba-nav-card {
+  background-color: rgb(31, 41, 55) !important; /* Dark theme background */
+  border: 1px solid rgb(55, 65, 81) !important; /* Dark theme border */
 }
 
-/* Pause animation on hover for better UX */
-.animate-scroll-left:hover {
-  animation-play-state: paused;
+/* NBA navigation card titles - enhanced contrast */
+.nba-nav-card h3 {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast */
+  font-weight: 600 !important;
 }
+.dark .nba-nav-card h3 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
+}
 
-/* Spring animations */
-@keyframes spring {
-  0% {
-    transform: scale(0.8);
-  }
-  50% {
-    transform: scale(1.1);
-  }
-  100% {
-    transform: scale(1);
-  }
+/* NBA navigation card descriptions */
+.nba-nav-card p {
+  color: rgb(31, 41, 55) !important; /* Dark gray for descriptions */
+}
+.dark .nba-nav-card p {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
 }
 
-.animate-spring {
-  animation: spring 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+/* === Navigation Cards - Enhanced Light Theme Contrast === */
+.nav-card-count {
+  color: rgb(75, 85, 99) !important; /* text-gray-600 - readable for light theme */
 }
+.dark .nav-card-count {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+}
 
-/* List item animations */
-.list-item-enter {
-  opacity: 0;
-  transform: translateY(20px);
+.nav-card-arrow {
+  color: rgb(107, 114, 128) !important; /* text-gray-500 - readable for light theme */
+}
+.dark .nav-card-arrow {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
 }
 
-.list-item-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: all 0.3s ease-out;
+/* === Search Input - Ultra High Specificity Fix === */
+html body div form div input[type='search'],
+html body header div div div form div input[type='search'],
+html body div div div div form div input[type='search'],
+input[type='search'][data-testid='search'],
+input#search-input[type='search'] {
+  color: rgb(
+    255,
+    255,
+    255
+  ) !important; /* Always white text - search has dark background in both themes */
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+  caret-color: rgb(255, 255, 255) !important; /* White cursor for visibility */
 }
 
-.list-item-exit {
-  opacity: 1;
-  transform: translateY(0);
+.dark html body div form div input[type='search'],
+.dark html body header div div div form div input[type='search'],
+.dark html body div div div div form div input[type='search'],
+.dark input[type='search'][data-testid='search'],
+.dark input#search-input[type='search'] {
+  color: rgb(255, 255, 255) !important; /* Force white text in dark theme */
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+  caret-color: rgb(255, 255, 255) !important; /* Ensure cursor is visible */
 }
 
-.list-item-exit-active {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: all 0.3s ease-in;
+/* Fallback classes */
+.search-input-enhanced,
+input.search-input-enhanced,
+input[type='search'].search-input-enhanced,
+form input.search-input-enhanced {
+  color: rgb(255, 255, 255) !important; /* Always white text - search has dark background */
+  -webkit-text-fill-color: rgb(255, 255, 255) !important; /* For webkit browsers */
 }
+.dark .search-input-enhanced,
+.dark input.search-input-enhanced,
+.dark input[type='search'].search-input-enhanced,
+.dark form input.search-input-enhanced {
+  color: rgb(255, 255, 255) !important; /* text-white */
+  -webkit-text-fill-color: rgb(255, 255, 255) !important; /* For webkit browsers */
+}
 
-/* Transition utilities */
-.transition-all {
-  transition: all 0.2s ease;
+.search-placeholder-enhanced::placeholder,
+input.search-placeholder-enhanced::placeholder {
+  color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for better contrast */
+}
+.dark .search-placeholder-enhanced::placeholder,
+.dark input.search-placeholder-enhanced::placeholder {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
 }
 
-.transition-transform {
-  transition: transform 0.2s ease;
+.search-icon-enhanced {
+  color: rgb(107, 114, 128) !important; /* text-gray-500 - readable for light theme */
 }
+.dark .search-icon-enhanced {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+}
 
-.transition-opacity {
-  transition: opacity 0.2s ease;
+/* === Search Suggestions Modal - Enhanced Light Theme Contrast === */
+.search-suggestions-header {
+  color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for better contrast */
+}
+.dark .search-suggestions-header {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
 }
 
-.transition-colors {
-  transition:
-    color 0.2s ease,
-    background-color 0.2s ease,
-    border-color 0.2s ease;
+.search-suggestions-text {
+  color: rgb(17, 24, 39) !important; /* text-gray-900 - very dark for light theme */
 }
+.dark .search-suggestions-text {
+  color: rgb(255, 255, 255) !important; /* text-white */
+}
 
-/* Mobile-specific button styles */
-.mobile-button-tap {
-  transition: all 0.1s ease;
+.search-suggestions-category {
+  color: rgb(75, 85, 99) !important; /* text-gray-600 - readable for light theme */
+}
+.dark .search-suggestions-category {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
 }
 
-.mobile-button-tap:active {
-  transform: scale(0.95);
+.search-suggestions-icon {
+  color: rgb(107, 114, 128) !important; /* text-gray-500 - readable for light theme */
 }
+.dark .search-suggestions-icon {
+  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+}
 
-/* Search input improvements */
-input[type='search']::-webkit-search-cancel-button {
-  -webkit-appearance: none;
-  appearance: none;
+.search-suggestions-help {
+  color: rgb(55, 65, 81) !important; /* text-gray-700 - good contrast for light theme */
+}
+.dark .search-suggestions-help {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 */
 }
 
-input[type='search']::-ms-clear {
-  display: none;
+/* === Team Details Enhanced Contrast === */
+.team-detail-label {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 - even darker for better contrast */
 }
+.dark .team-detail-label {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 */
+}
 
-input[type='search']::-ms-reveal {
-  display: none;
+.team-detail-value {
+  color: rgb(255, 255, 255) !important; /* White text for dark value backgrounds */
 }
+.dark .team-detail-value {
+  color: rgb(255, 255, 255) !important; /* text-white */
+}
 
-input[type='search']::-o-clear {
-  display: none;
+.team-section-title {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
+  font-weight: 700 !important; /* Ensure bold weight */
+}
+.dark .team-section-title {
+  color: rgb(255, 255, 255) !important; /* text-white */
 }
 
-input[type='search']::-moz-clear {
-  display: none;
+/* High specificity for header elements */
+h1.team-section-title,
+.team-header-title {
+  color: rgb(0, 0, 0) !important; /* Pure black for team name */
+  font-weight: 700 !important;
 }
+.dark h1.team-section-title,
+.dark .team-header-title {
+  color: rgb(255, 255, 255) !important;
+}
 
-/* Link improvements */
-a,
-button {
-  transition: all 0.2s ease;
+/* High specificity for basic details content */
+.basic-details-content .team-detail-value,
+dd.team-detail-value {
+  color: rgb(255, 255, 255) !important; /* White text for dark value boxes */
+  font-weight: 500 !important;
+}
+.dark .basic-details-content .team-detail-value,
+.dark dd.team-detail-value {
+  color: rgb(255, 255, 255) !important;
 }
 
-footer a {
-  transition: color 0.2s ease;
+/* League Details colored backgrounds need dark text in light theme */
+dd.team-detail-value.bg-purple-50 {
+  color: rgb(88, 28, 135) !important; /* text-purple-900 for purple background */
 }
+dd.team-detail-value.bg-orange-50 {
+  color: rgb(154, 52, 18) !important; /* text-orange-900 for orange background */
+}
 
-footer a:hover {
-  color: #3b82f6;
+/* NBA Franchise status with green background */
+.text-green-800 {
+  color: rgb(22, 101, 52) !important; /* text-green-800 for green background */
 }
 
-/* Dark mode improvements */
-.dark .cl-modal-close-btn {
-  color: #9ca3af;
+/* Dark theme overrides */
+.dark dd.team-detail-value.bg-purple-900\/20 {
+  color: rgb(196, 181, 253) !important; /* text-purple-300 */
+}
+.dark dd.team-detail-value.bg-orange-900\/20 {
+  color: rgb(253, 186, 116) !important; /* text-orange-300 */
 }
+.dark .text-green-200 {
+  color: rgb(187, 247, 208) !important; /* text-green-200 */
+}
 
-.dark .cl-modal-close-btn:hover {
-  color: #d1d5db;
+/* Team page description and subtitle text */
+.team-page-description {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 */
+}
+.dark .team-page-description {
+  color: rgb(209, 213, 219) !important; /* text-gray-300 */
 }
 
-/* Clerk modal improvements */
-.cl-footerAction {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
+/* Card titles and headers */
+.team-card-title {
+  color: rgb(255, 255, 255) !important; /* White text for dark header background */
+  font-weight: 600 !important;
 }
+.dark .team-card-title {
+  color: rgb(255, 255, 255) !important;
+}
 
-.cl-footerActionText {
-  color: #6b7280;
-  font-size: 14px;
+/* NBA page titles and descriptions in SportsPageLayout */
+.nba-games-title {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast */
+  font-weight: 700 !important;
+}
+.dark .nba-games-title {
+  color: rgb(255, 255, 255) !important;
 }
 
-.cl-footerActionLink {
-  color: #3b82f6;
-  text-decoration: none;
+.nba-games-description {
+  color: rgb(31, 41, 55) !important; /* text-gray-800 */
 }
+.dark .nba-games-description {
+  color: rgb(209, 213, 219) !important;
+}
 
-.cl-footerActionLink:hover {
-  text-decoration: underline;
+/* Team overview cards - override global styles */
+.team-overview-card .text-blue-900 {
+  color: rgb(30, 58, 138) !important; /* text-blue-900 */
+}
+.team-overview-card .text-emerald-900 {
+  color: rgb(6, 78, 59) !important; /* text-emerald-900 */
+}
+.team-overview-card .text-purple-900 {
+  color: rgb(88, 28, 135) !important; /* text-purple-900 */
+}
+.team-overview-card .text-orange-900 {
+  color: rgb(154, 52, 18) !important; /* text-orange-900 */
 }
 
-/* Footer action improvements */
-[data-testid='footer-action'] {
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  color: inherit;
-  font: inherit;
-  cursor: pointer;
+.dark .team-overview-card .text-blue-100 {
+  color: rgb(219, 234, 254) !important; /* text-blue-100 */
 }
+.dark .team-overview-card .text-emerald-100 {
+  color: rgb(209, 250, 229) !important; /* text-emerald-100 */
+}
+.dark .team-overview-card .text-purple-100 {
+  color: rgb(243, 232, 255) !important; /* text-purple-100 */
+}
+.dark .team-overview-card .text-orange-100 {
+  color: rgb(254, 215, 170) !important; /* text-orange-100 */
+}
 
-[data-testid='footer-action'] > span,
-[data-testid='footer-action'] > div {
-  color: #6b7280;
-  font-size: 14px;
+/* === ALTERNATIVE: Adaptive Navigation Cards (Uncomment to use) === */
+/*
+.nav-card-adaptive {
+  background-color: rgb(248, 250, 252) !important;  Light theme: very light gray
+  border-color: rgb(226, 232, 240) !important;      Light theme: light gray border
 }
+.dark .nav-card-adaptive {
+  background-color: rgb(31, 41, 55) !important;     Dark theme: dark gray
+  border-color: rgb(55, 65, 81) !important;         Dark theme: gray border
+}
 
-/* Form field action improvements */
-.cl-formFieldAction,
-.cl-formFieldActionLink {
-  color: #3b82f6;
-  text-decoration: none;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  cursor: pointer;
+.nav-card-adaptive .nav-card-text {
+  color: rgb(51, 65, 85) !important;                Light theme: dark text
+}
+.dark .nav-card-adaptive .nav-card-text {
+  color: rgb(226, 232, 240) !important;             Dark theme: light text
 }
+*/
 
-/* Theme-responsive gradient for home page */
+/* === Page-Specific Overrides === */
 .home-page-gradient {
   background: linear-gradient(
     135deg,
@@ -1383,40 +1412,228 @@ footer a:hover {
   ) !important;
 }
 
-/* Force black text for light theme on home page */
-.home-page-gradient .text-black {
-  color: black !important;
-}
-
-/* Force black text for the main description paragraph in light mode */
-.home-page-gradient p.text-xl {
-  color: black !important;
-}
-
-/* Force black text for the home description specifically in light mode */
+.home-page-gradient .text-black,
+.home-page-gradient p.text-xl,
 .home-description {
   color: black !important;
 }
 
-/* Dark theme overrides */
-.dark .home-page-gradient .text-black {
-  color: rgb(209 213 219) !important; /* text-gray-300 */
+.score-text {
+  color: #000000 !important;
+}
+.dark .score-text {
+  color: #ffffff !important;
 }
 
-.dark .home-page-gradient p.text-xl {
-  color: rgb(209 213 219) !important; /* text-gray-300 */
+/* =================================================================
+   ANIMATIONS & KEYFRAMES
+   ================================================================= */
+
+/* === Core Animations === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
-.dark .home-description {
-  color: rgb(209 213 219) !important; /* text-gray-300 */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
-.cl-formFieldAction:hover,
-.cl-formFieldActionLink:hover {
-  text-decoration: underline;
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
 }
 
-/* Skip link for accessibility */
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* === Specialized Animations === */
+@keyframes liveDotGlow {
+  0% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+    opacity: 1;
+  }
+  50% {
+    box-shadow:
+      0 0 10px currentColor,
+      0 0 20px currentColor,
+      0 0 30px currentColor;
+    opacity: 0.8;
+  }
+  100% {
+    box-shadow:
+      0 0 5px currentColor,
+      0 0 10px currentColor;
+    opacity: 1;
+  }
+}
+
+@keyframes scrollLeft {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-100%);
+  }
+}
+
+@keyframes buttonPulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* === Animation Classes === */
+.animate-fade-in {
+  animation: fadeIn 0.2s ease-out;
+}
+.animate-slide-in-up {
+  animation: slideInUp 0.3s ease-out;
+}
+.animate-slide-in-down {
+  animation: slideInDown 0.3s ease-out;
+}
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out;
+}
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out;
+}
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out;
+}
+.animate-live-dot-glow {
+  animation: liveDotGlow 2s ease-in-out infinite;
+}
+.animate-button-pulse {
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+/* Scroll animation with responsive timing */
+.animate-scroll-left {
+  animation: scrollLeft 25s linear infinite;
+}
+
+.animate-scroll-left:hover {
+  animation-play-state: paused;
+}
+
+/* === Stagger Animations === */
+.stagger-children > * {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.stagger-children > *:nth-child(1) {
+  animation-delay: 0.1s;
+}
+.stagger-children > *:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.stagger-children > *:nth-child(3) {
+  animation-delay: 0.3s;
+}
+.stagger-children > *:nth-child(4) {
+  animation-delay: 0.4s;
+}
+.stagger-children > *:nth-child(5) {
+  animation-delay: 0.5s;
+}
+
+/* =================================================================
+   INTERACTION STATES
+   ================================================================= */
+
+/* === Hover Effects === */
+.hover-lift {
+  transition: transform 0.2s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* === Touch Effects === */
+.tap-scale {
+  transition: transform 0.1s ease;
+}
+
+.tap-scale:active {
+  transform: scale(0.95);
+}
+
+/* === Interactive Elements === */
+.interactive {
+  transition: all 0.2s ease-in-out;
+}
+
+a,
+button {
+  transition: all 0.2s ease;
+}
+
+/* === Focus States === */
+.focus-visible:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
 .skip-link {
   position: absolute;
   top: -40px;
@@ -1434,43 +1651,189 @@ footer a:hover {
   top: 6px;
 }
 
-/* Custom truncate with white ellipses for better contrast */
-.truncate-white {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  position: relative;
+/* =================================================================
+   MOBILE OPTIMIZATIONS
+   ================================================================= */
+
+/* === Enhanced Touch Interactions === */
+@media (max-width: 768px) {
+  button,
+  a,
+  [role='button'] {
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: manipulation;
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Safe area support */
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+
+  /* Mobile input improvements */
+  input[type='text'],
+  input[type='email'],
+  input[type='password'],
+  input[type='search'],
+  textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+
+  /* Mobile typography */
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
 }
 
-.truncate-white::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  top: 0;
-  width: 20px;
-  height: 100%;
-  background: linear-gradient(to right, transparent, white 50%);
-  pointer-events: none;
-}
-
-/* Floating components spacing and overlap prevention */
+/* === Mobile UI Components === */
 @media (max-width: 640px) {
-  /* Ensure floating components have proper spacing */
-  .floating-game-logs {
-    margin-bottom: 24px;
+  /* Faster animations for mobile engagement */
+  .animate-scroll-left {
+    animation-duration: 18s;
   }
 
-  .floating-games {
-    margin-top: 24px;
+  /* Chart container improvements */
+  .chart-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* Prevent any overlap with main content */
+  /* Mobile-specific spacing */
   .main-content {
     padding-bottom: 120px;
   }
 }
 
-/* Ensure floating components never overlap */
+/* === Ultra-small device optimizations === */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  p,
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    line-height: 1.5;
+  }
+
+  .animate-scroll-left {
+    animation-duration: 15s;
+  }
+}
+
+/* === Reduced motion preferences === */
+@media (prefers-reduced-motion: reduce) {
+  .animate-scroll-left,
+  .animate-live-dot-glow,
+  .animate-button-pulse {
+    animation: none;
+  }
+}
+
+/* =================================================================
+   MOBILE UI PATTERNS
+   ================================================================= */
+
+/* === Modern Mobile Navigation === */
+.mobile-nav {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dark .mobile-nav {
+  background: rgba(17, 24, 39, 0.95);
+  border-top-color: rgba(255, 255, 255, 0.1);
+}
+
+/* === Mobile Overlays === */
+.mobile-overlay {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* === Mobile Sheets === */
+.mobile-sheet {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.dark .mobile-sheet {
+  background: rgba(17, 24, 39, 0.98);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* === Bottom Sheet === */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.1);
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 50;
+}
+
+.dark .bottom-sheet {
+  background: #1f2937;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.bottom-sheet.active {
+  transform: translateY(0);
+}
+
+/* =================================================================
+   UTILITY CLASSES
+   ================================================================= */
+
+/* === Scrollbar utilities === */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* === Touch targets === */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* === Floating components === */
 .floating-component {
   position: fixed;
   z-index: 40;
@@ -1481,172 +1844,75 @@ footer a:hover {
   z-index: 30;
 }
 
-/* Enhanced Live Games Banner Styles */
-/* Removed duplicate @keyframes liveDotGlow block */
-
-.animate-live-dot-glow {
-  animation: liveDotGlow 2s ease-in-out infinite;
+/* === Search input cleanup === */
+input[type='search']::-webkit-search-cancel-button,
+input[type='search']::-ms-clear,
+input[type='search']::-ms-reveal,
+input[type='search']::-o-clear,
+input[type='search']::-moz-clear {
+  display: none;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-/* Last Updated Indicator pulse animation */
-@keyframes updatePulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
+/* =================================================================
+   THIRD-PARTY INTEGRATIONS
+   ================================================================= */
+
+/* === Clerk UI Improvements === */
+.cl-footerAction,
+.cl-formFieldAction,
+.cl-formFieldActionLink {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: #3b82f6;
+  text-decoration: none;
+  font: inherit;
+  cursor: pointer;
 }
 
-.animate-update-pulse {
-  animation: updatePulse 2s ease-in-out infinite;
+.cl-footerActionText {
+  color: #6b7280;
+  font-size: 14px;
 }
 
-/* Enhanced scroll animation with better performance */
-@keyframes scrollLeft {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-100%);
-  }
+.cl-footerActionLink:hover,
+.cl-formFieldAction:hover,
+.cl-formFieldActionLink:hover {
+  text-decoration: underline;
 }
 
-.animate-scroll-left {
-  animation: scrollLeft 25s linear infinite;
+.dark .cl-modal-close-btn {
+  color: #9ca3af;
 }
 
-/* Pause animation on hover for better UX */
-.animate-scroll-left:hover {
-  animation-play-state: paused;
+.dark .cl-modal-close-btn:hover {
+  color: #d1d5db;
 }
 
-/* Mobile-specific optimizations */
-@media (max-width: 640px) {
-  .animate-scroll-left {
-    animation-duration: 18s; /* Faster on mobile for better engagement */
-  }
-
-  /* Reduce animation on devices that prefer reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    .animate-scroll-left {
-      animation: none;
-    }
-
-    .animate-live-dot-glow {
-      animation: none;
-    }
-
-    .animate-update-pulse {
-      animation: none;
-    }
-  }
+/* === Footer improvements === */
+footer a {
+  transition: color 0.2s ease;
 }
 
-/* Extra small viewport optimizations */
-@media (max-width: 475px) {
-  .animate-scroll-left {
-    animation-duration: 15s; /* Even faster for very small screens */
-  }
-
-  /* Optimize for very small screens */
-  .live-games-banner-xs {
-    min-height: 2rem;
-  }
-
-  /* Reduce spacing for tiny screens */
-  .xs-compact-spacing {
-    gap: 0.125rem;
-  }
+footer a:hover {
+  color: #3b82f6;
 }
 
-/* Very small viewport optimizations */
-@media (max-width: 375px) {
-  .animate-scroll-left {
-    animation-duration: 12s; /* Fastest for very small screens */
-  }
-
-  /* Further optimize for iPhone SE and similar small devices */
-  .live-games-banner-vs {
-    min-height: 1.75rem;
-  }
+[data-testid='footer-action'] {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
 }
 
-/* Tablet optimizations */
-@media (min-width: 641px) and (max-width: 1024px) {
-  .animate-scroll-left {
-    animation-duration: 22s; /* Medium speed for tablets */
-  }
-}
-
-/* Desktop optimizations */
-@media (min-width: 1025px) {
-  .animate-scroll-left {
-    animation-duration: 25s; /* Slower for desktop for better readability */
-  }
-}
-
-/* Enhanced focus styles for accessibility */
-.live-games-focus:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-  border-radius: 0.375rem;
-}
-
-/* Loading animation for live games banner */
-@keyframes liveGamesSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.animate-live-games-spin {
-  animation: liveGamesSpin 1s linear infinite;
-}
-
-/* Hover effects for game items */
-.game-item-hover {
-  transition: all 0.2s ease-in-out;
-}
-
-.game-item-hover:hover {
-  background-color: rgba(255, 255, 255, 0.05);
-  transform: translateY(-1px);
-}
-
-.game-item-hover:active {
-  transform: translateY(0);
-}
-
-/* Mobile touch feedback */
-@media (hover: none) and (pointer: coarse) {
-  .game-item-hover:active {
-    background-color: rgba(255, 255, 255, 0.1);
-    transform: scale(0.98);
-  }
-}
-
-/* Mobile-specific banner optimizations */
-@media (max-width: 640px) {
-  /* Ensure banner doesn't interfere with mobile navigation */
-  .live-games-banner-mobile {
-    height: auto;
-    min-height: 2.5rem;
-  }
-
-  /* Optimize touch targets for mobile */
-  .mobile-touch-target {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-
-/* Landscape mobile optimizations */
-@media (max-width: 640px) and (orientation: landscape) {
-  .animate-scroll-left {
-    animation-duration: 15s; /* Even faster for landscape mobile */
-  }
+[data-testid='footer-action'] > span,
+[data-testid='footer-action'] > div {
+  color: #6b7280;
+  font-size: 14px;
 }

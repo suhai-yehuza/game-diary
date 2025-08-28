@@ -41,7 +41,7 @@ CardTitle.displayName = 'CardTitle';
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, ICardDescriptionProps>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn('text-sm text-muted-foreground', className)} {...props} />
+    <p ref={ref} className={cn('text-sm text-theme-secondary', className)} {...props} />
   )
 );
 CardDescription.displayName = 'CardDescription';

@@ -46,19 +46,6 @@ export function ContentPreviewBanner() {
       return dateB.getTime() - dateA.getTime();
     });
 
-    // Debug logging (remove in production)
-    console.log(
-      'Latest finished games:',
-      sortedGames.slice(0, 3).map(game => ({
-        id: game.id,
-        date: game.date,
-        teams: `${game.teams?.visitors?.name} vs ${game.teams?.home?.name}`,
-        scores: `${game.scores?.visitors?.points}-${game.scores?.home?.points}`,
-        status: game.status,
-        arena: game.arena,
-      }))
-    );
-
     return sortedGames[0];
   }, [latestGames]);
 

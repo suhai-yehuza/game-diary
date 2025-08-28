@@ -40,12 +40,12 @@ function SearchInput({
   return (
     <div className="relative flex-1">
       {!value && (
-        <Search className="absolute left-1.5 xs:left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 md:h-4 md:w-4 text-neutral-500 dark:text-neutral-400" />
+        <Search className="absolute left-1.5 xs:left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 md:h-4 md:w-4 search-icon-enhanced" />
       )}
       <input
         type="search"
         placeholder={placeholder}
-        className={`w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 !text-neutral-900 dark:!text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 ${value ? 'pl-1.5 xs:pl-2 sm:pl-2.5 md:pl-3' : 'pl-6 xs:pl-7 sm:pl-8 md:pl-9'} ${className}`}
+        className={`w-full bg-transparent border-none focus:ring-0 outline-none transition-all duration-200 search-input-enhanced search-placeholder-enhanced ${value ? 'pl-1.5 xs:pl-2 sm:pl-2.5 md:pl-3' : 'pl-6 xs:pl-7 sm:pl-8 md:pl-9'} ${className}`}
         value={value}
         onChange={onChange}
         onFocus={onFocus}

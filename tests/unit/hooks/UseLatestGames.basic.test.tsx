@@ -200,7 +200,7 @@ describe('useLatestGames', () => {
         json: async () => createMockApiResponse(mockGames),
       });
 
-      const { result } = renderHook(() => useLatestGames());
+      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -221,7 +221,7 @@ describe('useLatestGames', () => {
         json: async () => createMockApiResponse(mockGames),
       });
 
-      const { result } = renderHook(() => useLatestGames({ limit: 5 }));
+      const { result } = renderHook(() => useLatestGames({ limit: 5, forceRealData: true }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -370,7 +370,7 @@ describe('useLatestGames', () => {
           json: async () => createMockApiResponse(mockGames2),
         });
 
-      const { result } = renderHook(() => useLatestGames());
+      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -397,7 +397,7 @@ describe('useLatestGames', () => {
         json: async () => createMockApiResponse([]),
       });
 
-      const { result } = renderHook(() => useLatestGames());
+      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -421,7 +421,7 @@ describe('useLatestGames', () => {
         json: async () => createMockApiResponse(mockGames as any),
       });
 
-      const { result } = renderHook(() => useLatestGames());
+      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

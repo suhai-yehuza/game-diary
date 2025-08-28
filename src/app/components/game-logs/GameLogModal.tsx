@@ -45,7 +45,14 @@ function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
 const LATEST_SEASON = getLatestNbaSeason();
 const SEASONS = getRecentNbaSeasons(10);
 
-export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGameLogModalProps) {
+export function GameLogModal({
+  mode,
+  isOpen,
+  onClose,
+  onSuccess,
+  gameLog,
+  preSelectedGame,
+}: IGameLogModalProps) {
   const { user } = useUser();
   const [rating, setRating] = useState(mode === 'edit' ? (gameLog?.rating_for_game ?? 3) : 3);
   const [tags, setTags] = useState<string[]>(mode === 'edit' ? (gameLog?.tags ?? []) : []);
@@ -129,6 +136,15 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
       setValue('gameId', selectedGameId);
     }
   }, [selectedGameId, setValue, mode]);
+
+  // Handle pre-selected game when modal opens
+  useEffect(() => {
+    if (mode === 'create' && isOpen && preSelectedGame) {
+      setSelectedGameId(preSelectedGame.id);
+      setSelectedGameName(preSelectedGame.name);
+      setValue('gameId', preSelectedGame.id);
+    }
+  }, [mode, isOpen, preSelectedGame, setValue]);
 
   // Load all games for the selected scope
   const loadAllGames = useCallback(async (season: number | 'all' | 'latest') => {
@@ -423,14 +439,21 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <Card className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto bg-neutral-50 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200">
-        <div className="p-6 text-neutral-900 dark:text-neutral-100">
+      <Card
+        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal"
+        style={{
+          backgroundColor: document.documentElement.classList.contains('dark')
+            ? 'rgb(248, 250, 252)'
+            : 'rgb(17, 24, 39)',
+        }}
+      >
+        <div className="p-6 text-neutral-100 dark:text-neutral-900">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
+              <h2 className="text-xl font-semibold text-neutral-100 dark:text-neutral-900">
                 {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
               </h2>
-              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+              <p className="text-sm text-neutral-300 dark:text-neutral-600 mt-1">
                 {mode === 'create' ? 'Add a new game log entry' : 'Update your game log details'}
               </p>
             </div>
@@ -438,7 +461,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full p-2"
+              className="text-neutral-300 hover:text-neutral-100 dark:text-neutral-600 dark:hover:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 rounded-full p-2"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -478,13 +501,13 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
             {/* Game Selection - Only for create mode */}
             {mode === 'create' && (
               <div className="relative">
-                <label className="block text-sm font-medium text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-neutral-300 dark:text-neutral-700 mb-1">
                   Find/Search for Games *
                 </label>
                 {selectedGameName ? (
                   <div className="flex items-center gap-3 p-3 border-2 border-brand-primary/30 dark:border-brand-primary/40 rounded-lg bg-brand-primary/10 dark:bg-brand-primary/20">
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-neutral-900 dark:text-neutral-100">
+                      <p className="font-semibold text-sm text-neutral-100 dark:text-neutral-900">
                         {selectedGameName}
                       </p>
                       <p className="text-xs text-neutral-600 dark:text-neutral-400">
@@ -501,7 +524,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                         setValue('gameId', '');
                         setSearchTerm('');
                       }}
-                      className="border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-semantic-error dark:hover:text-semantic-error"
+                      className="border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-semantic-error dark:hover:text-semantic-error"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -516,7 +539,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                         onChange={handleSearchInputChange}
                         onFocus={() => setShowSearchResults(true)}
                         disabled={gamesLoading}
-                        className="w-full pl-8 pr-2 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full pl-8 pr-2 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-100 dark:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder={
                           gamesLoading
                             ? 'Loading games...'
@@ -594,7 +617,7 @@ export function GameLogModal({ mode, isOpen, onClose, onSuccess, gameLog }: IGam
                                   onClick={() => handleGameSelect(game.id.toString(), game.name)}
                                   className="px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-200 dark:border-neutral-700 last:border-b-0"
                                 >
-                                  <div className="font-medium text-neutral-900 dark:text-neutral-100 text-sm mb-0.5">
+                                  <div className="font-medium text-neutral-100 dark:text-neutral-900 text-sm mb-0.5">
                                     {game.name}
                                   </div>
                                   <div className="flex items-center gap-3 text-xs text-neutral-600 dark:text-neutral-400">

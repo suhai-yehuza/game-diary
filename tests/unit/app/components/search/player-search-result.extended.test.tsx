@@ -19,6 +19,9 @@ vi.mock('lucide-react', () => ({
     <div data-testid="graduationcap-icon" className={className} />
   ),
   Calendar: ({ className }: any) => <div data-testid="calendar-icon" className={className} />,
+  Ruler: ({ className }: any) => <div data-testid="ruler-icon" className={className} />,
+  Trophy: ({ className }: any) => <div data-testid="trophy-icon" className={className} />,
+  ArrowRight: ({ className }: any) => <div data-testid="arrowright-icon" className={className} />,
 }));
 
 describe('PlayerSearchResult Extended Tests', () => {
@@ -47,9 +50,8 @@ describe('PlayerSearchResult Extended Tests', () => {
     expect(screen.getByText('Player')).toBeInTheDocument();
     expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
     expect(screen.getByText('St. Vincent-St. Mary HS (OH)')).toBeInTheDocument();
-    expect(screen.getByText('Dec 30, 1984')).toBeInTheDocument();
     expect(screen.getByText('6\'9" • 250 lbs')).toBeInTheDocument();
-    expect(screen.getByText('NBA: 2003')).toBeInTheDocument();
+    expect(screen.getByText('NBA Player')).toBeInTheDocument();
   });
 
   it('handles player with missing first name', () => {
@@ -209,7 +211,8 @@ describe('PlayerSearchResult Extended Tests', () => {
 
     render(<PlayerSearchResult player={playerWithDifferentDate} />);
 
-    expect(screen.getByText('Jun 15, 1990')).toBeInTheDocument();
+    // Date is not displayed in the current component version
+    expect(screen.getByText('LeBron James')).toBeInTheDocument();
   });
 
   it('handles invalid date format gracefully', () => {
@@ -230,7 +233,7 @@ describe('PlayerSearchResult Extended Tests', () => {
     const container = screen.getByText('LeBron James').closest('div');
     fireEvent.click(container!);
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/player1');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/players/player1');
   });
 
   it('has correct styling classes', () => {
@@ -249,15 +252,18 @@ describe('PlayerSearchResult Extended Tests', () => {
     expect(badge).toHaveClass(
       'inline-flex',
       'items-center',
-      'px-2',
-      'py-0.5',
-      'rounded',
+      'px-2.5',
+      'py-1',
+      'rounded-full',
       'text-xs',
       'font-medium',
-      'bg-accent-blue/10',
-      'text-accent-blue',
+      'bg-blue-100',
+      'dark:bg-blue-900/30',
+      'text-blue-800',
+      'dark:text-blue-300',
       'border',
-      'border-accent-blue/20'
+      'border-blue-200',
+      'dark:border-blue-800'
     );
   });
 
@@ -265,7 +271,7 @@ describe('PlayerSearchResult Extended Tests', () => {
     render(<PlayerSearchResult player={defaultPlayer} />);
 
     const userIcon = screen.getByTestId('user-icon');
-    expect(userIcon).toHaveClass('w-5', 'h-5', 'text-accent-blue');
+    expect(userIcon).toHaveClass('w-7', 'h-7', 'text-white');
   });
 
   it('handles player with special characters in name', () => {
@@ -360,7 +366,7 @@ describe('PlayerSearchResult Extended Tests', () => {
     render(<PlayerSearchResult player={playerWithZeros} />);
 
     expect(screen.getByText('0 • 0')).toBeInTheDocument();
-    expect(screen.getByText('NBA: 0')).toBeInTheDocument();
+    expect(screen.getByText('NBA Player')).toBeInTheDocument();
   });
 
   it('handles player with whitespace-only values', () => {

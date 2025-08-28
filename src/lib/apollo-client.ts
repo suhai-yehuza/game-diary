@@ -28,8 +28,8 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
 
 // Add authentication headers
 const authLink = setContext((_, { headers }: { headers?: Record<string, string> }) => {
-  // For now, we'll handle authentication through cookies/session
-  // Clerk will handle the authentication on the server side
+  // Clerk handles authentication through cookies/session automatically
+  // The server-side GraphQL resolver will extract the session from cookies
   return {
     headers: {
       ...headers,

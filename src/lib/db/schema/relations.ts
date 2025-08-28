@@ -1,6 +1,6 @@
 import { relations } from 'drizzle-orm';
 
-import { game_logs, game_ratings } from '@/lib/db/schema/game-schemas';
+import { game_logs, game_ratings, nba_games } from '@/lib/db/schema/game-schemas';
 import { users, friendships, comments, reactions } from '@/lib/db/schema/user-schemas';
 
 // User-related relations
@@ -45,6 +45,10 @@ export const gameLogsRelations = relations(game_logs, ({ one, many }) => ({
   user: one(users, {
     fields: [game_logs.user_id],
     references: [users.id],
+  }),
+  game: one(nba_games, {
+    fields: [game_logs.game_id],
+    references: [nba_games.id],
   }),
   comments: many(comments),
   reactions: many(reactions),

@@ -12,13 +12,25 @@ import { MemoizedReactionButton } from './MemoizedReactionButton';
 const PRIMARY_REACTIONS = [
   REACTION_EMOJIS.THUMBS_UP,
   REACTION_EMOJIS.LOVE,
-  REACTION_EMOJIS.LAUGH,
   REACTION_EMOJIS.FIRE,
+  REACTION_EMOJIS.LAUGH,
   REACTION_EMOJIS.BASKETBALL,
   REACTION_EMOJIS.CLAP,
 ];
 
-// Secondary reactions (less commonly used)
+// Sports reactions (sports-specific emojis)
+const SPORTS_REACTIONS = [
+  REACTION_EMOJIS.BASKETBALL,
+  REACTION_EMOJIS.FOOTBALL,
+  REACTION_EMOJIS.SOCCER,
+  REACTION_EMOJIS.BASEBALL,
+  REACTION_EMOJIS.TENNIS,
+  REACTION_EMOJIS.GOLF,
+  REACTION_EMOJIS.GOAT,
+  REACTION_EMOJIS.BULLSEYE,
+];
+
+// Secondary reactions (emotions and expressions)
 const SECONDARY_REACTIONS = [
   REACTION_EMOJIS.THUMBS_DOWN,
   REACTION_EMOJIS.WOW,
@@ -26,14 +38,6 @@ const SECONDARY_REACTIONS = [
   REACTION_EMOJIS.ANGRY,
   REACTION_EMOJIS.MUSCLE,
   REACTION_EMOJIS.ROCKET,
-  REACTION_EMOJIS.GOAT,
-  REACTION_EMOJIS.BULLSEYE,
-  REACTION_EMOJIS.EYES,
-  REACTION_EMOJIS.SOCCER,
-  REACTION_EMOJIS.FOOTBALL,
-  REACTION_EMOJIS.BASEBALL,
-  REACTION_EMOJIS.TENNIS,
-  REACTION_EMOJIS.GOLF,
 ];
 
 export const ReactionPicker = memo(function ReactionPicker({
@@ -117,7 +121,10 @@ export const ReactionPicker = memo(function ReactionPicker({
   }, []);
 
   return (
-    <div className={`flex flex-wrap gap-1.5 ${className || ''}`} data-testid="reaction-picker">
+    <div
+      className={`flex flex-wrap items-center gap-2 ${className || ''}`}
+      data-testid="reaction-picker"
+    >
       {/* Existing reactions with improved styling and memoization */}
       {groupedReactions
         .filter(group => group.count > 0)
@@ -137,7 +144,7 @@ export const ReactionPicker = memo(function ReactionPicker({
         <PopoverTrigger asChild>
           <button
             disabled={loading}
-            className={`group inline-flex items-center justify-center rounded-full border-2 border-dashed border-gray-300 bg-white text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 hover:scale-105 active:scale-95 ${sizeClasses[size]} dark:border-gray-600 dark:bg-gray-800 dark:text-gray-400 dark:hover:border-blue-400 dark:hover:bg-blue-900/20 dark:hover:text-blue-300`}
+            className={`group inline-flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-white text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizeClasses[size]} dark:border-gray-400 dark:bg-white dark:text-gray-500 dark:hover:border-blue-400 dark:hover:bg-blue-50 dark:hover:text-blue-600`}
             aria-label="Add reaction"
           >
             <Smile className="h-4 w-4 transition-transform group-hover:scale-110" />
@@ -146,101 +153,140 @@ export const ReactionPicker = memo(function ReactionPicker({
 
         <PopoverContent
           ref={popoverRef}
-          className="w-80 p-0 border-0 shadow-2xl bg-white dark:bg-gray-900 rounded-xl overflow-hidden"
+          className="w-80 p-0 border border-gray-200 shadow-xl bg-white dark:bg-white rounded-xl overflow-hidden"
           align="start"
           side="top"
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100">Add Reaction</h3>
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-gray-900">Add Reaction</h3>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              className="p-1 rounded-full hover:bg-gray-100 transition-colors"
               aria-label="Close"
             >
-              <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <X className="h-4 w-4 text-gray-500" />
             </button>
           </div>
 
           {/* Primary reactions */}
           <div className="p-4">
-            <div className="grid grid-cols-6 gap-2">
-              {PRIMARY_REACTIONS.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => {
-                    void handleReactionClick(emoji);
-                  }}
-                  disabled={loading}
-                  className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-800 ${
-                    userReactions.has(emoji)
-                      ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300 ring-2 ring-blue-500'
-                      : 'hover:shadow-md'
-                  }`}
-                  aria-label={`React with ${emoji}`}
-                >
-                  <span className="text-lg transition-transform group-hover:scale-110">
-                    {emoji}
-                  </span>
-                </button>
-              ))}
+            <div className="mb-3">
+              <h4 className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                Quick Reactions
+              </h4>
+              <div className="grid grid-cols-6 gap-2">
+                {PRIMARY_REACTIONS.map(emoji => (
+                  <button
+                    key={emoji}
+                    onClick={() => {
+                      void handleReactionClick(emoji);
+                    }}
+                    disabled={loading}
+                    className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 border ${
+                      userReactions.has(emoji)
+                        ? 'bg-blue-100 text-blue-600 border-blue-200 ring-1 ring-blue-100'
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                    }`}
+                    aria-label={`React with ${emoji}`}
+                  >
+                    <span className="text-lg transition-transform group-hover:scale-110">
+                      {emoji}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Show more reactions button */}
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="border-t border-gray-200 pt-3">
               <button
                 onClick={() => setShowAllReactions(!showAllReactions)}
-                className="w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                className="w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-50 rounded-lg transition-colors"
               >
                 {showAllReactions ? 'Show less' : 'Show more reactions'}
               </button>
             </div>
 
-            {/* Secondary reactions (collapsible) */}
+            {/* Additional reactions (collapsible) */}
             {showAllReactions && (
-              <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-                <div className="grid grid-cols-8 gap-2">
-                  {SECONDARY_REACTIONS.map(emoji => (
-                    <button
-                      key={emoji}
-                      onClick={() => {
-                        void handleReactionClick(emoji);
-                      }}
-                      disabled={loading}
-                      className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-800 ${
-                        userReactions.has(emoji)
-                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300 ring-2 ring-blue-500'
-                          : 'hover:shadow-md'
-                      }`}
-                      aria-label={`React with ${emoji}`}
-                    >
-                      <span className="text-lg transition-transform group-hover:scale-110">
-                        {emoji}
-                      </span>
-                    </button>
-                  ))}
+              <div className="space-y-4">
+                {/* Sports reactions */}
+                <div className="pt-3 border-t border-gray-200">
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                    Sports
+                  </h4>
+                  <div className="grid grid-cols-8 gap-1.5">
+                    {SPORTS_REACTIONS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          void handleReactionClick(emoji);
+                        }}
+                        disabled={loading}
+                        className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 border ${
+                          userReactions.has(emoji)
+                            ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100'
+                            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                        }`}
+                        aria-label={`React with ${emoji}`}
+                      >
+                        <span className="text-lg transition-transform group-hover:scale-110">
+                          {emoji}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Emotions */}
+                <div className="pt-3 border-t border-gray-200">
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                    Emotions
+                  </h4>
+                  <div className="grid grid-cols-6 gap-1.5">
+                    {SECONDARY_REACTIONS.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => {
+                          void handleReactionClick(emoji);
+                        }}
+                        disabled={loading}
+                        className={`group ${buttonSizeClasses[size]} flex items-center justify-center rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 border ${
+                          userReactions.has(emoji)
+                            ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100'
+                            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                        }`}
+                        aria-label={`React with ${emoji}`}
+                      >
+                        <span className="text-lg transition-transform group-hover:scale-110">
+                          {emoji}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
 
             {/* Recently used section */}
             {groupedReactions.length > 0 && (
-              <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h4 className="text-xs font-medium text-gray-600 mb-2 uppercase tracking-wide">
                   Recently Used
                 </h4>
-                <div className="flex flex-wrap gap-1">
-                  {groupedReactions.slice(0, 6).map(group => (
+                <div className="flex flex-wrap gap-1.5">
+                  {groupedReactions.slice(0, 8).map(group => (
                     <button
                       key={group.emoji}
                       onClick={() => {
                         void handleReactionClick(group.emoji);
                       }}
                       disabled={loading}
-                      className={`group p-1.5 rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 dark:hover:bg-gray-800 ${
+                      className={`group p-1.5 rounded-lg transition-all duration-200 hover:scale-110 hover:bg-gray-100 border ${
                         group.hasUserReacted
-                          ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/20 dark:text-blue-300'
-                          : ''
+                          ? 'bg-blue-50 text-blue-600 border-blue-200 ring-1 ring-blue-100'
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
                       aria-label={`React with ${group.emoji}`}
                     >

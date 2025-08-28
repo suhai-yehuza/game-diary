@@ -93,7 +93,7 @@ export function Footer() {
         className="w-full border-t border-border bg-background text-foreground py-2 text-xs"
       >
         <FooterSections linkClass="hover:text-primary transition-colors block py-0.5 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded" />
-        <div className="max-w-5xl mx-auto px-2 mt-2 text-center text-muted-foreground text-xs opacity-80">
+        <div className="max-w-5xl mx-auto px-2 mt-2 text-center text-theme-muted text-xs opacity-80">
           &copy; {new Date().getFullYear()} Game Diary. Made with{' '}
           <span aria-label="love" role="img">
             ❤️

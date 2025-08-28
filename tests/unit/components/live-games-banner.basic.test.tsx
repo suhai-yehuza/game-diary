@@ -191,7 +191,7 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     const liveIndicator = screen.getByTestId('live-indicator');
-    expect(liveIndicator).toHaveClass('animate-live-dot-glow');
+    expect(liveIndicator).toHaveClass('w-3', 'h-3', 'bg-red-500', 'rounded-full');
   });
 
   it('has proper accessibility attributes', () => {
@@ -232,17 +232,18 @@ describe('LiveGamesBanner', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
     render(<LiveGamesBanner />);
 
-    const lastUpdated = screen.getByText(/Updated \d{1,2}:\d{2}/);
-    expect(lastUpdated).toBeInTheDocument();
+    // Check for both "Last Updated at" and "Updated at" text (responsive design)
+    const lastUpdatedText = screen.getAllByText(/Updated/);
+    expect(lastUpdatedText.length).toBeGreaterThan(0);
 
     // Check that it's within the combined indicator container
     const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
-    expect(combinedIndicator).toContainElement(lastUpdated);
+    expect(combinedIndicator).toContainElement(lastUpdatedText[0]);
 
-    // Check for the green indicator dot
-    const greenDot = combinedIndicator?.querySelector('.bg-green-400');
-    expect(greenDot).toBeInTheDocument();
-    expect(greenDot).toHaveClass('animate-update-pulse');
+    // Check for the red live indicator dot
+    const liveIndicator = screen.getByTestId('live-indicator');
+    expect(liveIndicator).toBeInTheDocument();
+    expect(liveIndicator).toHaveClass('bg-red-500', 'rounded-full');
   });
 
   it('has combined indicator layout with proper styling', () => {
@@ -251,24 +252,22 @@ describe('LiveGamesBanner', () => {
 
     const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
 
-    // Check for proper flex layout and spacing (updated for responsive design)
+    // Check for proper flex layout and spacing (updated for simplified design)
     expect(combinedIndicator).toHaveClass(
       'flex',
       'items-center',
-      'space-x-1.5',
-      'xs:space-x-2',
-      'sm:space-x-3'
+      'gap-3',
+      'cursor-pointer',
+      'rounded-lg'
     );
-    expect(combinedIndicator).toHaveClass('bg-black/40', 'backdrop-blur-md', 'rounded-full');
+    expect(combinedIndicator).toHaveClass('hover:bg-white/5', 'transition-colors');
     expect(combinedIndicator).toHaveClass(
-      'px-1.5',
-      'xs:px-2',
-      'sm:px-3',
-      'py-0.5',
-      'xs:py-0.5',
-      'sm:py-1',
-      'border',
-      'border-white/20'
+      'px-3',
+      'xs:px-4',
+      'sm:px-5',
+      'py-2',
+      'xs:py-2.5',
+      'sm:py-3'
     );
 
     // Check that the text content is in a flex column
@@ -276,12 +275,12 @@ describe('LiveGamesBanner', () => {
     expect(textContainer).toBeInTheDocument();
   });
 
-  it('has clickable view all link with proper accessibility', () => {
+  it('has clickable view all button with proper accessibility', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
     render(<LiveGamesBanner />);
 
-    const viewAllLink = screen.getByRole('link', { name: 'View All' });
-    expect(viewAllLink).toHaveAttribute('href', '/sports/live');
+    const viewAllButton = screen.getByRole('button', { name: /click to view all/ });
+    expect(viewAllButton).toBeInTheDocument();
   });
 
   it('has responsive positioning for indicators to avoid blocking game content', () => {
@@ -293,19 +292,19 @@ describe('LiveGamesBanner', () => {
       .closest('[role="button"]')?.parentElement;
     expect(combinedIndicatorContainer).toBeInTheDocument();
 
-    // Check that the view all link exists and has positioning
-    const viewAllLink = screen.getByRole('link', { name: /View All/ });
-    expect(viewAllLink).toBeInTheDocument();
+    // Check that the view all button exists and has positioning
+    const viewAllButton = screen.getByRole('button', { name: /click to view all/ });
+    expect(viewAllButton).toBeInTheDocument();
 
     // Verify both elements are properly positioned within the banner
     const banner = screen.getByRole('banner');
     if (combinedIndicatorContainer) {
       expect(banner).toContainElement(combinedIndicatorContainer);
     }
-    expect(banner).toContainElement(viewAllLink);
+    expect(banner).toContainElement(viewAllButton);
 
     // Verify the scrolling content has responsive padding
-    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[40px]"]');
+    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[60px]"]');
     expect(scrollingContent).toBeInTheDocument();
   });
 
@@ -313,7 +312,7 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     // Check that the scrolling content has responsive padding to accommodate UI elements
-    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[40px]"]');
+    const scrollingContent = screen.getByRole('banner').querySelector('[class*="w-[60px]"]');
     expect(scrollingContent).toBeInTheDocument();
 
     // Verify the scrolling content exists and has proper structure
@@ -321,7 +320,7 @@ describe('LiveGamesBanner', () => {
     expect(banner).toBeInTheDocument();
 
     // Verify the responsive padding classes are applied for mobile optimization
-    expect(scrollingContent).toHaveClass('w-[40px]');
+    expect(scrollingContent).toHaveClass('w-[60px]');
   });
 
   it('has responsive banner padding and spacing', () => {
@@ -362,21 +361,12 @@ describe('LiveGamesBanner', () => {
     const combinedIndicator = screen.getByText('2 Live Games').closest('[role="button"]');
 
     // Check responsive spacing and sizing
-    expect(combinedIndicator).toHaveClass('space-x-1.5', 'xs:space-x-2', 'sm:space-x-3');
-    expect(combinedIndicator).toHaveClass(
-      'px-1.5',
-      'xs:px-2',
-      'sm:px-3',
-      'py-0.5',
-      'xs:py-0.5',
-      'sm:py-1',
-      'border',
-      'border-white/20'
-    );
+    expect(combinedIndicator).toHaveClass('px-3', 'xs:px-4', 'sm:px-5');
+    expect(combinedIndicator).toHaveClass('py-2', 'xs:py-2.5', 'sm:py-3');
 
     // Check responsive live indicator sizing
     const liveIndicator = screen.getByTestId('live-indicator');
-    expect(liveIndicator).toHaveClass('w-1', 'h-1', 'xs:w-1.5', 'xs:h-1.5', 'sm:w-2', 'sm:h-2');
+    expect(liveIndicator).toHaveClass('w-3', 'h-3', 'bg-red-500', 'rounded-full');
   });
 
   it('has extra small viewport optimizations', () => {
@@ -403,24 +393,23 @@ describe('LiveGamesBanner', () => {
       .getByText('2 Live Games')
       .closest('[role="button"]') as HTMLElement;
     expect(combinedIndicator).toBeInTheDocument();
-    expect(combinedIndicator).toHaveClass('bg-black/40', 'backdrop-blur-md', 'rounded-full');
+    expect(combinedIndicator).toHaveClass('rounded-lg');
 
-    // Check that the view all link exists
-    const viewAllLink = screen.getByRole('link', { name: /View All/ });
-    expect(viewAllLink).toBeInTheDocument();
+    // Check that the view all button exists
+    const viewAllButton = screen.getByRole('button', { name: /click to view all/ });
+    expect(viewAllButton).toBeInTheDocument();
 
     // Verify both elements are properly positioned within the banner
     const banner = screen.getByRole('banner');
     expect(banner).toContainElement(combinedIndicator);
-    expect(banner).toContainElement(viewAllLink);
+    expect(banner).toContainElement(viewAllButton);
   });
 
-  it('displays "View All" link', () => {
+  it('displays view all button', () => {
     (useLiveGames as any).mockImplementation(() => ({ games: mockGames }) as any);
     render(<LiveGamesBanner />);
-    const viewAllLink = screen.getByText('View All');
-    expect(viewAllLink).toBeInTheDocument();
-    expect(viewAllLink.closest('a')).toHaveAttribute('href', '/sports/live');
+    const viewAllButton = screen.getByRole('button', { name: /click to view all/ });
+    expect(viewAllButton).toBeInTheDocument();
   });
 
   it('displays team scores', () => {

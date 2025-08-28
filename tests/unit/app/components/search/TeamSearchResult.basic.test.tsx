@@ -24,6 +24,21 @@ vi.mock('lucide-react', () => ({
       MapPin
     </div>
   ),
+  Star: ({ className }: { className?: string }) => (
+    <div data-testid="star-icon" className={className}>
+      Star
+    </div>
+  ),
+  Trophy: ({ className }: { className?: string }) => (
+    <div data-testid="trophy-icon" className={className}>
+      Trophy
+    </div>
+  ),
+  ArrowRight: ({ className }: { className?: string }) => (
+    <div data-testid="arrowright-icon" className={className}>
+      ArrowRight
+    </div>
+  ),
 }));
 
 describe('TeamSearchResult', () => {
@@ -63,7 +78,7 @@ describe('TeamSearchResult', () => {
     const container = screen.getByText('Los Angeles Lakers').closest('div');
     fireEvent.click(container!);
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/team/123');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/teams/123');
   });
 
   it('displays "Unknown Team" when name is missing', () => {
@@ -222,7 +237,7 @@ describe('TeamSearchResult', () => {
     render(<TeamSearchResult {...defaultProps} />);
 
     const container = screen.getByText('Los Angeles Lakers').closest('div');
-    expect(container).toHaveClass('flex', 'items-center', 'space-x-2');
+    expect(container).toHaveClass('flex', 'items-center', 'space-x-3', 'mb-2');
   });
 
   it('renders all icons when all data is present', () => {

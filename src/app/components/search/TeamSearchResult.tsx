@@ -1,29 +1,18 @@
 'use client';
 
-import * as Icons from 'lucide-react';
+import { Building2, MapPin, Star, Trophy, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ITeamSearchResultProps } from '@/lib/types';
+import type { ITeamSearchResultProps } from '@/lib/types/components.types';
 
 export function TeamSearchResult({ team }: ITeamSearchResultProps) {
   const router = useRouter();
-  const Building2Icon =
-    Icons?.Building2 ||
-    (({ className }: { className?: string }) => (
-      <div data-testid="building2-icon" className={className}>
-        Building2
-      </div>
-    ));
-  const MapPinIcon =
-    Icons?.MapPin ||
-    (({ className }: { className?: string }) => (
-      <div data-testid="mappin-icon" className={className}>
-        MapPin
-      </div>
-    ));
+  const Building2Icon = Building2;
+  const MapPinIcon = MapPin;
 
   const handleClick = () => {
-    router.push(`/sports/nba/team/${team.id}`);
+    // Navigate to the specific team details page using its ID
+    router.push(`/sports/nba/teams/${team.id}`);
   };
 
   const location = [team.city, team.state].filter(Boolean).join(', ');
@@ -34,34 +23,69 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
 
   return (
     <div
-      className="flex items-center space-x-4 p-4 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
+      className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 cursor-pointer overflow-hidden"
       onClick={handleClick}
     >
-      <div className="flex-shrink-0">
-        <div className="w-10 h-10 bg-semantic-error/10 dark:bg-semantic-error/20 rounded-full flex items-center justify-center">
-          <Building2Icon className="w-5 h-5 text-semantic-error" />
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 bg-gradient-to-br from-red-50/30 to-transparent dark:from-red-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+      <div className="relative flex items-start space-x-4">
+        {/* Enhanced Avatar */}
+        <div className="flex-shrink-0">
+          <div className="w-14 h-14 bg-gradient-to-br from-red-400 to-red-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+            <Building2Icon className="w-7 h-7 text-white" />
+          </div>
         </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center space-x-2">
-          <h3 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 truncate">
-            {team.name && team.name.trim() !== '' ? team.name : 'Unknown Team'}
-          </h3>
-          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-semantic-error/10 text-semantic-error border border-semantic-error/20">
-            Team
-          </span>
-        </div>
-        <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
-          {team.nickname && <span className="font-medium">{team.nickname}</span>}
-          {location && (
-            <span className="flex items-center space-x-1">
-              <MapPinIcon className="w-3 h-3" />
-              <span>{location}</span>
-            </span>
-          )}
-        </div>
-        <div className="flex items-center space-x-2 text-xs text-neutral-500 dark:text-neutral-500 mt-1">
-          {conferenceDivision && <span>{conferenceDivision}</span>}
+
+        {/* Team Information */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center space-x-3 mb-2">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                  {team.name && team.name.trim() !== '' ? team.name : 'Unknown Team'}
+                </h3>
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800">
+                  <span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-1.5" />
+                  Team
+                </span>
+              </div>
+
+              {/* Team Nickname */}
+              {team.nickname && (
+                <div className="flex items-center space-x-1 mb-3">
+                  <Star className="w-4 h-4 text-gray-400" />
+                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {team.nickname}
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
+                {location && (
+                  <div className="flex items-center space-x-1.5">
+                    <MapPinIcon className="w-4 h-4" />
+                    <span>{location}</span>
+                  </div>
+                )}
+
+                {conferenceDivision && (
+                  <div className="flex items-center space-x-1.5">
+                    <Trophy className="w-4 h-4" />
+                    <span>{conferenceDivision}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action indicator with prompt */}
+            <div className="flex-shrink-0 ml-4 flex flex-col items-end">
+              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300" />
+              <span className="text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                View Details
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>

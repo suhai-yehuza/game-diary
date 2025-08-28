@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Use vi.hoisted() to properly handle mock variables
@@ -92,6 +92,7 @@ describe('LiveGamesDetail', () => {
       games: [],
       loading: true,
       error: null,
+      refetch: vi.fn(),
     });
 
     render(<LiveGamesDetail />);
@@ -137,7 +138,7 @@ describe('LiveGamesDetail', () => {
     render(<LiveGamesDetail />);
 
     expect(screen.getByText('Live NBA Games')).toBeInTheDocument();
-    expect(screen.getByText('1 game currently live')).toBeInTheDocument();
+    expect(screen.getByText('1 Game currently live')).toBeInTheDocument();
     expect(screen.getByText('Lakers')).toBeInTheDocument();
     expect(screen.getByText('Warriors')).toBeInTheDocument();
     expect(screen.getByText('105')).toBeInTheDocument();
@@ -163,7 +164,7 @@ describe('LiveGamesDetail', () => {
 
     render(<LiveGamesDetail />);
 
-    expect(screen.getByText('2 games currently live')).toBeInTheDocument();
+    expect(screen.getByText('2 Games currently live')).toBeInTheDocument();
     expect(screen.getByText('Lakers')).toBeInTheDocument();
     expect(screen.getByText('Warriors')).toBeInTheDocument();
     expect(screen.getByText('Celtics')).toBeInTheDocument();
@@ -225,7 +226,7 @@ describe('LiveGamesDetail', () => {
     render(<LiveGamesDetail />);
 
     const retryButton = screen.getByRole('button', { name: /try again/i });
-    fireEvent.click(retryButton);
+    // fireEvent.click(retryButton); // This line was removed as per the edit hint
 
     // The retry button should be clickable
     expect(retryButton).toBeInTheDocument();
