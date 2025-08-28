@@ -1,5 +1,5 @@
 import type { ParentType } from '@/lib/types/generated/graphql';
-import type { REACTION_EMOJIS } from '@/lib/types/constant.types';
+import type { REACTION_EMOJIS } from '@/lib/constants';
 
 export interface IReaction {
   id: string;

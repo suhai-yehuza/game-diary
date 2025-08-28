@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getMockServer } from '@src/lib/mock-server';
 
 export function GET(request: NextRequest) {
@@ -28,7 +29,11 @@ export function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Mock server database error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/mock-server/database',
+    });
     return NextResponse.json(
       {
         error: 'Mock server database failed',
@@ -66,7 +71,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Mock server database POST error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/mock-server/database',
+    });
     return NextResponse.json(
       {
         error: 'Mock server database failed',

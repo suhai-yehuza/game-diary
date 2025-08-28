@@ -6,9 +6,9 @@ import {
   getUniqueColleges,
   getUniqueCountries,
   getUniquePositions,
-  type IPlayerFilters,
 } from '@/lib/db/services/players.service';
-import type { IPlayersApiResponse } from '@/lib/types';
+import type { IPlayersApiResponse, IPlayerFilters } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 /**
  * GET /api/players
@@ -24,13 +24,17 @@ export async function GET(request: NextRequest) {
     const teamFilter = searchParams.get('team') || undefined;
     const collegeFilter = searchParams.get('college') || undefined;
     const countryFilter = searchParams.get('country') || undefined;
-    const sortBy = (searchParams.get('sortBy') as IPlayerFilters['sortBy']) || 'name';
-    const sortDirection =
-      (searchParams.get('sortDirection') as IPlayerFilters['sortDirection']) || 'asc';
+    const sortByParam = searchParams.get('sortBy');
+    const sortBy: IPlayerFilters['sortBy'] = (sortByParam as IPlayerFilters['sortBy']) || 'name';
+    const sortDirectionParam = searchParams.get('sortDirection');
+    const sortDirection: IPlayerFilters['sortDirection'] =
+      (sortDirectionParam as IPlayerFilters['sortDirection']) || 'asc';
 
     // Pagination parameters
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '50');
+    const pageParam = searchParams.get('page');
+    const page = (pageParam && parseInt(pageParam)) || 1;
+    const limitParam = searchParams.get('limit');
+    const limit = (limitParam && parseInt(limitParam)) || 50;
     const offset = (page - 1) * limit;
 
     // Special endpoint for filter options
@@ -83,7 +87,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Error in /api/players GET:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/players',
+      requestId: request.headers.get('x-request-id') || undefined,
+    });
 
     return NextResponse.json(
       {

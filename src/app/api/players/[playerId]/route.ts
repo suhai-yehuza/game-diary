@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { nba_players } from '@/lib/db/schema';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(request: NextRequest, { params }: { params: { playerId: string } }) {
   try {
@@ -46,7 +47,11 @@ export async function GET(request: NextRequest, { params }: { params: { playerId
       updated_at: player.updated_at,
     });
   } catch (error) {
-    console.error('Error fetching player:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/players/[playerId]',
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext, IUserParent, IUserArgs } from '@/lib/types';
 import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 
 // Helper function to check if a value is encrypted
@@ -35,7 +36,11 @@ function safeDecrypt(encryptedValue: string | null | undefined): string | null {
     }
     return encryptedValue; // Return as-is if not encrypted
   } catch (error) {
-    logger.error('Failed to decrypt field:', error as Error);
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'GraphQL Resolver',
+      action: 'Decrypt field',
+    });
     return null; // Return null on decryption failure
   }
 }

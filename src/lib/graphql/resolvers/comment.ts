@@ -5,6 +5,7 @@ import { db } from '@/lib/db';
 import { comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Comment Query Resolvers
 export const commentQueryResolvers = {
@@ -117,7 +118,11 @@ export const commentQueryResolvers = {
         totalCount: totalCount,
       };
     } catch (error) {
-      console.error('Error fetching comments:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch comments',
+      });
       throw new Error('Failed to fetch comments');
     }
   },
@@ -217,7 +222,11 @@ export const commentResolver = {
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {
-      console.error('Error fetching child comment count:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch child comment count',
+      });
       return 0;
     }
   },
@@ -242,7 +251,11 @@ export const commentResolver = {
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {
-      console.error('Error fetching reaction count:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch reaction count',
+      });
       return 0;
     }
   },

@@ -84,16 +84,16 @@
   }
 
   .dark {
-    /* Dark Theme Overrides */
-    --color-neutral-50: 0 0% 9%; /* Darkest bg */
-    --color-neutral-100: 0 0% 15%; /* Dark bg */
+    /* Dark Theme Overrides - Google-inspired */
+    --color-neutral-50: 0 0% 15%; /* Lighter dark gray - main background */
+    --color-neutral-100: 0 0% 18%; /* Slightly lighter dark gray - secondary background */
     --color-neutral-200: 0 0% 25%; /* Borders */
     --color-neutral-300: 0 0% 32%; /* Disabled */
     --color-neutral-400: 0 0% 45%; /* Placeholder */
-    --color-neutral-500: 0 0% 64%; /* Secondary text */
-    --color-neutral-600: 0 0% 83%; /* Primary text */
+    --color-neutral-500: 0 0% 60%; /* Secondary text */
+    --color-neutral-600: 0 0% 80%; /* Primary text */
     --color-neutral-700: 0 0% 90%; /* Strong text */
-    --color-neutral-800: 0 0% 96%; /* Headings */
+    --color-neutral-800: 0 0% 95%; /* Headings */
     --color-neutral-900: 0 0% 98%; /* Strongest text */
 
     /* Adjusted brand colors for dark theme */
@@ -108,7 +108,7 @@
     --color-info: 217 91% 60%; /* Blue-400 */
     --color-success: 142 71% 45%; /* Green-500 */
 
-    --color-bg-card: 0 0% 9%;
+    --color-bg-card: 0 0% 15%; /* Match main background */
 
     /* Legacy dark theme updates */
     --background: var(--color-neutral-50);
@@ -270,6 +270,11 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Ensure main content area matches body background */
+  main {
+    background-color: hsl(var(--background));
   }
 }
 
@@ -443,14 +448,14 @@ a.group.block p.nba-card-description.mb-3 {
 
 /* === Game Cards - Enhanced Light Theme Contrast === */
 .game-details-text {
-  color: rgb(31, 41, 55) !important; /* text-gray-800 - stronger contrast for light theme */
+  color: rgb(17, 24, 39) !important; /* text-gray-900 - maximum contrast for light theme */
 }
 .dark .game-details-text {
   color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
 }
 
 .game-meta-text {
-  color: rgb(31, 41, 55) !important; /* text-gray-800 - stronger contrast for light theme */
+  color: rgb(17, 24, 39) !important; /* text-gray-900 - maximum contrast for light theme */
 }
 .dark .game-meta-text {
   color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
@@ -473,7 +478,7 @@ a.group.block p.nba-card-description.mb-3 {
 
 /* Enhanced game card backgrounds for better contrast */
 .game-card-enhanced {
-  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
+  background-color: rgb(255, 255, 255) !important; /* Pure white background for maximum contrast */
   border: 1px solid rgb(203, 213, 225) !important; /* Slightly darker border for definition */
 }
 .dark .game-card-enhanced {
@@ -483,10 +488,92 @@ a.group.block p.nba-card-description.mb-3 {
 
 /* Game card date, time, and venue text */
 .game-card-enhanced .truncate {
-  color: rgb(31, 41, 55) !important; /* Dark text for light theme */
+  color: rgb(17, 24, 39) !important; /* Darker text for maximum contrast in light theme */
 }
 .dark .game-card-enhanced .truncate {
   color: rgb(209, 213, 219) !important; /* Light text for dark theme */
+}
+
+/* Game card icons - ensure proper contrast */
+.game-card-enhanced svg {
+  color: rgb(17, 24, 39) !important; /* Dark icons for maximum contrast in light theme */
+}
+.dark .game-card-enhanced svg {
+  color: rgb(209, 213, 219) !important; /* Light icons for dark theme */
+}
+
+/* Game card status badges - ensure proper contrast in light mode */
+.game-card-enhanced .text-green-900 {
+  color: rgb(21, 128, 61) !important; /* Darker green text for better contrast */
+}
+.game-card-enhanced .text-red-900 {
+  color: rgb(127, 29, 29) !important; /* Darker red text for better contrast */
+}
+.game-card-enhanced .text-blue-900 {
+  color: rgb(30, 58, 138) !important; /* Darker blue text for better contrast */
+}
+.game-card-enhanced .text-orange-900 {
+  color: rgb(154, 52, 18) !important; /* Darker orange text for better contrast */
+}
+.game-card-enhanced .text-gray-900 {
+  color: rgb(17, 24, 39) !important; /* Darker gray text for better contrast */
+}
+.game-card-enhanced .text-neutral-700 {
+  color: rgb(64, 64, 64) !important; /* Darker neutral text for better contrast */
+}
+
+/* Status badge backgrounds - ensure proper contrast */
+.game-card-enhanced .bg-green-100 {
+  background-color: rgb(220, 252, 231) !important; /* Slightly darker green background */
+}
+.game-card-enhanced .bg-red-100 {
+  background-color: rgb(254, 226, 226) !important; /* Slightly darker red background */
+}
+.game-card-enhanced .bg-blue-100 {
+  background-color: rgb(219, 234, 254) !important; /* Slightly darker blue background */
+}
+.game-card-enhanced .bg-orange-100 {
+  background-color: rgb(255, 237, 213) !important; /* Slightly darker orange background */
+}
+.game-card-enhanced .bg-gray-200 {
+  background-color: rgb(229, 231, 235) !important; /* Slightly darker gray background */
+}
+.game-card-enhanced .bg-neutral-200 {
+  background-color: rgb(229, 231, 235) !important; /* Slightly darker neutral background */
+}
+
+/* Dark mode status badges - minimal fixes for visibility */
+.dark .game-card-enhanced .dark\:text-green-300 {
+  color: rgb(74, 222, 128) !important; /* Brighter green text */
+}
+.dark .game-card-enhanced .dark\:text-red-300 {
+  color: rgb(252, 165, 165) !important; /* Brighter red text */
+}
+.dark .game-card-enhanced .dark\:text-blue-300 {
+  color: rgb(147, 197, 253) !important; /* Brighter blue text */
+}
+.dark .game-card-enhanced .dark\:text-orange-300 {
+  color: rgb(251, 146, 60) !important; /* Brighter orange text */
+}
+.dark .game-card-enhanced .dark\:text-gray-300 {
+  color: rgb(209, 213, 219) !important; /* Brighter gray text */
+}
+
+/* Dark mode status badge backgrounds - ensure visibility */
+.dark .game-card-enhanced .dark\:bg-green-900\/30 {
+  background-color: rgba(6, 78, 59, 0.3) !important; /* Dark green background with opacity */
+}
+.dark .game-card-enhanced .dark\:bg-red-900\/30 {
+  background-color: rgba(127, 29, 29, 0.3) !important; /* Dark red background with opacity */
+}
+.dark .game-card-enhanced .dark\:bg-blue-900\/30 {
+  background-color: rgba(30, 58, 138, 0.3) !important; /* Dark blue background with opacity */
+}
+.dark .game-card-enhanced .dark\:bg-orange-900\/30 {
+  background-color: rgba(154, 52, 18, 0.3) !important; /* Dark orange background with opacity */
+}
+.dark .game-card-enhanced .dark\:bg-gray-800 {
+  background-color: rgb(55, 65, 81) !important; /* Dark gray background */
 }
 
 /* === Team Cards - Enhanced to match game cards === */
@@ -1329,8 +1416,7 @@ dd.team-detail-value.bg-orange-50 {
 
 /* NBA page titles and descriptions in SportsPageLayout */
 .nba-games-title {
-  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast */
-  font-weight: 700 !important;
+  color: rgb(17, 24, 39) !important;
 }
 .dark .nba-games-title {
   color: rgb(255, 255, 255) !important;
@@ -1391,31 +1477,263 @@ dd.team-detail-value.bg-orange-50 {
 
 /* === Page-Specific Overrides === */
 .home-page-gradient {
+  background:
+    radial-gradient(circle at 20% 80%, rgba(107, 114, 128, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(209, 213, 219, 0.08) 0%, transparent 50%),
+    linear-gradient(
+      135deg,
+      rgb(107, 114, 128) 0%,
+      rgb(156, 163, 175) 25%,
+      rgb(209, 213, 219) 50%,
+      rgb(229, 231, 235) 75%,
+      rgb(243, 244, 246) 100%
+    ) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.home-page-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+  animation: shimmer 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.home-page-gradient::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
-    135deg,
-    rgb(59 130 246) 0%,
-    rgb(147 197 253) 25%,
-    rgb(238 242 255) 50%,
-    rgb(187 247 208) 75%,
-    rgb(34 197 94) 100%
-  ) !important;
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.05) 50%,
+    transparent 70%
+  );
+  animation: sparkle 12s linear infinite;
+  pointer-events: none;
 }
 
 .dark .home-page-gradient {
-  background: linear-gradient(
-    135deg,
-    rgb(15 23 42) 0%,
-    rgb(30 41 59) 25%,
-    rgb(51 65 85) 50%,
-    rgb(30 41 59) 75%,
-    rgb(15 23 42) 100%
-  ) !important;
+  background:
+    radial-gradient(circle at 20% 80%, rgba(75, 85, 99, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(107, 114, 128, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+    linear-gradient(
+      135deg,
+      rgb(15, 23, 42) 0%,
+      rgb(30, 41, 59) 25%,
+      rgb(51, 65, 85) 50%,
+      rgb(30, 41, 59) 75%,
+      rgb(15, 23, 42) 100%
+    ) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.dark .home-page-gradient::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(circle at 25% 25%, rgba(75, 85, 99, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(107, 114, 128, 0.1) 0%, transparent 50%);
+  animation: shimmer 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.dark .home-page-gradient::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.1) 50%, transparent 70%);
+  animation: sparkle 12s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes shimmer {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+@keyframes sparkle {
+  0% {
+    transform: translateX(-100%) translateY(-100%) rotate(0deg);
+  }
+  100% {
+    transform: translateX(100%) translateY(100%) rotate(360deg);
+  }
+}
+
+/* === Google-Style Navigation Buttons === */
+.nav-item-google-style {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Removed overlay effect - was causing page dimming */
+
+.nav-item-google-style:active {
+  transform: translateY(1px);
+  transition: transform 0.1s ease;
+}
+
+/* === Force Navigation Text Colors === */
+.nav-item-google-style {
+  color: rgb(17, 24, 39) !important; /* Dark text for light mode */
+}
+
+.dark .nav-item-google-style {
+  color: rgb(255, 255, 255) !important; /* White text for dark mode */
+}
+
+/* Active state text colors */
+.nav-item-google-style.text-white {
+  color: rgb(255, 255, 255) !important; /* Force white text for active state */
+}
+
+/* Ensure Dashboard and all navigation items are visible */
+.nav-item-google-style,
+.nav-item-google-style * {
+  color: rgb(17, 24, 39) !important; /* Dark text for light mode */
+}
+
+.dark .nav-item-google-style,
+.dark .nav-item-google-style * {
+  color: rgb(255, 255, 255) !important; /* White text for dark mode */
+}
+
+/* Force lighter background for dark mode inactive buttons */
+.dark .nav-item-google-style.bg-neutral-700 {
+  background-color: rgb(55, 65, 81) !important; /* Lighter gray for visibility */
+}
+
+.dark .nav-item-google-style.bg-neutral-800 {
+  background-color: rgb(55, 65, 81) !important; /* Lighter gray for visibility */
+}
+
+/* Force visibility for all navigation buttons in dark mode */
+.dark .nav-item-google-style {
+  background-color: rgb(55, 65, 81) !important; /* Force lighter background */
+  color: rgb(255, 255, 255) !important; /* Force white text */
+  border-color: rgb(156, 163, 175) !important; /* Force visible border */
+}
+
+/* More specific selectors to override any conflicting styles */
+.dark nav .nav-item-google-style,
+.dark .nav-item-google-style a,
+.dark .nav-item-google-style span,
+.dark .nav-item-google-style div {
+  background-color: rgb(75, 85, 99) !important; /* Slightly lighter gray for better visibility */
+  color: rgb(255, 255, 255) !important; /* Force white text */
+  border-color: rgb(156, 163, 175) !important; /* Force visible border */
+}
+
+/* Target the Link elements directly */
+.dark .nav-item-google-style[href] {
+  background-color: rgb(75, 85, 99) !important; /* Lighter background */
+  color: rgb(255, 255, 255) !important; /* White text */
+  border-color: rgb(156, 163, 175) !important; /* Visible border */
+}
+
+/* Ensure text is visible in all states */
+.dark .nav-item-google-style * {
+  color: rgb(255, 255, 255) !important; /* Force white text on all child elements */
+}
+
+/* Ensure active state is still blue */
+.dark .nav-item-google-style.bg-blue-700 {
+  background-color: rgb(29, 78, 216) !important; /* Force blue background for active */
+  color: rgb(255, 255, 255) !important; /* Force white text */
+  border-color: rgb(37, 99, 235) !important; /* Force blue border */
+}
+
+/* Force blue background for active state in dark mode */
+.dark .nav-item-google-style.bg-blue-600,
+.dark .nav-item-google-style.bg-blue-700 {
+  background-color: rgb(29, 78, 216) !important; /* Force blue background for active */
+  color: rgb(255, 255, 255) !important; /* Force white text */
+  border-color: rgb(37, 99, 235) !important; /* Force blue border */
+}
+
+/* Override any conflicting styles for active state */
+.dark .nav-item-google-style.bg-blue-600 *,
+.dark .nav-item-google-style.bg-blue-700 * {
+  color: rgb(255, 255, 255) !important; /* Force white text on all child elements */
+}
+
+/* Active state overrides */
+.nav-item-google-style.text-white,
+.nav-item-google-style.text-white * {
+  color: rgb(255, 255, 255) !important; /* Force white text for active state in dark mode */
+}
+
+/* Active state styling - Blue background with white text */
+.nav-item-google-style.bg-blue-600,
+.nav-item-google-style.bg-blue-600 *,
+.nav-item-google-style.bg-blue-700,
+.nav-item-google-style.bg-blue-700 * {
+  color: rgb(255, 255, 255) !important; /* Force white text for active state */
+}
+
+/* Active state for light mode - fallback */
+.nav-item-google-style.text-neutral-900,
+.nav-item-google-style.text-neutral-900 * {
+  color: rgb(17, 24, 39) !important; /* Force dark text for active state in light mode */
 }
 
 .home-page-gradient .text-black,
 .home-page-gradient p.text-xl,
 .home-description {
   color: black !important;
+}
+
+.dark .home-description,
+.dark .home-page-gradient p.text-xl,
+.dark .home-page-gradient .text-black,
+.dark .home-page-gradient .text-xs,
+.dark .home-page-gradient .text-sm,
+.dark .home-page-gradient .text-lg,
+.dark .home-page-gradient .text-xl,
+.dark .home-page-gradient .text-2xl {
+  color: white !important;
+}
+
+/* Mobile-specific responsive text colors */
+@media (max-width: 768px) {
+  .dark .home-page-gradient * {
+    color: white !important;
+  }
+
+  .dark .home-page-gradient .text-black,
+  .dark .home-page-gradient .text-gray-600,
+  .dark .home-page-gradient .text-gray-700,
+  .dark .home-page-gradient .text-neutral-600 {
+    color: white !important;
+  }
 }
 
 .score-text {
@@ -1915,4 +2233,25 @@ footer a:hover {
 [data-testid='footer-action'] > div {
   color: #6b7280;
   font-size: 14px;
+}
+
+.all-sports-title {
+  color: rgb(0, 0, 0) !important; /* Pure black for light mode */
+}
+.dark .all-sports-title {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark mode */
+}
+
+.all-sports-description {
+  color: rgb(75, 85, 99) !important; /* Dark gray for light mode */
+}
+.dark .all-sports-description {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark mode */
+}
+
+.all-sports-welcome-text {
+  color: rgb(0, 0, 0) !important; /* Pure black for light mode */
+}
+.dark .all-sports-welcome-text {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark mode */
 }

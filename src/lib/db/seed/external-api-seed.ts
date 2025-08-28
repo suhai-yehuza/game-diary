@@ -10,6 +10,7 @@ import type {
   IPlayersApiResponse,
   IGamesApiResponse,
 } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import * as schema from '@src/lib/db/schema';
 import { createRapidAPIClient } from '@src/lib/utils/api-client';
 import { formatDuration } from '@src/lib/utils/format-duration';
@@ -26,6 +27,11 @@ async function fetchNBAData<T>(
     console.log(`✅ Successfully fetched ${endpoint}`);
     return data;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'External API Seeding',
+      action: `Fetch ${endpoint}`,
+    });
     console.error(`❌ Error fetching ${endpoint}:`, error);
     throw error;
   }
@@ -81,6 +87,11 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
             })
             .onConflictDoNothing();
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+            component: 'External API Seeding',
+            action: 'Insert league',
+          });
           console.error('❌ Error inserting league:', leagueName, error);
         }
       }
@@ -112,6 +123,11 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
             })
             .onConflictDoNothing();
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+            component: 'External API Seeding',
+            action: 'Insert season',
+          });
           console.error('❌ Error inserting season:', year, error);
         }
       }
@@ -145,6 +161,11 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
               .onConflictDoNothing();
             console.log(`   ✅ Inserted team: ${team.name}`);
           } catch (error) {
+            // Use centralized error handling
+            errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+              component: 'External API Seeding',
+              action: 'Insert team',
+            });
             console.error(`   ❌ Error inserting team ${team.name}:`, error);
           }
         }
@@ -303,6 +324,11 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
           }
           console.log(`   ✅ Processed players for team: ${team.name}`);
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+            component: 'External API Seeding',
+            action: 'Fetch players for team',
+          });
           console.warn(`   ⚠️  Could not fetch players for team ${team.name}:`, error);
           continue; // Continue with next team
         }
@@ -325,6 +351,11 @@ export async function seedExternalApiData(_optimizationConfig?: unknown) {
     console.log(`   Players: ${playerCount.length}`);
     console.log(`   Games: ${gameCount.length}`);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'External API Seeding',
+      action: 'Seed external API data',
+    });
     console.error('❌ Error seeding external API data:', error);
     throw error;
   }
@@ -364,6 +395,11 @@ export async function clearExternalApiData() {
 
     console.log('✅ External API data cleared successfully!');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'External API Seeding',
+      action: 'Clear external API data',
+    });
     console.error('❌ Error clearing external API data:', error);
     throw error;
   }

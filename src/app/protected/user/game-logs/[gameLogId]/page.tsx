@@ -37,6 +37,7 @@ import {
   ParentType,
   type GetGameLogQuery,
 } from '@/lib/types/generated/graphql';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interface moved to src/lib/types/page.types.ts
 
@@ -65,7 +66,11 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
           console.error('No gameLogId in params:', resolved);
         }
       } catch (error) {
-        console.error('Failed to load game log params:', error);
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'React Component',
+          action: 'Load game log params',
+        });
         toast.error('Failed to load game log');
       }
     };

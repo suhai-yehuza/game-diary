@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getMockServer } from '@src/lib/mock-server';
 
 export async function GET(request: NextRequest) {
@@ -106,7 +107,11 @@ export async function GET(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Mock server error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/mock-server',
+    });
     return NextResponse.json(
       {
         error: 'Mock server error',
@@ -173,7 +178,11 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Mock server POST error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/mock-server',
+    });
     return NextResponse.json(
       {
         error: 'Mock server error',

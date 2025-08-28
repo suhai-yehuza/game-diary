@@ -1,9 +1,7 @@
 /**
- * Configuration and constants types
- * This file contains types for:
- * - Constants and enums
- * - API configuration
- * - Game-related constants
+ * Application Constants
+ * This file contains all constants used throughout the application
+ * to avoid circular dependencies with the types system.
  */
 
 // ============= Constants =============
@@ -105,44 +103,6 @@ export const TARGET_TYPES = {
   COMMENT: 'COMMENT',
 } as const;
 
-// Type for the keys of REACTION_EMOJIS
-export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
-
-// Type for the values of REACTION_EMOJIS
-export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
-
-// Type guard to check if a string is a valid ReactionEmojiKey
-export const isReactionEmojiKey = (key: string): key is IReactionEmojiKey => {
-  return key in REACTION_EMOJIS;
-};
-
-// Type guard to check if a string is a valid ReactionEmojiValue
-export const isReactionEmojiValue = (value: string): value is IReactionEmojiValue => {
-  return Object.values(REACTION_EMOJIS).includes(value as IReactionEmojiValue);
-};
-
-// Helper to get emoji value from key
-export const getEmojiValue = (key: IReactionEmojiKey): IReactionEmojiValue => {
-  return REACTION_EMOJIS[key];
-};
-
-// Helper to get key from emoji value
-export const getEmojiKey = (value: IReactionEmojiValue): IReactionEmojiKey => {
-  const entry = Object.entries(REACTION_EMOJIS).find(([_, v]) => v === value);
-  if (!entry) {
-    throw new Error(`Invalid emoji value: ${value}`);
-  }
-  return entry[0] as IReactionEmojiKey;
-};
-
-// Type for GraphQL enum values
-export type IGraphQLReactionEmojiType = IReactionEmojiKey;
-
-// Type guard for GraphQL enum values
-export const isGraphQLReactionEmojiType = (value: string): value is IGraphQLReactionEmojiType => {
-  return isReactionEmojiKey(value);
-};
-
 // Cache Configuration
 export const CACHE_TTL = {
   USER: 3600, // 1 hour
@@ -181,6 +141,16 @@ export const EMOJI_TO_GRAPHQL_MAPPING = Object.fromEntries(
   Object.keys(REACTION_EMOJIS).map(key => [key, key])
 ) as { [K in keyof typeof REACTION_EMOJIS]: K };
 
+export const TABS = {
+  STANDINGS: 'standings',
+  PLAYERS: 'players',
+  TEAMS: 'teams',
+  GAMES: 'games',
+  LEAGUES: 'leagues',
+  SEASONS: 'seasons',
+  SEARCH: 'search',
+} as const;
+
 // ============= Type Definitions =============
 
 // Status and Settings Types
@@ -200,49 +170,48 @@ export type IResourceValue = (typeof RESOURCES)[IResourceType];
 export type IWatchedSettingType = keyof typeof WATCHED_SETTING;
 export type IWatchedScopeType = keyof typeof WATCHED_SCOPE;
 
-export type IDistributionFunction = () => number;
+// Type for the keys of REACTION_EMOJIS
+export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
 
-export interface IRangeConfig {
-  min: number;
-  max: number;
-  getRandom: IDistributionFunction;
-}
+// Type for the values of REACTION_EMOJIS
+export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
 
-export interface IBatchSizeConfig {
-  GAMES: number;
-  GAME_STATS: number;
-  PLAYERS: number;
-}
+export type TabKey = keyof typeof TABS;
+export type TabValue = (typeof TABS)[TabKey];
 
-export interface IRateLimitConfig {
-  MAX_RETRIES: number;
-  BASE_DELAY: number;
-  MAX_DELAY: number;
-  RATE_LIMIT_DELAY: number;
-}
+// ============= Helper Functions =============
 
-export interface IClassificationWeights {
-  private: number;
-  protected: number;
-  public: number;
-}
+// Type guard to check if a string is a valid ReactionEmojiKey
+export const isReactionEmojiKey = (key: string): key is IReactionEmojiKey => {
+  return key in REACTION_EMOJIS;
+};
 
-export interface IDistributionFunctions {
-  natural: (rand: number) => number;
-  bellCurve: (u1: number, u2: number) => number;
-  pareto: (rand: number, alpha?: number) => number;
-  exponential: (rand: number) => number;
-  powerLaw: (rand: number, exponent?: number) => number;
-}
+// Type guard to check if a string is a valid ReactionEmojiValue
+export const isReactionEmojiValue = (value: string): value is IReactionEmojiValue => {
+  return Object.values(REACTION_EMOJIS).includes(value as IReactionEmojiValue);
+};
 
-export interface IPaginationConfig {
-  DEFAULT_PAGE_SIZE: number;
-  DEFAULT_GAME_LOG_PAGE_SIZE: number;
-  DEFAULT_COMMENT_PAGE_SIZE: number;
-  HUGE_SIZE: number;
-  DEFAULT_SORT_DIRECTION: 'ASC' | 'DESC';
-  MAX_CHILD_COMMENT_DEPTH: number;
-}
+// Helper to get emoji value from key
+export const getEmojiValue = (key: IReactionEmojiKey): IReactionEmojiValue => {
+  return REACTION_EMOJIS[key];
+};
+
+// Helper to get key from emoji value
+export const getEmojiKey = (value: IReactionEmojiValue): IReactionEmojiKey => {
+  const entry = Object.entries(REACTION_EMOJIS).find(([_, v]) => v === value);
+  if (!entry) {
+    throw new Error(`Invalid emoji value: ${value}`);
+  }
+  return entry[0] as IReactionEmojiKey;
+};
+
+// Type for GraphQL enum values
+export type IGraphQLReactionEmojiType = IReactionEmojiKey;
+
+// Type guard for GraphQL enum values
+export const isGraphQLReactionEmojiType = (value: string): value is IGraphQLReactionEmojiType => {
+  return isReactionEmojiKey(value);
+};
 
 export const isValidReactionEmoji = (emoji: string): emoji is IReactionEmojiValue => {
   return isReactionEmojiValue(emoji);
@@ -260,14 +229,6 @@ export const isValidWatchedSetting = (
   return setting in WATCHED_SETTING;
 };
 
-// Simple context interface for GraphQL
-export interface IContext {
-  user?: {
-    id: string;
-    username: string;
-  };
-}
-
 // Helper functions to generate enum arrays from constants for database schema usage
 export const getEnumValues = {
   gameStatus: () => Object.values(GAME_STATUS_VALUES) as [string, ...string[]],
@@ -280,16 +241,3 @@ export const getEnumValues = {
   resources: () => Object.values(RESOURCES) as [string, ...string[]],
   sortDirection: () => Object.values(SORT_DIRECTION) as [string, ...string[]],
 } as const;
-
-export const TABS = {
-  STANDINGS: 'standings',
-  PLAYERS: 'players',
-  TEAMS: 'teams',
-  GAMES: 'games',
-  LEAGUES: 'leagues',
-  SEASONS: 'seasons',
-  SEARCH: 'search',
-} as const;
-
-export type TabKey = keyof typeof TABS;
-export type TabValue = (typeof TABS)[TabKey];

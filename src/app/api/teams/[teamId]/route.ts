@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { teams } from '@/lib/db/schema';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -52,7 +53,11 @@ export async function GET(
       updated_at: team.updated_at,
     });
   } catch (error) {
-    console.error('Error fetching team:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/teams/[teamId]',
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

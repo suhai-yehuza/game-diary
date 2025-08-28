@@ -2,6 +2,8 @@ import fs from 'fs';
 
 import { config } from 'dotenv-flow';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 import { isCI } from './e2e-test-setup';
 
 // Re-export isCI for convenience
@@ -40,6 +42,11 @@ export function loadEnvironmentVariables(): void {
       console.log('✅ Environment variables loaded successfully');
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Environment Loader',
+      action: 'Load environment variables',
+    });
     console.warn('⚠️  Failed to load environment variables from .env files:', error);
     console.log('📝 Using system environment variables instead');
   }

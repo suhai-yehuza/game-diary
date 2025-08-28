@@ -3,6 +3,8 @@ import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { test, expect, describe, beforeAll, afterAll } from 'vitest';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 // Load environment variables
 config();
 
@@ -361,6 +363,11 @@ describe('Notification Triggers Integration Tests', () => {
         await db.execute(`DELETE FROM users WHERE id LIKE 'test-%'`);
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Integration Test',
+        action: 'Notification triggers cleanup',
+      });
       console.warn('Cleanup warning:', error);
     }
   }

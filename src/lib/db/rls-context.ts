@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { auditLogger } from '@/lib/services/audit-logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 
 // RLS Context Manager
@@ -36,7 +37,11 @@ export class RLSContextManager {
         details: { event: 'setUserContext' },
       });
     } catch (error) {
-      logger.error('Failed to set user context for RLS:', error as Error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Context Manager',
+        action: 'Set user context for RLS',
+      });
       // Continue without RLS context if it fails
     }
   }
@@ -49,7 +54,11 @@ export class RLSContextManager {
         `AUDIT: RLS context set - User ID: ${userId}, Timestamp: ${new Date().toISOString()}`
       );
     } catch (error) {
-      logger.error('Failed to log RLS context setting:', error as Error);
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Context Manager',
+        action: 'Log RLS context setting',
+      });
     }
   }
 
@@ -74,7 +83,11 @@ export class RLSContextManager {
         });
       }
     } catch (error) {
-      logger.error('Failed to clear user context for RLS:', error as Error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Context Manager',
+        action: 'Clear user context for RLS',
+      });
     }
   }
 
@@ -86,7 +99,11 @@ export class RLSContextManager {
         `AUDIT: RLS context cleared - User ID: ${userId}, Timestamp: ${new Date().toISOString()}`
       );
     } catch (error) {
-      logger.error('Failed to log RLS context clearing:', error as Error);
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Context Manager',
+        action: 'Log RLS context clearing',
+      });
     }
   }
 

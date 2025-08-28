@@ -13,33 +13,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
-
-export interface ITeamFilterState {
-  searchTerm: string;
-  conferenceFilter: string;
-  divisionFilter: string;
-  franchiseFilter: string;
-  sortBy: 'name' | 'city' | 'conference' | 'division';
-  sortDirection: 'asc' | 'desc';
-}
-
-export interface ITeamFilterOptions {
-  conferences: string[];
-  divisions: string[];
-}
-
-export interface ITeamFiltersProps {
-  filters: ITeamFilterState;
-  filterOptions: ITeamFilterOptions;
-  showAdvancedFilters: boolean;
-  hasActiveFilters: boolean;
-  totalTeams: number;
-  filteredTeamsCount: number;
-  onUpdateFilter: (key: keyof ITeamFilterState, value: string) => void;
-  onClearFilters: () => void;
-  onToggleAdvancedFilters: () => void;
-  onRefresh: () => void;
-}
+import type { ITeamFiltersProps } from '@/lib/types';
 
 export function TeamFilters({
   filters,

@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { ReactionPicker } from '@/app/components/reactions/ReactionPicker';
+import { REACTION_EMOJIS } from '@/lib/constants';
 import type { IReaction } from '@/lib/types';
-import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 // Mock the useReactions hook

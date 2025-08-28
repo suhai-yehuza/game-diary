@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { SPORTS_CONFIG } from '@src/app/components/sports/SportsConfig';
 import { APP_CONFIG } from '@src/lib/config/app.config';
 import {
@@ -17,7 +18,7 @@ import {
   waitForPageLoad,
 } from '@tests/e2e/utils/test-utils';
 
-import { runCriticalSuite } from './critical.spec';
+import { runCriticalSuite } from './shared-suite-runners';
 
 // Helper function to reveal navigation elements on mobile devices
 async function revealNavLinksIfMobile(page: Page) {
@@ -78,6 +79,11 @@ async function revealNavLinksIfMobile(page: Page) {
           return;
         }
       } catch (error) {
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'E2E Navigation Test',
+          action: 'Navigation strategy',
+        });
         console.log(`Navigation strategy failed: ${String(error)}`);
         continue;
       }
@@ -92,6 +98,11 @@ async function checkA11y(page: Page) {
     await expect(page.locator('main')).toBeVisible();
     await expect(page.locator('body')).toBeVisible();
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Navigation Test',
+      action: 'Accessibility check',
+    });
     console.warn('⚠️ Basic accessibility check failed:', error);
   }
 }
@@ -108,6 +119,11 @@ export async function navigationTestSportsPagesNavigation(page: Page) {
       await waitForPageLoad(page);
       await checkA11y(page);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Navigation Test',
+        action: 'Sports page navigation',
+      });
       console.warn(`⚠️ Sports page navigation failed for ${sportHref}:`, error);
     }
   }
@@ -137,6 +153,11 @@ export async function navigationTestProtectedRoutesNavigation(page: Page) {
         expectRedirect: false,
       });
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Navigation Test',
+        action: 'Protected route navigation',
+      });
       console.warn(`⚠️ Protected route navigation failed for ${route}:`, error);
     }
   }
@@ -156,6 +177,11 @@ export async function navigationTestLinkNavigation(page: Page) {
       await waitForPageLoad(page);
       await checkA11y(page);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Navigation Test',
+        action: 'Link navigation',
+      });
       console.warn(`⚠️ Link navigation failed for ${route}:`, error);
     }
   }

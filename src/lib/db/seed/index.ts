@@ -4,6 +4,7 @@ import { resolve } from 'path';
 import { config } from 'dotenv';
 
 import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import {
   getConfigByEnvironment,
@@ -567,6 +568,11 @@ async function main() {
       );
     });
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Seeding',
+      action: 'Main seeding process',
+    });
     console.error('\n❌ Database seeding failed:', error);
     process.exit(1);
   }

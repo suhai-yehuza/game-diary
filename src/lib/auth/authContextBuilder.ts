@@ -1,19 +1,8 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import type { NextRequest } from 'next/server';
 
-interface IAuthContextResult {
-  user: {
-    id: string;
-    email?: string;
-    username?: string;
-    firstName?: string;
-    lastName?: string;
-  } | null;
-  userId: string | null;
-  isAuthenticated: boolean;
-  authSource: 'clerk' | 'fallback' | 'bypass' | 'none';
-  error?: string;
-}
+import type { IAuthContextResult } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 class AuthCircuitBreaker {
   private failures = 0;
@@ -127,7 +116,11 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
         }
       }
     } catch (error) {
-      console.error('[AUTH ERROR] Clerk authentication failed:', error);
+      // Use centralized error handling
+      errorHandlers.authentication(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Auth Context Builder',
+        action: 'Clerk authentication',
+      });
       circuitBreaker.recordFailure();
 
       // Return unauthenticated state
@@ -148,7 +141,11 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
       authSource: 'none',
     };
   } catch (error) {
-    console.error('[AUTH CRITICAL ERROR] Error in auth context builder:', error);
+    // Use centralized error handling
+    errorHandlers.authentication(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Auth Context Builder',
+      action: 'Build auth context',
+    });
     circuitBreaker.recordFailure();
 
     return {

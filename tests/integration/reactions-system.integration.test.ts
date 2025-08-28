@@ -1,8 +1,8 @@
 import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
+import { REACTION_EMOJIS, TARGET_TYPES } from '@/lib/constants';
 import { getAppUrl } from '@src/lib/config/app.config';
-import { REACTION_EMOJIS, TARGET_TYPES } from '@src/lib/types/constant.types';
 import { createMockUser, createMockGameLog, generateId } from '@tests/shared/utils/test-data';
 
 if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;

@@ -7,6 +7,7 @@ import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
 import type { GraphQLContext, IGameResponse, IGamesApiResponse } from '@/lib/types';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Simple in-memory cache for friendship checks
@@ -666,7 +667,11 @@ export const gameLogQueryResolvers = {
         totalCount: totalCount,
       };
     } catch (error) {
-      console.error('Error in friendsGameLogs resolver:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch friends game logs',
+      });
       // Return empty result on error to prevent breaking the UI
       return {
         edges: [],
@@ -725,9 +730,11 @@ export const gameLogMutationResolvers = {
     });
 
     if (!userExists) {
-      console.error('CreateGameLog Debug - User not found in database:', {
-        userId: context.user.id,
-        userExists: false,
+      // Use centralized error handling
+      errorHandlers.validation(new Error('User not found in database'), {
+        component: 'GraphQL Resolver',
+        action: 'Create game log - user validation',
+        metadata: { userId: context.user.id, userExists: false },
       });
       return {
         gameLog: null,
@@ -864,7 +871,11 @@ export const gameLogMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Failed to create game log:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Create game log',
+      });
       return {
         gameLog: null,
         errors: [
@@ -1005,10 +1016,11 @@ export const gameLogMutationResolvers = {
         errors: [],
       };
     } catch (err) {
-      // Only log critical errors in development
-      if (process.env.NODE_ENV === 'development') {
-        console.error('UpdateGameLog resolver error:', err);
-      }
+      // Use centralized error handling
+      errorHandlers.database(err instanceof Error ? err : new Error(String(err)), {
+        component: 'GraphQL Resolver',
+        action: 'Update game log',
+      });
       return {
         gameLog: null,
         errors: [
@@ -1143,7 +1155,11 @@ export const gameLogResolver = {
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {
-      console.error('Error fetching comment count:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch comment count',
+      });
       return 0;
     }
   },
@@ -1168,7 +1184,11 @@ export const gameLogResolver = {
 
       return totalCountResult?.[0]?.count ?? 0;
     } catch (error) {
-      console.error('Error fetching reaction count:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch reaction count',
+      });
       return 0;
     }
   },

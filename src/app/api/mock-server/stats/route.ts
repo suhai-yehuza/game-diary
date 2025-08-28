@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getMockServer } from '@src/lib/mock-server';
 
 export async function GET() {
@@ -8,7 +9,11 @@ export async function GET() {
     const statsData = await mockServer.getStats();
     return NextResponse.json(statsData);
   } catch (error) {
-    console.error('Mock server stats error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/mock-server/stats',
+    });
     return NextResponse.json(
       {
         error: 'Mock server stats failed',

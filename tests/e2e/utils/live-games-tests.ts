@@ -1,5 +1,6 @@
 import { expect, type Page } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { createMockLiveGames } from '@src/lib/mock/liveGamesMock';
 
 import { waitForNetworkIdle, waitForPageLoad } from './test-utils';
@@ -227,6 +228,11 @@ export async function testLiveGamesStates(page: Page) {
       responseLength: mockData.data?.response?.length || 0,
     });
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Live Games Tests',
+      action: 'Fetch mock data',
+    });
     console.log('Debug - Failed to fetch mock data:', error);
   }
 

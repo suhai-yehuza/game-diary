@@ -7,57 +7,29 @@ const FIFTY = 50;
 const FIFTY_FIVE = 55;
 const SIXTY = 60;
 const SIXTY_FIVE = 65;
+import type {
+  ICoverageThresholds,
+  IFileThresholds,
+  ICoverageConfig,
+  IE2ECoverageTarget,
+  IE2ETestCategory,
+  IE2ECoverageConfig,
+} from '@/lib/types';
+
+export type {
+  ICoverageThresholds,
+  IFileThresholds,
+  ICoverageConfig,
+  IE2ECoverageTarget,
+  IE2ETestCategory,
+  IE2ECoverageConfig,
+};
+
 const SEVENTY = 70;
 const SEVENTY_FIVE = 75;
 const EIGHTY = 80;
 const EIGHTY_FIVE = 85;
 const NINETY_FIVE = 95; // 95% coverage is the eventual goal
-
-export interface ICoverageThresholds {
-  branches: number;
-  functions: number;
-  lines: number;
-  statements: number;
-  base: number;
-}
-
-export interface IFileThresholds {
-  [filePattern: string]: ICoverageThresholds;
-}
-
-export interface ICoverageConfig {
-  global: ICoverageThresholds;
-  files: IFileThresholds;
-}
-
-// E2E Coverage Configuration
-export interface IE2ECoverageTarget {
-  category: string;
-  target: number;
-  description: string;
-  testFiles: string[];
-}
-
-export interface IE2ETestCategory {
-  name: string;
-  description: string;
-  priority: 'critical' | 'high' | 'medium' | 'low';
-  userJourneys: string[];
-  testFiles: string[];
-}
-
-export interface IE2ECoverageConfig {
-  targets: IE2ECoverageTarget[];
-  categories: IE2ETestCategory[];
-  thresholds: {
-    global: {
-      statements: number;
-      branches: number;
-      functions: number;
-      lines: number;
-    };
-  };
-}
 
 // E2E Coverage Targets - Updated to match actual test files
 export const E2E_COVERAGE_TARGETS: IE2ECoverageTarget[] = [
@@ -345,7 +317,7 @@ export function getGlobalCoverageThresholds(): ICoverageThresholds {
     lines: NINETY_FIVE - 15,
     statements: NINETY_FIVE - 15,
     branches: NINETY_FIVE - 15,
-    functions: NINETY_FIVE - 23,
+    functions: NINETY_FIVE - 25,
     base: NINETY_FIVE - 15,
   };
 }

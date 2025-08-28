@@ -5,6 +5,7 @@ import { friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { FRIENDSHIP_STATUS } from '@/lib/types';
 import type { GraphQLContext } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Friendship Query Resolvers
@@ -145,7 +146,11 @@ export const friendshipQueryResolvers = {
         totalCount: totalCount?.[0]?.count || 0,
       };
     } catch (error) {
-      console.error('Error fetching user friendships:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch user friendships',
+      });
       return {
         edges: [],
         pageInfo: {
@@ -247,7 +252,11 @@ export const friendshipQueryResolvers = {
         totalCount: totalCount?.[0]?.count || 0,
       };
     } catch (error) {
-      console.error('Error fetching friendship requests:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch friendship requests',
+      });
       return {
         edges: [],
         pageInfo: {
@@ -297,7 +306,11 @@ export const friendshipQueryResolvers = {
         isInitiator: friendship.user_id === context.user.id,
       };
     } catch (error) {
-      console.error('Error fetching friendship status:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch friendship status',
+      });
       return {
         status: null,
         friendshipId: null,
@@ -440,7 +453,11 @@ export const friendshipMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Error sending friend request:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Send friend request',
+      });
       return {
         friendship: null,
         errors: [{ message: 'Failed to send friend request', code: 'SEND_FRIEND_REQUEST_ERROR' }],
@@ -516,7 +533,11 @@ export const friendshipMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Error accepting friend request:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Accept friend request',
+      });
       return {
         friendship: null,
         errors: [
@@ -594,7 +615,11 @@ export const friendshipMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Error rejecting friend request:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Reject friend request',
+      });
       return {
         friendship: null,
         errors: [
@@ -655,7 +680,11 @@ export const friendshipMutationResolvers = {
         };
       }
     } catch (error) {
-      console.error('Error removing friend:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Remove friend',
+      });
       return {
         success: false,
         errors: [{ message: 'Failed to remove friend', code: 'REMOVE_FRIEND_ERROR' }],

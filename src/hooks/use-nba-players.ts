@@ -2,15 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import type { IPlayersApiResponse, IPlayerResponse } from '@/lib/types';
+import type { IPlayersApiResponse, IPlayerResponse, IUseNBAPlayersOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
-
-interface IUseNBAPlayersOptions {
-  skip?: boolean;
-  forceRealData?: boolean;
-  teamId?: string;
-  season?: string;
-}
 
 function isPlayersApiResponse(data: unknown): data is IPlayersApiResponse {
   return (

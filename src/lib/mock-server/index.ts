@@ -1,6 +1,7 @@
 // Mock Server Barrel Export
 // Centralized exports for the mock server module
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import { mockDataProvider } from '@src/lib/mock';
 import type {
@@ -119,6 +120,11 @@ class MockServer {
       };
     } catch (error) {
       this.errorCount++;
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Mock Server',
+        action: 'Handle database operation',
+      });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
@@ -149,6 +155,11 @@ class MockServer {
       };
     } catch (error) {
       this.errorCount++;
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Mock Server',
+        action: 'Handle external API',
+      });
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',

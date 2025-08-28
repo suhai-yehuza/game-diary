@@ -12,14 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
-import type { IFriendship } from '@/lib/types';
-
-export interface IFriendshipCardProps {
-  friendship: IFriendship;
-  currentUserId: string;
-  onRemove: (friendshipId: string) => Promise<void>;
-  loading: boolean;
-}
+import type { IFriendshipCardProps } from '@/lib/types';
 
 export function FriendshipCard({
   friendship,

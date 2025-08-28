@@ -2,13 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import type { ITeamsApiResponse, ITeamResponse } from '@/lib/types';
+import type { ITeamsApiResponse, ITeamResponse, IUseNBATeamsOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
-
-interface IUseNBATeamsOptions {
-  skip?: boolean;
-  forceRealData?: boolean;
-}
 
 function isTeamsApiResponse(data: unknown): data is ITeamsApiResponse {
   return (

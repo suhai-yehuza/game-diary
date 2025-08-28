@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Notification Query Resolvers
 export const notificationQueryResolvers = {
@@ -102,7 +103,11 @@ export const notificationQueryResolvers = {
         totalCount,
       };
     } catch (error) {
-      console.error('Error fetching user notifications:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch user notifications',
+      });
       throw new Error('Failed to fetch notifications');
     }
   },
@@ -121,7 +126,11 @@ export const notificationQueryResolvers = {
 
       return result?.[0]?.count ?? 0;
     } catch (error) {
-      console.error('Error fetching unread notifications count:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Fetch unread notifications count',
+      });
       return 0;
     }
   },
@@ -165,7 +174,11 @@ export const notificationMutationResolvers = {
         };
       }
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Mark notification as read',
+      });
       return {
         success: false,
         errors: [{ message: 'Failed to mark notification as read', code: 'MARK_READ_ERROR' }],
@@ -193,7 +206,11 @@ export const notificationMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Mark all notifications as read',
+      });
       return {
         success: false,
         errors: [

@@ -1,24 +1,10 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
-import type { IPlayerResponse } from '@/lib/types';
-
-export interface IEnhancedPlayerFilterState {
-  searchTerm: string;
-  positionFilter: string;
-  teamFilter: string;
-  activeFilter: string;
-  collegeFilter: string;
-  countryFilter: string;
-  sortBy: 'name' | 'position' | 'team' | 'age' | 'experience';
-  sortDirection: 'asc' | 'desc';
-}
-
-export interface IEnhancedPlayerFilterOptions {
-  positions: string[];
-  teams: string[];
-  colleges: string[];
-  countries: string[];
-}
+import type {
+  IPlayerResponse,
+  IEnhancedPlayerFilterState,
+  IEnhancedPlayerFilterOptions,
+} from '@/lib/types';
 
 const INITIAL_FILTERS: IEnhancedPlayerFilterState = {
   searchTerm: '',

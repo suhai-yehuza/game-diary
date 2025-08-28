@@ -1,19 +1,19 @@
 import { test } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { APP_CONFIG } from '@src/lib/config/app.config';
 import { SPORTS_PAGES } from '@tests/e2e/utils/constants';
 import { isMockModeEnabled, getMockData } from '@tests/e2e/utils/mock-config';
 import { checkPerformanceMetrics } from '@tests/e2e/utils/performance';
 import { commonTestSetup, enhancedTestSetup } from '@tests/e2e/utils/setup';
-import {
-  testHomePageWithConfig,
-  testSignInModalVariants,
-  testBasicPerformance,
-  testBasicAccessibility,
-} from '@tests/e2e/utils/shared-tests';
 import { clearTestData, TIMEOUTS, safeGoto, waitForPageLoad } from '@tests/e2e/utils/test-utils';
 
-import { runSanitySuite } from './sanity.spec';
+import {
+  runSmokeSuite,
+  runSanitySuite,
+  smokeTestAllSportsPages,
+  smokeTestSignInModalClickOutside,
+} from './shared-suite-runners';
 
 /**
  * Smoke Test Suite
@@ -88,6 +88,11 @@ class TestRunner {
       await testFn();
       console.log(`✅ Test completed: ${this.testName}`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Test',
+        action: `Test: ${this.testName}`,
+      });
       console.error(`❌ Test failed: ${this.testName}`, error);
 
       // Check if the error is due to browser context being closed
@@ -150,105 +155,16 @@ class TestRunner {
   }
 }
 
-// Atomic smoke-level test functions using shared utilities
-export async function smokeTestAllSportsPages(page: any) {
-  const runner = new TestRunner('sports-pages');
-
-  await runner.runTest(page, async () => {
-    // Test only the most reliable sports pages
-    const reliableSportsPages = ['/sports/nba', '/sports/nfl', '/sports/mlb'];
-
-    for (const path of reliableSportsPages) {
-      try {
-        await safeGoto(page, path);
-        await waitForPageLoad(page);
-
-        // Basic structure check
-        await page.locator('body').waitFor({ timeout: TIMEOUTS.SHORT });
-
-        console.log(`✅ Sports page ${path} loaded successfully`);
-      } catch (_error) {
-        console.log(`⚠️ Sports page ${path} failed, continuing...`);
-      }
-    }
-  });
-}
-
-export async function smokeTestDashboardPage(page: any) {
-  const runner = new TestRunner('dashboard');
-
-  await runner.runTest(page, async () => {
-    // Skip dashboard test in smoke tests since it requires authentication
-    // Dashboard functionality should be tested in dedicated auth tests
-    console.log('⏭️ Skipping dashboard test in smoke suite - requires authentication');
-    console.log('💡 Dashboard functionality is tested in dedicated auth-bypass tests');
-  });
-}
-
-export async function smokeTestSignInModalClickOutside(page: any) {
-  const runner = new TestRunner('sign-in-modal');
-
-  await runner.runTest(page, async () => {
-    await testHomePageWithConfig(page, {
-      checkAccessibility: false,
-      checkPerformance: false,
-    });
-    await testSignInModalVariants(page, { method: 'click-outside' });
-  });
-}
-
-export async function smokeTestBasicAccessibility(page: any) {
-  const runner = new TestRunner('accessibility');
-
-  await runner.runTest(page, async () => {
-    await testBasicAccessibility(page);
-  });
-}
-
-export async function smokeTestBasicPerformance(page: any) {
-  const runner = new TestRunner('performance');
-
-  await runner.runTest(page, async () => {
-    await testBasicPerformance(page);
-  });
-}
-
-export async function smokeTestMajorSectionNavigation(page: any) {
-  const runner = new TestRunner('navigation');
-
-  await runner.runTest(page, async () => {
-    // Test basic navigation without browser back/forward
-    await testHomePageWithConfig(page, {
-      checkAccessibility: false,
-      checkPerformance: false,
-    });
-
-    // Test direct navigation to sports pages
-    await safeGoto(page, '/sports/nba');
-    await waitForPageLoad(page);
-
-    await safeGoto(page, '/');
-    await waitForPageLoad(page);
-
-    console.log('✅ Basic navigation test completed');
-  });
-}
-
 // Enhanced suite runner with better organization
-export async function runSmokeSuite(page: any) {
+export async function runSmokeSuiteWithRunner(page: any) {
   const runner = new TestRunner('full-smoke-suite');
 
   await runner.runTest(page, async () => {
     // Run sanity checks first
     await runSanitySuite(page);
 
-    // Run core smoke tests
-    await smokeTestAllSportsPages(page);
-    await smokeTestDashboardPage(page);
-    await smokeTestSignInModalClickOutside(page);
-    await smokeTestBasicAccessibility(page);
-    await smokeTestBasicPerformance(page);
-    await smokeTestMajorSectionNavigation(page);
+    // Run core smoke tests using shared functions
+    await runSmokeSuite(page);
   });
 }
 
@@ -271,7 +187,7 @@ test.describe('Smoke Tests', () => {
   test('@smoke full smoke suite', async ({ page }) => {
     // Set explicit timeout to match Playwright configuration
     test.setTimeout(APP_CONFIG.TEST_TIMEOUT);
-    await runSmokeSuite(page);
+    await runSmokeSuiteWithRunner(page);
   });
 });
 
@@ -299,7 +215,7 @@ test.describe('Enhanced Smoke Tests with Mock Data', () => {
         console.log(`📊 Available mock data: ${Object.keys(mockData).join(', ')}`);
       }
 
-      await runSmokeSuite(page);
+      await runSmokeSuiteWithRunner(page);
     });
   });
 });

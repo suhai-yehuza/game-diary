@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 import { waitForNetworkIdle, safeGoto, waitForPageLoad, TIMEOUTS } from './test-utils';
 
 // Helper to close modal backdrops/overlays if present (for mobile)
@@ -136,6 +138,11 @@ export async function testSignInModal(
       console.log('Sign-in button is disabled, skipping modal test');
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Auth Modal',
+      action: 'Sign-in modal test',
+    });
     console.warn('⚠️ Sign-in modal test failed:', error);
     // Don't throw the error, just log it and continue
   }
@@ -235,6 +242,11 @@ async function closeModalWithFallbacks(page: Page, closeMethod: 'escape' | 'clic
         return;
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Auth Modal',
+        action: 'Modal close method',
+      });
       console.log(`Close method ${i + 1} failed: ${String(error)}`);
       continue;
     }
@@ -257,6 +269,11 @@ export async function testProtectedRoutes(
         expectRedirectToHome: true,
       });
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Auth Modal',
+        action: 'Protected route test',
+      });
       console.warn(`⚠️ Protected route test for ${route} failed:`, error);
     }
   }

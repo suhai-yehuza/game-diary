@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { nba_games, teams } from '@/lib/db/schema';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -88,7 +89,11 @@ export async function GET(
 
     return NextResponse.json(gamesWithTeams);
   } catch (error) {
-    console.error('Error fetching team games:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/teams/[teamId]/games',
+    });
     return NextResponse.json({ error: 'Failed to fetch team games' }, { status: 500 });
   }
 }

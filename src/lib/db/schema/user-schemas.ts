@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, integer } from 'drizzle-orm/pg-core';
 
+import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/constants';
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types/constant.types';
 
 // Users table - minimal schema focusing on app-specific data and relationships
 export const users = pgTable(

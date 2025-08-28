@@ -1,4 +1,10 @@
-export interface ISearchResult {
+export interface ISearchResult<T = unknown> {
+  items?: T[];
+  total?: number;
+  query?: string;
+  filters?: Record<string, any>;
+  suggestions?: string[];
+  // User-specific fields
   id: string;
   type: 'user' | 'game_log' | 'game' | 'team' | 'player';
   username?: string;

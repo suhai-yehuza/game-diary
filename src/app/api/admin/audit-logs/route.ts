@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { audit_logs } from '@/lib/db/schema/audit-schemas';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(request: Request) {
   try {
@@ -111,7 +112,11 @@ export async function GET(request: Request) {
       offset,
     });
   } catch (error) {
-    console.error('Error in /api/admin/audit-logs:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/admin/audit-logs',
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
@@ -231,7 +236,11 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
-    console.error('Error in /api/admin/audit-logs POST:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/admin/audit-logs',
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

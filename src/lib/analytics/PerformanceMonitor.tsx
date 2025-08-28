@@ -2,15 +2,8 @@
 
 import { useEffect } from 'react';
 
+import type { IPerformanceMonitorProps } from '@/lib/types';
 import { performanceMonitoring } from '@/lib/utils/performance-monitoring';
-
-interface IPerformanceMonitorProps {
-  enabled?: boolean;
-  trackCoreWebVitals?: boolean;
-  trackMemoryUsage?: boolean;
-  trackNetworkConditions?: boolean;
-  trackResourceLoading?: boolean;
-}
 
 export function PerformanceMonitor({
   // TEMPORARILY DISABLED: Performance monitoring to reduce analytics costs

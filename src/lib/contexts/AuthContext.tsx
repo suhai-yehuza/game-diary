@@ -2,15 +2,8 @@
 import { useUser } from '@clerk/nextjs';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-interface IAuthContextValue {
-  isAuthenticated: boolean;
-  user: unknown;
-  isLoading: boolean;
-  authError: string | null;
-  hasPermission: (permission: string) => boolean;
-  refreshAuth: () => Promise<void>;
-  logout: () => Promise<void>;
-}
+import type { IAuthContextValue } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 const AuthContext = createContext<IAuthContextValue | undefined>(undefined);
 
@@ -59,6 +52,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // In a real implementation, you might call Clerk's refresh methods
       window.location.reload();
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.authentication(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Auth Context',
+        action: 'Refresh authentication',
+      });
       setAuthError(error instanceof Error ? error.message : 'Failed to refresh authentication');
     } finally {
       setIsLoading(false);
@@ -72,6 +70,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // This would be called from a sign-out button component
       window.location.href = '/sign-in';
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.authentication(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Auth Context',
+        action: 'Sign out',
+      });
       setAuthError(error instanceof Error ? error.message : 'Failed to sign out');
     }
     return Promise.resolve();

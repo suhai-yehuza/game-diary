@@ -38,6 +38,7 @@ import {
   updateUserWithRLS,
 } from '@/lib/db/rls-context';
 import { logger } from '@/lib/utils/logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Initialize database client for tests
 const db = createDatabaseClient({ env: process.env.NODE_ENV || 'development' });
@@ -57,6 +58,11 @@ class TestRLSContextManager {
     try {
       await db.execute(sql`SELECT set_current_user_context(${userId})`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Policy Test',
+        action: 'Set user context for RLS',
+      });
       console.error('Failed to set user context for RLS:', error);
     }
   }
@@ -67,6 +73,11 @@ class TestRLSContextManager {
     try {
       await db.execute(sql`SELECT clear_current_user_context()`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'RLS Policy Test',
+        action: 'Clear user context for RLS',
+      });
       console.error('Failed to clear user context for RLS:', error);
     }
   }
@@ -139,6 +150,11 @@ async function cleanupTestData(): Promise<void> {
     );
     logger.info('✅ Test data cleaned up');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'Clean up test data',
+    });
     logger.error(
       '❌ Failed to clean up test data:',
       error instanceof Error ? error : new Error(String(error))
@@ -159,6 +175,11 @@ async function setupTestData(): Promise<void> {
     }
     logger.info('✅ Test data setup complete');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'Setup test data',
+    });
     logger.error(
       '❌ Failed to setup test data:',
       error instanceof Error ? error : new Error(String(error))
@@ -219,6 +240,11 @@ async function testRLSContextManagement(): Promise<boolean> {
 
     return true;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'RLS context management test',
+    });
     logger.error(
       '❌ RLS context management test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -356,6 +382,11 @@ async function testRLSHelperFunctions(): Promise<boolean> {
 
     return true;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'RLS helper functions test',
+    });
     logger.error(
       '❌ RLS helper functions test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -408,6 +439,11 @@ async function testRLSDatabaseFunctions(): Promise<boolean> {
 
     return true;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'RLS database functions test',
+    });
     logger.error(
       '❌ RLS database functions test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -461,6 +497,11 @@ async function testRLSAuditLogging(): Promise<boolean> {
 
     return true;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'RLS audit logging test',
+    });
     logger.error(
       '❌ RLS audit logging test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -499,6 +540,11 @@ async function runRLSTests(): Promise<void> {
     results.databaseFunctions = await testRLSDatabaseFunctions();
     results.auditLogging = await testRLSAuditLogging();
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'RLS Policy Test',
+      action: 'Main RLS tests',
+    });
     logger.error(
       '❌ RLS tests failed with error:',
       error instanceof Error ? error : new Error(String(error))

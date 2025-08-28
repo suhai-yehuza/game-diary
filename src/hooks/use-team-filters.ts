@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import type { ITeamFilterState, ITeamFilterOptions } from '@/app/components/sports/team-filters';
-import type { ITeamResponse } from '@/lib/types';
+import type { ITeamFilterState, ITeamFilterOptions, ITeamResponse } from '@/lib/types';
 
 export type { ITeamFilterState, ITeamFilterOptions };
 

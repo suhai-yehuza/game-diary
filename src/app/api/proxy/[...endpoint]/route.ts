@@ -6,6 +6,7 @@ import {
   isTestEnvironment,
   isE2ETestEnvironment,
 } from '@/lib/config/app.config';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
 import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
@@ -151,7 +152,11 @@ export async function GET(
       pendingRequests.delete(cacheKey);
     }
   } catch (error) {
-    console.error('[API Proxy] Unexpected error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/proxy/[...endpoint]',
+    });
 
     // Return a graceful error response instead of 500
     return NextResponse.json(

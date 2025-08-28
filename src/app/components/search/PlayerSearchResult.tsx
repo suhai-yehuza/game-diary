@@ -3,7 +3,7 @@
 import { User, MapPin, GraduationCap, Calendar, Ruler, Trophy, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { IPlayerSearchResultProps } from '@/lib/types/components.types';
+import type { IPlayerSearchResultProps } from '@/lib/types';
 
 function _formatDate(dateString: string) {
   try {

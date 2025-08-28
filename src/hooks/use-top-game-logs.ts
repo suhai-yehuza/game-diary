@@ -2,12 +2,7 @@ import { useQuery } from '@apollo/client';
 import { useMemo } from 'react';
 
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
-import type { IGameLog } from '@/lib/types';
-
-export interface ITopGameLogsOptions {
-  limit?: number;
-  skip?: boolean;
-}
+import type { IGameLog, ITopGameLogsOptions } from '@/lib/types';
 
 export function useTopGameLogs(options: ITopGameLogsOptions = {}) {
   const { limit = 100, skip = false } = options;

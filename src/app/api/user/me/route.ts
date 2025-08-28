@@ -1,6 +1,8 @@
 import { auth, currentUser } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 export async function GET() {
   try {
     // E2E Auth Bypass: If running in E2E or Playwright test mode, return a mock user
@@ -43,7 +45,12 @@ export async function GET() {
       last_name: user.lastName,
     });
   } catch (error) {
-    console.error('Error in /api/user/me:', error);
+    // Use centralized error handling
+    errorHandlers.authentication(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/user/me',
+    });
+
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

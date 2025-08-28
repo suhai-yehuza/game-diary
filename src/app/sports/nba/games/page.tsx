@@ -38,7 +38,7 @@ export default function NBAGamesPage() {
   }, []);
 
   const seasonsToFetch = useMemo(() => {
-    return getSeasonsToFetch(currentSeasonFilter);
+    return getSeasonsToFetch(currentSeasonFilter).map(String);
   }, [currentSeasonFilter, getSeasonsToFetch]);
 
   // Fetch games data

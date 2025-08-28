@@ -5,6 +5,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { z } from 'zod';
 import { auditLogger } from '@/lib/services/audit-logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Simple logger for CLI
 const logger = {
@@ -69,6 +70,11 @@ export class KeyManager {
         return KeyStoreSchema.parse(parsed);
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Load key store',
+      });
       logger.error('Failed to load existing key store:', error);
     }
 
@@ -115,6 +121,11 @@ export class KeyManager {
       writeFileSync(this.keyStorePath, JSON.stringify(keyStore, null, 2));
       logger.info(`Key store saved to ${this.keyStorePath}`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Save key store',
+      });
       logger.error('Failed to save key store:', error);
       throw error;
     }
@@ -167,6 +178,11 @@ export class KeyManager {
         `AUDIT: Key created - ID: ${keyId}, Environment: ${this.environment}, Description: ${description || 'No description'}`
       );
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Log key creation',
+      });
       logger.error('Failed to log key creation:', error);
     }
   }
@@ -202,6 +218,11 @@ export class KeyManager {
         `AUDIT: Key activated - ID: ${keyId}, Environment: ${this.environment}, Previous Active: ${previousActiveKey || 'None'}`
       );
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Log key activation',
+      });
       logger.error('Failed to log key activation:', error);
     }
   }
@@ -255,6 +276,11 @@ export class KeyManager {
         `AUDIT: Key rotation - New Key: ${newKeyId}, Previous Active: ${previousActiveKey || 'None'}, Environment: ${this.environment}, Reason: ${description || 'No reason provided'}`
       );
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Log key rotation',
+      });
       logger.error('Failed to log key rotation:', error);
     }
   }
@@ -350,6 +376,11 @@ KEY_CREATED=${this.keyStore.keys[keyId]?.createdAt || 'unknown'}
       logger.info('Key store validation passed');
       return true;
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Key Management',
+        action: 'Validate key store',
+      });
       logger.error('Key store validation failed:', error);
       return false;
     }
@@ -430,6 +461,11 @@ Examples:
 `);
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Key Management CLI',
+      action: 'Main command execution',
+    });
     console.error('Error:', error);
     process.exit(1);
   }

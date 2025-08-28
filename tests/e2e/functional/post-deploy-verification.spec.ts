@@ -1,6 +1,7 @@
 import { test, expect } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { isMockModeEnabled } from '@tests/e2e/utils/mock-config';
 import { checkPerformanceMetrics } from '@tests/e2e/utils/performance';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
@@ -89,6 +90,11 @@ class PostDeployTestRunner {
       await testFn();
       console.log(`✅ [CRITICAL] PASSED: ${description}`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Post-Deploy Test',
+        action: `Critical test: ${description}`,
+      });
       const errorMsg = `❌ [CRITICAL] FAILED: ${description} - ${String(error)}`;
       console.error(errorMsg);
       this.failures.push(errorMsg);
@@ -109,6 +115,11 @@ class PostDeployTestRunner {
       await testFn();
       console.log(`✅ [NON-CRITICAL] PASSED: ${description}`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Post-Deploy Test',
+        action: `Non-critical test: ${description}`,
+      });
       const errorMsg = `⚠️ [NON-CRITICAL] FAILED: ${description} - ${String(error)}`;
       console.warn(errorMsg);
       this.failures.push(errorMsg);
@@ -376,6 +387,11 @@ export async function runPostDeployVerificationSuite(page: Page) {
     await verifyErrorHandlingCritical(page);
     await verifyNavigationCritical(page);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Post-Deploy Test',
+      action: 'Critical tests suite',
+    });
     console.error('❌ Critical tests failed - deployment verification failed');
     throw error;
   }

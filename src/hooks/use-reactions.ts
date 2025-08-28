@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState, useRef } from 'react';
 import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
 import type { IReaction, IReactionGroup, IReactionOptions, ParentType } from '@/lib/types';
-import { REACTION_EMOJIS } from '@/lib/types/constant.types';
+import { REACTION_EMOJIS } from '@/lib/types';
 
 export function useReactions(options: IReactionOptions) {
   const { user } = useUser();

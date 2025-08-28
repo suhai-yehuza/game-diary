@@ -4,7 +4,7 @@
  */
 
 import { z } from 'zod';
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from './constant.types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
 
 // Base Game Log interface
 export interface IGameLog {

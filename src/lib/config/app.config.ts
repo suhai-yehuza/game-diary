@@ -4,10 +4,11 @@ import type {
   IRangeConfig,
   IBatchSizeConfig,
   IClassificationWeights,
-  IPaginationConfig,
+  IPaginationConstants,
   IDistributionFunctions,
   IRapidAPIConfig,
-} from '@src/lib/types';
+} from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 const BASE_MULTIPLIER = 10;
 const XSMALL = BASE_MULTIPLIER;
@@ -176,7 +177,7 @@ export const API_CONFIG = {
     HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 10,
     DEFAULT_SORT_DIRECTION: 'DESC' as const,
-  } as const satisfies IPaginationConfig,
+  } as const satisfies IPaginationConstants,
 } as const;
 
 export function getRapidApiConfig(): IRapidAPIConfig {
@@ -222,6 +223,11 @@ export function getRapidApiConfig(): IRapidAPIConfig {
       cacheTTL: 300000, // 5 minutes in milliseconds
     };
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'App Config',
+      action: 'Validate environment variables',
+    });
     console.warn(
       '[API Config] Environment variables not properly configured, using fallback config:',
       error

@@ -14,14 +14,8 @@ export const GameLogsHeader = ({ onCreateClick }: IGameLogsHeaderProps) => {
       {/* Page Header Section */}
       <div className="flex justify-between items-center mb-6">
         <div className="space-y-1">
-          <h2
-            className={`font-bold text-neutral-900 dark:text-neutral-100 ${
-              isMobile ? 'text-xl' : 'text-2xl'
-            }`}
-          >
-            Game Logs
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base">
+          <h2 className={`font-bold text-white ${isMobile ? 'text-xl' : 'text-2xl'}`}>Game Logs</h2>
+          <p className="text-white text-sm sm:text-base">
             Track and share your sports viewing experiences
           </p>
         </div>

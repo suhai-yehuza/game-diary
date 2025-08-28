@@ -7,6 +7,7 @@ import { db } from '@/lib/db';
 import { users, friendships } from '@/lib/db/schema';
 import { FRIENDSHIP_STATUS } from '@/lib/types';
 import { decryptField, deserializeEncryptedField, isEncrypted } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Helper function to safely decrypt a field
 function safeDecrypt(encryptedValue: string | null | undefined): string | null {
@@ -18,7 +19,11 @@ function safeDecrypt(encryptedValue: string | null | undefined): string | null {
     }
     return encryptedValue; // Return as-is if not encrypted
   } catch (error) {
-    console.error('Failed to decrypt field:', error);
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'Decrypt field',
+    });
     return null; // Return null on decryption failure
   }
 }
@@ -40,7 +45,11 @@ async function areUsersFriends(userId1: string, userId2: string): Promise<boolea
 
     return !!friendship;
   } catch (error) {
-    console.error('Error checking friendship status:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'Check friendship status',
+    });
     return false;
   }
 }
@@ -126,7 +135,12 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     // User not found anywhere
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   } catch (error) {
-    console.error('Error in /api/user/[id]:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/user/[id]',
+    });
+
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

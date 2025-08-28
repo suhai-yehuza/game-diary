@@ -1,0 +1,95 @@
+name: 'Setup Environment Variables'
+description: 'Reusable environment variable setup'
+
+inputs:
+  include-database:
+    description: 'Include database environment variables'
+    required: false
+    default: 'true'
+  include-clerk:
+    description: 'Include Clerk authentication variables'
+    required: false
+    default: 'true'
+  include-api:
+    description: 'Include API environment variables'
+    required: false
+    default: 'true'
+  include-vercel:
+    description: 'Include Vercel deployment variables'
+    required: false
+    default: 'false'
+  include-test:
+    description: 'Include test-specific variables'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup environment variables
+      shell: bash
+      run: |
+        # Base environment variables
+        echo "CI=true" >> $GITHUB_ENV
+
+        # Database variables
+        if [ "${{ inputs.include-database }}" = "true" ] && [ -n "${{ vars.DATABASE_URL }}" ]; then
+          echo "DATABASE_URL=${{ vars.DATABASE_URL }}" >> $GITHUB_ENV
+        fi
+
+        # Clerk authentication variables
+        if [ "${{ inputs.include-clerk }}" = "true" ]; then
+          if [ -n "${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" ]; then
+            echo "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.CLERK_SECRET_KEY }}" ]; then
+            echo "CLERK_SECRET_KEY=${{ vars.CLERK_SECRET_KEY }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.CLERK_WEBHOOK_SIGNING_SECRET }}" ]; then
+            echo "CLERK_WEBHOOK_SIGNING_SECRET=${{ vars.CLERK_WEBHOOK_SIGNING_SECRET }}" >> $GITHUB_ENV
+          fi
+        fi
+
+        # API variables
+        if [ "${{ inputs.include-api }}" = "true" ]; then
+          if [ -n "${{ vars.NEXT_PUBLIC_RAPID_API_KEY }}" ]; then
+            echo "NEXT_PUBLIC_RAPID_API_KEY=${{ vars.NEXT_PUBLIC_RAPID_API_KEY }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.NEXT_PUBLIC_RAPID_API_HOST }}" ]; then
+            echo "NEXT_PUBLIC_RAPID_API_HOST=${{ vars.NEXT_PUBLIC_RAPID_API_HOST }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.NEXT_PUBLIC_RAPID_API_BASE_URL }}" ]; then
+            echo "NEXT_PUBLIC_RAPID_API_BASE_URL=${{ vars.NEXT_PUBLIC_RAPID_API_BASE_URL }}" >> $GITHUB_ENV
+          fi
+        fi
+
+        # Vercel variables
+        if [ "${{ inputs.include-vercel }}" = "true" ]; then
+          if [ -n "${{ vars.VERCEL_ORG_ID }}" ]; then
+            echo "VERCEL_ORG_ID=${{ vars.VERCEL_ORG_ID }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.VERCEL_PROJECT_ID }}" ]; then
+            echo "VERCEL_PROJECT_ID=${{ vars.VERCEL_PROJECT_ID }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.VERCEL_TOKEN }}" ]; then
+            echo "VERCEL_TOKEN=${{ vars.VERCEL_TOKEN }}" >> $GITHUB_ENV
+          fi
+          if [ -n "${{ vars.VERCEL_AUTOMATION_BYPASS_SECRET }}" ]; then
+            echo "VERCEL_AUTOMATION_BYPASS_SECRET=${{ vars.VERCEL_AUTOMATION_BYPASS_SECRET }}" >> $GITHUB_ENV
+          fi
+        fi
+
+        # Test-specific variables
+        if [ "${{ inputs.include-test }}" = "true" ]; then
+          echo "E2E_MOCK_MODE=true" >> $GITHUB_ENV
+          echo "API_MOCK_MODE=true" >> $GITHUB_ENV
+          echo "E2E_AUTH_BYPASS=true" >> $GITHUB_ENV
+          echo "TEST_USER_EMAIL=test@game-diary.com" >> $GITHUB_ENV
+          echo "TEST_USER_ID=test_user_123" >> $GITHUB_ENV
+        fi
+
+        # E2E URLs
+        echo "E2E_CHROMIUM_URL=http://localhost:3000" >> $GITHUB_ENV
+        echo "E2E_WEBKIT_URL=http://localhost:3001" >> $GITHUB_ENV
+        echo "E2E_FIREFOX_URL=http://localhost:3002" >> $GITHUB_ENV
+        echo "E2E_MOBILE_URL=http://localhost:3003" >> $GITHUB_ENV

@@ -4,6 +4,7 @@ import { config } from 'dotenv-flow'; // Load env vars based on NODE_ENV
 
 import { logger } from '@/lib/utils/logger';
 import { getCache, testRedisConnection } from '@/lib/cache/index';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 import { parseScriptArgs } from '../utils/script-utils';
 
@@ -35,6 +36,11 @@ async function testRedis() {
       process.exit(1);
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Redis Test',
+      action: 'Redis connection test',
+    });
     logger.error(
       '❌ Redis connection test failed:',
       error instanceof Error ? error : new Error(String(error))

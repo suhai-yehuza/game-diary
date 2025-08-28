@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getMockServer } from '@src/lib/mock-server';
 
 export async function GET() {
@@ -8,7 +9,11 @@ export async function GET() {
     const healthData = await mockServer.healthCheck();
     return NextResponse.json(healthData);
   } catch (error) {
-    console.error('Mock server health check error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/mock-server/health',
+    });
     return NextResponse.json(
       {
         status: 'unhealthy',

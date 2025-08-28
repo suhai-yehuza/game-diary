@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { game_logs } from '@/lib/db/schema';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(
   request: NextRequest,
@@ -93,7 +94,11 @@ export async function GET(
         : null,
     });
   } catch (error) {
-    console.error('Error fetching game log:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/user/game-logs/[gameLogId]',
+    });
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

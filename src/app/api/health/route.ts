@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { db, dbManager } from '@/lib/db';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(_request: NextRequest) {
   const startTime = Date.now();
@@ -36,11 +37,17 @@ export async function GET(_request: NextRequest) {
   } catch (error) {
     const responseTime = Date.now() - startTime;
 
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/health',
+    });
+
     const errorResponse = {
       status: 'error',
       timestamp: new Date().toISOString(),
       response_time: responseTime,
-      error: error instanceof Error ? error.message : String(error),
+      error: 'Health check failed',
       checks: {
         database: { healthy: false, error: 'Health check failed' },
         external_services: { healthy: false, error: 'Health check failed' },
@@ -73,9 +80,15 @@ async function checkDatabase() {
       response_time: 0, // Could be enhanced to measure actual query time
     };
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'Database health check',
+    });
+
     return {
       healthy: false,
-      error: error instanceof Error ? error.message : 'Database check failed',
+      error: 'Database check failed',
     };
   }
 }

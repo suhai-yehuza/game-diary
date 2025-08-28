@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 import type { ISearchMetrics, ISearchPerformanceMonitorProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interfaces moved to src/lib/types/components.types.ts
 
@@ -175,6 +176,10 @@ function storeMetrics(metrics: ISearchMetrics) {
   try {
     localStorage.setItem('search_metrics', JSON.stringify(metrics));
   } catch (error) {
-    console.warn('Failed to store search metrics:', error);
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'React Component',
+      action: 'Store search metrics',
+    });
   }
 }

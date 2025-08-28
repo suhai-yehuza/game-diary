@@ -28,6 +28,7 @@ if (isDevOrTest) {
 
 import { dbManager } from '@/lib/db';
 import { AuditLogger } from '@/lib/services/audit-logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Ensure database is initialized for the global AuditLogger
 async function ensureDatabaseInitialized(): Promise<void> {
@@ -59,6 +60,11 @@ async function ensureDatabaseInitialized(): Promise<void> {
     // Initialize the global database manager
     await dbManager.initialize();
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Slack Alerting Test',
+      action: 'Database manager initialization',
+    });
     console.warn('Database manager initialization failed:', error);
   }
 }

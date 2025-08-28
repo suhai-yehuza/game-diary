@@ -9,6 +9,7 @@ import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@/lib/db';
 import { generateId } from '@/lib/utils/id-generator';
 import { isCI } from '@/lib/utils/env-loader';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 import { parseScriptArgs } from '../utils/script-utils';
 
@@ -849,6 +850,11 @@ async function main(): Promise<void> {
     // Consider adding ON DELETE CASCADE to your schema for users/game_logs if appropriate
     await TriggerValidator.globalCleanup(environment);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Trigger Validation',
+      action: 'Main trigger validation',
+    });
     logger.error('❌ Trigger validation failed:');
     process.exit(1);
   }

@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { STAGING_URL } from '@src/lib/config/urls';
 
 /**
@@ -22,6 +23,30 @@ export const DEFAULT_TEST_CREDENTIALS: ITestAuthCredentials = {
 };
 
 /**
+ * Create a mock user object for testing
+ */
+function createMockUser(userId: string, email: string) {
+  return {
+    id: userId,
+    emailAddresses: [
+      { emailAddress: email, id: 'email_123', verification: { status: 'verified' } },
+    ],
+    primaryEmailAddress: {
+      emailAddress: email,
+      id: 'email_123',
+      verification: { status: 'verified' },
+    },
+    firstName: 'Test',
+    lastName: 'User',
+    username: 'testuser',
+    fullName: 'Test User',
+    imageUrl: '',
+    createdAt: new Date().toISOString(),
+    lastSignInAt: new Date().toISOString(),
+  };
+}
+
+/**
  * Inject a mock for Clerk's useUser and useAuth hooks when bypass is active
  */
 export async function mockClerkHooks(page: Page, credentials: Partial<ITestAuthCredentials> = {}) {
@@ -31,24 +56,7 @@ export async function mockClerkHooks(page: Page, credentials: Partial<ITestAuthC
       (window as any).__E2E_AUTH_BYPASS__ = true;
 
       // Mock Clerk's useUser and useAuth hooks
-      const mockUser = {
-        id: userId,
-        emailAddresses: [
-          { emailAddress: email, id: 'email_123', verification: { status: 'verified' } },
-        ],
-        primaryEmailAddress: {
-          emailAddress: email,
-          id: 'email_123',
-          verification: { status: 'verified' },
-        },
-        firstName: 'Test',
-        lastName: 'User',
-        username: 'testuser',
-        fullName: 'Test User',
-        imageUrl: '',
-        createdAt: new Date().toISOString(),
-        lastSignInAt: new Date().toISOString(),
-      };
+      const mockUser = createMockUser(userId, email);
 
       // Override Clerk hooks globally
       if (typeof window !== 'undefined') {
@@ -244,24 +252,7 @@ export async function setupAuthBypass(
   await page.addInitScript(
     ({ userId, email }) => {
       // Create a comprehensive mock user object
-      const mockUser = {
-        id: userId,
-        emailAddresses: [
-          { emailAddress: email, id: 'email_123', verification: { status: 'verified' } },
-        ],
-        primaryEmailAddress: {
-          emailAddress: email,
-          id: 'email_123',
-          verification: { status: 'verified' },
-        },
-        firstName: 'Test',
-        lastName: 'User',
-        username: 'testuser',
-        fullName: 'Test User',
-        imageUrl: '',
-        createdAt: new Date().toISOString(),
-        lastSignInAt: new Date().toISOString(),
-      };
+      const mockUser = createMockUser(userId, email);
 
       // Mock the entire Clerk module
       const mockClerk = {
@@ -349,6 +340,11 @@ export async function setupAuthBypass(
     ]);
     console.log('✅ Authentication cookies set successfully');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Auth Bypass',
+      action: 'Set authentication cookies',
+    });
     console.warn('⚠️ Could not set authentication cookies:', error);
     console.log('🔐 Continuing with endpoint mocking only...');
   }

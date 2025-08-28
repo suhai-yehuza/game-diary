@@ -1,5 +1,5 @@
+import { REACTION_EMOJIS } from '@/lib/constants';
 import type { IReaction, IGameLog, IGameResponse, IGamesApiResponse } from '@/lib/types';
-import { REACTION_EMOJIS } from '@/lib/types/constant.types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 // Mock user data

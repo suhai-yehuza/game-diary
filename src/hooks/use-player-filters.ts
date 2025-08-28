@@ -1,10 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import type {
-  IPlayerFilterState,
-  IPlayerFilterOptions,
-} from '@/app/components/sports/player-filters';
-import type { IPlayerResponse } from '@/lib/types';
+import type { IPlayerFilterState, IPlayerFilterOptions, IPlayerResponse } from '@/lib/types';
 
 export type { IPlayerFilterState, IPlayerFilterOptions };
 

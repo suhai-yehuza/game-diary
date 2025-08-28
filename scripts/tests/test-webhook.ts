@@ -5,6 +5,7 @@ import { handleUserCreated } from '@/app/api/webhooks/clerk/handleUserCreated';
 import { dbManager } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { webhookLogger } from '@/lib/utils/logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Sample webhook data based on the example
 const sampleWebhookData = {
@@ -110,6 +111,11 @@ async function testWebhook() {
     await dbInstance.delete(users).where(eq(users.id, sampleWebhookData.id));
     webhookLogger.info('🧹 Test cleanup completed');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Webhook Test',
+      action: 'Test webhook user creation',
+    });
     webhookLogger.error(
       '❌ Test failed:',
       error instanceof Error ? error : new Error(String(error))

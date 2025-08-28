@@ -1,26 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import type { IGameResponse } from '@/lib/types';
-
-export interface IFilterState {
-  searchTerm: string;
-  statusFilter: string;
-  seasonFilter: string;
-  dateRange: 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
-  customStartDate: string;
-  customEndDate: string;
-  arenaFilter: string;
-  teamFilter: string;
-  sortBy: 'date' | 'status' | 'arena' | 'team';
-  sortDirection: 'asc' | 'desc';
-}
-
-export interface IFilterOptions {
-  arenas: string[];
-  teams: string[];
-  seasons: number[];
-  statuses: string[];
-}
+import type { IGameResponse, IFilterState, IFilterOptions } from '@/lib/types';
 
 const INITIAL_FILTERS: IFilterState = {
   searchTerm: '',

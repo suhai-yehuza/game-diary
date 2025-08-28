@@ -27,6 +27,7 @@ import type {
   IRejectFriendRequestResponse,
   IRemoveFriendResponse,
 } from '@/lib/types/hooks.types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function useFriendships(filters: IFriendshipFilters = {}) {
   const [friendships, setFriendships] = useState<IFriendship[]>([]);
@@ -68,7 +69,11 @@ export function useFriendships(filters: IFriendshipFilters = {}) {
 
       return result;
     } catch (error) {
-      console.error('Error refetching friendships:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Hook',
+        action: 'Refetch friendships',
+      });
       return null;
     }
   }, [refetch]);
@@ -94,7 +99,11 @@ export function useFriendships(filters: IFriendshipFilters = {}) {
         setHasNextPage(!!result.data.userFriendships.pageInfo.hasNextPage);
       }
     } catch (err) {
-      console.error('Error loading more friendships:', err);
+      // Use centralized error handling
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'React Hook',
+        action: 'Load more friendships',
+      });
     }
   }, [fetchMore, filters, endCursor, hasNextPage, loading, friendships]);
 
@@ -149,7 +158,11 @@ export function useFriendshipRequests() {
 
       return result;
     } catch (error) {
-      console.error('Error refetching friendship requests:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Hook',
+        action: 'Refetch friendship requests',
+      });
       return null;
     }
   }, [refetch]);
@@ -174,7 +187,11 @@ export function useFriendshipRequests() {
         setHasNextPage(!!result.data.friendshipRequests.pageInfo.hasNextPage);
       }
     } catch (err) {
-      console.error('Error loading more requests:', err);
+      // Use centralized error handling
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'React Hook',
+        action: 'Load more requests',
+      });
     }
   }, [fetchMore, endCursor, hasNextPage, loading, requests]);
 
@@ -229,7 +246,11 @@ export function useFriendshipStatus(userId: string) {
 
       return result;
     } catch (error) {
-      console.error('Error refetching friendship status:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Hook',
+        action: 'Refetch friendship status',
+      });
       return null;
     }
   }, [refetch]);

@@ -24,10 +24,9 @@ export type AnalyticsEvent =
   | 'time_on_page'
   | 'click';
 
-// Analytics properties interface
-export interface IAnalyticsProperties {
-  [key: string]: string | number | boolean | undefined | null;
-}
+import type { IAnalyticsProperties } from '@/lib/types';
+
+export type { IAnalyticsProperties };
 
 // TEMPORARILY DISABLED: Custom analytics tracking to reduce costs
 // Set this to true to re-enable custom analytics events

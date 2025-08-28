@@ -56,3 +56,19 @@ export type GraphQLResolver<T = unknown, Args = unknown> = (
   context: GraphQLContext,
   info: GraphQLResolveInfo
 ) => Promise<unknown> | unknown;
+
+// ========================================
+// SERVICE TYPES
+// ========================================
+
+export interface IPlayerFilters {
+  searchTerm?: string;
+  positionFilter?: string;
+  teamFilter?: string;
+  collegeFilter?: string;
+  countryFilter?: string;
+  sortBy?: 'name' | 'position' | 'team' | 'college';
+  sortDirection?: 'asc' | 'desc';
+  limit?: number;
+  offset?: number;
+}

@@ -1,6 +1,8 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 import { TIMEOUT_CONFIG } from './timeout-config';
 
 /**
@@ -44,6 +46,11 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
         }
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Page Checks',
+        action: 'Main content selector check',
+      });
       console.log(`Main content selector ${selector} check failed:`, error);
       // Continue to next selector
     }
@@ -73,6 +80,11 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
       await expect(header.first()).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Page Checks',
+      action: 'Header check',
+    });
     console.log('Header check skipped due to timeout or error:', error);
   }
 
@@ -84,6 +96,11 @@ export async function checkBasicPageStructure(page: Page): Promise<void> {
       await expect(footer.first()).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Page Checks',
+      action: 'Footer check',
+    });
     console.log('Footer check skipped due to timeout or error:', error);
   }
 }
@@ -197,12 +214,22 @@ export async function checkAccessibilityBasics(page: Page): Promise<void> {
             expect(alt).not.toBeNull();
           }
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+            component: 'E2E Page Checks',
+            action: 'Image accessibility check',
+          });
           console.log(`Image accessibility check failed for image ${i}:`, error);
           // Continue with next image
         }
       }
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Page Checks',
+      action: 'Image accessibility check',
+    });
     console.log('Image accessibility check skipped due to timeout:', error);
   }
 
@@ -232,12 +259,22 @@ export async function checkAccessibilityBasics(page: Page): Promise<void> {
             }
           }
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+            component: 'E2E Page Checks',
+            action: 'Input accessibility check',
+          });
           console.log(`Input accessibility check failed for input ${i}:`, error);
           // Continue with next input
         }
       }
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Page Checks',
+      action: 'Input accessibility check',
+    });
     console.log('Input accessibility check skipped due to timeout:', error);
   }
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { ISearchAnalyticsProps, ISearchEvent } from '@/lib/types/components.types';
+import type { ISearchAnalyticsProps, ISearchEvent } from '@/lib/types';
 
 // Interfaces moved to src/lib/types/components.types.ts
 

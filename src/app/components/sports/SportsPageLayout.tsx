@@ -18,11 +18,12 @@ export function SportsPageLayout({
 
   // Determine if this is an NBA page based on the title or pathname
   const isNBAPage =
-    title?.includes('NBA') ||
-    title?.includes('Games') ||
-    title?.includes('Teams') ||
-    title?.includes('Players') ||
-    pathname?.includes('/sports/nba');
+    (title?.includes('NBA') ||
+      title?.includes('Games') ||
+      title?.includes('Teams') ||
+      title?.includes('Players') ||
+      pathname?.includes('/sports/nba')) &&
+    !title?.includes('All Sports');
 
   return (
     <section className="container mx-auto px-4 py-8">
@@ -31,11 +32,13 @@ export function SportsPageLayout({
         <div className="mb-6">
           <div className="flex-1">
             <h1
-              className={`text-3xl font-bold mb-2 ${isNBAPage ? 'nba-games-title' : 'text-gray-900 dark:text-white'}`}
+              className={`text-3xl font-bold mb-2 ${
+                isNBAPage ? 'nba-games-title' : 'all-sports-title'
+              }`}
             >
               {title}
             </h1>
-            <p className={isNBAPage ? 'nba-games-description' : 'text-gray-600 dark:text-gray-300'}>
+            <p className={isNBAPage ? 'nba-games-description' : 'all-sports-description'}>
               {description}
             </p>
           </div>

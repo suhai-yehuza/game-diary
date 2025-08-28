@@ -12,6 +12,7 @@ import {
   MARK_ALL_NOTIFICATIONS_AS_READ,
 } from '@/lib/graphql/queries';
 import type { INotificationContextType, IAppNotification } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Create the notification context
 const NotificationContext = createContext<INotificationContextType | undefined>(undefined);
@@ -125,7 +126,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
           // Refetch unread count
           await refetchUnreadCount();
         } catch (error) {
-          console.error('Error marking notification as read:', error);
+          // Use centralized error handling
+          errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+            component: 'React Component',
+            action: 'Mark notification as read',
+          });
           toast.error('Failed to mark notification as read');
         }
       })();
@@ -151,7 +156,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
         // Refetch unread count
         await refetchUnreadCount();
       } catch (error) {
-        console.error('Error marking all notifications as read:', error);
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'React Component',
+          action: 'Mark all notifications as read',
+        });
         toast.error('Failed to mark all notifications as read');
       }
     })();

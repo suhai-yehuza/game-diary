@@ -13,37 +13,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
-
-export interface IPlayerFilterState {
-  searchTerm: string;
-  positionFilter: string;
-  teamFilter: string;
-  activeFilter: string;
-  countryFilter: string;
-  collegeFilter: string;
-  sortBy: 'name' | 'position' | 'age' | 'team' | 'experience';
-  sortDirection: 'asc' | 'desc';
-}
-
-export interface IPlayerFilterOptions {
-  positions: string[];
-  teams: string[];
-  countries: string[];
-  colleges: string[];
-}
-
-export interface IPlayerFiltersProps {
-  filters: IPlayerFilterState;
-  filterOptions: IPlayerFilterOptions;
-  showAdvancedFilters: boolean;
-  hasActiveFilters: boolean;
-  totalPlayers: number;
-  filteredPlayersCount: number;
-  onUpdateFilter: (key: keyof IPlayerFilterState, value: string) => void;
-  onClearFilters: () => void;
-  onToggleAdvancedFilters: () => void;
-  onRefresh: () => void;
-}
+import type { IPlayerFiltersProps } from '@/lib/types';
 
 export function PlayerFilters({
   filters,

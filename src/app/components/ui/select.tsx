@@ -1,16 +1,8 @@
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
+import type { ISelectProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
-
-export interface ISelectProps {
-  value?: string;
-  onValueChange?: (value: string) => void;
-  placeholder?: string;
-  children?: React.ReactNode;
-  className?: string;
-  disabled?: boolean;
-}
 
 const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
   ({ className, children, placeholder, value, onValueChange, disabled, ...props }, ref) => {
