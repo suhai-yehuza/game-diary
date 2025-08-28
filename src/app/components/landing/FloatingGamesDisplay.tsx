@@ -6,14 +6,12 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
-import { useLatestGames } from '@/hooks/use-latest-games';
+import { useLiveGames } from '@/hooks/use-live-games';
 
 export function FloatingGamesDisplay() {
-  const { latestGames, loading, error, season } = useLatestGames({
-    limit: 100,
-    forceRealData: true,
-  });
+  const { games: liveGames, loading, error } = useLiveGames();
   const { bannerHeight } = useBannerVisibility();
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
   const [isMediumScreen, setIsMediumScreen] = useState(false);
@@ -34,39 +32,33 @@ export function FloatingGamesDisplay() {
 
   // Auto-cycle through games every 4 seconds
   useEffect(() => {
-    const finishedGames = latestGames.filter(
-      game => game.status?.short === 'FT' || game.status?.long === 'Finished'
-    );
-    if (finishedGames.length <= 1) return;
+    if (liveGames.length <= 1) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % finishedGames.length);
+      setCurrentIndex(prevIndex => (prevIndex + 1) % liveGames.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [latestGames]);
+  }, [liveGames]);
 
   // Pause cycling on hover
   const [isPaused, setIsPaused] = useState(false);
 
   useEffect(() => {
-    const finishedGames = latestGames.filter(
-      game => game.status?.short === 'FT' || game.status?.long === 'Finished'
-    );
-    if (finishedGames.length <= 1 || isPaused) return;
+    if (liveGames.length <= 1 || isPaused) return;
 
     const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % finishedGames.length);
+      setCurrentIndex(prevIndex => (prevIndex + 1) % liveGames.length);
     }, 4000);
 
     return () => clearInterval(interval);
-  }, [latestGames, isPaused]);
+  }, [liveGames, isPaused]);
 
   if (loading) {
     return (
       <div
-        className="fixed right-1 sm:right-2 md:right-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-right-8 fade-in duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
-        style={{ top: `${bannerHeight + (isLargeScreen ? 120 : isMediumScreen ? 96 : 80)}px` }}
+        className="fixed right-4 sm:right-6 md:right-8 w-80 h-14 sm:w-96 md:w-[420px] sm:h-16 md:h-18 animate-in slide-in-from-right-8 fade-in duration-700 delay-300 group z-50"
+        style={{ top: `${bannerHeight + 8}px` }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
@@ -93,20 +85,36 @@ export function FloatingGamesDisplay() {
     );
   }
 
-  if (error || !latestGames.length) {
-    return null;
+  // Debug: Always show component for testing
+  if (error) {
+    console.error('FloatingGamesDisplay error:', error);
   }
 
-  // Filter to only show finished games
-  const finishedGames = latestGames.filter(
-    game => game.status?.short === 'FT' || game.status?.long === 'Finished'
-  );
-
-  if (!finishedGames.length) {
-    return null;
+  if (!liveGames.length) {
+    // Show a placeholder when no live games
+    return (
+      <div
+        className="fixed right-4 sm:right-6 md:right-8 w-80 h-14 sm:w-96 md:w-[420px] sm:h-16 md:h-18 animate-in slide-in-from-right-8 fade-in duration-700 delay-300 group z-50"
+        style={{ top: `${bannerHeight + 8}px` }}
+      >
+        <div className="bg-gradient-to-r from-gray-600 to-gray-700 p-1 sm:p-1.5 text-white transition-all duration-300 rounded-lg shadow-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center">
+                <div className="w-2 h-2 bg-gray-400 rounded-full" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs sm:text-sm font-bold leading-tight">0 Live Games</span>
+                <span className="text-xs opacity-75 leading-tight">No games live</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
-  const currentGame = finishedGames[currentIndex];
+  const currentGame = liveGames[currentIndex];
 
   const formatGameDate = (game: typeof currentGame) => {
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
@@ -171,7 +179,7 @@ export function FloatingGamesDisplay() {
               <h3 className="text-base font-semibold">Latest Games</h3>
             </div>
             <span className="text-xs opacity-90">
-              {currentIndex + 1}/{finishedGames.length}
+              {currentIndex + 1}/{liveGames.length}
             </span>
           </div>
         </div>
@@ -252,18 +260,16 @@ export function FloatingGamesDisplay() {
               <div className="flex items-center justify-between mb-2">
                 <button
                   onClick={() =>
-                    setCurrentIndex(
-                      prev => (prev - 1 + finishedGames.length) % finishedGames.length
-                    )
+                    setCurrentIndex(prev => (prev - 1 + liveGames.length) % liveGames.length)
                   }
                   className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  disabled={finishedGames.length <= 1}
+                  disabled={liveGames.length <= 1}
                 >
                   <ChevronLeft className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                 </button>
 
                 <div className="flex gap-1 justify-center flex-1 mx-2">
-                  {finishedGames.slice(0, 4).map((game, index: number) => (
+                  {liveGames.slice(0, 4).map((game, index: number) => (
                     <button
                       key={`mobile-game-dot-${game.id}`}
                       onClick={() => setCurrentIndex(index)}
@@ -275,9 +281,9 @@ export function FloatingGamesDisplay() {
                 </div>
 
                 <button
-                  onClick={() => setCurrentIndex(prev => (prev + 1) % finishedGames.length)}
+                  onClick={() => setCurrentIndex(prev => (prev + 1) % liveGames.length)}
                   className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  disabled={finishedGames.length <= 1}
+                  disabled={liveGames.length <= 1}
                 >
                   <ChevronRight className="w-3 h-3 text-gray-600 dark:text-gray-400" />
                 </button>
@@ -295,26 +301,41 @@ export function FloatingGamesDisplay() {
         </div>
       </div>
 
-      {/* Desktop version - side by side */}
+      {/* Desktop version - replaces banner at top */}
       <div
-        className="fixed right-1 sm:right-2 md:right-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-right-8 fade-in duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
-        style={{ top: `${bannerHeight + (isLargeScreen ? 120 : isMediumScreen ? 96 : 80)}px` }}
+        className="fixed top-0 left-0 right-0 w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-gray-900 to-blue-900 animate-in slide-in-from-top-8 fade-in duration-700 delay-300 group z-[60] shadow-lg"
+        style={{ top: '0px' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 sm:p-4 text-white group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">
+        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-1 sm:p-1.5 text-white group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1 sm:gap-2">
-              <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
-              <h3 className="text-base sm:text-lg font-semibold">Latest Games</h3>
+            {/* Live Status with Pulse */}
+            <div className="flex items-center gap-2">
+              <div className="relative flex items-center">
+                <div className="w-2 h-2 bg-red-500 rounded-full" />
+                <div className="absolute w-2 h-2 bg-red-500 rounded-full animate-ping" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs sm:text-sm font-bold leading-tight">
+                  {liveGames.length} Live Games
+                </span>
+                <span className="text-xs opacity-75 leading-tight">
+                  <span className="hidden sm:inline">Last Updated at</span>
+                  <span className="sm:hidden">Updated at</span>{' '}
+                  {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              </div>
             </div>
-            <span className="text-xs sm:text-sm opacity-90 hidden sm:block">
-              {currentIndex + 1} of {finishedGames.length} • {season}-{season + 1} Season
-            </span>
-            <span className="text-xs opacity-90 sm:hidden">
-              {currentIndex + 1}/{finishedGames.length}
-            </span>
+
+            {/* Game Counter */}
+            <div className="text-right">
+              <span className="text-xs opacity-75 block leading-none">
+                Game {currentIndex + 1} of {liveGames.length}
+              </span>
+              <span className="text-xs opacity-60 z-50 leading-none mt-0.5">Live Now</span>
+            </div>
           </div>
         </div>
 
@@ -343,14 +364,14 @@ export function FloatingGamesDisplay() {
                       </span>
                     </div>
                     {currentGame.arena.city && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:block">
+                      <span className="text-xs text-gray-500 dark:text-gray-400 z-50">
                         {currentGame.arena.city}
                         {currentGame.arena.state && `, ${currentGame.arena.state}`}
                       </span>
                     )}
                   </div>
                   {currentGame.arena.country && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 hidden sm:block">
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 z-50">
                       {currentGame.arena.country}
                     </div>
                   )}
@@ -461,18 +482,16 @@ export function FloatingGamesDisplay() {
               <div className="flex items-center justify-between mb-12">
                 <button
                   onClick={() =>
-                    setCurrentIndex(
-                      prev => (prev - 1 + finishedGames.length) % finishedGames.length
-                    )
+                    setCurrentIndex(prev => (prev - 1 + liveGames.length) % liveGames.length)
                   }
                   className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  disabled={finishedGames.length <= 1}
+                  disabled={liveGames.length <= 1}
                 >
                   <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
                 </button>
 
                 <div className="flex gap-1 flex-wrap justify-center flex-1 mx-2">
-                  {finishedGames
+                  {liveGames
                     .slice(0, isLargeScreen ? 8 : isMediumScreen ? 6 : 4)
                     .map((game, index: number) => (
                       <button
@@ -483,17 +502,17 @@ export function FloatingGamesDisplay() {
                         }`}
                       />
                     ))}
-                  {finishedGames.length > (isLargeScreen ? 8 : isMediumScreen ? 6 : 4) && (
+                  {liveGames.length > (isLargeScreen ? 8 : isMediumScreen ? 6 : 4) && (
                     <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 hidden sm:inline">
-                      +{finishedGames.length - (isLargeScreen ? 8 : isMediumScreen ? 6 : 4)} more
+                      +{liveGames.length - (isLargeScreen ? 8 : isMediumScreen ? 6 : 4)} more
                     </span>
                   )}
                 </div>
 
                 <button
-                  onClick={() => setCurrentIndex(prev => (prev + 1) % finishedGames.length)}
+                  onClick={() => setCurrentIndex(prev => (prev + 1) % liveGames.length)}
                   className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  disabled={finishedGames.length <= 1}
+                  disabled={liveGames.length <= 1}
                 >
                   <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
                 </button>

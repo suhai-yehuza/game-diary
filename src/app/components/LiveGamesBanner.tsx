@@ -75,7 +75,7 @@ export function LiveGamesBanner() {
         navigator.vibrate(10);
       }
       // Navigate to game detail page
-      router.push(`/sports/game/${gameId}`);
+      router.push(`/sports/nba/games/${gameId}`);
     },
     [router]
   );
@@ -109,7 +109,7 @@ export function LiveGamesBanner() {
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="container mx-auto max-w-7xl relative">
+      <div className="relative h-full flex items-center px-2 xs:px-3 sm:px-4">
         {/* Loading indicator */}
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-20">
@@ -120,15 +120,71 @@ export function LiveGamesBanner() {
           </div>
         )}
 
-        {/* Full-width scrolling games background layer */}
-        <div className="absolute inset-0 overflow-hidden bg-black/10">
+        {/* Live Games Info Panel - Simplified */}
+        <div className="flex-shrink-0 mr-2 xs:mr-3 sm:mr-4">
+          <div
+            className="flex items-center gap-3 px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 sm:py-3 rounded-lg cursor-pointer hover:bg-white/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+            tabIndex={0}
+            role="button"
+            aria-label={`${displayGames.length} live games currently playing, last updated at ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, click to view all`}
+            onClick={() => {
+              if ('vibrate' in navigator) {
+                navigator.vibrate(10);
+              }
+              window.location.href = '/sports/live';
+            }}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if ('vibrate' in navigator) {
+                  navigator.vibrate(10);
+                }
+                window.location.href = '/sports/live';
+              }
+            }}
+          >
+            {/* Live Status with Pulse */}
+            <div className="relative flex items-center">
+              <div
+                data-testid="live-indicator"
+                className="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-live-dot-glow"
+              />
+              <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75" />
+              <div className="absolute inset-0 w-3 h-3 bg-red-500/20 rounded-full blur-sm scale-150" />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-bold leading-none">
+                {displayGames.length} Live Games
+              </span>
+              <span className="text-xs opacity-75 leading-none">
+                <span className="hidden sm:inline">Last Updated at</span>
+                <span className="sm:hidden">Updated at</span>{' '}
+                {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* View All Link */}
+        <div className="flex-shrink-0 mr-2 xs:mr-3 sm:mr-4">
+          <Link
+            href="/sports/live"
+            className="inline-flex items-center px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 text-xs font-medium text-white bg-white/10 hover:bg-white/20 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+            aria-label="View all live games"
+          >
+            View All
+          </Link>
+        </div>
+
+        {/* Scrolling games area - takes up remaining space */}
+        <div className="flex-1 overflow-hidden bg-black/10">
           <div
             className={`flex items-center space-x-1 xs:space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6 h-full ${
               isPaused ? 'animate-none' : 'animate-scroll-left'
             }`}
           >
-            {/* Add responsive padding to start games further from the edges */}
-            <div className="w-[40px] xs:w-[60px] sm:w-[80px] md:w-[100px] lg:w-[120px] xl:w-[140px] 2xl:w-[160px]" />
+            {/* Add responsive padding to start games further from the edges and account for info panel */}
+            <div className="w-[60px] xs:w-[80px] sm:w-[100px] md:w-[120px] lg:w-[140px] xl:w-[160px] 2xl:w-[180px]" />
             {displayGames.map((game: IGameResponse, index: number) => (
               <React.Fragment key={game.id}>
                 <div
@@ -265,80 +321,9 @@ export function LiveGamesBanner() {
                 </div>
               </React.Fragment>
             ))}
+            {/* End padding for continuous scroll */}
+            <div className="w-[50vw]" />
           </div>
-        </div>
-
-        {/* Foreground UI elements with higher z-index */}
-        <div className="relative z-10 flex items-center justify-between py-0.5 xs:py-1 sm:py-1.5 px-0">
-          {/* Combined Live Games Info - positioned with responsive margins */}
-          <div className="flex items-center ml-1 xs:ml-2 sm:ml-0 sm:-ml-4 md:-ml-8 lg:-ml-12 xl:-ml-16 2xl:-ml-20">
-            {/* Combined Live Indicator with Last Updated */}
-            <div
-              className="flex items-center space-x-1.5 xs:space-x-2 sm:space-x-3 bg-black/40 backdrop-blur-md rounded-full px-1.5 xs:px-2 sm:px-3 py-0.5 xs:py-0.5 sm:py-1 border border-white/20 hover:bg-black/50 transition-colors duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-gray-900 shadow-lg"
-              tabIndex={0}
-              role="button"
-              aria-label={`${displayGames.length} live games currently playing, last updated ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-              onClick={() => {
-                if ('vibrate' in navigator) {
-                  navigator.vibrate(10);
-                }
-                window.location.href = '/sports/live';
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  if ('vibrate' in navigator) {
-                    navigator.vibrate(10);
-                  }
-                  window.location.href = '/sports/live';
-                }
-              }}
-            >
-              <div
-                data-testid="live-indicator"
-                className="w-1 h-1 xs:w-1.5 xs:h-1.5 sm:w-2 sm:h-2 bg-semantic-error rounded-full animate-live-dot-glow flex-shrink-0"
-                aria-hidden="true"
-              />
-              <div className="flex flex-col items-start space-y-0.5">
-                <span className="text-xs font-semibold tracking-wide whitespace-nowrap">
-                  {displayGames.length} {displayGames.length === 1 ? 'Live Game' : 'Live Games'}
-                </span>
-                <div className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-1.5">
-                  <div className="w-0.5 h-0.5 xs:w-0.5 xs:h-0.5 sm:w-1 sm:h-1 bg-green-400 rounded-full animate-update-pulse flex-shrink-0" />
-                  <span className="text-xs text-gray-200">
-                    Updated{' '}
-                    {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* View All Link - positioned with responsive margins */}
-          <Link
-            href="/sports/live"
-            className="group text-xs font-semibold hover:bg-white/20 transition-all duration-200 flex items-center space-x-1 xs:space-x-1 sm:space-x-1.5 bg-black/40 backdrop-blur-md rounded-full px-1 xs:px-1.5 sm:px-2 md:px-2.5 py-0.5 xs:py-0.5 sm:py-1 border border-white/20 hover:border-white/30 flex-shrink-0 mr-1 xs:mr-2 sm:mr-0 sm:-mr-4 md:-mr-8 lg:-mr-12 xl:-mr-16 2xl:-mr-20 shadow-lg"
-            aria-label="View all live games"
-            onClick={() => {
-              try {
-                navigator.vibrate(10);
-              } catch (_e) {
-                // Ignore vibrate errors
-              }
-            }}
-          >
-            <span>View All</span>
-            <svg
-              className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 transition-transform group-hover:translate-x-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-              aria-hidden="true"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </Link>
         </div>
       </div>
     </div>

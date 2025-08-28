@@ -1,0 +1,131 @@
+'use client';
+
+import { Building2, Users, Trophy, MapPin } from 'lucide-react';
+import Image from 'next/image';
+
+import { Button } from '@/app/components/ui/button';
+import { Card, CardContent } from '@/app/components/ui/Card';
+import type { ITeamResponse as _ITeamResponse, ITeamCardProps } from '@/lib/types';
+
+// Interface moved to src/lib/types/components.types.ts
+
+export function TeamCard({ team }: ITeamCardProps) {
+  const getConferenceInfo = () => {
+    const conference = team.leagues?.standard?.conference;
+    const division = team.leagues?.standard?.division;
+
+    if (conference && division) {
+      return `${conference} Conference • ${division} Division`;
+    }
+    if (conference) {
+      return `${conference} Conference`;
+    }
+    return 'NBA Team';
+  };
+
+  const getTeamLocation = () => {
+    return team.city;
+  };
+
+  return (
+    <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 team-card-enhanced">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          {/* Team Info */}
+          <div className="flex-1">
+            <div className="flex items-center gap-3 sm:gap-4 mb-3">
+              {/* Team Logo */}
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                  {team.logo ? (
+                    <Image
+                      src={team.logo}
+                      alt={`${team.name} logo`}
+                      width={48}
+                      height={48}
+                      className="object-contain w-full h-full"
+                    />
+                  ) : (
+                    <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                  )}
+                </div>
+              </div>
+
+              {/* Team Details */}
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
+                  <h3 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white truncate">
+                    {team.name}
+                  </h3>
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    ({team.code})
+                  </span>
+                </div>
+                <div className="text-base sm:text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2 truncate">
+                  {team.nickname}
+                </div>
+                <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="truncate">{getTeamLocation()}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span className="truncate">{getConferenceInfo()}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Additional Info */}
+            <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-gray-700 dark:text-gray-400">
+              <div className="flex items-center gap-1">
+                <Users className="w-3 h-3 sm:w-4 sm:h-4" />
+                <span>NBA Franchise</span>
+              </div>
+              {team.leagues?.standard && (
+                <div className="flex items-center gap-1">
+                  <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Standard League</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex-shrink-0 flex flex-col items-end gap-3 sm:gap-4">
+            {/* NBA Team Badge */}
+            <div className="flex items-center gap-2">
+              <div className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm border border-purple-700">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
+                  {team.nbaFranchise ? 'NBA Team' : 'Franchise'}
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              <Button
+                onClick={() => (window.location.href = `/sports/nba/teams/${team.id}`)}
+                variant="default"
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
+              >
+                View Team
+              </Button>
+              <Button
+                onClick={() => (window.location.href = `/sports/nba/players?team=${team.id}`)}
+                variant="default"
+                size="sm"
+                className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
+              >
+                View Players
+              </Button>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

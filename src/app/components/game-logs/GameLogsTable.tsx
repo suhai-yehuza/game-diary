@@ -133,100 +133,102 @@ export function GameLogsTable() {
   }
 
   return (
-    <div className="space-y-6">
-      <GameLogsHeader onCreateClick={() => setIsCreateModalOpen(true)} />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        <GameLogsHeader onCreateClick={() => setIsCreateModalOpen(true)} />
 
-      <GameLogsTabs selectedTab={selectedTab} onTabChange={setSelectedTab}>
-        <GameLogsFilters
-          searchTerm={searchTerm}
-          searchField={searchField}
-          sortConfig={sortConfig}
-          displayedCount={getCurrentTabTotalCount().displayed}
-          totalCount={getCurrentTabTotalCount().total}
-          classification={selectedTab}
-          onSearchChange={handleSearchChange}
-          onSearchClear={handleSearchClear}
-          onSort={handleSort}
+        <GameLogsTabs selectedTab={selectedTab} onTabChange={setSelectedTab}>
+          <GameLogsFilters
+            searchTerm={searchTerm}
+            searchField={searchField}
+            sortConfig={sortConfig}
+            displayedCount={getCurrentTabTotalCount().displayed}
+            totalCount={getCurrentTabTotalCount().total}
+            classification={selectedTab}
+            onSearchChange={handleSearchChange}
+            onSearchClear={handleSearchClear}
+            onSort={handleSort}
+          />
+
+          <GameLogsContent
+            tabValue="my-logs"
+            logs={myLogs ?? []}
+            loading={myLogsLoading}
+            loadingMore={myLogsLoadingMore}
+            hasNextPage={myLogsHasNextPage}
+            totalCount={myLogsTotalCount}
+            showActions={true}
+            onLoadMore={() => void loadMoreMyLogs()}
+            onEdit={setEditingGameLog}
+            onDelete={setDeletingGameLog}
+            filteredAndSortedLogs={filterAndSortGameLogs(
+              myLogs ?? [],
+              searchTerm,
+              searchField,
+              sortConfig
+            )}
+          />
+
+          <GameLogsContent
+            tabValue="friends-logs"
+            logs={friendsLogs ?? []}
+            loading={friendsLogsLoading}
+            loadingMore={friendsLogsLoadingMore}
+            hasNextPage={friendsLogsHasNextPage}
+            totalCount={friendsLogsTotalCount}
+            showActions={false}
+            onLoadMore={() => void loadMoreFriendsLogs()}
+            filteredAndSortedLogs={filterAndSortGameLogs(
+              friendsLogs ?? [],
+              searchTerm,
+              searchField,
+              sortConfig
+            )}
+          />
+
+          <GameLogsContent
+            tabValue="public-logs"
+            logs={publicLogs ?? []}
+            loading={publicLogsLoading}
+            loadingMore={publicLogsLoadingMore}
+            hasNextPage={publicLogsHasNextPage}
+            totalCount={publicLogsTotalCount}
+            showActions={false}
+            onLoadMore={() => void loadMorePublicLogs()}
+            filteredAndSortedLogs={filterAndSortGameLogs(
+              publicLogs ?? [],
+              searchTerm,
+              searchField,
+              sortConfig
+            )}
+          />
+        </GameLogsTabs>
+
+        {/* Modals */}
+        <CreateGameLogModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleCreateSuccess}
         />
 
-        <GameLogsContent
-          tabValue="my-logs"
-          logs={myLogs ?? []}
-          loading={myLogsLoading}
-          loadingMore={myLogsLoadingMore}
-          hasNextPage={myLogsHasNextPage}
-          totalCount={myLogsTotalCount}
-          showActions={true}
-          onLoadMore={() => void loadMoreMyLogs()}
-          onEdit={setEditingGameLog}
-          onDelete={setDeletingGameLog}
-          filteredAndSortedLogs={filterAndSortGameLogs(
-            myLogs ?? [],
-            searchTerm,
-            searchField,
-            sortConfig
-          )}
-        />
+        {editingGameLog && (
+          <EditGameLogModal
+            gameLog={editingGameLog}
+            isOpen={!!editingGameLog}
+            onClose={() => setEditingGameLog(null)}
+            onSuccess={handleEditSuccess}
+          />
+        )}
 
-        <GameLogsContent
-          tabValue="friends-logs"
-          logs={friendsLogs ?? []}
-          loading={friendsLogsLoading}
-          loadingMore={friendsLogsLoadingMore}
-          hasNextPage={friendsLogsHasNextPage}
-          totalCount={friendsLogsTotalCount}
-          showActions={false}
-          onLoadMore={() => void loadMoreFriendsLogs()}
-          filteredAndSortedLogs={filterAndSortGameLogs(
-            friendsLogs ?? [],
-            searchTerm,
-            searchField,
-            sortConfig
-          )}
-        />
-
-        <GameLogsContent
-          tabValue="public-logs"
-          logs={publicLogs ?? []}
-          loading={publicLogsLoading}
-          loadingMore={publicLogsLoadingMore}
-          hasNextPage={publicLogsHasNextPage}
-          totalCount={publicLogsTotalCount}
-          showActions={false}
-          onLoadMore={() => void loadMorePublicLogs()}
-          filteredAndSortedLogs={filterAndSortGameLogs(
-            publicLogs ?? [],
-            searchTerm,
-            searchField,
-            sortConfig
-          )}
-        />
-      </GameLogsTabs>
-
-      {/* Modals */}
-      <CreateGameLogModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSuccess={handleCreateSuccess}
-      />
-
-      {editingGameLog && (
-        <EditGameLogModal
-          gameLog={editingGameLog}
-          isOpen={!!editingGameLog}
-          onClose={() => setEditingGameLog(null)}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-
-      {deletingGameLog && (
-        <DeleteGameLogModal
-          gameLog={deletingGameLog}
-          isOpen={!!deletingGameLog}
-          onClose={() => setDeletingGameLog(null)}
-          onSuccess={handleDeleteSuccess}
-        />
-      )}
+        {deletingGameLog && (
+          <DeleteGameLogModal
+            gameLog={deletingGameLog}
+            isOpen={!!deletingGameLog}
+            onClose={() => setDeletingGameLog(null)}
+            onSuccess={handleDeleteSuccess}
+          />
+        )}
+      </div>
     </div>
   );
 }

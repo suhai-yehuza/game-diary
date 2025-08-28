@@ -308,6 +308,13 @@ export interface IGameLogModalProps {
     watched_date?: string;
     watched_location?: string;
   }; // Required for edit mode
+  preSelectedGame?: {
+    id: string;
+    name: string;
+    date: string;
+    homeTeam: string;
+    awayTeam: string;
+  };
 }
 
 export interface IGameLogSearchResult {
@@ -426,4 +433,133 @@ export interface ISignUpPageProps {
   params: {
     'sign-up': string[];
   };
+}
+
+// ========================================
+// COMPONENT SPECIFIC TYPES (MOVED FROM APP DIRECTORY)
+// ========================================
+
+// MemoizedReactionButton
+export interface IMemoizedReactionButtonProps {
+  group: import('./reaction.types').IReactionGroup;
+  onClick: (emoji: string) => void;
+  loading: boolean;
+  sizeClasses: string;
+  showCount: boolean;
+}
+
+// Sports Components
+export interface ITeamCardProps {
+  team: import('./externalApi.types').ITeamResponse;
+}
+
+export interface IPlayerCardProps {
+  player: import('./externalApi.types').IPlayerResponse;
+}
+
+export interface IGameCardProps {
+  game: import('./externalApi.types').IGameResponse;
+}
+
+// Enhanced Auth Guard
+export interface IEnhancedAuthGuardProps {
+  children: React.ReactNode;
+  requireAuth?: boolean;
+  fallbackUrl?: string;
+  showRetryButton?: boolean;
+}
+
+// Sports Tabs
+export interface ITab {
+  id: string;
+  label: string;
+  content: React.ReactNode;
+  href?: string; // Optional link for the tab
+}
+
+export interface ISportsTabsProps {
+  tabs: ITab[];
+  defaultTab?: string;
+  className?: string;
+  showLiveGamesTab?: boolean;
+}
+
+// Sports Pagination
+export interface ISportsPaginationProps {
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
+}
+
+// Sports Empty State
+export interface ISportsEmptyStateProps {
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
+}
+
+// Search Suggestions
+export interface ISearchSuggestion {
+  id: string;
+  text: string;
+  type: 'recent' | 'trending' | 'suggestion';
+  category?: 'user' | 'game' | 'team' | 'player';
+  icon?: React.ReactNode;
+}
+
+export interface ISearchSuggestionsProps {
+  query: string;
+  onSuggestionSelect: (suggestion: string) => void;
+  onClose: () => void;
+  isVisible: boolean;
+}
+
+// Search Performance Monitor
+export interface ISearchMetrics {
+  totalSearches: number;
+  averageSearchTime: number;
+  zeroResultSearches: number;
+  mostPopularQueries: Array<{ query: string; count: number }>;
+  searchSuccessRate: number;
+}
+
+export interface ISearchPerformanceMonitorProps {
+  query: string;
+  resultsCount: number;
+  searchTime: number;
+  onMetricsUpdate?: (metrics: ISearchMetrics) => void;
+}
+
+// Search Analytics
+export interface ISearchAnalyticsProps {
+  query: string;
+  resultsCount: number;
+  searchTime: number;
+  category?: string;
+  filters?: Record<string, unknown>;
+  children?: React.ReactNode;
+}
+
+export interface ISearchEvent {
+  query: string;
+  resultsCount: number;
+  searchTime: number;
+  category?: string;
+  filters?: Record<string, unknown>;
+  timestamp: number;
+  sessionId: string;
+}
+
+// NBA News
+export interface INBANewsItem {
+  id: string;
+  title: string;
+  description: string;
+  url: string;
+  publishedAt: string;
+  source: string;
+  imageUrl?: string;
+}
+
+export interface INBANewsProps {
+  limit?: number;
 }

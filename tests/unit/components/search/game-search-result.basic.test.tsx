@@ -147,6 +147,6 @@ describe('GameSearchResult', () => {
     const clickableElement = screen.getByText('Lakers @ Warriors').closest('div');
     fireEvent.click(clickableElement!);
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/game/123');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/games/123');
   });
 });

@@ -5,20 +5,8 @@ import React from 'react';
 import SignInModalTrigger from '@/app/components/auth/SignInModalTrigger';
 
 export default function ClientAuthGuard({ children }: { children: React.ReactNode }) {
-  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
-  let isLoaded = false;
-  let isSignedIn = false;
-
-  try {
-    const userData = useUser();
-    isLoaded = userData.isLoaded;
-    isSignedIn = userData.isSignedIn ?? false;
-  } catch {
-    // Clerk is not configured (e.g., during SSR or in test environment)
-    console.log('Clerk not configured, using fallback auth data');
-    isLoaded = true;
-    isSignedIn = false;
-  }
+  // Use useUser hook directly - it handles SSR gracefully
+  const { isLoaded, isSignedIn } = useUser();
 
   if (!isLoaded) {
     return (

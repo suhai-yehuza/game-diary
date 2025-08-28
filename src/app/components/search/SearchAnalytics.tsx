@@ -2,23 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 
-interface ISearchAnalyticsProps {
-  query: string;
-  resultsCount: number;
-  searchTime: number;
-  category?: string;
-  filters?: Record<string, unknown>;
-}
+import type { ISearchAnalyticsProps, ISearchEvent } from '@/lib/types/components.types';
 
-interface ISearchEvent {
-  query: string;
-  resultsCount: number;
-  searchTime: number;
-  category?: string;
-  filters?: Record<string, unknown>;
-  timestamp: number;
-  sessionId: string;
-}
+// Interfaces moved to src/lib/types/components.types.ts
 
 export function SearchAnalytics({
   query,
@@ -26,6 +12,7 @@ export function SearchAnalytics({
   searchTime,
   category,
   filters,
+  children,
 }: ISearchAnalyticsProps) {
   const hasTracked = useRef(false);
 
@@ -63,7 +50,7 @@ export function SearchAnalytics({
     void trackSearchEvent();
   }, [query, resultsCount, searchTime, category, filters]);
 
-  return null; // This component doesn't render anything
+  return <div data-testid="search-analytics">{children}</div>;
 }
 
 // Helper functions

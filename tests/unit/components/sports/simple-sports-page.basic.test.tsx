@@ -77,7 +77,7 @@ describe('SimpleSportsPage', () => {
     );
     expect(div).toHaveClass('text-center');
     expect(h1).toHaveClass('text-3xl', 'font-bold', 'mb-4');
-    expect(p).toHaveClass('text-gray-600', 'dark:text-gray-400', 'mb-6');
+    expect(p).toHaveClass('text-neutral-600', 'dark:text-neutral-400', 'mb-6');
   });
 
   it('renders without children', () => {

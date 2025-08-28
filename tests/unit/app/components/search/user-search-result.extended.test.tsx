@@ -21,7 +21,7 @@ describe('UserSearchResult (extended)', () => {
     };
     render(<UserSearchResult user={user as any} />);
     fireEvent.click(screen.getByText('Test User'));
-    expect(screen.getByText('@tester')).toBeInTheDocument();
+    expect(screen.getByText('tester')).toBeInTheDocument();
     expect(screen.getByText(/Joined/)).toBeInTheDocument();
   });
 });

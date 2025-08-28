@@ -97,7 +97,7 @@ export function MobileGameLogsTable() {
 
   const renderGameLogCard = (log: IGameLog) => {
     return (
-      <Card key={log.id} className="mb-3 border border-gray-200 dark:border-gray-700">
+      <Card key={log.id} className="mb-3 game-log-card-enhanced">
         <CardHeader className="pb-2">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2 flex-1">

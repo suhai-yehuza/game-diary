@@ -174,7 +174,7 @@ describe('GameLogsSort Extended Tests', () => {
 
       // Team should be visible by default now
       const teamButton = screen.getByText('Team').closest('button');
-      expect(teamButton).toHaveClass('bg-neutral-50', 'border-neutral-200', 'text-neutral-700');
+      expect(teamButton).toHaveClass('bg-neutral-800', 'border-neutral-600', 'text-white');
       expect(teamButton).not.toHaveClass(
         'bg-brand-primary/10',
         'border-brand-primary/30',
@@ -226,7 +226,7 @@ describe('GameLogsSort Extended Tests', () => {
         />
       );
 
-      expect(screen.getByText('Displaying 10 of 25 game logs')).toBeInTheDocument();
+      expect(screen.getByText('Showing 10 of 25 game logs')).toBeInTheDocument();
     });
 
     it('shows display count with custom classification', () => {
@@ -241,7 +241,7 @@ describe('GameLogsSort Extended Tests', () => {
         />
       );
 
-      expect(screen.getByText('Displaying 5 of 15 entries')).toBeInTheDocument();
+      expect(screen.getByText('Showing 5 of 15 entries')).toBeInTheDocument();
     });
 
     it('does not show display count when not provided', () => {

@@ -212,9 +212,7 @@ describe('UserGreeting', () => {
       </ClientProviders>
     );
 
-    const welcomeSection = container.querySelector(
-      '.mb-6.p-4.bg-blue-50.dark\\:bg-blue-900\\/20.rounded-lg'
-    );
+    const welcomeSection = container.querySelector('.mb-6.p-4.bg-blue-900\\/20.rounded-lg');
     const welcomeText = screen.getByText('Welcome to All Sports - Explore your favorite leagues');
 
     expect(welcomeSection).toContainElement(welcomeText);

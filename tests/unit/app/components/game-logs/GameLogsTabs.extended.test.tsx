@@ -30,7 +30,7 @@ describe('GameLogsTabs Extended Tests', () => {
       render(<GameLogsTabs {...defaultProps} />);
 
       const tabsList = screen.getByText('My Logs').closest('div');
-      expect(tabsList).toHaveClass('flex', 'flex-row');
+      expect(tabsList).toHaveClass('flex', 'w-auto');
       expect(tabsList).not.toHaveClass('grid', 'grid-cols-3');
     });
 
@@ -46,8 +46,8 @@ describe('GameLogsTabs Extended Tests', () => {
       render(<GameLogsTabs {...defaultProps} />);
 
       const myLogsTab = screen.getByText('My Logs').closest('button');
-      expect(myLogsTab).toHaveClass('text-sm', 'sm:text-base', 'py-3', 'px-6');
-      expect(myLogsTab).not.toHaveClass('text-xs', 'sm:text-sm', 'px-4');
+      expect(myLogsTab).toHaveClass('text-sm', 'py-3', 'px-4');
+      expect(myLogsTab).not.toHaveClass('text-xs', 'sm:text-sm');
     });
 
     it('shows selected tab as active', () => {
@@ -83,16 +83,16 @@ describe('GameLogsTabs Extended Tests', () => {
       render(<GameLogsTabs {...defaultProps} />);
 
       const tabsList = screen.getByText('My Logs').closest('div');
-      expect(tabsList).toHaveClass('grid', 'grid-cols-3');
-      expect(tabsList).not.toHaveClass('flex', 'flex-row');
+      expect(tabsList).toHaveClass('flex', 'w-full');
+      expect(tabsList).not.toHaveClass('grid', 'grid-cols-3');
     });
 
     it('applies mobile-specific CSS classes to tab triggers', () => {
       render(<GameLogsTabs {...defaultProps} />);
 
       const myLogsTab = screen.getByText('My Logs').closest('button');
-      expect(myLogsTab).toHaveClass('text-xs', 'sm:text-sm', 'py-3', 'px-4');
-      expect(myLogsTab).not.toHaveClass('text-sm', 'sm:text-base', 'px-6');
+      expect(myLogsTab).toHaveClass('text-sm', 'py-3', 'px-4');
+      expect(myLogsTab).not.toHaveClass('text-xs', 'sm:text-sm');
     });
 
     it('shows selected tab as active on mobile', () => {

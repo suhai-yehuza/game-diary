@@ -3,20 +3,9 @@
 import { Search, TrendingUp, Clock, Hash } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 
-interface ISearchSuggestion {
-  id: string;
-  text: string;
-  type: 'recent' | 'trending' | 'suggestion';
-  category?: 'user' | 'game' | 'team' | 'player';
-  icon?: React.ReactNode;
-}
+import type { ISearchSuggestion, ISearchSuggestionsProps } from '@/lib/types';
 
-interface ISearchSuggestionsProps {
-  query: string;
-  onSuggestionSelect: (suggestion: string) => void;
-  onClose: () => void;
-  isVisible: boolean;
-}
+// Interfaces moved to src/lib/types/components.types.ts
 
 export function SearchSuggestions({
   query,
@@ -212,7 +201,7 @@ export function SearchSuggestions({
       className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-50 max-h-60 xs:max-h-72 sm:max-h-80 md:max-h-96 overflow-y-auto"
     >
       <div className="p-1.5 xs:p-2 sm:p-2.5 md:p-3">
-        <div className="text-xs xs:text-sm sm:text-sm md:text-base font-medium text-neutral-500 dark:text-neutral-400 px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-1 xs:py-1.5 sm:py-2 md:py-2.5">
+        <div className="text-xs xs:text-sm sm:text-sm md:text-base font-medium search-suggestions-header px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-1 xs:py-1.5 sm:py-2 md:py-2.5">
           Search Suggestions
         </div>
 
@@ -223,11 +212,13 @@ export function SearchSuggestions({
             onClick={() => handleSuggestionClick(suggestion)}
             onMouseEnter={() => setSelectedIndex(index)}
           >
-            <div className="flex-shrink-0 text-neutral-400">{getSuggestionIcon(suggestion)}</div>
+            <div className="flex-shrink-0 search-suggestions-icon">
+              {getSuggestionIcon(suggestion)}
+            </div>
             <div className="flex-1 min-w-0">
-              <div className="truncate">{suggestion.text}</div>
+              <div className="truncate search-suggestions-text">{suggestion.text}</div>
               {suggestion.category && (
-                <div className="text-xs xs:text-xs sm:text-xs md:text-sm text-neutral-500 dark:text-neutral-400 capitalize">
+                <div className="text-xs xs:text-xs sm:text-xs md:text-sm search-suggestions-category capitalize">
                   {suggestion.category}
                 </div>
               )}
@@ -244,7 +235,7 @@ export function SearchSuggestions({
       </div>
 
       <div className="border-t border-neutral-200 dark:border-neutral-700 p-1.5 xs:p-2 sm:p-2.5 md:p-3">
-        <div className="text-xs xs:text-xs sm:text-xs md:text-sm text-neutral-500 dark:text-neutral-400">
+        <div className="text-xs xs:text-xs sm:text-xs md:text-sm search-suggestions-help">
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3">
             <span>Use ↑↓ to navigate, Enter to select, Esc to close</span>
           </div>

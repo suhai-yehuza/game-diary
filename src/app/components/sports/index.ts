@@ -1,2 +1,11 @@
-export { SimpleSportsPage } from '@/app/components/sports/SimpleSportsPage';
-export { SportsPageLayout } from '@/app/components/sports/SportsPageLayout';
+export { SportsPageLayout } from './SportsPageLayout';
+export { SimpleSportsPage } from './SimpleSportsPage';
+export { GameCard } from './game-card';
+export { TeamCard } from './team-card';
+export { PlayerCard } from './player-card';
+export { GameFilters } from './game-filters';
+export { TeamFilters } from './team-filters';
+export { PlayerFilters } from './player-filters';
+export { Pagination } from './pagination';
+export { EmptyState } from './empty-state';
+export { Tabs } from './tabs';

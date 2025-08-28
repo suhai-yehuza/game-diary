@@ -309,10 +309,89 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  # Global E2E Responsive Tests (runs once against all browsers)
+  e2e-responsive:
+    name: E2E Responsive Tests (All Browsers)
+    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: ${{ inputs.environment }}
+    if: ${{ !inputs.skip-e2e-tests }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: '10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Setup Playwright browsers
+        run: ./scripts/testing/install-playwright-browsers.sh --verbose
+
+      - name: Start Development Server
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: ./scripts/server-manager.sh start test --port=3000
+
+      - name: Run E2E Responsive Tests (All Browsers)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+          CI: 'true'
+          DEPLOYMENT_URL: 'http://localhost:3000'
+          E2E_MOCK_MODE: 'true'
+          API_MOCK_MODE: 'true'
+        run: |
+          echo "Running E2E Responsive tests against all browsers..."
+          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/responsive.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+
+      - name: Stop Development Server
+        if: always()
+        run: ./scripts/server-manager.sh stop --port=3000
+
+      - name: Upload E2E Responsive Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-responsive-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: warn
+
   # Parallel E2E tests by browser type
   e2e-chromium:
     name: E2E Tests (Chromium)
-    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-responsive,
+        integration-tests,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -403,9 +482,9 @@ jobs:
         run: |
           echo "Running E2E tests on Chromium with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=chromium --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=chromium --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=chromium --reporter=list,json,junit,html
 
       - name: Stop Development Server
         if: always()
@@ -428,7 +507,15 @@ jobs:
 
   e2e-webkit:
     name: E2E Tests (WebKit)
-    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-responsive,
+        integration-tests,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -520,9 +607,9 @@ jobs:
         run: |
           echo "Running E2E tests on WebKit with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=webkit --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=webkit --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=webkit --reporter=list,json,junit,html
 
       - name: Stop Development Server (WebKit)
         if: always()
@@ -545,7 +632,15 @@ jobs:
 
   e2e-firefox:
     name: E2E Tests (Firefox)
-    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-responsive,
+        integration-tests,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -636,9 +731,9 @@ jobs:
         run: |
           echo "Running E2E tests on Firefox with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project=firefox --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project=firefox --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project=firefox --reporter=list,json,junit,html
 
       - name: Stop Development Server (Firefox)
         if: always()
@@ -661,7 +756,15 @@ jobs:
 
   e2e-mobile:
     name: E2E Tests (Mobile)
-    needs: [quality-gate, unit-tests, database-tests, e2e-mock-verification, integration-tests]
+    needs:
+      [
+        quality-gate,
+        unit-tests,
+        database-tests,
+        e2e-mock-verification,
+        e2e-responsive,
+        integration-tests,
+      ]
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: ${{ inputs.environment }}
@@ -752,9 +855,9 @@ jobs:
         run: |
           echo "Running E2E tests on Mobile with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
-          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/smoke.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
           pnpm exec playwright test tests/e2e/functional/live-games.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
+          pnpm exec playwright test tests/e2e/functional/navigation.spec.ts --project="Mobile Chrome" --reporter=list,json,junit,html
 
       - name: Stop Development Server (Mobile)
         if: always()
@@ -785,6 +888,7 @@ jobs:
         database-tests,
         integration-tests,
         e2e-mock-verification,
+        e2e-responsive,
         e2e-chromium,
         e2e-webkit,
         e2e-firefox,

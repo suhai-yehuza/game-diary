@@ -109,8 +109,15 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <Card className="w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden">
-        <div className="p-6">
+      <Card
+        className="w-full max-w-4xl mx-4 max-h-[80vh] overflow-hidden border border-neutral-200 dark:border-neutral-700"
+        style={{
+          backgroundColor: document.documentElement.classList.contains('dark')
+            ? 'rgb(248, 250, 252)'
+            : 'rgb(17, 24, 39)',
+        }}
+      >
+        <div className="p-6 text-neutral-100 dark:text-neutral-900">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-semibold">Search for NBA Games</h2>
             <Button variant="ghost" size="sm" onClick={onClose}>

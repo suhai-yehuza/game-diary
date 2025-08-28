@@ -80,7 +80,7 @@ describe('GameLogsTabs', () => {
 
     const myLogsTab = screen.getByText('My Logs');
     expect(myLogsTab).toBeInTheDocument();
-    expect(myLogsTab).toHaveClass('px-6', 'py-3');
+    expect(myLogsTab).toHaveClass('px-4', 'py-3');
   });
 
   it('has proper accessibility attributes', () => {

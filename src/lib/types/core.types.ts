@@ -341,7 +341,7 @@ export const SPORTS_CONFIG = {
     name: 'NHL',
     fullName: 'National Hockey League',
     description: 'National Hockey League - Live scores, stats, and more',
-    color: 'bg-gray-800 hover:bg-gray-900',
+    color: 'bg-indigo-800 hover:bg-indigo-900',
     href: '/sports/nhl',
     icon: '🏒',
   },

@@ -15,6 +15,8 @@ vi.mock('lucide-react', () => ({
   Building2: ({ className }: any) => <div data-testid="building-icon" className={className} />,
   MapPin: ({ className }: any) => <div data-testid="map-pin-icon" className={className} />,
   ArrowRight: ({ className }: any) => <div data-testid="arrow-right-icon" className={className} />,
+  Star: ({ className }: any) => <div data-testid="star-icon" className={className} />,
+  Trophy: ({ className }: any) => <div data-testid="trophy-icon" className={className} />,
 }));
 
 describe('TeamSearchResult Extended', () => {
@@ -46,7 +48,7 @@ describe('TeamSearchResult Extended', () => {
     const container = screen.getByText('Los Angeles Lakers').closest('div');
     fireEvent.click(container!);
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/team/team-1');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/teams/team-1');
   });
 
   it('displays all team information correctly', () => {

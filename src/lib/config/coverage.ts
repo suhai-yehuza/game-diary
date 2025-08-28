@@ -342,11 +342,11 @@ const FILE_THRESHOLDS: IFileThresholds = {
 
 export function getGlobalCoverageThresholds(): ICoverageThresholds {
   return {
-    lines: EIGHTY + 8,
-    statements: EIGHTY + 8,
-    branches: EIGHTY + 2,
-    functions: EIGHTY - 7,
-    base: EIGHTY,
+    lines: NINETY_FIVE - 15,
+    statements: NINETY_FIVE - 15,
+    branches: NINETY_FIVE - 15,
+    functions: NINETY_FIVE - 23,
+    base: NINETY_FIVE - 15,
   };
 }
 

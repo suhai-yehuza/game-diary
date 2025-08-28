@@ -36,11 +36,11 @@ export const ReactionButton = memo(function ReactionButton({
     <button
       onClick={handleClick}
       className={cn(
-        'group inline-flex items-center gap-1.5 rounded-full border-2 transition-all duration-200 hover:scale-105 active:scale-95',
+        'group inline-flex items-center gap-2 rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         sizeClasses[size],
         hasReacted
-          ? 'border-blue-500 bg-blue-50 text-blue-700 shadow-md dark:border-blue-400 dark:bg-blue-900/30 dark:text-blue-300'
-          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 hover:shadow-md dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:border-gray-500 dark:hover:bg-gray-700',
+          ? 'border-blue-500 bg-blue-100 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:border-blue-300 dark:bg-blue-50 dark:text-blue-700 dark:ring-blue-200'
+          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm dark:border-gray-300 dark:bg-white dark:text-gray-700 dark:hover:border-gray-400 dark:hover:bg-gray-50',
         isPressed && 'scale-95',
         className
       )}
@@ -50,9 +50,9 @@ export const ReactionButton = memo(function ReactionButton({
           : `React with ${emoji}`
       }
     >
-      <span className="text-lg transition-transform group-hover:scale-110">{emoji}</span>
+      <span className="text-base transition-transform group-hover:scale-110">{emoji}</span>
       {showCount && count > 0 && (
-        <span className="font-semibold text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded-full">
+        <span className="font-medium text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
           {formatReactionCount(count)}
         </span>
       )}

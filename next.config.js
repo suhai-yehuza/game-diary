@@ -3,6 +3,7 @@ const nextConfig = {
   // Environment variables exposed to the client
   env: {
     NEXT_PUBLIC_API_MOCK_MODE: process.env.API_MOCK_MODE === 'true',
+    CUSTOM_KEY: 'value',
   },
 
   // Performance optimizations
@@ -90,16 +91,15 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'media.api-sports.io',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
   },
 
   // Custom page extensions
   pageExtensions: ['ts', 'tsx', 'js', 'jsx'],
-
-  // Environment variables
-  env: {
-    CUSTOM_KEY: 'value',
-  },
 
   // Headers
   async headers() {

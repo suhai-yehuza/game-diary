@@ -19,6 +19,9 @@ vi.mock('lucide-react', () => ({
     <div data-testid="graduationcap-icon" className={className} />
   ),
   Calendar: ({ className }: any) => <div data-testid="calendar-icon" className={className} />,
+  Ruler: ({ className }: any) => <div data-testid="ruler-icon" className={className} />,
+  Trophy: ({ className }: any) => <div data-testid="trophy-icon" className={className} />,
+  ArrowRight: ({ className }: any) => <div data-testid="arrowright-icon" className={className} />,
 }));
 
 describe('PlayerSearchResult', () => {
@@ -54,7 +57,7 @@ describe('PlayerSearchResult', () => {
     render(<PlayerSearchResult player={defaultPlayer} />);
 
     expect(screen.getByText('6-9 • 250 lbs')).toBeInTheDocument();
-    expect(screen.getByText('NBA: 23')).toBeInTheDocument();
+    expect(screen.getByText('NBA Player')).toBeInTheDocument();
   });
 
   it('handles click navigation to player profile', () => {
@@ -65,7 +68,7 @@ describe('PlayerSearchResult', () => {
       fireEvent.click(playerElement);
     }
 
-    expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/1');
+    expect(mockPush).toHaveBeenCalledWith('/sports/nba/players/1');
   });
 
   it('displays player image correctly', () => {
@@ -133,7 +136,6 @@ describe('PlayerSearchResult', () => {
     expect(screen.getByTestId('user-icon')).toBeInTheDocument();
     expect(screen.getByTestId('mappin-icon')).toBeInTheDocument();
     expect(screen.getByTestId('graduationcap-icon')).toBeInTheDocument();
-    expect(screen.getByTestId('calendar-icon')).toBeInTheDocument();
   });
 
   it('handles missing first name', () => {

@@ -104,8 +104,8 @@ export default defineConfig({
   timeout: APP_CONFIG.TEST_TIMEOUT, // Standardized 10-minute timeout - no overrides needed in CI
   fullyParallel: true, // Enable full parallelism for maximum speed
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 3, // Reduced retries in CI for speed
-  workers: process.env.CI ? 4 : 6, // Reduced workers in CI to prevent browser context conflicts
+  retries: 2,
+  workers: 4,
 
   // Web server configuration
   // In CI, don't start a web server if we're targeting localhost (server is started manually)

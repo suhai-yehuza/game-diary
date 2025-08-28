@@ -45,7 +45,7 @@ describe('GameLogsHeader', () => {
     const onCreateClick = vi.fn();
     render(<GameLogsHeader onCreateClick={onCreateClick} />);
 
-    const header = screen.getByText('Game Logs').parentElement;
+    const header = screen.getByText('Game Logs').parentElement?.parentElement;
     expect(header).toHaveClass('flex', 'justify-between', 'items-center');
   });
 
@@ -97,7 +97,7 @@ describe('GameLogsHeader', () => {
     const onCreateClick = vi.fn();
     render(<GameLogsHeader onCreateClick={onCreateClick} />);
 
-    const header = screen.getByText('Game Logs').parentElement;
+    const header = screen.getByText('Game Logs').parentElement?.parentElement;
     expect(header).toHaveClass('flex', 'justify-between', 'items-center');
   });
 

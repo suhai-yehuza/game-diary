@@ -161,7 +161,7 @@ describe('GameLogsHeader Extended Tests', () => {
     it('applies correct container classes', () => {
       render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-      const container = screen.getByText('Game Logs').closest('div');
+      const container = screen.getByText('Game Logs').parentElement?.parentElement;
       expect(container).toHaveClass('flex', 'justify-between', 'items-center');
     });
 

@@ -65,7 +65,8 @@ vi.mock('next-themes', () => ({
 }));
 
 // Mock lucide-react icons globally with better isolation
-vi.mock('lucide-react', () => {
+vi.mock('lucide-react', async importOriginal => {
+  const actual = await importOriginal();
   const createMockIcon = (name: string) => {
     const MockIcon = ({ className, ...props }: any) =>
       React.createElement(
@@ -94,6 +95,8 @@ vi.mock('lucide-react', () => {
     ArrowUpDown: createMockIcon('ArrowUpDown'),
     ArrowUp: createMockIcon('ArrowUp'),
     ArrowDown: createMockIcon('ArrowDown'),
+    ArrowLeft: createMockIcon('ArrowLeft'),
+    ArrowRight: createMockIcon('ArrowRight'),
     X: createMockIcon('X'),
     MoreHorizontal: createMockIcon('MoreHorizontal'),
     Reply: createMockIcon('Reply'),
@@ -144,11 +147,15 @@ vi.mock('lucide-react', () => {
     UserPlus: createMockIcon('UserPlus'),
     Home: createMockIcon('Home'),
     Clock: createMockIcon('Clock'),
+    Ruler: createMockIcon('Ruler'),
+    AtSign: createMockIcon('AtSign'),
+    Mail: createMockIcon('Mail'),
   };
 
   return {
+    ...(actual as any),
     ...mockIcons,
-    default: mockIcons,
+    default: { ...(actual as any), ...mockIcons },
   };
 });
 

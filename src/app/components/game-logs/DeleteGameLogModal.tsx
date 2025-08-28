@@ -51,7 +51,14 @@ export function DeleteGameLogModal({
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
-      <Card className="relative w-full max-w-md mx-4 rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 animate-in fade-in-0 zoom-in-95 duration-200">
+      <Card
+        className="relative w-full max-w-md mx-4 rounded-xl shadow-2xl border border-neutral-200 dark:border-neutral-700 animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal"
+        style={{
+          backgroundColor: document.documentElement.classList.contains('dark')
+            ? 'rgb(248, 250, 252)'
+            : 'rgb(17, 24, 39)',
+        }}
+      >
         <div className="p-6 text-neutral-900 dark:text-neutral-100">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-3">
@@ -62,7 +69,7 @@ export function DeleteGameLogModal({
                 <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">
                   Delete Game Log
                 </h2>
-                <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mt-1">
                   This action cannot be undone
                 </p>
               </div>
@@ -78,7 +85,7 @@ export function DeleteGameLogModal({
           </div>
 
           <div className="mb-6 p-4 bg-neutral-100 dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700">
-            <p className="text-neutral-700 dark:text-neutral-300 text-sm leading-relaxed">
+            <p className="text-neutral-800 dark:text-neutral-300 text-sm leading-relaxed">
               You&apos;re about to{' '}
               <span className="font-semibold text-semantic-error">permanently delete</span> your
               game log for{' '}
@@ -87,7 +94,7 @@ export function DeleteGameLogModal({
               </span>
               .
             </p>
-            <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-2">
+            <p className="text-neutral-700 dark:text-neutral-400 text-sm mt-2">
               This action cannot be undone and will remove all associated data including comments
               and reactions.
             </p>

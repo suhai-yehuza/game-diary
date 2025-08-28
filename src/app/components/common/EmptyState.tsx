@@ -37,9 +37,9 @@ export function EmptyState({
     >
       <div className="mb-4">{displayIcon}</div>
 
-      <h3 className="text-lg font-semibold text-foreground mb-2">{title}</h3>
+      <h3 className="text-lg font-semibold text-theme-primary mb-2">{title}</h3>
 
-      {description && <p className="text-sm mb-4">{description}</p>}
+      {description && <p className="text-sm text-muted-foreground mb-4">{description}</p>}
 
       {action && <div className="mt-4">{action}</div>}
 

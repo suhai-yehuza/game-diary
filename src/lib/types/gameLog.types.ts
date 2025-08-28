@@ -90,6 +90,7 @@ export interface IGameLogsOptions {
     first?: number;
     after?: string;
   };
+  skip?: boolean; // Skip the query execution
 }
 
 // Game Logs Response interface
@@ -131,6 +132,13 @@ export interface ICreateGameLogModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  preSelectedGame?: {
+    id: string;
+    name: string;
+    date: string;
+    homeTeam: string;
+    awayTeam: string;
+  };
 }
 
 export interface IEditGameLogModalProps {

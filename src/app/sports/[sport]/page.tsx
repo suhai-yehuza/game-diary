@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sport: st
   }
 
   return {
-    title: `${config.name} - Game Diary`,
+    title: config.name,
     description: config.description,
   };
 }

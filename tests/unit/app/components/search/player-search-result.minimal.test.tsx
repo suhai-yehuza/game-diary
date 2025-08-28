@@ -17,6 +17,9 @@ vi.mock('lucide-react', () => ({
   MapPin: () => <div data-testid="mappin-icon" />,
   GraduationCap: () => <div data-testid="graduationcap-icon" />,
   Calendar: () => <div data-testid="calendar-icon" />,
+  Ruler: () => <div data-testid="ruler-icon" />,
+  Trophy: () => <div data-testid="trophy-icon" />,
+  ArrowRight: () => <div data-testid="arrowright-icon" />,
 }));
 
 describe('PlayerSearchResult', () => {
@@ -53,7 +56,7 @@ describe('PlayerSearchResult', () => {
     const clickableElement = screen.getByText('LeBron James').closest('div');
     if (clickableElement) {
       fireEvent.click(clickableElement);
-      expect(mockPush).toHaveBeenCalledWith('/sports/nba/player/1');
+      expect(mockPush).toHaveBeenCalledWith('/sports/nba/players/1');
     }
   });
 

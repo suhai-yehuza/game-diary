@@ -116,6 +116,7 @@ jobs:
     needs: [quality-gate, unit-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -141,6 +142,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          NODE_ENV: 'production'
         run: |
           echo "🔧 Setting up database triggers..."
           pnpm db:triggers
@@ -166,6 +168,7 @@ jobs:
     needs: [quality-gate, unit-tests, database-tests]
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    environment: production
     steps:
       - uses: actions/checkout@v4
 
@@ -191,6 +194,7 @@ jobs:
           NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
+          NODE_ENV: 'production'
         run: |
           echo "🧪 Running integration tests..."
           pnpm test:integration
