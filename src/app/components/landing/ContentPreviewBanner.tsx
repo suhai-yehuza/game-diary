@@ -7,12 +7,15 @@ import { useMemo } from 'react';
 
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useTopGameLogs } from '@/hooks/use-top-game-logs';
+import { API_LIMITS } from '@/lib/constants';
 import type { IGameLog } from '@/lib/types';
 
 export function ContentPreviewBanner() {
-  const { topGameLogs, loading: gameLogsLoading } = useTopGameLogs({ limit: 10 });
+  const { topGameLogs, loading: gameLogsLoading } = useTopGameLogs({
+    limit: API_LIMITS.GAME_LOGS.DEFAULT,
+  });
   const { latestGames, loading: gamesLoading } = useLatestGames({
-    limit: 10,
+    limit: API_LIMITS.GAMES.DEFAULT,
     forceRealData: true,
   });
 
@@ -239,6 +242,7 @@ export function ContentPreviewBanner() {
                         width={16}
                         height={16}
                         className="rounded-full"
+                        style={{ width: 'auto', height: 'auto' }}
                       />
                     ) : (
                       <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">

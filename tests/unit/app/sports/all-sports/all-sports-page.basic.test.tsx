@@ -64,7 +64,7 @@ describe('AllSportsPage', () => {
 
     // Check for heading
     const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-2');
+    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-2', 'all-sports-title');
   });
 
   it('has proper semantic structure', () => {

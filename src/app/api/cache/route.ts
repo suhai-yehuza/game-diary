@@ -59,14 +59,13 @@ export async function GET(request: NextRequest) {
         });
 
       default:
-        return NextResponse.json({
-          success: true,
-          data: {
-            availableActions: ['stats', 'test', 'namespaces', 'clear', 'clearNamespace'],
-            currentStats: redisService.getStats(),
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Invalid action. Valid actions: stats, test, namespaces, get',
           },
-          timestamp: new Date().toISOString(),
-        });
+          { status: 400 }
+        );
     }
   } catch (error) {
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -165,21 +164,42 @@ export async function POST(request: NextRequest) {
       }
 
       case 'clearNamespace': {
-        if (!namespace || !Object.values(CacheNamespace).includes(namespace as CacheNamespace)) {
+        if (!namespace) {
           return NextResponse.json(
             {
               success: false,
-              error:
-                'Invalid namespace. Valid namespaces: ' + Object.values(CacheNamespace).join(', '),
+              error: 'Namespace parameter is required for clearNamespace action',
             },
             { status: 400 }
           );
         }
 
-        await redisService.clearNamespace(namespace as CacheNamespace);
+        // Normalize namespace to handle case variations
+        const normalizedNamespace = namespace.toLowerCase();
+        const validNamespaces = Object.values(CacheNamespace);
+
+        // Debug logging
+        console.log('Cache clearNamespace:', {
+          originalNamespace: namespace,
+          normalizedNamespace,
+          validNamespaces,
+          isValid: validNamespaces.includes(normalizedNamespace as CacheNamespace),
+        });
+
+        if (!validNamespaces.includes(normalizedNamespace as CacheNamespace)) {
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Invalid namespace. Valid namespaces: ' + validNamespaces.join(', '),
+            },
+            { status: 400 }
+          );
+        }
+
+        await redisService.clearNamespace(normalizedNamespace as CacheNamespace);
         return NextResponse.json({
           success: true,
-          message: `Cache namespace '${namespace}' cleared successfully`,
+          message: `Cache namespace '${normalizedNamespace}' cleared successfully`,
           timestamp: new Date().toISOString(),
         });
       }
@@ -197,7 +217,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Invalid action. Valid actions: clear, clearNamespace, test',
+            error: 'Invalid action. Valid actions: clear, set, delete, clearNamespace, test',
           },
           { status: 400 }
         );

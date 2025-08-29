@@ -213,7 +213,7 @@ export function FloatingGamesDisplay() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs truncate">
+                    <div className="font-semibold text-gray-900 dark:text-white text-xs break-words leading-tight">
                       {currentGame.teams?.home?.name || 'Home Team'}
                     </div>
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
@@ -231,7 +231,7 @@ export function FloatingGamesDisplay() {
 
                 <div className="flex items-center gap-2 flex-1 justify-end">
                   <div className="flex-1 text-right">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs truncate">
+                    <div className="font-semibold text-gray-900 dark:text-white text-xs break-words leading-tight">
                       {currentGame.teams?.visitors?.name || 'Away Team'}
                     </div>
                     <div className="text-lg font-bold text-gray-900 dark:text-white">
@@ -389,6 +389,7 @@ export function FloatingGamesDisplay() {
                         width={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                         height={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                         className="rounded-full"
+                        style={{ width: 'auto', height: 'auto' }}
                       />
                     ) : (
                       <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -435,6 +436,7 @@ export function FloatingGamesDisplay() {
                         width={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                         height={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                         className="rounded-full"
+                        style={{ width: 'auto', height: 'auto' }}
                       />
                     ) : (
                       <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">

@@ -167,6 +167,7 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-200"
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  priority={item.id === '1'}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                 <div className="absolute bottom-3 left-3 right-3">

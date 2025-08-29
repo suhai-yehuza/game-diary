@@ -4,6 +4,7 @@
  */
 
 import type { ISortDirection, IPageInfo, Permission, Role } from './shared.types';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 
 // ========================================
 // COMMON UTILITY TYPES
@@ -293,7 +294,7 @@ export const SPORTS_CONFIG = {
     name: 'NBA',
     fullName: 'National Basketball Association',
     description: 'National Basketball Association - Live scores, stats, and more',
-    color: 'bg-orange-600 hover:bg-orange-700',
+    color: TAILWIND_CLASSES.sports.nba,
     href: '/sports/nba',
     icon: '🏀',
   },
@@ -301,7 +302,7 @@ export const SPORTS_CONFIG = {
     name: 'NFL',
     fullName: 'National Football League',
     description: 'National Football League - Live scores, stats, and more',
-    color: 'bg-blue-600 hover:bg-blue-700',
+    color: TAILWIND_CLASSES.sports.nfl,
     href: '/sports/nfl',
     icon: '🏈',
   },
@@ -309,7 +310,7 @@ export const SPORTS_CONFIG = {
     name: 'MLB',
     fullName: 'Major League Baseball',
     description: 'Major League Baseball - Live scores, stats, and more',
-    color: 'bg-red-600 hover:bg-red-700',
+    color: TAILWIND_CLASSES.sports.mlb,
     href: '/sports/mlb',
     icon: '⚾',
   },
@@ -317,7 +318,7 @@ export const SPORTS_CONFIG = {
     name: 'NHL',
     fullName: 'National Hockey League',
     description: 'National Hockey League - Live scores, stats, and more',
-    color: 'bg-indigo-800 hover:bg-indigo-900',
+    color: TAILWIND_CLASSES.sports.nhl,
     href: '/sports/nhl',
     icon: '🏒',
   },
@@ -325,7 +326,7 @@ export const SPORTS_CONFIG = {
     name: 'MLS',
     fullName: 'Major League Soccer',
     description: 'Major League Soccer - Live scores, stats, and more',
-    color: 'bg-green-600 hover:bg-green-700',
+    color: TAILWIND_CLASSES.sports.mls,
     href: '/sports/mls',
     icon: '⚽',
   },

@@ -10,9 +10,8 @@ declare global {
   // Extend Window interface for E2E testing and auth bypass
   interface Window {
     __PLAYWRIGHT_TEST__?: boolean;
-    __E2E_MOCK_MODE__?: boolean;
-    __API_MOCK_MODE__?: boolean;
-    __SERVER_API_MOCK_MODE__?: boolean;
+    __MOCK_MODE__?: boolean; // New consolidated mock mode
+    __SERVER_API_MOCK_MODE__?: boolean; // Legacy - for backward compatibility
     __E2E_AUTH_BYPASS__?: boolean;
     __clerkMock?: {
       useUser: () => {

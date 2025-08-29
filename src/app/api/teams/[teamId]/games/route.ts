@@ -18,7 +18,11 @@ export async function GET(
     }
 
     // Fetch games where this team is either home or away
-    const games = await db()
+    const database = db();
+    if (!database) {
+      return NextResponse.json({ error: 'Database not available' }, { status: 503 });
+    }
+    const games = await database
       .select()
       .from(nba_games)
       .where(or(eq(nba_games.home_team_id, teamId), eq(nba_games.away_team_id, teamId)))

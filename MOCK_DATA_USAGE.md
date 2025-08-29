@@ -11,7 +11,7 @@ This application supports using mock data for development and testing purposes. 
 npm run dev:mock
 
 # Or use the environment variable directly
-API_MOCK_MODE=true npm run dev
+MOCK_MODE=true npm run dev
 ```
 
 ### Using Real Data
@@ -35,20 +35,20 @@ npm run dev:real
 
 ### Environment Variable Control
 
-The mock data feature is controlled by the `API_MOCK_MODE` environment variable:
+The mock data feature is controlled by the `MOCK_MODE` environment variable:
 
-- `API_MOCK_MODE=true` - Uses mock data
-- `API_MOCK_MODE` not set or any other value - Uses real API data
+- `MOCK_MODE=true` - Uses mock data
+- `MOCK_MODE` not set or any other value - Uses real API data
 
 ### Components Affected
 
 1. **Live Games Banner** (`src/app/components/LiveGamesBanner.tsx`)
-   - Shows mock live games when `API_MOCK_MODE=true`
+   - Shows mock live games when `MOCK_MODE=true`
    - Shows real live games when available
    - Shows nothing when no games are available
 
 2. **useLiveGames Hook** (`src/hooks/use-live-games.ts`)
-   - Fetches from mock server endpoint when `API_MOCK_MODE=true`
+   - Fetches from mock server endpoint when `MOCK_MODE=true`
    - Fetches from real API endpoint otherwise
 
 ### Mock Data Sources
@@ -92,8 +92,8 @@ npm run dev
 
 The mock data logic works on both server and client:
 
-- **Server-side**: Uses `process.env.API_MOCK_MODE`
-- **Client-side**: Uses `window.__API_MOCK_MODE__` (set by `E2ETestSetup` component)
+- **Server-side**: Uses `process.env.MOCK_MODE`
+- **Client-side**: Uses `window.__MOCK_MODE__` (set by `E2ETestSetup` component)
 
 ### Hydration Safety
 
@@ -107,8 +107,8 @@ The implementation ensures no hydration mismatches by:
 
 The system checks for mock mode in this order:
 
-1. `window.__API_MOCK_MODE__` (client-side)
-2. `process.env.API_MOCK_MODE === 'true'` (server-side)
+1. `window.__MOCK_MODE__` (client-side)
+2. `process.env.MOCK_MODE === 'true'` (server-side)
 3. `isTestOrCIEnvironment()` (for test environments)
 
 ## Troubleshooting
@@ -120,7 +120,7 @@ If the live games banner is not showing:
 1. **Check environment variable**:
 
    ```bash
-   echo $API_MOCK_MODE
+   echo $MOCK_MODE
    ```
 
 2. **Check if mock server is working**:

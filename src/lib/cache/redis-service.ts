@@ -16,7 +16,7 @@ class MemoryCache {
   private readonly cache = new Map<string, { value: unknown; timestamp: number; ttl: number }>();
   private readonly maxSize: number;
 
-  constructor(maxSize = 1000) {
+  constructor(maxSize = Number(process.env.MEMORY_CACHE_MAX_SIZE) || 1000) {
     this.maxSize = maxSize;
   }
 
@@ -72,14 +72,20 @@ class RedisService {
 
   constructor() {
     this.memoryCache = new MemoryCache(1000);
-    this.initializeRedis();
+    // Initialize Redis asynchronously
+    this.initializeRedis().catch(error => {
+      console.warn('Failed to initialize Redis service:', error);
+    });
   }
 
-  private initializeRedis(): void {
+  private async initializeRedis(): Promise<void> {
     try {
       this.redis = Redis.fromEnv();
       this.isRedisAvailable = true;
       console.log('✅ Redis service initialized successfully');
+
+      // Clean corrupted entries on startup
+      await this.cleanCorruptedEntries();
     } catch (error) {
       console.warn('⚠️ Redis not available, using memory cache only:', error);
       this.isRedisAvailable = false;
@@ -138,7 +144,14 @@ class RedisService {
         const redisResult = await this.redis.get(cacheKey);
         if (redisResult) {
           try {
-            const parsed = JSON.parse(redisResult as string);
+            // Check if the result is already a string that looks like JSON
+            let dataToParse = redisResult;
+            if (typeof redisResult === 'object') {
+              // If it's an object, stringify it first
+              dataToParse = JSON.stringify(redisResult);
+            }
+
+            const parsed = JSON.parse(dataToParse as string);
             const { value, priority } = parsed;
 
             // Store in memory cache for future fast access
@@ -148,9 +161,18 @@ class RedisService {
 
             return value as T;
           } catch (parseError) {
-            console.warn('Failed to parse Redis cache entry:', parseError);
-            // Remove corrupted entry
-            await this.redis.del(cacheKey);
+            // Log the error but don't throw it
+            console.warn(`Failed to parse Redis cache entry for key "${cacheKey}":`, parseError);
+            console.warn('Redis result type:', typeof redisResult);
+            console.warn('Redis result:', redisResult);
+
+            // Remove corrupted entry silently
+            try {
+              await this.redis.del(cacheKey);
+              console.log(`🗑️ Removed corrupted cache entry: ${cacheKey}`);
+            } catch (deleteError) {
+              console.warn('Failed to delete corrupted cache entry:', deleteError);
+            }
           }
         }
       }
@@ -224,6 +246,51 @@ class RedisService {
         component: 'Redis Service',
         action: 'Clear All Cache',
       });
+    }
+  }
+
+  /**
+   * Clean corrupted cache entries
+   */
+  async cleanCorruptedEntries(): Promise<void> {
+    try {
+      if (!this.isRedisAvailable || !this.redis) {
+        return;
+      }
+
+      console.log('🔍 Scanning for corrupted cache entries...');
+      const allKeys = await this.redis.keys('*');
+      let corruptedCount = 0;
+
+      for (const key of allKeys) {
+        try {
+          const value = await this.redis.get(key);
+          if (value) {
+            // Try to parse the value
+            if (typeof value === 'object') {
+              JSON.stringify(value); // This will throw if it's not serializable
+            } else {
+              JSON.parse(value as string);
+            }
+          }
+        } catch (_error) {
+          console.warn(`Found corrupted cache entry: ${key}`);
+          try {
+            await this.redis.del(key);
+            corruptedCount++;
+          } catch (deleteError) {
+            console.warn(`Failed to delete corrupted key ${key}:`, deleteError);
+          }
+        }
+      }
+
+      if (corruptedCount > 0) {
+        console.log(`🧹 Cleaned ${corruptedCount} corrupted cache entries`);
+      } else {
+        console.log('✅ No corrupted cache entries found');
+      }
+    } catch (error) {
+      console.warn('Failed to clean corrupted cache entries:', error);
     }
   }
 

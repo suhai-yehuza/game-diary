@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import type { IPlayersApiResponse, IPlayerResponse, IUseNBAPlayersOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 function isPlayersApiResponse(data: unknown): data is IPlayersApiResponse {
   return (
@@ -28,12 +29,8 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
-      const useMockData =
-        !forceRealData &&
-        ((typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-          isTestOrCIEnvironment());
+      // Use mock data in development if MOCK_MODE is enabled, or in test environments
+      const useMockData = !forceRealData && (isMockModeEnabled() || isTestOrCIEnvironment());
 
       let endpoint: string;
       if (useMockData) {

@@ -44,6 +44,7 @@ export function TeamCard({ team }: ITeamCardProps) {
                       width={48}
                       height={48}
                       className="object-contain w-full h-full"
+                      style={{ width: 'auto', height: 'auto' }}
                     />
                   ) : (
                     <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />

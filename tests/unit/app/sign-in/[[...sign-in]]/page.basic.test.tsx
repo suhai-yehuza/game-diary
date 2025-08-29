@@ -2,7 +2,10 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import SignInPage from '@src/app/sign-in/[[...sign-in]]/page';
+import SignInPage, {
+  generateMetadata,
+  generateStaticParams,
+} from '@src/app/sign-in/[[...sign-in]]/page';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
@@ -78,5 +81,36 @@ describe('SignInPage', () => {
     render(<SignInPage />);
 
     expect(screen.getByText('Welcome back! Please sign in to continue.')).toBeInTheDocument();
+  });
+});
+
+describe('generateMetadata', () => {
+  it('should return correct metadata for sign-in page', () => {
+    const metadata = generateMetadata();
+
+    expect(metadata).toEqual({
+      title: 'Sign In - Game Diary',
+      description: 'Sign in to your Game Diary account',
+    });
+  });
+
+  it('should return metadata with correct title', () => {
+    const metadata = generateMetadata();
+
+    expect(metadata.title).toBe('Sign In - Game Diary');
+  });
+
+  it('should return metadata with correct description', () => {
+    const metadata = generateMetadata();
+
+    expect(metadata.description).toBe('Sign in to your Game Diary account');
+  });
+});
+
+describe('generateStaticParams', () => {
+  it('should return empty array', () => {
+    const params = generateStaticParams();
+
+    expect(params).toEqual([]);
   });
 });

@@ -133,20 +133,20 @@ export function GameCard({ game }: IGameCardProps) {
             {/* Teams and Score */}
             <div className="flex-1">
               <div className="flex items-center justify-center mb-2 sm:mb-3">
-                <div className="flex items-center gap-2 sm:gap-3 lg:gap-6">
+                <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 w-full">
                   <div className="text-center min-w-0 flex-1">
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white truncate">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight">
                       {game.teams.visitors.name ?? 'Away Team'}
                     </div>
                     <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
                       {game.scores?.visitors?.points ?? '-'}
                     </div>
                   </div>
-                  <div className="game-meta-text text-base sm:text-lg font-medium flex-shrink-0">
+                  <div className="game-meta-text text-base sm:text-lg font-medium flex-shrink-0 px-1">
                     @
                   </div>
                   <div className="text-center min-w-0 flex-1">
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white truncate">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight">
                       {game.teams.home.name ?? 'Home Team'}
                     </div>
                     <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">

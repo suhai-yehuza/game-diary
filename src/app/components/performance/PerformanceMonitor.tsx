@@ -85,7 +85,7 @@ export function PerformanceMonitor() {
   if (!isVisible && process.env.NODE_ENV === 'development') {
     console.log('Performance Monitor - forcing visibility for debugging');
     return (
-      <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg text-xs font-mono z-50 max-w-xs">
+      <div className="fixed bottom-4 right-4 bg-gray-800/90 text-white p-4 rounded-lg text-xs font-mono z-50 max-w-xs border border-gray-600">
         <div className="font-bold mb-2">Performance Monitor (Debug)</div>
         <div>NODE_ENV: {process.env.NODE_ENV}</div>
         <div>isVisible: {isVisible.toString()}</div>

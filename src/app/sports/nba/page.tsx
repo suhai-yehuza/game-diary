@@ -10,6 +10,9 @@ import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
+import { API_LIMITS } from '@/lib/constants';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 // Skeleton components for better loading states
 const NavigationCardSkeleton = () => (
@@ -36,7 +39,7 @@ export default function NBAPage() {
     loading: gamesLoading,
     error: gamesError,
   } = useLatestGames({
-    limit: 6,
+    limit: API_LIMITS.GAMES.DEFAULT,
     forceRealData: false, // Use mock data instead of external API
   });
 
@@ -66,9 +69,7 @@ export default function NBAPage() {
         setCountsLoading(true);
 
         // Check if we're in mock mode
-        const useMockData =
-          (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true');
+        const useMockData = isMockModeEnabled();
 
         if (useMockData) {
           // For mock data, fetch the full responses to get the results count
@@ -102,7 +103,7 @@ export default function NBAPage() {
           // For real data, make API calls to get total counts
           const [gamesResponse, playersResponse] = await Promise.all([
             fetch('/api/proxy/games?season=2024&league=standard'),
-            fetch('/api/players?limit=1000'), // Get a large number to get total count
+            fetch(`/api/players?limit=${API_LIMITS.PLAYERS.LARGE}`), // Get a large number to get total count
           ]);
 
           if (gamesResponse.ok) {
@@ -138,7 +139,7 @@ export default function NBAPage() {
       description: 'Browse and filter NBA games',
       href: '/sports/nba/games',
       icon: Calendar,
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: TAILWIND_CLASSES.sports.nba,
       count: countsLoading ? latestGames.length : totalGames,
       loading: gamesLoading || countsLoading,
     },
@@ -147,7 +148,7 @@ export default function NBAPage() {
       description: 'Explore all NBA teams',
       href: '/sports/nba/teams',
       icon: Trophy,
-      color: 'bg-blue-500 hover:bg-blue-600',
+      color: TAILWIND_CLASSES.sports.nfl, // Using NFL blue for Teams
       count: teams.length,
       loading: teamsLoading,
     },
@@ -156,7 +157,7 @@ export default function NBAPage() {
       description: 'Discover NBA players',
       href: '/sports/nba/players',
       icon: Users,
-      color: 'bg-green-500 hover:bg-green-600',
+      color: TAILWIND_CLASSES.sports.mls, // Using MLS green for Players
       count: countsLoading ? players.length : totalPlayers,
       loading: playersLoading || countsLoading,
     },

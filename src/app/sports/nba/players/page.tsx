@@ -13,6 +13,7 @@ import {
 } from '@/app/components/sports';
 import { Button } from '@/app/components/ui/button';
 import { useEnhancedPlayerFilters } from '@/hooks/use-enhanced-player-filters';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
 
 function NBAPlayersPageContent() {
@@ -72,7 +73,7 @@ function NBAPlayersPageContent() {
           <div className="flex flex-wrap gap-2 sm:gap-4">
             <Link
               href="/sports/nba/games"
-              className="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
+              className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
             >
               Games
             </Link>
@@ -114,7 +115,7 @@ function NBAPlayersPageContent() {
           <div className="flex flex-wrap gap-2 sm:gap-4">
             <Link
               href="/sports/nba/games"
-              className="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
+              className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
             >
               Games
             </Link>
@@ -163,7 +164,7 @@ function NBAPlayersPageContent() {
         <div className="flex flex-wrap gap-2 sm:gap-4">
           <Link
             href="/sports/nba/games"
-            className="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
+            className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
           >
             Games
           </Link>

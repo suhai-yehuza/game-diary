@@ -103,8 +103,142 @@ export const TARGET_TYPES = {
   COMMENT: 'COMMENT',
 } as const;
 
-// Cache Configuration
+// ========================================
+// API CONFIGURATION
+// ========================================
+
+// API Limits & Pagination
+export const API_LIMITS = {
+  // Default pagination limits
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_PAGE_SIZE: 100,
+
+  // Sports data limits
+  GAMES: {
+    DEFAULT: 100,
+    LARGE: 2500, // For getting total counts
+    MAX: 5000,
+  },
+
+  PLAYERS: {
+    DEFAULT: 50,
+    LARGE: 2500, // For getting total counts
+    MAX: 5000,
+  },
+
+  TEAMS: {
+    DEFAULT: 30,
+    LARGE: 100,
+    MAX: 200,
+  },
+
+  GAME_LOGS: {
+    DEFAULT: 20,
+    LARGE: 1000,
+    MAX: 10000,
+  },
+
+  USERS: {
+    DEFAULT: 20,
+    LARGE: 1000,
+    MAX: 100000,
+  },
+
+  SEARCH: {
+    DEFAULT: 10,
+    LARGE: 100,
+    MAX: 1000,
+  },
+} as const;
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  // External API endpoints
+  EXTERNAL: {
+    NBA_GAMES: 'https://v2.nba.api-sports.io/games',
+    NBA_PLAYERS: 'https://v2.nba.api-sports.io/players',
+    NBA_TEAMS: 'https://v2.nba.api-sports.io/teams',
+    NBA_LIVE_GAMES: 'https://v2.nba.api-sports.io/games?live=all',
+  },
+
+  // Internal API endpoints
+  INTERNAL: {
+    GRAPHQL: '/api/graphql',
+    PROXY: '/api/proxy',
+    MOCK_SERVER: '/api/mock-server',
+    PLAYERS: '/api/players',
+    GAMES: '/api/games',
+    TEAMS: '/api/teams',
+    GAME_LOGS: '/api/game-logs',
+    USERS: '/api/users',
+    SEARCH: '/api/search',
+  },
+
+  // NBA API endpoints (from external API types)
+  NBA: {
+    SEASONS: '/seasons',
+    LEAGUES: '/leagues',
+    GAMES: '/games',
+    GAME_STATISTICS: '/games/statistics',
+    TEAMS: '/teams',
+    TEAM_STATISTICS: '/teams/statistics',
+    PLAYERS: '/players',
+    PLAYER_STATISTICS: '/players/statistics',
+    STANDINGS: '/standings',
+  },
+} as const;
+
+// Request Configuration
+export const REQUEST_CONFIG = {
+  // Timeout values in milliseconds
+  TIMEOUTS: {
+    SHORT: 5000, // 5 seconds
+    MEDIUM: 10000, // 10 seconds
+    LONG: 30000, // 30 seconds
+    VERY_LONG: 60000, // 1 minute
+  },
+
+  // Retry configuration
+  RETRY: {
+    MAX_ATTEMPTS: 3,
+    DELAY: 1000, // 1 second
+    BACKOFF_MULTIPLIER: 2,
+  },
+
+  // Rate limiting
+  RATE_LIMIT: {
+    REQUESTS_PER_MINUTE: 60,
+    REQUESTS_PER_HOUR: 1000,
+  },
+} as const;
+
+// Season Configuration
+export const SEASON_CONFIG = {
+  // Current season
+  CURRENT: 2024,
+
+  // Season types
+  TYPES: {
+    REGULAR: 'regular',
+    PLAYOFF: 'playoff',
+    PRESEASON: 'preseason',
+    ALL: 'all',
+  },
+
+  // League types
+  LEAGUES: {
+    STANDARD: 'standard',
+    SUMMER: 'summer',
+    G_LEAGUE: 'g-league',
+  },
+} as const;
+
+// ========================================
+// CACHE CONFIGURATION
+// ========================================
+
 export const CACHE_TTL = {
+  // Legacy cache TTL (kept for backward compatibility)
   USER: 3600, // 1 hour
   GAME: 3600, // 1 hour
   TEAM: 3600, // 1 hour
@@ -115,10 +249,24 @@ export const CACHE_TTL = {
   REACTIONS: 3600, // 1 hour
   FRIEND_REQUESTS: 3600, // 1 hour
   DEFAULT: 3600, // 1 hour default
+
+  // New standardized cache TTL
   SHORT: 60, // 1 minute
   MEDIUM: 300, // 5 minutes
-  LONG: 3600, // 1 hour
-  VERY_LONG: 86400, // 24 hours
+  LONG: 1800, // 30 minutes
+  VERY_LONG: 3600, // 1 hour
+  DAILY: 86400, // 24 hours
+} as const;
+
+// Cache namespaces
+export const CACHE_NAMESPACES = {
+  GAMES: 'games',
+  PLAYERS: 'players',
+  TEAMS: 'teams',
+  GAME_LOGS: 'game-logs',
+  USERS: 'users',
+  SEARCH: 'search',
+  SYSTEM: 'system',
 } as const;
 
 // Game-related Constants
@@ -178,6 +326,17 @@ export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
 
 export type TabKey = keyof typeof TABS;
 export type TabValue = (typeof TABS)[TabKey];
+
+// ========================================
+// API TYPE DEFINITIONS
+// ========================================
+
+export type ApiLimitType = keyof typeof API_LIMITS;
+export type CacheTTLType = keyof typeof CACHE_TTL;
+export type RequestTimeoutType = keyof typeof REQUEST_CONFIG.TIMEOUTS;
+export type SeasonType = keyof typeof SEASON_CONFIG.TYPES;
+export type LeagueType = keyof typeof SEASON_CONFIG.LEAGUES;
+export type CacheNamespaceType = keyof typeof CACHE_NAMESPACES;
 
 // ============= Helper Functions =============
 
@@ -241,3 +400,56 @@ export const getEnumValues = {
   resources: () => Object.values(RESOURCES) as [string, ...string[]],
   sortDirection: () => Object.values(SORT_DIRECTION) as [string, ...string[]],
 } as const;
+
+// ========================================
+// API UTILITY FUNCTIONS
+// ========================================
+
+/**
+ * Get the appropriate limit for a given data type and use case
+ */
+export function getApiLimit(
+  dataType: keyof typeof API_LIMITS,
+  useCase: 'DEFAULT' | 'LARGE' | 'MAX' = 'DEFAULT'
+): number {
+  const limits = API_LIMITS[dataType];
+  if (typeof limits === 'object' && limits !== null) {
+    return limits[useCase];
+  }
+  return limits as number;
+}
+
+/**
+ * Get cache TTL for a given duration
+ */
+export function getCacheTTL(duration: keyof typeof CACHE_TTL): number {
+  return CACHE_TTL[duration];
+}
+
+/**
+ * Get request timeout for a given duration
+ */
+export function getRequestTimeout(duration: keyof typeof REQUEST_CONFIG.TIMEOUTS): number {
+  return REQUEST_CONFIG.TIMEOUTS[duration];
+}
+
+/**
+ * Build API URL with parameters
+ */
+export function buildApiUrl(
+  endpoint: string,
+  params: Record<string, string | number | boolean> = {}
+): string {
+  const url = new URL(
+    endpoint,
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+  );
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.append(key, String(value));
+    }
+  });
+
+  return url.toString();
+}

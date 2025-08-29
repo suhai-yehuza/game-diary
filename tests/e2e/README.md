@@ -58,8 +58,7 @@ The E2E test suite includes a comprehensive mock data system that allows tests t
 
 The mock data system is controlled by environment variables:
 
-- `E2E_MOCK_MODE`: Enable/disable mock mode for E2E tests
-- `API_MOCK_MODE`: Enable/disable mock mode for API calls
+- `MOCK_MODE`: Enable/disable mock mode for API calls and E2E tests
 - `E2E_POST_DEPLOY_VERIFICATION`: Special flag for post-deployment verification tests
 
 ### Mock Data Types
@@ -175,11 +174,9 @@ class MyTestRunner extends OptimizedTestRunner {
 ### **Test Environment Variables**
 
 ```bash
-# Enable mock mode for E2E tests
-E2E_MOCK_MODE=true
+# Enable mock mode for API and E2E tests
+MOCK_MODE=true
 
-# Enable mock mode for API calls
-API_MOCK_MODE=true
 
 # Post-deployment verification (disables mock mode)
 E2E_POST_DEPLOY_VERIFICATION=true

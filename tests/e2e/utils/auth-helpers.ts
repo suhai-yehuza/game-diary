@@ -6,7 +6,7 @@ import { errorHandlers } from '@/lib/utils/error-handler';
 export function isClerkConfigured(): boolean {
   // In E2E test environments, always return true to ensure consistent behavior
   if (
-    process.env.E2E_MOCK_MODE === 'true' ||
+    process.env.MOCK_MODE === 'true' ||
     process.env.GITHUB_ACTIONS === 'true' ||
     process.env.PLAYWRIGHT_CI === 'true' ||
     process.env.NODE_ENV === 'test' ||
@@ -139,7 +139,7 @@ export async function getAuthState(page: Page): Promise<IAuthState> {
 
   const isTestEnvironment =
     isConfigured &&
-    (process.env.E2E_MOCK_MODE === 'true' ||
+    (process.env.MOCK_MODE === 'true' ||
       process.env.GITHUB_ACTIONS === 'true' ||
       process.env.PLAYWRIGHT_CI === 'true' ||
       process.env.NODE_ENV === 'test');

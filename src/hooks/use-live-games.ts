@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import type { IGamesApiResponse, IUseLiveGamesOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 // Constants
 const REFRESH_INTERVAL_MS = 30000;
@@ -31,11 +32,8 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
-      const useMockData =
-        (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-        (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-        isTestOrCIEnvironment();
+      // Use mock data in development if MOCK_MODE is enabled, or in test environments
+      const useMockData = isMockModeEnabled() || isTestOrCIEnvironment();
       const endpoint = useMockData
         ? '/api/mock-server?action=mock-data&type=live-games'
         : `${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`;

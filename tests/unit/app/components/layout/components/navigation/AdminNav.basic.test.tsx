@@ -458,7 +458,7 @@ describe('AdminNav', () => {
       });
 
       // Mock process.env
-      vi.stubEnv('E2E_MOCK_MODE', 'true');
+      vi.stubEnv('MOCK_MODE', 'true');
     });
 
     afterEach(() => {
@@ -473,7 +473,7 @@ describe('AdminNav', () => {
     });
 
     it('does not use E2E test version when not in E2E mode', () => {
-      vi.stubEnv('E2E_MOCK_MODE', 'false');
+      vi.stubEnv('MOCK_MODE', 'false');
 
       render(<AdminNav {...defaultProps} />);
 

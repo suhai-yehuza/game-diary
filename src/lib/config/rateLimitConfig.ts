@@ -40,7 +40,7 @@ const isDevOrTest =
   process.env.NODE_ENV === 'development' ||
   process.env.CI === 'true' ||
   process.env.GITHUB_ACTIONS === 'true' ||
-  process.env.API_MOCK_MODE === 'true';
+  process.env.MOCK_MODE === 'true';
 
 // Global rate limit configuration
 export const RATE_LIMIT_CONFIG_FULL = {

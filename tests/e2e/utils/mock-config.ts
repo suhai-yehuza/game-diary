@@ -43,10 +43,8 @@ export class E2EMockConfig {
   private shouldEnableMockMode(): boolean {
     // Enable mock mode for all e2e tests except post-deployment verification
     const isPostDeployVerification = process.env.E2E_POST_DEPLOY_VERIFICATION === 'true';
-    const isMockModeEnabled =
-      process.env.E2E_MOCK_MODE === 'true' || process.env.API_MOCK_MODE === 'true';
-    const isMockModeDisabled =
-      process.env.E2E_MOCK_MODE === 'false' || process.env.API_MOCK_MODE === 'false';
+    const isMockModeEnabled = process.env.MOCK_MODE === 'true';
+    const isMockModeDisabled = process.env.MOCK_MODE === 'false';
 
     // If explicitly disabled, don't enable mock mode
     if (isMockModeDisabled) {

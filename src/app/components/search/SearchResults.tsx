@@ -9,6 +9,7 @@ import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
 import { SearchAnalytics, useSearchAnalytics } from '@/app/components/search/SearchAnalytics';
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import type { ISearchResultsProps, ResultType } from '@/lib/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
@@ -191,7 +192,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               onClick={() => handleFilterChange('games')}
             >
               <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className={activeFilter === 'games' ? 'bg-accent-orange' : ''}>
+              <span className={activeFilter === 'games' ? TAILWIND_CLASSES.status.info : ''}>
                 Games ({getFilterCount('games')})
               </span>
             </button>

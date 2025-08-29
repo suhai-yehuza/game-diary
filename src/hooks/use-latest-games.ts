@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import type { IGameResponse, IGamesApiResponse, ILatestGamesOptions } from '@/lib/types';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 import { getLatestNbaSeason } from '@/lib/utils/nba-season';
 
 // Helper function to detect test environment
@@ -37,13 +38,9 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
+      // Use mock data in development if MOCK_MODE is enabled, or in test environments
       // But force real data if forceRealData is true
-      const useMockData = forceRealData
-        ? false
-        : (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-          isTestOrCIEnvironment();
+      const useMockData = forceRealData ? false : isMockModeEnabled() || isTestOrCIEnvironment();
 
       let allGames: IGameResponse[] = [];
 

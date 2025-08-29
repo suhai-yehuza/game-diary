@@ -11,6 +11,7 @@ import { Pagination } from '@/app/components/sports/pagination';
 import { Button } from '@/app/components/ui/button';
 import { useGameFilters } from '@/hooks/use-game-filters';
 import { useLatestGames } from '@/hooks/use-latest-games';
+import { API_LIMITS } from '@/lib/constants';
 
 export default function NBAGamesPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +49,7 @@ export default function NBAGamesPage() {
     error: gamesError,
     refetch: refetchGames,
   } = useLatestGames({
-    limit: 1000,
+    limit: API_LIMITS.GAMES.LARGE,
     forceRealData: false, // Use mock data instead of external API
     seasons: seasonsToFetch,
   });

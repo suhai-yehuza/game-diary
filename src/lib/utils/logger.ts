@@ -181,7 +181,7 @@ class Logger {
 
   // E2E test specific logging
   e2eDebug(message: string, context?: ILogContext): void {
-    if (this.isTest && process.env.E2E_MOCK_MODE === 'true') {
+    if (this.isTest && process.env.MOCK_MODE === 'true') {
       console.log(`[E2E DEBUG] ${message}`, context);
     }
   }

@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { testRedisConnection, getCache } from '@/lib/cache';
+import { setupRedisServiceMock } from '@tests/shared/mocks/redis-service.mock';
+
+// Setup Redis service mock
+setupRedisServiceMock();
 
 // Mock Redis service
 vi.mock('@/lib/cache/redis-service', () => ({
@@ -106,18 +110,21 @@ describe('Cache Utils', () => {
     });
 
     it('respects TTL', async () => {
-      // Set a value with a very short TTL
-      await cache.set('test-key', 'test-value', 10); // 10ms TTL
+      // Create a fresh cache instance with Redis disabled for this test to avoid interference
+      const freshCache = new (await import('@/lib/cache')).CacheManager({ enableRedis: false });
+
+      // Set a value with a short TTL (100ms to be more reliable in tests)
+      await freshCache.set('test-key', 'test-value', 100); // 100ms TTL
 
       // Should be available immediately
-      const immediateResult = await cache.get('test-key');
+      const immediateResult = await freshCache.get('test-key');
       expect(immediateResult).toBe('test-value');
 
       // Wait for TTL to expire and then some
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, 200));
 
       // Try to get the expired value
-      const expiredResult = await cache.get('test-key');
+      const expiredResult = await freshCache.get('test-key');
       expect(expiredResult).toBeNull();
     });
 

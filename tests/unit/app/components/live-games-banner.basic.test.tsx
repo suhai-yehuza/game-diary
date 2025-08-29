@@ -112,6 +112,15 @@ describe('LiveGamesBanner', () => {
       writable: true,
     });
 
+    // Mock window.__MOCK_MODE__
+    Object.defineProperty(window, '__MOCK_MODE__', {
+      value: false,
+      writable: true,
+    });
+
+    // Mock process.env.MOCK_MODE
+    vi.stubEnv('MOCK_MODE', 'false');
+
     // Mock window.location.href
     Object.defineProperty(window, 'location', {
       value: {

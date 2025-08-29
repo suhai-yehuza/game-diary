@@ -214,9 +214,19 @@ export const commentResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for child comment count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(comments)
         .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'COMMENT')));
 
@@ -237,9 +247,19 @@ export const commentResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for reaction count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(reactions)
         .where(
           and(

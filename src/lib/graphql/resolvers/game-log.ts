@@ -1147,9 +1147,19 @@ export const gameLogResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for comment count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(comments)
         .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
 
@@ -1170,9 +1180,19 @@ export const gameLogResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for reaction count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(reactions)
         .where(
           and(
@@ -1200,18 +1220,28 @@ export const gameLogResolver = {
   game: async (parent: { game_id?: string }, _args: unknown, _context: unknown) => {
     if (!parent.game_id) return null;
 
-    const game = await db()?.query.nba_games.findFirst({
+    // If MOCK_MODE is enabled, return null for game data
+    if (process.env.MOCK_MODE === 'true') {
+      return null;
+    }
+
+    const database = db();
+    if (!database) {
+      return null;
+    }
+
+    const game = await database.query.nba_games.findFirst({
       where: eq(nba_games.id, parent.game_id),
     });
 
     if (!game) return null;
 
     // Fetch team data
-    const homeTeam = await db()?.query.teams.findFirst({
+    const homeTeam = await database.query.teams.findFirst({
       where: eq(teams.id, game.home_team_id),
     });
 
-    const awayTeam = await db()?.query.teams.findFirst({
+    const awayTeam = await database.query.teams.findFirst({
       where: eq(teams.id, game.away_team_id),
     });
 

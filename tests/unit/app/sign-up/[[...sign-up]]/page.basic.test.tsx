@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react';
+import { redirect } from 'next/navigation';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+import { isClerkCatchallRouteServer } from '@/lib/utils/sso-utils';
 import SignUpPage from '@src/app/sign-up/[[...sign-up]]/page';
 
 // Mock Clerk
@@ -22,7 +24,7 @@ vi.mock('next/navigation', () => ({
 
 // Mock the SSO utils
 vi.mock('@/lib/utils/sso-utils', () => ({
-  isClerkCatchallRouteServer: vi.fn().mockReturnValue(false),
+  isClerkCatchallRouteServer: vi.fn(),
 }));
 
 // Mock Next.js Image component
@@ -53,15 +55,18 @@ vi.mock('@/hooks/use-live-games', () => ({
 }));
 
 describe('SignUpPage', () => {
+  const mockRedirect = vi.mocked(redirect);
+  const mockIsClerkCatchallRouteServer = vi.mocked(isClerkCatchallRouteServer);
+
   beforeEach(() => {
     // Set up environment variable for Clerk
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
+    vi.clearAllMocks();
   });
 
-  it('renders the sign-up page with correct structure', () => {
+  it('renders with empty params', () => {
     render(<SignUpPage params={{ 'sign-up': [] }} />);
-
-    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+    expect(screen.getByText('Create your account')).toBeInTheDocument();
   });
 
   it('renders Clerk SignUp component', () => {
@@ -78,17 +83,48 @@ describe('SignUpPage', () => {
     expect(div).toHaveClass('flex', 'min-h-screen', 'items-center', 'justify-center');
   });
 
-  it('renders sign up title', () => {
-    render(<SignUpPage params={{ 'sign-up': [] }} />);
-
-    expect(screen.getByText('Create your account')).toBeInTheDocument();
-  });
-
   it('renders welcome message', () => {
     render(<SignUpPage params={{ 'sign-up': [] }} />);
 
     expect(
       screen.getByText('Join us and start tracking your favorite sports!')
     ).toBeInTheDocument();
+  });
+
+  it('handles undefined sign-up segments', () => {
+    render(<SignUpPage params={{ 'sign-up': [] }} />);
+
+    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+  });
+
+  it('redirects to sso-callback when first segment is sso-callback', () => {
+    render(<SignUpPage params={{ 'sign-up': ['sso-callback'] }} />);
+
+    expect(mockRedirect).toHaveBeenCalledWith('/sso-callback');
+  });
+
+  it('redirects to sign-up when first segment is a Clerk catchall route', () => {
+    mockIsClerkCatchallRouteServer.mockReturnValue(true);
+
+    render(<SignUpPage params={{ 'sign-up': ['some-catchall-route'] }} />);
+
+    expect(mockIsClerkCatchallRouteServer).toHaveBeenCalledWith('some-catchall-route');
+    expect(mockRedirect).toHaveBeenCalledWith('/sign-up');
+  });
+
+  it('does not redirect when first segment is not a catchall route', () => {
+    mockIsClerkCatchallRouteServer.mockReturnValue(false);
+
+    render(<SignUpPage params={{ 'sign-up': ['some-other-route'] }} />);
+
+    expect(mockIsClerkCatchallRouteServer).toHaveBeenCalledWith('some-other-route');
+    expect(mockRedirect).not.toHaveBeenCalled();
+    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+  });
+
+  it('handles multiple segments correctly', () => {
+    render(<SignUpPage params={{ 'sign-up': ['segment1', 'segment2'] }} />);
+
+    expect(mockIsClerkCatchallRouteServer).toHaveBeenCalledWith('segment1');
   });
 });

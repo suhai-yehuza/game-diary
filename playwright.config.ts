@@ -71,7 +71,7 @@ const port = getPort();
 
 // Optimized web server configuration
 const webServerConfig = {
-  command: `NODE_ENV=development API_MOCK_MODE=true E2E_MOCK_MODE=true pnpm dev -p ${port}`,
+  command: `NODE_ENV=development MOCK_MODE=true pnpm dev -p ${port}`,
   url: `http://localhost:${port}`,
   reuseExistingServer: !process.env.CI, // Don't reuse in CI to avoid conflicts
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,

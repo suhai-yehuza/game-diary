@@ -8,6 +8,7 @@ import { SportsPageLayout, TeamCard, TeamFilters } from '@/app/components/sports
 import { Button } from '@/app/components/ui/button';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { useTeamFilters } from '@/hooks/use-team-filters';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import type { ITeamResponse } from '@/lib/types';
 
 export default function NBATeamsPage() {
@@ -67,13 +68,13 @@ export default function NBATeamsPage() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/sports/nba/games"
-              className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+              className={`inline-flex items-center px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2`}
             >
               Games
             </Link>
             <Link
               href="/sports/nba/players"
-              className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+              className={`inline-flex items-center px-4 py-2 ${TAILWIND_CLASSES.sports.mls} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2`}
             >
               Players
             </Link>
@@ -108,13 +109,13 @@ export default function NBATeamsPage() {
           <div className="flex flex-wrap gap-4">
             <Link
               href="/sports/nba/games"
-              className="inline-flex items-center px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+              className={`inline-flex items-center px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2`}
             >
               Games
             </Link>
             <Link
               href="/sports/nba/players"
-              className="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+              className={`inline-flex items-center px-4 py-2 ${TAILWIND_CLASSES.sports.mls} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2`}
             >
               Players
             </Link>
@@ -154,13 +155,13 @@ export default function NBATeamsPage() {
         <div className="flex flex-wrap gap-2 sm:gap-4">
           <Link
             href="/sports/nba/games"
-            className="inline-flex items-center px-3 sm:px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
+            className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
           >
             Games
           </Link>
           <Link
             href="/sports/nba/players"
-            className="inline-flex items-center px-3 sm:px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
+            className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.mls} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
           >
             Players
           </Link>

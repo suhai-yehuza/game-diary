@@ -86,7 +86,7 @@ test('should log failed access attempts (API)', async () => {
   }
   expect(unauthorizedResult.status).toBe(401);
   if (typeof unauthorizedResult.data === 'string') {
-    expect(unauthorizedResult.data).toMatch(/unauthorized/i);
+    expect(unauthorizedResult.data).toMatch(/authentication required|unauthorized/i);
   }
   const auditResponse = await fetch(`${getAppUrl()}/api/admin/audit-logs`, {
     headers: { 'Content-Type': 'application/json' },

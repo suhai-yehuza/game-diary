@@ -138,11 +138,15 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
 
     // Get total count using raw SQL like the search endpoint
     const countQuery = sql`SELECT COUNT(*) as count FROM nba_players`;
-    const countResult = await db().execute(countQuery);
+    const database = db();
+    if (!database) {
+      throw new Error('Database not available');
+    }
+    const countResult = await database.execute(countQuery);
     const total = parseInt((countResult.rows[0]?.count as string) ?? '0');
 
     // Convert to API format
-    const players = dbPlayers.map(convertDbPlayerToApiFormat);
+    const players = dbPlayers?.map(convertDbPlayerToApiFormat) ?? [];
 
     return {
       players,
@@ -166,7 +170,11 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
  */
 export async function getPlayerById(playerId: string): Promise<IPlayerResponse | null> {
   try {
-    const dbPlayer = await db()
+    const database = db();
+    if (!database) {
+      throw new Error('Database not available');
+    }
+    const dbPlayer = await database
       .select()
       .from(nba_players)
       .where(and(eq(nba_players.id, playerId), isNull(nba_players.deleted_at)))
@@ -192,7 +200,11 @@ export async function getPlayerById(playerId: string): Promise<IPlayerResponse |
  */
 export async function getPlayersByTeam(teamId: string): Promise<IPlayerResponse[]> {
   try {
-    const dbPlayers = await db()
+    const database = db();
+    if (!database) {
+      throw new Error('Database not available');
+    }
+    const dbPlayers = await database
       .select()
       .from(nba_players)
       .where(and(ilike(nba_players.teams, `%${teamId}%`), isNull(nba_players.deleted_at)))
@@ -214,7 +226,11 @@ export async function getPlayersByTeam(teamId: string): Promise<IPlayerResponse[
  */
 export async function getUniqueColleges(): Promise<string[]> {
   try {
-    const colleges = await db()
+    const database = db();
+    if (!database) {
+      throw new Error('Database not available');
+    }
+    const colleges = await database
       .selectDistinct({ college: nba_players.college })
       .from(nba_players)
       .where(
@@ -246,7 +262,11 @@ export async function getUniqueCountries(): Promise<string[]> {
   try {
     // Countries are stored in the birth JSON field
     // We need to extract country from JSON and get unique values
-    const players = await db()
+    const database = db();
+    if (!database) {
+      throw new Error('Database not available');
+    }
+    const players = await database
       .select({ birth: nba_players.birth })
       .from(nba_players)
       .where(
