@@ -69,7 +69,7 @@ export const GameLogsContent = ({
         </div>
       ) : Array.isArray(logs) ? (
         <div>
-          <div className={`text-gray-500 mb-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className={`text-white mb-4 ${isMobile ? 'text-xs' : 'text-sm'}`}>
             Showing {logs.length} of {totalCount}{' '}
             {tabValue === 'my-logs' ? 'of your' : tabValue === 'friends-logs' ? "friends'" : ''}{' '}
             game logs

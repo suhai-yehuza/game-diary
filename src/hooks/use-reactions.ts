@@ -6,6 +6,7 @@ import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
 import type { IReaction, IReactionGroup, IReactionOptions, ParentType } from '@/lib/types';
 import { REACTION_EMOJIS } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function useReactions(options: IReactionOptions) {
   const { user } = useUser();
@@ -187,7 +188,10 @@ export function useReactions(options: IReactionOptions) {
           },
         });
       } catch (error) {
-        console.error('Failed to add reaction:', error);
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useReactions',
+          action: 'Add reaction',
+        });
         // Remove optimistic reaction on error
         setOptimisticReactions(prev => prev.filter(r => r.id !== optimisticReaction.id));
       }
@@ -238,7 +242,10 @@ export function useReactions(options: IReactionOptions) {
           },
         });
       } catch (error) {
-        console.error('Failed to remove reaction:', error);
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useReactions',
+          action: 'Remove reaction',
+        });
         // Remove only this specific optimistic reaction on error
         setOptimisticReactions(prev => prev.filter(r => r.id !== userReaction.id));
       }
@@ -268,6 +275,11 @@ export function useReactions(options: IReactionOptions) {
         } else {
           await addReaction(emoji);
         }
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useReactions',
+          action: 'Toggle reaction',
+        });
       } finally {
         setIsProcessing(false);
       }

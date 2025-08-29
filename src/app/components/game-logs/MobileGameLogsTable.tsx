@@ -14,6 +14,36 @@ import { useGameLogs } from '@/hooks/use-game-logs';
 import type { IGameLog } from '@/lib/types';
 import { CLASSIFICATION } from '@/lib/types';
 
+// Utility function to generate distinct colors for tags
+const getTagColor = (tag: string) => {
+  const colors = [
+    // Emerald - green
+    'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
+    // Blue
+    'bg-blue-100 text-blue-900 dark:bg-blue-900/60 dark:text-blue-100 border-blue-300 dark:border-blue-700',
+    // Orange
+    'bg-orange-100 text-orange-900 dark:bg-orange-900/60 dark:text-orange-100 border-orange-300 dark:border-orange-700',
+    // Purple
+    'bg-purple-100 text-purple-900 dark:bg-purple-900/60 dark:text-purple-100 border-purple-300 dark:border-purple-700',
+    // Red
+    'bg-red-100 text-red-900 dark:bg-red-900/60 dark:text-red-100 border-red-300 dark:border-red-700',
+    // Teal
+    'bg-teal-100 text-teal-900 dark:bg-teal-900/60 dark:text-teal-100 border-teal-300 dark:border-teal-700',
+    // Indigo
+    'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/60 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
+    // Amber
+    'bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-100 border-amber-300 dark:border-amber-700',
+  ];
+
+  // Use tag hash for consistent colors
+  const hash = tag.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+
+  return colors[Math.abs(hash) % colors.length];
+};
+
 const ClassificationIcon = ({ classification }: { classification: string }) => {
   switch (classification) {
     case CLASSIFICATION.PUBLIC:
@@ -143,10 +173,7 @@ export function MobileGameLogsTable() {
           <CardFooter className="pt-0">
             <div className="flex flex-wrap gap-1">
               {log.tags.slice(0, 3).map(tag => (
-                <span
-                  key={tag}
-                  className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded"
-                >
+                <span key={tag} className={`px-2 py-1 text-xs rounded-full ${getTagColor(tag)}`}>
                   {tag}
                 </span>
               ))}

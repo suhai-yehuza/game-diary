@@ -4,6 +4,7 @@ import { User, MapPin, GraduationCap, Calendar, Ruler, Trophy, ArrowRight } from
 import { useRouter } from 'next/navigation';
 
 import type { IPlayerSearchResultProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 function _formatDate(dateString: string) {
   try {
@@ -17,7 +18,11 @@ function _formatDate(dateString: string) {
       day: 'numeric',
       timeZone: 'UTC',
     });
-  } catch {
+  } catch (error) {
+    errorHandlers.ui(error instanceof Error ? error : new Error(String(error)), {
+      component: 'PlayerSearchResult',
+      action: 'Format date',
+    });
     return null;
   }
 }
@@ -47,7 +52,11 @@ export function PlayerSearchResult({ player }: IPlayerSearchResultProps) {
         if (heightData.meters) {
           return `${heightData.meters}m`;
         }
-      } catch {
+      } catch (error) {
+        errorHandlers.ui(error instanceof Error ? error : new Error(String(error)), {
+          component: 'PlayerSearchResult',
+          action: 'Parse height JSON',
+        });
         // Fall back to original string if JSON parse fails
       }
     }
@@ -88,7 +97,11 @@ export function PlayerSearchResult({ player }: IPlayerSearchResultProps) {
         if (weightData.kilograms) {
           return `${weightData.kilograms} kg`;
         }
-      } catch {
+      } catch (error) {
+        errorHandlers.ui(error instanceof Error ? error : new Error(String(error)), {
+          component: 'PlayerSearchResult',
+          action: 'Parse weight JSON',
+        });
         // Fall back to original string if JSON parse fails
       }
     }
@@ -135,7 +148,11 @@ export function PlayerSearchResult({ player }: IPlayerSearchResultProps) {
             .filter(Boolean)
             .join(', ');
         }
-      } catch {
+      } catch (error) {
+        errorHandlers.ui(error instanceof Error ? error : new Error(String(error)), {
+          component: 'PlayerSearchResult',
+          action: 'Parse teams JSON',
+        });
         // Fall back to original string if JSON parse fails
       }
     }

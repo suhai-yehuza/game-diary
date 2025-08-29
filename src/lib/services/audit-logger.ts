@@ -8,6 +8,7 @@ import type {
   IKeyRotationLogData,
   IRLSAccessLogData,
 } from '@/lib/types/services.types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 import { logger } from '@/lib/utils/logger';
 
@@ -120,9 +121,9 @@ export class AuditLogger {
 
       return auditId;
     } catch (error: unknown) {
-      auditServiceLogger.error('Failed to create audit log:', error as Error, {
-        auditId,
-        data,
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuditLogger',
+        action: 'Create audit log',
       });
       throw error;
     }
@@ -133,7 +134,10 @@ export class AuditLogger {
     try {
       await alertingService.sendSlackAlert(auditData);
     } catch (error: unknown) {
-      auditServiceLogger.error('Failed to send critical alert:', error as Error);
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuditLogger',
+        action: 'Send critical alert',
+      });
       // Fallback to console logging
       auditServiceLogger.error('[ALERT] CRITICAL AUDIT EVENT:', error as Error, { auditData });
     }
@@ -196,9 +200,9 @@ export class AuditLogger {
 
       return rotationId;
     } catch (error: unknown) {
-      auditServiceLogger.error('Failed to log key rotation:', error as Error, {
-        rotationId,
-        data,
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuditLogger',
+        action: 'Log key rotation',
       });
       throw error;
     }
@@ -270,9 +274,9 @@ export class AuditLogger {
 
       return accessId;
     } catch (error: unknown) {
-      auditServiceLogger.error('Failed to log RLS access:', error as Error, {
-        accessId,
-        data,
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuditLogger',
+        action: 'Log RLS access',
       });
       throw error;
     }
@@ -377,7 +381,10 @@ export class AuditLogger {
         .limit(filters.limit ?? 100);
       return result ?? [];
     } catch (error: unknown) {
-      auditServiceLogger.error('Failed to query audit logs:', error as Error);
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'AuditLogger',
+        action: 'Query audit logs',
+      });
       throw error;
     }
   }

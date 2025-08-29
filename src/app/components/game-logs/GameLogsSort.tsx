@@ -93,7 +93,7 @@ export function GameLogsSort({
       {/* Results Summary */}
       {displayedCount !== undefined && totalCount !== undefined && (
         <div className="flex items-center justify-between pt-6 pb-3 border-t border-gray-200 dark:border-gray-700">
-          <span className="text-sm text-gray-600 dark:text-gray-400">
+          <span className="text-sm text-white">
             Showing {displayedCount} of {totalCount} {classification ?? 'game logs'}
           </span>
         </div>

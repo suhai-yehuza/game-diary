@@ -3,6 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 import type { ISearchAnalyticsProps, ISearchEvent } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interfaces moved to src/lib/types/components.types.ts
 
@@ -39,7 +40,11 @@ export function SearchAnalytics({
           },
           body: JSON.stringify(searchEvent),
         });
-      } catch (_error) {
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'SearchAnalytics',
+          action: 'Track search event',
+        });
         // Fallback to localStorage for offline tracking
         storeSearchEventLocally(searchEvent);
       }
@@ -78,8 +83,11 @@ function storeSearchEventLocally(event: ISearchEvent) {
     }
 
     localStorage.setItem('search_events', JSON.stringify(existingEvents));
-  } catch (_error) {
-    console.warn('Failed to store search event locally:', _error);
+  } catch (error) {
+    errorHandlers.ui(error instanceof Error ? error : new Error(String(error)), {
+      component: 'SearchAnalytics',
+      action: 'Store search event locally',
+    });
   }
 }
 
@@ -112,8 +120,11 @@ export function useSearchAnalytics() {
         .catch(() => {
           // Ignore errors in analytics
         });
-    } catch (_error) {
-      console.warn('Failed to track search interaction:', _error);
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'SearchAnalytics',
+        action: 'Track search interaction',
+      });
     }
   };
 

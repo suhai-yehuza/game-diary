@@ -5,6 +5,7 @@ import type {
   IEnhancedPlayerFilterState,
   IEnhancedPlayerFilterOptions,
 } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 const INITIAL_FILTERS: IEnhancedPlayerFilterState = {
   searchTerm: '',
@@ -45,7 +46,10 @@ export function useEnhancedPlayerFilters() {
         });
       }
     } catch (error) {
-      console.error('Error fetching filter options:', error);
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useEnhancedPlayerFilters',
+        action: 'Fetch filter options',
+      });
     }
   }, []);
 
@@ -86,6 +90,10 @@ export function useEnhancedPlayerFilters() {
       setTotalPlayers(data.results || 0);
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
+      errorHandlers.api(error, {
+        component: 'useEnhancedPlayerFilters',
+        action: 'Fetch players',
+      });
       setError(error.message);
       setPlayers([]);
       setTotalPlayers(0);

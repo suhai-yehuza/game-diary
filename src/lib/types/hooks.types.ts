@@ -1,5 +1,6 @@
 // Types file: hooks.types.ts
 import type { IGamesApiResponse } from './externalApi.types';
+import type { IErrorContext } from './utils.types';
 
 // Async state types
 export interface IAsyncState<T> {
@@ -310,4 +311,17 @@ export interface IEnhancedPlayerFilterOptions {
   teams: string[];
   colleges: string[];
   countries: string[];
+}
+
+// Centralized error handler types
+export interface ICentralizedErrorHandlerOptions {
+  showToast?: boolean;
+  toastMessage?: string;
+  context?: Partial<IErrorContext>;
+}
+
+// Cache hook types
+export interface ICacheOptions {
+  namespace?: string;
+  priority?: 'low' | 'medium' | 'high' | 'critical';
 }

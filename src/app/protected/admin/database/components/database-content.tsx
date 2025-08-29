@@ -2,7 +2,7 @@
 
 import { Bell, Database, Heart, Loader2, MessageSquare, Star, UserPlus, Users } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import {
   Card,
@@ -15,6 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Ta
 import { FriendshipsTableWithSearch } from '@/app/protected/admin/database/components/friendships-table';
 import { GameRatingsTableWithSearch } from '@/app/protected/admin/database/components/game-ratings-table';
 import { NotificationsTableWithSearch } from '@/app/protected/admin/database/components/notifications-table';
+import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
@@ -93,52 +94,62 @@ export function AdminDatabaseContent() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<Record<string, string>>({});
 
-  const handleFetch = async (
-    tableName: string,
-    page = 1,
-    limit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE
-  ) => {
-    setLoading(prev => ({ ...prev, [tableName]: true }));
-    setError(prev => ({ ...prev, [tableName]: '' }));
+  const { handleAsync, handleSync } = useCentralizedErrorHandler({
+    context: { component: 'AdminDatabaseContent', action: 'Fetch table data' },
+  });
 
-    try {
-      const config = tableConfigs[tableName as keyof typeof tableConfigs];
-      const response = await fetch(`${config.endpoint}?page=${page}&limit=${limit}`);
-      const data = (await response.json()) as IApiResponse;
+  const handleFetch = useCallback(
+    async (tableName: string, page = 1, limit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE) => {
+      setLoading(prev => ({ ...prev, [tableName]: true }));
+      setError(prev => ({ ...prev, [tableName]: '' }));
 
-      if (data.success && data.data) {
-        setTableData(prev => ({ ...prev, [tableName]: data.data as Record<string, unknown>[] }));
-        if (data.pagination) {
-          setPagination(prev => ({
-            ...prev,
-            [tableName]: data.pagination as {
-              page: number;
-              limit: number;
-              total: number;
-              pages: number;
-            },
-          }));
+      const result = await handleAsync(
+        async () => {
+          const config = tableConfigs[tableName as keyof typeof tableConfigs];
+          const response = await fetch(`${config.endpoint}?page=${page}&limit=${limit}`);
+          const data = (await response.json()) as IApiResponse;
+
+          if (data.success && data.data) {
+            setTableData(prev => ({
+              ...prev,
+              [tableName]: data.data as Record<string, unknown>[],
+            }));
+            if (data.pagination) {
+              setPagination(prev => ({
+                ...prev,
+                [tableName]: data.pagination as {
+                  page: number;
+                  limit: number;
+                  total: number;
+                  pages: number;
+                },
+              }));
+            }
+            setCurrentPage(prev => ({ ...prev, [tableName]: page }));
+            return data;
+          } else {
+            throw new Error(typeof data.error === 'string' ? data.error : 'Failed to fetch data');
+          }
+        },
+        {
+          action: `Fetch ${tableName} data`,
         }
-        setCurrentPage(prev => ({ ...prev, [tableName]: page }));
-      } else {
-        setError(prev => ({
-          ...prev,
-          [tableName]: typeof data.error === 'string' ? data.error : 'Failed to fetch data',
-        }));
+      );
+
+      if (!result) {
+        setError(prev => ({ ...prev, [tableName]: 'Failed to fetch data' }));
       }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';
-      setError(prev => ({ ...prev, [tableName]: errorMessage }));
-    } finally {
+
       setLoading(prev => ({ ...prev, [tableName]: false }));
-    }
-  };
+    },
+    [handleAsync]
+  );
 
   useEffect(() => {
     if (activeTab === 'reactions') {
       void handleFetch('reactions', 1, API_CONFIG.pagination.DEFAULT_PAGE_SIZE);
     }
-  }, [activeTab]);
+  }, [activeTab, handleFetch]);
 
   const formatValue = (value: unknown, _field: string): string => {
     if (value === null || value === undefined) return 'N/A';
@@ -147,11 +158,11 @@ export function AdminDatabaseContent() {
     if (typeof value === 'boolean') return value ? 'Yes' : 'No';
     if (value instanceof Date) return value.toLocaleDateString();
     if (typeof value === 'object' && value !== null) {
-      try {
-        return JSON.stringify(value, null, 2);
-      } catch {
-        return '[Object]';
-      }
+      return (
+        handleSync(() => JSON.stringify(value, null, 2), {
+          action: 'Format object value',
+        }) || '[Object]'
+      );
     }
     if (typeof value === 'object' && value !== null) {
       return '[Object]';

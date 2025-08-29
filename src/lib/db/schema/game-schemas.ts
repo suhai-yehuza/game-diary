@@ -9,6 +9,7 @@ import {
   unique,
   boolean,
   serial,
+  index,
 } from 'drizzle-orm/pg-core';
 
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
@@ -110,6 +111,20 @@ export const game_logs = pgTable(
     // Ensure a user can only have one game log per game
     userGameUnique: unique().on(_table.user_id, _table.game_id),
     ratingCheck: sql`CHECK (rating_for_game >= 1 AND rating_for_game <= 5)`,
+
+    // Performance indexes for common query patterns
+    idxUserCreated: index('idx_game_logs_user_created').on(_table.user_id, _table.created_at),
+    idxClassificationCreated: index('idx_game_logs_classification_created').on(
+      _table.classification,
+      _table.created_at
+    ),
+    idxUserClassificationCreated: index('idx_game_logs_user_classification_created').on(
+      _table.user_id,
+      _table.classification,
+      _table.created_at
+    ),
+    idxGameId: index('idx_game_logs_game_id').on(_table.game_id),
+    idxDeletedAt: index('idx_game_logs_deleted_at').on(_table.deleted_at),
   })
 );
 

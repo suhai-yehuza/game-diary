@@ -6,6 +6,7 @@ import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@/lib/graphql/mu
 import { GET_COMMENTS } from '@/lib/graphql/queries';
 import type { IComment, ICommentsOptions, ICommentsResponse } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function useComments(options: ICommentsOptions = {}) {
   const { filters = {}, pagination = {} } = options;
@@ -38,10 +39,16 @@ export function useComments(options: ICommentsOptions = {}) {
       }
     },
     onError: error => {
-      console.error('Comments query error:', error);
+      errorHandlers.api(error, {
+        component: 'useComments',
+        action: 'Query comments',
+      });
       // Handle rate limiting errors gracefully
       if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-        console.warn('Authentication error in comments query, user may not be authenticated');
+        errorHandlers.authentication(error, {
+          component: 'useComments',
+          action: 'Query comments',
+        });
       }
     },
   });
@@ -123,7 +130,10 @@ export function useCreateComment() {
         });
         return result.data?.createComment;
       } catch (err) {
-        console.error('Error creating comment:', err);
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'useCreateComment',
+          action: 'Create comment',
+        });
         throw err;
       }
     },
@@ -148,7 +158,10 @@ export function useUpdateComment() {
         });
         return result.data?.updateComment;
       } catch (err) {
-        console.error('Error updating comment:', err);
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'useUpdateComment',
+          action: 'Update comment',
+        });
         throw err;
       }
     },
@@ -173,7 +186,10 @@ export function useDeleteComment() {
         });
         return result.data?.deleteComment;
       } catch (err) {
-        console.error('Error deleting comment:', err);
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'useDeleteComment',
+          action: 'Delete comment',
+        });
         throw err;
       }
     },

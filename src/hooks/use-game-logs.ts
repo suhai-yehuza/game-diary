@@ -1,5 +1,5 @@
 import { useQuery, NetworkStatus } from '@apollo/client';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { GET_FRIENDS_GAME_LOGS, GET_GAME_LOGS } from '@/lib/graphql/queries';
@@ -119,6 +119,10 @@ function safeMapGameLogArray(edges: unknown): IGameLog[] {
 
 export function useGameLogs(options: IGameLogsOptions = {}) {
   const { filters = {}, pagination = {}, skip = false } = options;
+
+  // Performance monitoring
+  const queryStartTime = useRef<number>(Date.now());
+
   // Separate state for gameLogs and friendsGameLogs
   const [gameLogs, setGameLogs] = useState<IGameLog[]>([]);
   const [gameLogsEndCursor, setGameLogsEndCursor] = useState<string | null>(null);
@@ -143,6 +147,30 @@ export function useGameLogs(options: IGameLogsOptions = {}) {
       // Add better error handling for rate limiting
       notifyOnNetworkStatusChange: true,
       onCompleted: data => {
+        // Performance monitoring
+        const queryDuration = Date.now() - queryStartTime.current;
+
+        // Dispatch custom events for performance monitoring
+        window.dispatchEvent(
+          new CustomEvent('query-complete', {
+            detail: { duration: queryDuration, filters, pagination },
+          })
+        );
+
+        if (queryDuration > 2000) {
+          console.warn(`Slow game logs query detected: ${queryDuration}ms`, {
+            filters,
+            pagination,
+          });
+
+          // Dispatch slow query event
+          window.dispatchEvent(
+            new CustomEvent('slow-query', {
+              detail: { duration: queryDuration, filters, pagination },
+            })
+          );
+        }
+
         if (
           data &&
           typeof data === 'object' &&
@@ -348,6 +376,9 @@ export function useFriendsGameLogs() {
   const [hasNextPage, setHasNextPage] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
 
+  // Performance monitoring
+  const queryStartTime = useRef<number>(Date.now());
+
   const { loading, error, refetch, fetchMore, networkStatus } = useQuery<
     Pick<Query, 'friendsGameLogs'>
   >(GET_FRIENDS_GAME_LOGS, {
@@ -359,6 +390,33 @@ export function useFriendsGameLogs() {
     // Add better error handling for rate limiting
     notifyOnNetworkStatusChange: true,
     onCompleted: data => {
+      // Performance monitoring
+      const queryDuration = Date.now() - queryStartTime.current;
+
+      // Dispatch custom events for performance monitoring
+      window.dispatchEvent(
+        new CustomEvent('query-complete', {
+          detail: {
+            duration: queryDuration,
+            pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
+          },
+        })
+      );
+
+      if (queryDuration > 2000) {
+        console.warn(`Slow friends game logs query detected: ${queryDuration}ms`);
+
+        // Dispatch slow query event
+        window.dispatchEvent(
+          new CustomEvent('slow-query', {
+            detail: {
+              duration: queryDuration,
+              pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
+            },
+          })
+        );
+      }
+
       if (
         data &&
         typeof data === 'object' &&

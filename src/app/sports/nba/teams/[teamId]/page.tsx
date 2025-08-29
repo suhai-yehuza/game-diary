@@ -12,6 +12,7 @@ import { PlayerCard } from '@/app/components/sports/player-card';
 import { Tabs } from '@/app/components/sports/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import type { ITeamResponse, IPlayerResponse, ITeamDetailPageProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interface moved to src/lib/types/page.types.ts
 
@@ -54,6 +55,10 @@ export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
         const teamData = await response.json();
         setTeam(teamData);
       } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'NBATeamDetailPage',
+          action: 'Fetch team data',
+        });
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch team';
         setTeamsError(errorMessage);
       } finally {
@@ -81,6 +86,10 @@ export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
         const gamesData = await response.json();
         setTeamGames(gamesData);
       } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'NBATeamDetailPage',
+          action: 'Fetch team games',
+        });
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch team games';
         setGamesError(errorMessage);
         setTeamGames([]);

@@ -27,7 +27,7 @@ async function testRedis() {
     }
 
     // Test the connection using the placeholder function
-    const isConnected = testRedisConnection();
+    const isConnected = await testRedisConnection();
 
     if (isConnected) {
       logger.info('✅ Redis connection test passed (placeholder)');

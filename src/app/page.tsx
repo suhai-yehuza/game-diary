@@ -177,7 +177,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/protected/user"
-                className="inline-block px-8 py-4 bg-white text-brand-primary rounded-lg hover:bg-neutral-100 transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl"
+                className="inline-block px-8 py-4 bg-white !text-black rounded-lg hover:bg-neutral-100 transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl"
               >
                 Get Started Now
               </Link>

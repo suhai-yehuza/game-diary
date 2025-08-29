@@ -25,6 +25,36 @@ import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/app/comp
 import type { IGameLogCardProps } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
+// Utility function to generate distinct colors for tags
+const getTagColor = (tag: string) => {
+  const colors = [
+    // Emerald - green
+    'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
+    // Blue
+    'bg-blue-100 dark:bg-blue-900/60 text-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700',
+    // Orange
+    'bg-orange-100 dark:bg-orange-900/60 text-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-700',
+    // Purple
+    'bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-100 border-purple-300 dark:border-purple-700',
+    // Red
+    'bg-red-100 dark:bg-red-900/60 text-red-900 dark:text-red-100 border-red-300 dark:border-red-700',
+    // Teal
+    'bg-teal-100 dark:bg-teal-900/60 text-teal-900 dark:text-teal-100 border-teal-300 dark:border-teal-700',
+    // Indigo
+    'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-900 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
+    // Amber
+    'bg-amber-100 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700',
+  ];
+
+  // Use tag hash for consistent colors
+  const hash = tag.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+
+  return colors[Math.abs(hash) % colors.length];
+};
+
 export const GameLogCard = ({
   log,
   showActions = false,
@@ -78,11 +108,11 @@ export const GameLogCard = ({
     <div key={`${log.id}-${idx ?? ''}`} className={isMobile ? 'mb-4' : 'mb-6'}>
       <Card
         className={`
-          game-log-card-enhanced group relative border-2 rounded-xl
-          cursor-pointer transition-all duration-200
-          hover:shadow-xl hover:border-brand-primary/50
-          focus-within:ring-2 focus-within:ring-brand-primary/50 focus-within:border-brand-primary
-          ${isNavigating ? 'opacity-75 scale-[0.98]' : 'hover:scale-[1.01]'}
+          game-log-card-enhanced group relative border-2 border-gray-100 dark:border-gray-700 rounded-xl
+          cursor-pointer transition-all duration-300 bg-white dark:bg-gray-900
+          hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10
+          focus-within:ring-4 focus-within:ring-blue-500/20 focus-within:border-blue-500
+          ${isNavigating ? 'opacity-75 scale-[0.98]' : 'hover:scale-[1.02]'}
         `}
         onClick={handleCardClick}
         onKeyDown={handleKeyDown}
@@ -92,7 +122,7 @@ export const GameLogCard = ({
         aria-label={`Game log for ${getTeamDisplay(log.game)} - Click to view details`}
       >
         <CardHeader
-          className={`flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-gray-100 ${
+          className={`flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-white ${
             isMobile ? 'pb-2' : 'pb-2'
           }`}
         >
@@ -100,12 +130,12 @@ export const GameLogCard = ({
             <ClassificationIcon classification={log.classification} />
             <div className="flex flex-col flex-1">
               <CardTitle
-                className={`font-semibold ${isMobile ? 'text-sm' : 'text-base'} group-hover:text-brand-primary transition-colors`}
+                className={`font-bold ${isMobile ? 'text-sm' : 'text-lg'} text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}
               >
                 {log.game?.id ? (
                   <Link
                     href={`/games/${log.game.id}`}
-                    className="hover:underline text-brand-primary hover:text-brand-primary/80 transition-colors"
+                    className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     onClick={e => e.stopPropagation()}
                   >
                     {getTeamDisplay(log.game)}
@@ -114,11 +144,13 @@ export const GameLogCard = ({
                   getTeamDisplay(log.game)
                 )}
               </CardTitle>
-              <span className={`text-neutral-500 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+              <span
+                className={`text-gray-500 dark:text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
+              >
                 {log.user?.id ? (
                   <Link
                     href={`/users/${log.user.id}`}
-                    className="hover:underline text-brand-primary hover:text-brand-primary/80 transition-colors"
+                    className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     onClick={e => e.stopPropagation()}
                   >
                     @{log.user.first_name || log.user.username || 'Unknown User'}
@@ -129,9 +161,9 @@ export const GameLogCard = ({
               </span>
             </div>
             {isNavigating ? (
-              <Loader2 className="w-4 h-4 text-brand-primary animate-spin" />
+              <Loader2 className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
             ) : (
-              <ExternalLink className="w-4 h-4 text-neutral-400 group-hover:text-brand-primary transition-colors opacity-0 group-hover:opacity-100" />
+              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100" />
             )}
           </div>
           <RatingStars rating={log.rating_for_game} />
@@ -139,20 +171,20 @@ export const GameLogCard = ({
 
         <CardContent className="pt-0">
           <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
-            {/* Game Details - Simplified */}
+            {/* Game Details - Enhanced with Industry Best Practices */}
             <div
               className={`flex flex-wrap gap-2 ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'text-xs' : 'text-sm'}`}
             >
-              <span className="bg-semantic-info/10 dark:bg-semantic-info/20 text-semantic-info dark:text-semantic-info px-2 py-1 rounded-lg">
+              <span className="bg-brand-primary text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-brand-primary">
                 {log.classification}
               </span>
               {log.watched_setting && (
-                <span className="bg-semantic-success/10 dark:bg-semantic-success/20 text-semantic-success dark:text-semantic-success px-2 py-1 rounded-lg">
+                <span className="bg-semantic-success/10 dark:bg-semantic-success/20 text-semantic-success dark:text-semantic-success px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-semantic-success/20 dark:border-semantic-success/30">
                   {log.watched_setting}
                 </span>
               )}
               {log.watched_scope && (
-                <span className="bg-accent-purple/10 dark:bg-accent-purple/20 text-accent-purple dark:text-accent-purple px-2 py-1 rounded-lg">
+                <span className="bg-accent-purple/10 dark:bg-accent-purple/20 text-accent-purple dark:text-accent-purple px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-accent-purple/20 dark:border-accent-purple/30">
                   {log.watched_scope}
                 </span>
               )}
@@ -160,20 +192,18 @@ export const GameLogCard = ({
 
             {/* Notes */}
             {log.notes && (
-              <div className="text-neutral-700 dark:text-neutral-300">
+              <div className="text-gray-700 dark:text-gray-300">
                 <p className={isMobile ? 'text-xs' : 'text-sm'}>{log.notes}</p>
               </div>
             )}
 
-            {/* Tags */}
+            {/* Tags - Enhanced with Industry Best Practices */}
             {log.tags && log.tags.length > 0 && (
               <div className={`flex flex-wrap gap-1 ${isMobile ? 'gap-1' : 'gap-1'}`}>
                 {log.tags.map(tag => (
                   <span
                     key={`${log.id}-tag-${tag}`}
-                    className={`bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 px-2 py-1 rounded-lg ${
-                      isMobile ? 'text-xs' : 'text-xs'
-                    }`}
+                    className={`${getTagColor(tag)} px-2 py-1 rounded-md font-medium border border-emerald-300 dark:border-emerald-700 text-xs shadow-sm`}
                   >
                     #{tag}
                   </span>
@@ -183,7 +213,9 @@ export const GameLogCard = ({
 
             {/* Watched Date */}
             {log.watched_date && (
-              <div className={`text-neutral-500 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+              <div
+                className={`text-neutral-500 dark:text-neutral-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
+              >
                 Watched: {format(new Date(log.watched_date), 'MMM dd, yyyy')}
               </div>
             )}
@@ -191,7 +223,7 @@ export const GameLogCard = ({
         </CardContent>
 
         <CardFooter
-          className={`flex items-center justify-between mt-3 text-neutral-900 dark:text-neutral-100 ${
+          className={`flex items-center justify-between mt-3 text-gray-900 dark:text-white ${
             isMobile ? 'mt-2' : 'mt-3'
           }`}
         >
@@ -204,13 +236,13 @@ export const GameLogCard = ({
                   onClick={() => {
                     onEdit(log);
                   }}
-                  className={`bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 hover:bg-brand-primary/10 dark:hover:bg-neutral-700 transition-all duration-200 shadow-sm hover:shadow-md rounded-xl ${
+                  className={`bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
                     isMobile ? 'p-2 min-h-[44px]' : ''
                   }`}
                   aria-label="Edit game log"
                 >
                   <Edit
-                    className={`text-brand-primary dark:text-brand-primary ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`}
+                    className={`text-blue-600 dark:text-blue-400 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`}
                   />
                 </Button>
                 <Button
@@ -219,7 +251,7 @@ export const GameLogCard = ({
                   onClick={() => {
                     onDelete(log);
                   }}
-                  className={`bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 text-semantic-error hover:text-semantic-error/80 hover:bg-semantic-error/10 dark:hover:bg-neutral-700 transition-all duration-200 shadow-sm hover:shadow-md rounded-xl ${
+                  className={`bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
                     isMobile ? 'p-2 min-h-[44px]' : ''
                   }`}
                   aria-label="Delete game log"
@@ -241,14 +273,14 @@ export const GameLogCard = ({
           </div>
         </CardFooter>
 
-        {/* Comments Section - Inline with better UX */}
-        <div className="border-t border-neutral-200 dark:border-neutral-700">
+        {/* Comments Section - Enhanced with Industry Best Practices */}
+        <div className="border-t-2 border-gray-100 dark:border-gray-700">
           <button
             onClick={e => {
               e.stopPropagation();
               setShowComments(!showComments);
             }}
-            className="w-full flex items-center justify-between px-4 py-3 text-neutral-600 dark:text-neutral-400 hover:text-neutral-800 dark:hover:text-neutral-200 hover:bg-neutral-50 dark:hover:bg-neutral-700 transition-colors"
+            className="w-full flex items-center justify-between px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
             aria-expanded={showComments}
             aria-controls={`comments-${log.id}`}
           >

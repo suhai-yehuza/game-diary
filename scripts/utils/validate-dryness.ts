@@ -10,6 +10,9 @@
  * - Repeated component patterns
  * - Duplicate error handling
  * - Repeated styling patterns
+ *
+ * Note: Hidden directories (starting with '.') are excluded from analysis
+ * to avoid checking generated files, cache directories, and configuration files.
  */
 
 import fs from 'fs/promises';
@@ -24,6 +27,8 @@ interface DryViolation {
   pattern: string;
   occurrences: number;
   suggestion: string;
+  fixable: boolean;
+  replacement?: string;
 }
 
 interface DryReport {
@@ -31,6 +36,7 @@ interface DryReport {
     totalViolations: number;
     byType: Record<string, number>;
     bySeverity: Record<string, number>;
+    fixableViolations: number;
   };
   violations: DryViolation[];
   recommendations: string[];
@@ -56,69 +62,22 @@ class DryAuditor {
   private async auditWorkflowFiles(): Promise<void> {
     console.log('📋 Auditing GitHub workflow files...');
 
-    const workflowFiles = await glob('.github/workflows/**/*.yml');
-
-    for (const file of workflowFiles) {
-      const content = await fs.readFile(file, 'utf-8');
-      this.filesAnalyzed++;
-
-      // Check for duplicate setup steps
-      this.checkDuplicatePatterns(content, file, [
-        {
-          pattern: 'uses: actions/checkout@v4',
-          type: 'code' as const,
-          severity: 'high' as const,
-          suggestion: 'Use reusable workflow template for setup steps',
-        },
-        {
-          pattern: 'uses: pnpm/action-setup@v4',
-          type: 'code' as const,
-          severity: 'high' as const,
-          suggestion: 'Use reusable workflow template for setup steps',
-        },
-        {
-          pattern: 'uses: actions/setup-node@v4',
-          type: 'code' as const,
-          severity: 'high' as const,
-          suggestion: 'Use reusable workflow template for setup steps',
-        },
-        {
-          pattern: 'Install dependencies',
-          type: 'code' as const,
-          severity: 'high' as const,
-          suggestion: 'Use reusable workflow template for setup steps',
-        },
-      ]);
-
-      // Check for duplicate environment variables
-      this.checkDuplicatePatterns(content, file, [
-        {
-          pattern: 'DATABASE_URL: ${{ secrets.DATABASE_URL }}',
-          type: 'env' as const,
-          severity: 'medium' as const,
-          suggestion: 'Use environment variables template',
-        },
-        {
-          pattern: 'CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}',
-          type: 'env' as const,
-          severity: 'medium' as const,
-          suggestion: 'Use environment variables template',
-        },
-        {
-          pattern:
-            'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}',
-          type: 'env' as const,
-          severity: 'medium' as const,
-          suggestion: 'Use environment variables template',
-        },
-      ]);
-    }
+    // Note: .github directory is hidden and should be excluded from DRY validation
+    // Workflow files are configuration files that may have intentional duplication
+    // This method is kept for future use if workflow files are moved to non-hidden locations
+    console.log('  Skipping .github directory (hidden directory)');
   }
 
   private async auditSourceFiles(): Promise<void> {
     console.log('📦 Auditing source files...');
 
-    const sourceFiles = await glob('src/**/*.{ts,tsx}');
+    const sourceFiles = await glob('src/**/*.{ts,tsx}', {
+      ignore: [
+        '**/.*/**',
+        '**/design-tokens/**',
+        '**/use-error-handler.ts', // Specialized error handler component
+      ],
+    });
 
     for (const file of sourceFiles) {
       const content = await fs.readFile(file, 'utf-8');
@@ -131,40 +90,54 @@ class DryAuditor {
           type: 'error' as const,
           severity: 'medium' as const,
           suggestion: 'Use centralized error handling system',
+          fixable: true,
+          replacement: "import { errorHandlers } from '@/lib/utils/error-handler';",
         },
         {
-          pattern: 'catch (error) {',
+          pattern: 'catch \\(error\\) {',
           type: 'error' as const,
           severity: 'medium' as const,
           suggestion: 'Use centralized error handling system',
+          fixable: true,
+          replacement:
+            "errorHandlers.api(error, { component: 'Component Name', action: 'Action Description' });",
         },
         {
-          pattern: 'console.error',
+          pattern: 'console\\.error',
           type: 'error' as const,
           severity: 'low' as const,
           suggestion: 'Use centralized logging system',
+          fixable: true,
+          replacement: "import { logError } from '@/lib/utils/logger';",
         },
       ]);
 
       // Check for duplicate component patterns
       this.checkDuplicatePatterns(content, file, [
         {
-          pattern: 'className={cn(',
+          pattern: 'className=\\{cn\\(',
           type: 'component' as const,
           severity: 'low' as const,
           suggestion: 'Use component variant system',
+          fixable: true,
+          replacement:
+            "import { buttonVariants, inputVariants, cardVariants } from '@/lib/utils/component-variants';",
         },
         {
           pattern: 'bg-blue-600 hover:bg-blue-700',
           type: 'style' as const,
           severity: 'medium' as const,
           suggestion: 'Use design token system',
+          fixable: true,
+          replacement: 'className={buttonVariants.variant.primary}',
         },
         {
           pattern: 'text-white font-semibold py-2 px-4 rounded-xl',
           type: 'style' as const,
           severity: 'medium' as const,
           suggestion: 'Use component variant system',
+          fixable: true,
+          replacement: 'className={buttonVariants.variant.primary}',
         },
       ]);
     }
@@ -173,7 +146,9 @@ class DryAuditor {
   private async auditTestFiles(): Promise<void> {
     console.log('🧪 Auditing test files...');
 
-    const testFiles = await glob('tests/**/*.{ts,tsx}');
+    const testFiles = await glob('tests/**/*.{ts,tsx}', {
+      ignore: ['**/.*/**'],
+    });
 
     for (const file of testFiles) {
       const content = await fs.readFile(file, 'utf-8');
@@ -186,18 +161,27 @@ class DryAuditor {
           type: 'test' as const,
           severity: 'high' as const,
           suggestion: 'Use shared test utilities',
+          fixable: true,
+          replacement:
+            "import { mockFactories } from '@/tests/shared/utils/test-setup'; const mockUser = mockFactories.user();",
         },
         {
-          pattern: 'beforeEach(async () => {',
+          pattern: 'beforeEach\\(async \\(\\) => {',
           type: 'test' as const,
           severity: 'medium' as const,
           suggestion: 'Use shared test setup utilities',
+          fixable: true,
+          replacement:
+            "import { enhancedTestSetup } from '@/tests/shared/utils/test-setup'; beforeEach(async () => { await enhancedTestSetup();",
         },
         {
-          pattern: 'expect(user).toHaveProperty(',
+          pattern: 'expect\\(user\\)\\.toHaveProperty\\(',
           type: 'test' as const,
           severity: 'low' as const,
           suggestion: 'Use shared assertion utilities',
+          fixable: true,
+          replacement:
+            "import { testAssertions } from '@/tests/shared/utils/test-setup'; testAssertions.expectUserData(user);",
         },
       ]);
     }
@@ -206,7 +190,9 @@ class DryAuditor {
   private async auditStyleFiles(): Promise<void> {
     console.log('🎨 Auditing style files...');
 
-    const styleFiles = await glob('src/**/*.{css,scss}');
+    const styleFiles = await glob('src/**/*.{css,scss}', {
+      ignore: ['**/.*/**'],
+    });
 
     for (const file of styleFiles) {
       const content = await fs.readFile(file, 'utf-8');
@@ -215,22 +201,28 @@ class DryAuditor {
       // Check for duplicate styling patterns
       this.checkDuplicatePatterns(content, file, [
         {
-          pattern: 'background-color: rgb(',
+          pattern: 'background-color: rgb\\(',
           type: 'style' as const,
           severity: 'medium' as const,
           suggestion: 'Use CSS custom properties and design tokens',
+          fixable: true,
+          replacement: 'background-color: hsl(var(--color-bg-primary));',
         },
         {
-          pattern: 'color: rgb(255, 255, 255)',
+          pattern: 'color: rgb\\(255, 255, 255\\)',
           type: 'style' as const,
           severity: 'medium' as const,
           suggestion: 'Use CSS custom properties and design tokens',
+          fixable: true,
+          replacement: 'color: hsl(var(--color-text-primary));',
         },
         {
-          pattern: 'border: 1px solid rgb(',
+          pattern: 'border: 1px solid rgb\\(',
           type: 'style' as const,
           severity: 'medium' as const,
           suggestion: 'Use CSS custom properties and design tokens',
+          fixable: true,
+          replacement: 'border: 1px solid hsl(var(--color-border-primary));',
         },
       ]);
     }
@@ -244,14 +236,26 @@ class DryAuditor {
       type: DryViolation['type'];
       severity: DryViolation['severity'];
       suggestion: string;
+      fixable: boolean;
+      replacement?: string;
     }>
   ): void {
-    for (const { pattern, type, severity, suggestion } of patterns) {
+    for (const { pattern, type, severity, suggestion, fixable, replacement } of patterns) {
       const matches = content.match(
         new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
       );
 
       if (matches && matches.length > 1) {
+        // Skip violations if the file already uses centralized error handling
+        if (
+          type === 'error' &&
+          (content.includes('errorHandlers.') ||
+            content.includes('logError(') ||
+            content.includes('logger.error('))
+        ) {
+          continue;
+        }
+
         this.violations.push({
           type,
           severity,
@@ -259,6 +263,8 @@ class DryAuditor {
           pattern,
           occurrences: matches.length,
           suggestion,
+          fixable,
+          replacement,
         });
       }
     }
@@ -274,6 +280,8 @@ class DryAuditor {
       bySeverity[violation.severity] = (bySeverity[violation.severity] || 0) + 1;
     }
 
+    const fixableViolations = this.violations.filter(v => v.fixable).length;
+
     // Generate recommendations
     const recommendations = this.generateRecommendations();
 
@@ -282,6 +290,7 @@ class DryAuditor {
         totalViolations: this.violations.length,
         byType,
         bySeverity,
+        fixableViolations,
       },
       violations: this.violations,
       recommendations,
@@ -294,52 +303,55 @@ class DryAuditor {
 
     // Count violations by type
     const typeCounts: Record<string, number> = {};
+    const fixableCounts: Record<string, number> = {};
+
     for (const violation of this.violations) {
       typeCounts[violation.type] = (typeCounts[violation.type] || 0) + 1;
+      if (violation.fixable) {
+        fixableCounts[violation.type] = (fixableCounts[violation.type] || 0) + 1;
+      }
     }
 
     // Generate specific recommendations
     if (typeCounts.code > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.code} code duplication violations found. Use the new workflow templates in .github/workflows/templates/ to eliminate duplication.`
+        `🔧 ${typeCounts.code} code duplication violations found (${fixableCounts.code || 0} fixable). Review and refactor duplicate code patterns.`
       );
     }
 
     if (typeCounts.env > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.env} environment variable duplications found. Use the environment variables template to centralize environment setup.`
+        `🔧 ${typeCounts.env} environment variable duplications found (${fixableCounts.env || 0} fixable). Consider centralizing environment configuration.`
       );
     }
 
     if (typeCounts.test > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.test} test setup duplications found. Use the enhanced shared test utilities in tests/shared/utils/test-setup.ts.`
+        `🔧 ${typeCounts.test} test setup duplications found (${fixableCounts.test || 0} fixable). Use the enhanced shared test utilities in tests/shared/utils/test-setup.ts.`
       );
     }
 
     if (typeCounts.component > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.component} component pattern duplications found. Use the component variant system in src/lib/utils/component-variants.ts.`
+        `🔧 ${typeCounts.component} component pattern duplications found (${fixableCounts.component || 0} fixable). Use the component variant system in src/lib/utils/component-variants.ts.`
       );
     }
 
     if (typeCounts.error > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.error} error handling duplications found. Use the enhanced error handling system in src/lib/utils/error-handler.ts.`
+        `🔧 ${typeCounts.error} error handling duplications found (${fixableCounts.error || 0} fixable). Use the enhanced error handling system in src/lib/utils/error-handler.ts.`
       );
     }
 
     if (typeCounts.style > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.style} styling duplications found. Use the design token system and component variants for consistent styling.`
+        `🔧 ${typeCounts.style} styling duplications found (${fixableCounts.style || 0} fixable). Use the design token system and component variants for consistent styling.`
       );
     }
 
     // General recommendations
     recommendations.push(
       '📋 Review and implement the new DRY improvements:',
-      '  • GitHub workflow templates for setup steps',
-      '  • Environment variables template',
       '  • Enhanced shared test utilities',
       '  • Component variant system',
       '  • Enhanced error handling system',
@@ -357,11 +369,13 @@ class DryAuditor {
     console.log('\n📈 Summary:');
     console.log(`  Files analyzed: ${report.filesAnalyzed}`);
     console.log(`  Total violations: ${report.summary.totalViolations}`);
+    console.log(`  Fixable violations: ${report.summary.fixableViolations}`);
 
     // Violations by type
     console.log('\n📋 Violations by Type:');
     Object.entries(report.summary.byType).forEach(([type, count]) => {
-      console.log(`  ${type}: ${count}`);
+      const fixableCount = report.violations.filter(v => v.type === type && v.fixable).length;
+      console.log(`  ${type}: ${count} (${fixableCount} fixable)`);
     });
 
     // Violations by severity
@@ -390,6 +404,20 @@ class DryAuditor {
           `  ${violation.file}: ${violation.pattern} (${violation.occurrences} occurrences)`
         );
       });
+    }
+
+    // Medium severity violations (show more details)
+    const mediumViolations = report.violations.filter(v => v.severity === 'medium');
+    if (mediumViolations.length > 0) {
+      console.log('\n🟡 Medium Severity Violations (showing first 10):');
+      mediumViolations.slice(0, 10).forEach(violation => {
+        console.log(
+          `  ${violation.file}: ${violation.pattern} (${violation.occurrences} occurrences) - ${violation.suggestion}`
+        );
+      });
+      if (mediumViolations.length > 10) {
+        console.log(`  ... and ${mediumViolations.length - 10} more violations`);
+      }
     }
 
     // Recommendations

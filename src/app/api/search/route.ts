@@ -2,8 +2,10 @@ import { sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
+import { cache } from '@/lib/cache';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
+import { CacheNamespace } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Data sanitization function to remove sensitive/encrypted fields
@@ -45,12 +47,9 @@ function sanitizeGameLogData(gameLog: Record<string, unknown>) {
     ...safeGameLog
   } = gameLog;
 
-  // Check if any remaining fields contain encrypted data
-  const sanitizedGameLog = { ...safeGameLog };
-
-  // Remove any fields that look like encrypted data (contain iv, content, tag)
-  Object.keys(sanitizedGameLog).forEach(key => {
-    const value = sanitizedGameLog[key];
+  // Remove any fields that look like encrypted data
+  Object.keys(safeGameLog).forEach(key => {
+    const value = safeGameLog[key];
     if (
       typeof value === 'string' &&
       value.includes('"iv"') &&
@@ -58,11 +57,11 @@ function sanitizeGameLogData(gameLog: Record<string, unknown>) {
       value.includes('"tag"')
     ) {
       console.warn(`Removing encrypted field from game log data: ${key}`);
-      delete sanitizedGameLog[key];
+      delete safeGameLog[key];
     }
   });
 
-  return sanitizedGameLog;
+  return safeGameLog;
 }
 
 export async function GET(request: NextRequest) {
@@ -111,6 +110,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Generate cache key based on search parameters
+    const cacheKey = `search:${query}:${page}:${limit}`;
+
+    // Try to get from cache first
+    const cachedResult = await cache.get(cacheKey, CacheNamespace.SEARCH_RESULTS);
+    if (cachedResult !== null) {
+      console.log(`[Search API] Cache hit for query: ${query}`);
+      return NextResponse.json(cachedResult);
+    }
+
+    console.log(`[Search API] Cache miss for query: ${query}, executing search...`);
+
     const db = createDatabaseClient();
     const searchPattern = `%${query}%`;
 
@@ -143,127 +154,66 @@ export async function GET(request: NextRequest) {
         LOWER(email_address) LIKE LOWER(${searchPattern})
     `;
 
-    // Search game logs with team information
+    // Search game logs with parameterized query
     const gameLogsQuery = sql`
       SELECT
-        gl.id,
-        gl.user_id,
-        gl.game_id,
-        gl.rating_for_game,
-        gl.classification,
-        gl.created_at,
-        u.username,
-        u.first_name,
-        u.last_name,
-        u.email_address,
-        g.date as game_date,
-        g.status as game_status,
-        ht.name as home_team_name,
-        ht.nickname as home_team_nickname,
-        ht.city as home_team_city,
-        at.name as away_team_name,
-        at.nickname as away_team_nickname,
-        at.city as away_team_city
-      FROM game_logs gl
-      LEFT JOIN users u ON gl.user_id = u.id
-      LEFT JOIN nba_games g ON gl.game_id = g.id
-      LEFT JOIN teams ht ON g.home_team_id = ht.id
-      LEFT JOIN teams at ON g.away_team_id = at.id
-      WHERE
-        LOWER(u.username) LIKE LOWER(${searchPattern}) OR
-        LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
-        gl.game_id::text LIKE ${searchPattern} OR
-        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.city) LIKE LOWER(${searchPattern})
-      ORDER BY gl.created_at DESC
+        id,
+        user_id,
+        game_id,
+        rating_for_game,
+        notes,
+        classification,
+        created_at
+      FROM game_logs
+      WHERE LOWER(notes) LIKE LOWER(${searchPattern})
+      ORDER BY created_at DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
     const gameLogsCountQuery = sql`
       SELECT COUNT(*) as count
-      FROM game_logs gl
-      LEFT JOIN users u ON gl.user_id = u.id
-      LEFT JOIN nba_games g ON gl.game_id = g.id
-      LEFT JOIN teams ht ON g.home_team_id = ht.id
-      LEFT JOIN teams at ON g.away_team_id = at.id
-      WHERE
-        LOWER(u.username) LIKE LOWER(${searchPattern}) OR
-        LOWER(gl.classification) LIKE LOWER(${searchPattern}) OR
-        gl.game_id::text LIKE ${searchPattern} OR
-        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.city) LIKE LOWER(${searchPattern})
+      FROM game_logs
+      WHERE LOWER(notes) LIKE LOWER(${searchPattern})
     `;
 
-    // Search games with team information
+    // Search games with parameterized query
     const gamesQuery = sql`
       SELECT
-        g.id,
-        g.date,
-        g.status,
-        g.home_team_score,
-        g.away_team_score,
-        g.average_rating,
-        g.total_ratings,
-        g.created_at,
-        ht.name as home_team_name,
-        ht.nickname as home_team_nickname,
-        ht.city as home_team_city,
-        at.name as away_team_name,
-        at.nickname as away_team_nickname,
-        at.city as away_team_city
-      FROM nba_games g
-      LEFT JOIN teams ht ON g.home_team_id = ht.id
-      LEFT JOIN teams at ON g.away_team_id = at.id
+        id,
+        date,
+        home_team_id,
+        away_team_id,
+        home_team_score,
+        away_team_score,
+        status,
+        created_at
+      FROM nba_games
       WHERE
-        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.city) LIKE LOWER(${searchPattern}) OR
-        g.id::text LIKE ${searchPattern} OR
-        LOWER(g.status) LIKE LOWER(${searchPattern})
-      ORDER BY g.date DESC
+        LOWER(home_team_id) LIKE LOWER(${searchPattern}) OR
+        LOWER(away_team_id) LIKE LOWER(${searchPattern})
+      ORDER BY date DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
     const gamesCountQuery = sql`
       SELECT COUNT(*) as count
-      FROM nba_games g
-      LEFT JOIN teams ht ON g.home_team_id = ht.id
-      LEFT JOIN teams at ON g.away_team_id = at.id
+      FROM nba_games
       WHERE
-        LOWER(ht.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(ht.city) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.name) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.nickname) LIKE LOWER(${searchPattern}) OR
-        LOWER(at.city) LIKE LOWER(${searchPattern}) OR
-        g.id::text LIKE ${searchPattern} OR
-        LOWER(g.status) LIKE LOWER(${searchPattern})
+        LOWER(home_team_id) LIKE LOWER(${searchPattern}) OR
+        LOWER(away_team_id) LIKE LOWER(${searchPattern})
     `;
 
-    // Search teams
+    // Search teams with parameterized query
     const teamsQuery = sql`
       SELECT
         id,
         name,
-        nickname,
         city,
         conference,
         created_at
       FROM teams
       WHERE
         LOWER(name) LIKE LOWER(${searchPattern}) OR
-        LOWER(nickname) LIKE LOWER(${searchPattern}) OR
         LOWER(city) LIKE LOWER(${searchPattern}) OR
         LOWER(conference) LIKE LOWER(${searchPattern})
       ORDER BY name ASC
@@ -275,7 +225,6 @@ export async function GET(request: NextRequest) {
       FROM teams
       WHERE
         LOWER(name) LIKE LOWER(${searchPattern}) OR
-        LOWER(nickname) LIKE LOWER(${searchPattern}) OR
         LOWER(city) LIKE LOWER(${searchPattern}) OR
         LOWER(conference) LIKE LOWER(${searchPattern})
     `;
@@ -350,20 +299,25 @@ export async function GET(request: NextRequest) {
     const totalGames = parseInt((gamesCountResult.rows[0]?.count as string) ?? '0');
     const totalTeams = parseInt((teamsCountResult.rows[0]?.count as string) ?? '0');
     const totalPlayers = parseInt((playersCountResult.rows[0]?.count as string) ?? '0');
+
+    // Sanitize user data
+    const users = usersResult.rows.map(sanitizeUserData);
+    const gameLogs = gameLogsResult.rows.map(sanitizeGameLogData);
+    const games = gamesResult.rows;
+    const teams = teamsResult.rows;
+    const players = playersResult.rows;
+
     const totalResults = totalUsers + totalGameLogs + totalGames + totalTeams + totalPlayers;
+    const totalPages = Math.ceil(totalResults / limit);
 
-    // Sanitize user data to remove any encrypted fields
-    const sanitizedUsers = usersResult.rows.map(sanitizeUserData);
-    const sanitizedGameLogs = gameLogsResult.rows.map(sanitizeGameLogData);
-
-    return NextResponse.json({
+    const response = {
       success: true,
       data: {
-        users: sanitizedUsers,
-        gameLogs: sanitizedGameLogs,
-        games: gamesResult.rows,
-        teams: teamsResult.rows,
-        players: playersResult.rows,
+        users,
+        gameLogs,
+        games,
+        teams,
+        players,
         totalUsers,
         totalGameLogs,
         totalGames,
@@ -374,20 +328,45 @@ export async function GET(request: NextRequest) {
         page,
         limit,
         total: totalResults,
-        pages: Math.ceil(totalResults / limit),
+        pages: totalPages,
       },
-    });
+    };
+
+    // Cache the result for 5 minutes
+    await cache.set(cacheKey, response, 5 * 60 * 1000, CacheNamespace.SEARCH_RESULTS);
+    console.log(`[Search API] Cached result for query: ${query}`);
+
+    return NextResponse.json(response);
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-      component: 'API',
+      component: 'Search API',
       action: 'GET /api/search',
+      requestId: request.headers.get('x-request-id') || undefined,
     });
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to perform global search',
+        error: 'Internal server error',
+        data: {
+          users: [],
+          gameLogs: [],
+          games: [],
+          teams: [],
+          players: [],
+          totalUsers: 0,
+          totalGameLogs: 0,
+          totalGames: 0,
+          totalTeams: 0,
+          totalPlayers: 0,
+        },
+        pagination: {
+          page: 1,
+          limit: 10,
+          total: 0,
+          pages: 0,
+        },
       },
       { status: 500 }
     );

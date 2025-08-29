@@ -12,6 +12,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { Button as _Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import type { IPlayerResponse, ITeamResponse, IPlayerDetailPageProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interface moved to src/lib/types/page.types.ts
 
@@ -52,6 +53,10 @@ export default function NBAPlayerDetailPage({ params }: IPlayerDetailPageProps) 
         const playerData = await response.json();
         setPlayer(playerData);
       } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'NBAPlayerDetailPage',
+          action: 'Fetch player data',
+        });
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch player';
         setPlayersError(errorMessage);
       } finally {

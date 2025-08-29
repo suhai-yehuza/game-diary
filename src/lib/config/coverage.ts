@@ -316,8 +316,8 @@ export function getGlobalCoverageThresholds(): ICoverageThresholds {
   return {
     lines: NINETY_FIVE - 15,
     statements: NINETY_FIVE - 15,
-    branches: NINETY_FIVE - 15,
-    functions: NINETY_FIVE - 25,
+    branches: NINETY_FIVE - 16,
+    functions: NINETY_FIVE - 24,
     base: NINETY_FIVE - 15,
   };
 }

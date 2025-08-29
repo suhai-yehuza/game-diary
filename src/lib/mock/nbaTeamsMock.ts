@@ -7,7 +7,7 @@ export const MOCK_NBA_TEAMS: ITeamsApiResponse = {
     season: '2024',
   },
   errors: [],
-  results: 30,
+  results: 10,
   response: [
     {
       id: 583,

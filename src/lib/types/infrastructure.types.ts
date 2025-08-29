@@ -62,7 +62,7 @@ export interface IRedisCacheConfig {
   maxAge?: number;
 }
 
-export interface ICacheOptions {
+export interface ICacheConfigOptions {
   ttl?: number;
   prefix?: string;
   maxSize?: number;

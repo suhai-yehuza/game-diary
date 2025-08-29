@@ -13,6 +13,7 @@ import {
 } from '@/app/components/sports';
 import { Button } from '@/app/components/ui/button';
 import { useEnhancedPlayerFilters } from '@/hooks/use-enhanced-player-filters';
+import { getButtonVariant } from '@/lib/design-tokens/button-variants';
 
 function NBAPlayersPageContent() {
   const searchParams = useSearchParams();
@@ -75,10 +76,7 @@ function NBAPlayersPageContent() {
             >
               Games
             </Link>
-            <Link
-              href="/sports/nba/teams"
-              className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
-            >
+            <Link href="/sports/nba/teams" className={getButtonVariant('primaryInline')}>
               Teams
             </Link>
           </div>
@@ -120,10 +118,7 @@ function NBAPlayersPageContent() {
             >
               Games
             </Link>
-            <Link
-              href="/sports/nba/teams"
-              className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
-            >
+            <Link href="/sports/nba/teams" className={getButtonVariant('primaryInline')}>
               Teams
             </Link>
           </div>
@@ -172,10 +167,7 @@ function NBAPlayersPageContent() {
           >
             Games
           </Link>
-          <Link
-            href="/sports/nba/teams"
-            className="inline-flex items-center px-3 sm:px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
-          >
+          <Link href="/sports/nba/teams" className={getButtonVariant('primaryInline')}>
             Teams
           </Link>
         </div>

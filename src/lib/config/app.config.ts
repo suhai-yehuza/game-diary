@@ -172,7 +172,7 @@ export const API_CONFIG = {
 
   pagination: {
     DEFAULT_PAGE_SIZE: 20,
-    DEFAULT_GAME_LOG_PAGE_SIZE: 100,
+    DEFAULT_GAME_LOG_PAGE_SIZE: 25, // Reduced from 100 for better performance
     DEFAULT_COMMENT_PAGE_SIZE: 10,
     HUGE_SIZE: 10000,
     MAX_CHILD_COMMENT_DEPTH: 10,

@@ -153,8 +153,8 @@ export function PlayerCard({ player }: IPlayerCardProps) {
               <div
                 className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${
                   isActive()
-                    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-gray-500 text-white shadow-sm'
                 }`}
               >
                 {isActive() ? 'Active' : 'Inactive'}
@@ -164,7 +164,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
               onClick={() => (window.location.href = `/sports/nba/players/${player.id}`)}
               variant="outline"
               size="sm"
-              className="bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-300 text-xs sm:text-sm"
+              className="bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm"
             >
               View Player
             </Button>
