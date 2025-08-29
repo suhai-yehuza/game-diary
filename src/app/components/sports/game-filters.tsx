@@ -13,20 +13,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
-import type { IFilterOptions, IFilterState } from '@/hooks/use-game-filters';
-
-export interface IGameFiltersProps {
-  filters: IFilterState;
-  filterOptions: IFilterOptions;
-  showAdvancedFilters: boolean;
-  hasActiveFilters: boolean;
-  totalGames: number;
-  filteredGamesCount: number;
-  onUpdateFilter: (key: keyof IFilterState, value: string) => void;
-  onClearFilters: () => void;
-  onToggleAdvancedFilters: () => void;
-  onRefresh: () => void;
-}
+import type { IGameFiltersProps } from '@/lib/types';
 
 export function GameFilters({
   filters,

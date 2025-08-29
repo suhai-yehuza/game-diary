@@ -27,7 +27,7 @@ vi.mock('@/lib/config/app.config', () => ({
 }));
 
 // Mock the types
-vi.mock('@/lib/types/constant.types', () => ({
+vi.mock('@/lib/constants', () => ({
   TABS: {
     SEASONS: 'seasons',
     LEAGUES: 'leagues',

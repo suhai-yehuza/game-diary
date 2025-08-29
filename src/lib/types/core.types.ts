@@ -3,7 +3,7 @@
  * Common utility types, pagination, search, and database-related types
  */
 
-import type { ISortDirection } from './ui.types';
+import type { ISortDirection, IPageInfo, Permission, Role } from './shared.types';
 
 // ========================================
 // COMMON UTILITY TYPES
@@ -29,12 +29,7 @@ export interface IEdge<T> {
   node: T;
 }
 
-export interface IPageInfo {
-  hasNextPage: boolean;
-  hasPreviousPage: boolean;
-  startCursor: string | null;
-  endCursor: string | null;
-}
+// IPageInfo moved to shared.types.ts
 
 export interface IConnection<T> {
   edges: IEdge<T>[];
@@ -89,25 +84,6 @@ export interface IPaginationFetchResult {
       endCursor?: string;
     };
   };
-}
-
-// ========================================
-// SEARCH TYPES
-// ========================================
-
-export interface IFilterConfig {
-  defaultValue: string | number | boolean;
-  type?: 'string' | 'number' | 'boolean';
-  label?: string;
-  options?: Array<{
-    value: string | number | boolean;
-    label: string;
-  }>;
-}
-
-export interface IUseSearchFiltersOptions {
-  filterConfig: Record<string, IFilterConfig>;
-  additionalFilters?: Record<string, string | number | boolean>;
 }
 
 // ========================================
@@ -358,20 +334,172 @@ export const SPORTS_CONFIG = {
 export type SportKey = keyof typeof SPORTS_CONFIG;
 
 // ========================================
-// GRAPHQL TYPES
+// AUTHENTICATION TYPES
 // ========================================
 
-// User resolver types
-export interface IUserParent {
-  id: string;
-  email_address?: string | null;
-  phone_number?: string | null;
-  username?: string | null;
-  first_name?: string | null;
-  last_name?: string | null;
-  image_url?: string | null;
+export interface IAuthState {
+  isLoaded: boolean;
+  isSignedIn: boolean;
+  user: unknown;
+  isAuthStable: boolean;
+  authError: string | null;
+  retryAuth: () => void;
 }
 
-export interface IUserArgs {
-  id?: string;
+export interface IAuthContextValue {
+  isAuthenticated: boolean;
+  user: unknown;
+  isLoading: boolean;
+  authError: string | null;
+  hasPermission: (permission: string) => boolean;
+  refreshAuth: () => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+// ========================================
+// COVERAGE TYPES
+// ========================================
+
+export interface ICoverageThresholds {
+  branches: number;
+  functions: number;
+  lines: number;
+  statements: number;
+  base: number;
+}
+
+export interface IFileThresholds {
+  [filePattern: string]: ICoverageThresholds;
+}
+
+export interface ICoverageConfig {
+  global: ICoverageThresholds;
+  files: IFileThresholds;
+}
+
+export interface IE2ECoverageTarget {
+  category: string;
+  target: number;
+  description: string;
+  testFiles: string[];
+}
+
+export interface IE2ETestCategory {
+  name: string;
+  description: string;
+  priority: 'critical' | 'high' | 'medium' | 'low';
+  userJourneys: string[];
+  testFiles: string[];
+}
+
+export interface IE2ECoverageConfig {
+  targets: IE2ECoverageTarget[];
+  categories: IE2ETestCategory[];
+  thresholds: {
+    global: {
+      statements: number;
+      branches: number;
+      functions: number;
+      lines: number;
+    };
+  };
+}
+
+// ========================================
+// SESSION TYPES
+// ========================================
+
+export interface ISessionData {
+  userId: string;
+  lastActivity: number;
+  permissions: string[];
+  sessionId: string;
+  deviceInfo?: {
+    userAgent: string;
+    ip: string;
+  };
+}
+
+// ========================================
+// PERMISSION TYPES
+// ========================================
+
+// Permission and Role enums moved to shared.types.ts
+
+export interface IAuthContextResult {
+  user: {
+    id: string;
+    email?: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+  } | null;
+  userId: string | null;
+  isAuthenticated: boolean;
+  authSource: 'clerk' | 'fallback' | 'bypass' | 'none';
+  error?: string;
+}
+
+// ========================================
+// ANALYTICS TYPES
+// ========================================
+
+export interface IPerformanceMonitorProps {
+  enabled?: boolean;
+  trackCoreWebVitals?: boolean;
+  trackMemoryUsage?: boolean;
+  trackNetworkConditions?: boolean;
+  trackResourceLoading?: boolean;
+}
+
+export interface IPageViewTrackerProps {
+  pageTitle?: string;
+}
+
+// ========================================
+// CONSTANTS TYPES
+// ========================================
+
+export type IDistributionFunction = () => number;
+
+export interface IRangeConfig {
+  min: number;
+  max: number;
+  getRandom: IDistributionFunction;
+}
+
+export interface IBatchSizeConfig {
+  GAMES: number;
+  GAME_STATS: number;
+  PLAYERS: number;
+}
+
+export interface IRateLimitConfig {
+  MAX_RETRIES: number;
+  BASE_DELAY: number;
+  MAX_DELAY: number;
+  RATE_LIMIT_DELAY: number;
+}
+
+export interface IClassificationWeights {
+  private: number;
+  protected: number;
+  public: number;
+}
+
+export interface IDistributionFunctions {
+  natural: (rand: number) => number;
+  bellCurve: (u1: number, u2: number) => number;
+  pareto: (rand: number, alpha?: number) => number;
+  exponential: (rand: number) => number;
+  powerLaw: (rand: number, exponent?: number) => number;
+}
+
+export interface IPaginationConstants {
+  DEFAULT_PAGE_SIZE: number;
+  DEFAULT_GAME_LOG_PAGE_SIZE: number;
+  DEFAULT_COMMENT_PAGE_SIZE: number;
+  HUGE_SIZE: number;
+  DEFAULT_SORT_DIRECTION: 'ASC' | 'DESC';
+  MAX_CHILD_COMMENT_DEPTH: number;
 }

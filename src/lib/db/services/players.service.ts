@@ -2,19 +2,8 @@ import { and, desc, eq, ilike, or, sql, isNull } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { nba_players } from '@/lib/db/schema/game-schemas';
-import type { IPlayerResponse } from '@/lib/types';
-
-export interface IPlayerFilters {
-  searchTerm?: string;
-  positionFilter?: string;
-  teamFilter?: string;
-  collegeFilter?: string;
-  countryFilter?: string;
-  sortBy?: 'name' | 'position' | 'team' | 'college';
-  sortDirection?: 'asc' | 'desc';
-  limit?: number;
-  offset?: number;
-}
+import type { IPlayerResponse, IPlayerFilters } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 /**
  * Convert database player record to API format
@@ -42,7 +31,11 @@ function convertDbPlayerToApiFormat(dbPlayer: Record<string, unknown>): IPlayerR
       leagues,
     };
   } catch (error) {
-    console.error('Error converting DB player to API format:', error);
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Convert DB player to API format',
+    });
     // Return basic format on error
     return {
       id: parseInt(dbPlayer.id as string),
@@ -156,7 +149,11 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
       total,
     };
   } catch (error) {
-    console.error('Error fetching players from database:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch players from database',
+    });
     return {
       players: [],
       total: 0,
@@ -181,7 +178,11 @@ export async function getPlayerById(playerId: string): Promise<IPlayerResponse |
 
     return convertDbPlayerToApiFormat(dbPlayer[0]);
   } catch (error) {
-    console.error('Error fetching player by ID:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch player by ID',
+    });
     return null;
   }
 }
@@ -199,7 +200,11 @@ export async function getPlayersByTeam(teamId: string): Promise<IPlayerResponse[
 
     return dbPlayers.map(convertDbPlayerToApiFormat);
   } catch (error) {
-    console.error('Error fetching players by team:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch players by team',
+    });
     return [];
   }
 }
@@ -225,7 +230,11 @@ export async function getUniqueColleges(): Promise<string[]> {
       .filter((college: string | null | undefined) => college?.trim())
       .slice(0, 100); // Limit to top 100 colleges
   } catch (error) {
-    console.error('Error fetching unique colleges:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch unique colleges',
+    });
     return [];
   }
 }
@@ -267,7 +276,11 @@ export async function getUniqueCountries(): Promise<string[]> {
       .sort()
       .slice(0, 50); // Limit to top 50 countries
   } catch (error) {
-    console.error('Error fetching unique countries:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch unique countries',
+    });
     return [];
   }
 }
@@ -281,7 +294,11 @@ export function getUniquePositions(): string[] {
     // For now, return common NBA positions
     return ['G', 'F', 'C', 'G-F', 'F-C', 'F-G', 'C-F'];
   } catch (error) {
-    console.error('Error fetching unique positions:', error);
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Service',
+      action: 'Fetch unique positions',
+    });
     return ['G', 'F', 'C'];
   }
 }

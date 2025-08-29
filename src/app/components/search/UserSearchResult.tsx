@@ -3,7 +3,7 @@
 import { User, AtSign, Calendar, Mail, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { IUserSearchResultProps } from '@/lib/types/components.types';
+import type { IUserSearchResultProps } from '@/lib/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);

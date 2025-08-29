@@ -5,8 +5,8 @@
 
 import type { ReactNode, FormEvent } from 'react';
 import type { IBaseButtonProps, IBaseInputProps } from './ui.types';
-import type { IPageInfo } from './core.types';
-import type { TabValue } from './constant.types';
+import type { IPageInfo, IUserSummary } from './shared.types';
+import type { TabValue } from '@/lib/constants';
 import type {
   IGamesFormProps,
   IGameStatsFormProps,
@@ -29,17 +29,7 @@ export interface ITestItem {
   createdAt: string;
 }
 
-// User-related types
-export interface IUserSummary {
-  id: string;
-  username: string;
-  first_name: string;
-  last_name: string;
-  email_address: string;
-  phone_number?: string;
-  image_url?: string;
-  created_at?: string;
-}
+// User-related types - moved to shared.types.ts
 
 // Game log-related types
 export interface IGameLogSummary {

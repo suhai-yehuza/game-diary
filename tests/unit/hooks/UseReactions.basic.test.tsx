@@ -9,8 +9,8 @@ import {
   useCommentReactions,
   useReactionEmojis,
 } from '@/hooks/use-reactions';
+import { REACTION_EMOJIS as _REACTION_EMOJIS } from '@/lib/constants';
 import type { IReaction } from '@/lib/types';
-import { REACTION_EMOJIS as _REACTION_EMOJIS } from '@/lib/types/constant.types';
 import { ParentType } from '@/lib/types/generated/graphql';
 
 // Mock helper functions

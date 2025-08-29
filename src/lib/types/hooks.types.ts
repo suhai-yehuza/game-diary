@@ -48,6 +48,13 @@ export interface IErrorState {
   hasError: boolean;
   error?: Error;
   message?: string;
+  retry?: () => void;
+}
+
+export interface ISuccessState {
+  isSuccess: boolean;
+  message?: string;
+  data?: any;
 }
 
 export interface IUseErrorHandlerReturn {
@@ -220,3 +227,87 @@ export type GqlGameLogNoComments = Omit<
   import('./generated/graphql').GameLog,
   'comments' | 'reactions'
 >;
+
+// Hook option interfaces
+export interface ITopGameLogsOptions {
+  limit?: number;
+  skip?: boolean;
+}
+
+export interface IUseNBATeamsOptions {
+  limit?: number;
+  skip?: boolean;
+  forceRealData?: boolean;
+}
+
+export interface IUseNBAPlayersOptions {
+  limit?: number;
+  skip?: boolean;
+  forceRealData?: boolean;
+  teamId?: string;
+  season?: string;
+}
+
+// ========================================
+// FRIENDSHIP COMPONENT TYPES
+// ========================================
+
+export interface IFriendshipCardProps {
+  friendship: IFriendship;
+  currentUserId: string;
+  onRemove: (friendshipId: string) => Promise<void>;
+  loading: boolean;
+}
+
+export interface IFriendRequestCardProps {
+  request: IFriendship;
+  onAccept: (friendshipId: string) => Promise<void>;
+  onReject: (friendshipId: string) => Promise<void>;
+  loading: boolean;
+}
+
+export interface ILatestGamesOptions {
+  limit?: number;
+  skip?: boolean;
+  userId?: string;
+  forceRealData?: boolean;
+  seasons?: string[];
+}
+
+export interface IFilterState {
+  searchTerm: string;
+  statusFilter: string;
+  seasonFilter: string;
+  dateRange: 'all' | 'today' | 'week' | 'month' | 'year' | 'custom';
+  customStartDate: string;
+  customEndDate: string;
+  arenaFilter: string;
+  teamFilter: string;
+  sortBy: 'date' | 'status' | 'arena' | 'team';
+  sortDirection: 'asc' | 'desc';
+}
+
+export interface IFilterOptions {
+  arenas: string[];
+  teams: string[];
+  seasons: number[];
+  statuses: string[];
+}
+
+export interface IEnhancedPlayerFilterState {
+  searchTerm: string;
+  positionFilter: string;
+  teamFilter: string;
+  activeFilter: string;
+  collegeFilter: string;
+  countryFilter: string;
+  sortBy: 'name' | 'position' | 'team' | 'age' | 'experience';
+  sortDirection: 'asc' | 'desc';
+}
+
+export interface IEnhancedPlayerFilterOptions {
+  positions: string[];
+  teams: string[];
+  colleges: string[];
+  countries: string[];
+}

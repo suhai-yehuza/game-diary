@@ -80,7 +80,7 @@ export function ContentPreviewBanner() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-neutral-200/50 dark:border-neutral-700/50">
           <div className="text-center mb-4">
-            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+            <h2 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-white mb-2">
               See What&apos;s Happening
             </h2>
             <p className="text-sm text-neutral-600 dark:text-neutral-400">
@@ -106,7 +106,7 @@ export function ContentPreviewBanner() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-blue-950 dark:via-gray-900 dark:to-green-950 rounded-2xl p-6">
       <div className="text-center mb-8">
-        <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-4">
+        <p className="text-base sm:text-lg text-gray-600 dark:text-white max-w-2xl mx-auto mb-4 px-4 sm:px-0">
           Join thousands of sports fans sharing their game experiences
         </p>
       </div>

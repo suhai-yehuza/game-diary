@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
-import { logger } from '@/lib/utils/logger';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { createDatabaseClient } from '@src/lib/db';
 
 // Data sanitization function to remove sensitive/encrypted fields
@@ -179,8 +179,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ tabl
       },
     });
   } catch (error) {
-    const errorObj = error instanceof Error ? error : new Error(String(error));
-    logger.error('Error fetching data:', errorObj);
-    return NextResponse.json({ error: errorObj.message }, { status: 500 });
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/admin/database/[table]',
+    });
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

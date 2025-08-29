@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 
 import type { Database, IDatabaseConfig } from '@/lib/types';
 import { isCI } from '@/lib/utils/env-loader';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import * as schema from '@src/lib/db/schema';
 
@@ -91,9 +92,13 @@ const dbManager = new DatabaseManager({ connectionString });
 // Initialize database connection in all runtimes except explicit CI/test runners
 // Note: Production platforms like Vercel are NOT considered CI by our isCI().
 if (connectionString && !isCI()) {
-  dbManager
-    .initialize()
-    .catch(error => logger.error('Database initialization failed:', error as Error));
+  dbManager.initialize().catch(error => {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Manager',
+      action: 'Database initialization',
+    });
+  });
 }
 
 // Export database instance for backward compatibility

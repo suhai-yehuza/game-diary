@@ -1,6 +1,7 @@
 import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getAppUrl } from '@src/lib/config/app.config';
 
 if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
@@ -443,6 +444,11 @@ describe('API Endpoints Integration Tests', () => {
         });
         expect(response.status).toBe(404);
       } catch (error) {
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'Integration Test',
+          action: '404 endpoint test',
+        });
         // If the request times out, that's also acceptable for this test
         // since we're testing that the server doesn't hang on non-existent endpoints
         if (error instanceof Error && error.name === 'AbortError') {

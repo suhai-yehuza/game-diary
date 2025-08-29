@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useCallback, memo } from 'react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/app/components/ui/Popover';
 import { useReactions } from '@/hooks/use-reactions';
 import type { IReactionPickerProps } from '@/lib/types';
-import { REACTION_EMOJIS } from '@/lib/types/constant.types';
+import { REACTION_EMOJIS } from '@/lib/types';
 
 import { MemoizedReactionButton } from './MemoizedReactionButton';
 

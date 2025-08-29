@@ -48,7 +48,7 @@ export function Header() {
     <>
       <header
         data-testid="header"
-        className={`sticky top-0 w-full border-b-2 border-neutral-200 dark:border-neutral-600 shadow-md dark:shadow-lg bg-background z-50 transition-all duration-300 ease-in-out`}
+        className={`sticky top-0 w-full bg-background z-50 transition-all duration-300 ease-in-out`}
         style={{
           marginTop: shouldDisplayBanner ? `${bannerHeight}px` : '0px',
         }}
@@ -64,7 +64,7 @@ export function Header() {
             style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
           />
         )}
-        <div className="grid grid-cols-[auto_1fr_auto] h-16 items-center w-full relative z-50">
+        <div className="grid grid-cols-[auto_1fr_auto] h-12 items-center w-full relative z-50">
           {/* Logo Section */}
           <Logo isMenuExpanded={isMenuExpanded} />
 

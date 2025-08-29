@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getAppUrl } from '@src/lib/config/app.config';
 import type { TestConfig } from '@src/lib/types';
 
@@ -181,6 +182,11 @@ export async function safeGoto(
       ...navigationOptions,
     });
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Test Utils',
+      action: 'Navigate to page',
+    });
     console.error(`Failed to navigate to ${fullUrl}:`, error);
 
     // Check if the error is due to browser context being closed
@@ -209,6 +215,14 @@ export async function safeGoto(
           return;
         }
       } catch (recoveryError) {
+        // Use centralized error handling for recovery errors
+        errorHandlers.api(
+          recoveryError instanceof Error ? recoveryError : new Error(String(recoveryError)),
+          {
+            component: 'E2E Test Utils',
+            action: 'Navigation recovery',
+          }
+        );
         console.log('⚠️ Recovery attempt failed:', recoveryError);
       }
     }
@@ -255,6 +269,11 @@ export async function waitForPageLoad(page: Page, timeout = TIMEOUTS.MEDIUM): Pr
       console.log('⚠️ Body visibility check failed, but page has content - continuing');
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Test Utils',
+      action: 'Page load check',
+    });
     // In mock mode, be more lenient
     if (process.env.E2E_MOCK_MODE === 'true') {
       console.log('⚠️ Page load check failed in mock mode, but continuing:', error);
@@ -314,6 +333,11 @@ export async function clearTestData(page: Page): Promise<void> {
       }
     });
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Test Utils',
+      action: 'Clear test data',
+    });
     // If page evaluation fails, continue without clearing storage
     console.log('Test data clear skipped (page not ready):', error);
   }
@@ -485,6 +509,11 @@ export async function createRobustTestContext(
 
     return context;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Test Utils',
+      action: 'Create test context',
+    });
     console.error('Failed to create test context:', error);
     throw error;
   }
@@ -509,6 +538,11 @@ export async function recreatePageIfNeeded(
         return page; // Page is still valid
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Test Utils',
+        action: 'Page validation',
+      });
       console.log(`⚠️ Page validation failed (attempt ${attempt}):`, error);
     }
 
@@ -531,6 +565,14 @@ export async function recreatePageIfNeeded(
       console.log(`✅ Successfully recreated page (attempt ${attempt})`);
       return newPage;
     } catch (recreateError) {
+      // Use centralized error handling
+      errorHandlers.api(
+        recreateError instanceof Error ? recreateError : new Error(String(recreateError)),
+        {
+          component: 'E2E Test Utils',
+          action: 'Recreate page',
+        }
+      );
       console.error(`❌ Failed to recreate page (attempt ${attempt}):`, recreateError);
 
       if (attempt === maxRecreations) {

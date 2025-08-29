@@ -3,9 +3,7 @@
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 
-interface IPageViewTrackerProps {
-  pageTitle?: string;
-}
+import type { IPageViewTrackerProps } from '@/lib/types';
 
 export function PageViewTracker({ pageTitle }: IPageViewTrackerProps) {
   const pathname = usePathname();

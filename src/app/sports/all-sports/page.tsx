@@ -12,8 +12,10 @@ export default function AllSportsPage() {
       showSportButtons
       sportButtons={ALL_SPORTS_BUTTONS}
     >
-      <div className="mb-6 p-4 bg-blue-900/20 rounded-lg">
-        <p className="text-white">Welcome to All Sports - Explore your favorite leagues</p>
+      <div className="mb-6 p-4 bg-blue-900/20 dark:bg-blue-900/20 rounded-lg">
+        <p className="all-sports-welcome-text">
+          Welcome to All Sports - Explore your favorite leagues
+        </p>
       </div>
     </SportsPageLayout>
   );

@@ -11,9 +11,9 @@ import {
   serial,
 } from 'drizzle-orm/pg-core';
 
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 import { users } from '@/lib/db/schema/user-schemas';
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types/constant.types';
 
 // Leagues table
 export const leagues = pgTable('leagues', {

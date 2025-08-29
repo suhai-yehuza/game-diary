@@ -9,7 +9,7 @@ import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
 import { SearchAnalytics, useSearchAnalytics } from '@/app/components/search/SearchAnalytics';
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
-import type { ISearchResultsProps, ResultType } from '@/lib/types/components.types';
+import type { ISearchResultsProps, ResultType } from '@/lib/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
   const [activeFilter, setActiveFilter] = useState<ResultType>('all');

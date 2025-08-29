@@ -3,8 +3,8 @@ import { eq, and } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { nba_games, comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types';
-import type { REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types/constant.types';
+import type { GraphQLContext, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 
 // Game Mutations
@@ -346,7 +346,11 @@ export const reactionMutationResolvers = {
         errors: [],
       };
     } catch (error) {
-      console.error('Create reaction error:', error);
+      // Use centralized error handling
+      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+        component: 'GraphQL Resolver',
+        action: 'Create reaction',
+      });
       return {
         reaction: null,
         errors: [{ message: 'Failed to create reaction', code: 'CREATE_REACTION_ERROR' }],

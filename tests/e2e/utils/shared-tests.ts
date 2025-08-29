@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { checkSignInButtonAvailability } from '@tests/e2e/utils/auth-helpers';
 import { testSignInModal } from '@tests/e2e/utils/auth-modal';
 import { testHomePage, testSportsPage } from '@tests/e2e/utils/page-tests';
@@ -42,6 +43,11 @@ export async function testSignInModalVariants(
   try {
     await testSignInModal(page, method);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Shared Tests',
+      action: 'Sign-in modal test',
+    });
     console.warn(`⚠️ Sign-in modal test failed (${method}):`, error);
     throw error;
   }
@@ -127,6 +133,11 @@ export async function testBrowserNavigation(
       await safeGoto(page, route);
       await waitForPageLoad(page);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Shared Tests',
+        action: 'Browser navigation',
+      });
       console.warn(`⚠️ Navigation to ${route} failed, but continuing:`, error);
       // Wait a bit and continue
       await page.waitForTimeout(1000);
@@ -140,6 +151,11 @@ export async function testBrowserNavigation(
       await waitForPageLoad(page);
       await expect(page).toHaveURL(new RegExp(routes[i - 1].replace('/', '\\/')));
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Shared Tests',
+        action: 'Back navigation',
+      });
       console.warn(`⚠️ Back navigation failed, but continuing:`, error);
       await page.waitForTimeout(1000);
     }
@@ -152,6 +168,11 @@ export async function testBrowserNavigation(
       await waitForPageLoad(page);
       await expect(page).toHaveURL(new RegExp(routes[i].replace('/', '\\/')));
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Shared Tests',
+        action: 'Forward navigation',
+      });
       console.warn(`⚠️ Forward navigation failed, but continuing:`, error);
       await page.waitForTimeout(1000);
     }

@@ -1,6 +1,8 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 export async function POST() {
   try {
     const { userId } = await auth();
@@ -17,7 +19,11 @@ export async function POST() {
       rotated_keys: ['encryption_key_1', 'encryption_key_2'],
     });
   } catch (error) {
-    console.error('Error in /api/admin/keys/rotate:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/admin/keys/rotate',
+    });
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }

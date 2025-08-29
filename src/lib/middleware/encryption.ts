@@ -6,6 +6,7 @@ import {
   encryptField,
   serializeEncryptedField,
 } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Helper function to check if a value is encrypted
 function isEncrypted(value: string | null): boolean {
@@ -34,7 +35,11 @@ function safeDecrypt(encryptedValue: string | null): string | null {
     }
     return encryptedValue; // Return as-is if not encrypted
   } catch (error) {
-    console.error('Failed to decrypt field:', error);
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Encryption Middleware',
+      action: 'Decrypt field',
+    });
     return null; // Return null on decryption failure
   }
 }
@@ -60,7 +65,11 @@ export function decryptResponseMiddleware(
       headers: response.headers,
     });
   } catch (error) {
-    console.error('Error in decrypt response middleware:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Encryption Middleware',
+      action: 'Decrypt response middleware',
+    });
     return response; // Return original response on error
   }
 }
@@ -86,7 +95,11 @@ export function encryptRequestMiddleware(request: NextRequest, _userId?: string)
 
     return newRequest;
   } catch (error) {
-    console.error('Error in encrypt request middleware:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Encryption Middleware',
+      action: 'Encrypt request middleware',
+    });
     return request; // Return original request on error
   }
 }

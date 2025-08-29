@@ -2,6 +2,8 @@ import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 // Load environment variables
 config();
 
@@ -113,6 +115,11 @@ async function testFriendRemoved() {
 
     console.log('✅ Test completed');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Integration Test',
+      action: 'Friend removed test',
+    });
     console.error('❌ Error testing friend_removed:', error);
   }
 }

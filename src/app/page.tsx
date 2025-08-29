@@ -38,7 +38,7 @@ export default function HomePage() {
               Game Diary
             </h1>
 
-            <p className="text-xl sm:text-2xl text-black dark:text-gray-300 max-w-3xl mx-auto mb-8 leading-relaxed home-description">
+            <p className="text-lg sm:text-xl lg:text-2xl text-white max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed home-description px-4 sm:px-0">
               Track your gaming watching experiences, connect with fellow sports fans, and share
               your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.
             </p>
@@ -62,14 +62,14 @@ export default function HomePage() {
             <div className="flex flex-wrap gap-6 items-center justify-center text-sm mb-8">
               <Link
                 href="/sports/live"
-                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-neutral-400 hover:text-brand-primary dark:hover:text-brand-primary"
+                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-white hover:text-brand-primary dark:hover:text-brand-primary"
               >
                 <Globe className="w-4 h-4" aria-hidden />
                 Live Games
               </Link>
               <Link
                 href="/sports/all-sports"
-                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-neutral-400 hover:text-brand-secondary dark:hover:text-brand-secondary"
+                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-white hover:text-brand-secondary dark:hover:text-brand-secondary"
               >
                 <Trophy className="w-4 h-4" aria-hidden />
                 All Sports
@@ -95,7 +95,7 @@ export default function HomePage() {
                 className="flex flex-col items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-200 cursor-pointer group"
               >
                 <ArrowDown className="w-5 h-5 text-black group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors duration-200" />
-                <span className="text-xs text-black dark:text-gray-400 group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-200">
+                <span className="text-xs text-black dark:text-white group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-200">
                   See what&apos;s happening
                 </span>
               </button>

@@ -134,7 +134,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
         clock: undefined,
         halftime: false,
         short: 'FT',
-        long: 'Match Finished',
+        long: 'Game Finished',
       },
       periods: {
         current: 4,
@@ -214,7 +214,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
         clock: undefined,
         halftime: false,
         short: 'FT',
-        long: 'Match Finished',
+        long: 'Game Finished',
       },
       periods: {
         current: 4,
@@ -364,7 +364,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
         clock: undefined,
         halftime: false,
         short: 'FT',
-        long: 'Match Finished',
+        long: 'Game Finished',
       },
       periods: {
         current: 4,
@@ -444,7 +444,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
         clock: undefined,
         halftime: false,
         short: 'FT',
-        long: 'Match Finished',
+        long: 'Game Finished',
       },
       periods: {
         current: 4,
@@ -514,7 +514,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
         clock: undefined,
         halftime: false,
         short: 'FT',
-        long: 'Match Finished',
+        long: 'Game Finished',
       },
       periods: {
         current: 4,

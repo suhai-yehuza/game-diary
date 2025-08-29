@@ -4,6 +4,7 @@ import type { NextRequest } from 'next/server';
 import { handleUserCreated, handleUserUpdated, handleUserDeleted } from '@/app/api/webhooks/clerk';
 import { db } from '@/lib/db';
 import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { webhookLogger } from '@/lib/utils/logger';
 
 // NOTE:
@@ -39,15 +40,13 @@ export async function POST(req: NextRequest) {
         return createResponse('Unhandled event type', 200);
     }
   } catch (error) {
-    webhookLogger.error(
-      'Webhook error:',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/webhooks',
+    });
 
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    const statusCode =
-      error instanceof Error && error.message.includes('Missing user ID') ? 400 : 500;
-
-    return createResponse(errorMessage, statusCode);
+    const statusCode = 500;
+    return createResponse('Internal server error', statusCode);
   }
 }

@@ -5,6 +5,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { ParentType } from '@/lib/types/generated/graphql';
 
+// Mock error handlers
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
+  },
+}));
+
 // Mock the useUser hook
 const mockUseUser = vi.fn();
 vi.mock('@clerk/nextjs', () => ({
@@ -452,7 +459,8 @@ describe('CommentForm', () => {
 
   it('should handle submission errors gracefully', async () => {
     const user = userEvent.setup();
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { errorHandlers } = await import('@/lib/utils/error-handler');
+    const mockErrorHandlers = vi.mocked(errorHandlers);
     mockCreateComment.mockRejectedValue(new Error('Submission failed'));
 
     render(<CommentForm {...defaultProps} />);
@@ -464,10 +472,11 @@ describe('CommentForm', () => {
     await user.click(submitButton);
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Error submitting comment:', expect.any(Error));
+      expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+        component: 'React Component',
+        action: 'Submit comment',
+      });
     });
-
-    consoleSpy.mockRestore();
   });
 
   it('should trim content before submission', async () => {

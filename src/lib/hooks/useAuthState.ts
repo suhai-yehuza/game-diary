@@ -1,14 +1,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useCallback, useEffect, useState } from 'react';
 
-export interface IAuthState {
-  isLoaded: boolean;
-  isSignedIn: boolean;
-  user: unknown;
-  isAuthStable: boolean;
-  authError: string | null;
-  retryAuth: () => void;
-}
+import type { IAuthState } from '@/lib/types';
 
 /**
  * Enhanced authentication hook that provides more reliable auth state

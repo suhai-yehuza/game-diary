@@ -10,6 +10,13 @@ import {
   useFriendshipMutations,
 } from '@/hooks/use-friendships';
 
+// Mock error handlers
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
+  },
+}));
+
 // Mock Apollo Client
 vi.mock('@apollo/client', () => {
   const mockUseQuery = vi.fn();
@@ -135,8 +142,9 @@ describe('Friendship Hooks', () => {
     });
 
     it('should handle refetch error', async () => {
+      const { errorHandlers } = await import('@/lib/utils/error-handler');
+      const mockErrorHandlers = vi.mocked(errorHandlers);
       const mockRefetch = vi.fn().mockRejectedValue(new Error('Refetch failed'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       (useQuery as any).mockReturnValue({
         loading: false,
@@ -152,8 +160,10 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error refetching friendships:', expect.any(Error));
-      consoleSpy.mockRestore();
+      expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+        component: 'React Hook',
+        action: 'Refetch friendships',
+      });
     });
 
     it('should handle loadMore functionality', async () => {
@@ -263,8 +273,9 @@ describe('Friendship Hooks', () => {
     });
 
     it('should handle loadMore error', async () => {
+      const { errorHandlers } = await import('@/lib/utils/error-handler');
+      const mockErrorHandlers = vi.mocked(errorHandlers);
       const mockFetchMore = vi.fn().mockRejectedValue(new Error('Load more failed'));
-      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       // Mock initial data to set up internal state
       const mockData = {
@@ -297,8 +308,10 @@ describe('Friendship Hooks', () => {
         await result.current.loadMore();
       });
 
-      expect(consoleSpy).toHaveBeenCalledWith('Error loading more friendships:', expect.any(Error));
-      consoleSpy.mockRestore();
+      expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+        component: 'React Hook',
+        action: 'Load more friendships',
+      });
     });
   });
 

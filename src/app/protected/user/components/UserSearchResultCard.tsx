@@ -8,18 +8,8 @@ import { toast } from 'sonner';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
 import { useFriendshipStatus } from '@/hooks/use-friendships';
-import type { IUserSummary } from '@/lib/types';
-
-export interface IUserSearchResultCardProps {
-  user: IUserSummary;
-  currentUserId: string;
-  onSendRequest: (friendId: string, refetchStatus?: () => void) => Promise<void>;
-  onRemoveFriend: (
-    friendshipId: string,
-    context?: 'cancel-request' | 'remove-friend'
-  ) => Promise<void>;
-  loading: boolean;
-}
+import type { IUserSearchResultCardProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function UserSearchResultCard({
   user,
@@ -70,7 +60,11 @@ export function UserSearchResultCard({
       setCurrentFriendshipId(null);
       await friendshipStatus.refetch();
     } catch (error) {
-      console.error('Error canceling request:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Cancel friend request',
+      });
     } finally {
       setIsOperating(false);
     }

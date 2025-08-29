@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Data sanitization function to remove sensitive/encrypted fields
 function sanitizeUserData(user: Record<string, unknown>) {
@@ -377,7 +378,12 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Global search error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/search',
+    });
+
     return NextResponse.json(
       {
         success: false,

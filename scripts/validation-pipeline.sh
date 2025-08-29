@@ -293,6 +293,8 @@ show_usage() {
     echo "  size         - Check bundle size"
     echo "  unused       - Check unused exports"
     echo "  dead-code    - Check dead code"
+    echo "  validate-dryness - Check for DRY violations"
+    echo "  validate-type-locations - Check type location violations"
     echo "  coverage     - Run unit test coverage validation"
     echo "  help         - Show this help message"
     echo ""
@@ -456,6 +458,8 @@ get_task_command() {
         "circular") echo "check:circular" ;;
         "dead_code") echo "check:dead:code" ;;
         "size") echo "check:size" ;;
+        "validate_dryness") echo "validate:dryness" ;;
+        "validate_type_locations") echo "validate:type-locations" ;;
 
         # Code generation
         "codegen") echo "codegen" ;;
@@ -869,7 +873,7 @@ run_size_check() {
 
 # Core code quality tasks (fastest)
 get_core_tasks() {
-    echo "git_validation format_check lint typecheck circular dead_code"
+    echo "git_validation format_check lint typecheck circular dead_code validate_dryness validate_type_locations"
 }
 
 # Build tasks (medium speed)
@@ -1473,6 +1477,22 @@ case "$SUBCOMMAND" in
             exit 1
         fi
         log_success "Dead code check completed"
+        ;;
+    "validate-dryness")
+        log "Validating DRY violations..."
+        if ! run_task "validate_dryness"; then
+            log_error "DRY validation failed"
+            exit 1
+        fi
+        log_success "DRY validation completed"
+        ;;
+    "validate-type-locations")
+        log "Validating type locations..."
+        if ! run_task "validate_type_locations"; then
+            log_error "Type location validation failed"
+            exit 1
+        fi
+        log_success "Type location validation completed"
         ;;
     "e2e")
         if ! run_e2e_management "$@"; then

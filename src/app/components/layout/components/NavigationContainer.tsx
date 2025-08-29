@@ -81,7 +81,7 @@ export function NavigationContainer({
         </button>
 
         {/* Desktop/Tablet Nav Links - always visible in header on lg+ */}
-        <div className="hidden lg:flex items-center h-full">
+        <div className="hidden lg:flex items-center">
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={false}

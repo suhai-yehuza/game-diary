@@ -1,4 +1,5 @@
 import type { ISlackMessage } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 
 export class AlertingService {
@@ -36,7 +37,11 @@ export class AlertingService {
 
       logger.info('Slack alert sent successfully');
     } catch (error) {
-      logger.error('Failed to send Slack alert:', error as Error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Alerting Service',
+        action: 'Send Slack alert',
+      });
       // Don't throw - alerting failure shouldn't break the main flow
     }
   }

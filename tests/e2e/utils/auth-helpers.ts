@@ -1,5 +1,7 @@
 import type { Page } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
+
 // Utility function to check if Clerk is configured
 export function isClerkConfigured(): boolean {
   // In E2E test environments, always return true to ensure consistent behavior
@@ -94,6 +96,11 @@ export async function revealSignInButtonIfMobile(page: Page): Promise<boolean> {
         return true;
       }
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Auth Helpers',
+        action: 'Reveal sign-in button strategy',
+      });
       console.log(`Strategy failed: ${String(error)}`);
       continue;
     }
@@ -121,6 +128,11 @@ export async function getAuthState(page: Page): Promise<IAuthState> {
   try {
     isMobile = await page.evaluate(() => window.innerWidth < 1024);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'E2E Auth Helpers',
+      action: 'Determine mobile state',
+    });
     console.warn('⚠️ Could not determine mobile state due to navigation:', error);
     isMobile = false;
   }

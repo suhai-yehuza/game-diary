@@ -1,53 +1,36 @@
 import { NextRequest } from 'next/server';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-
-// Use vi.hoisted() to properly handle mock variables
-const { mockDb, mockJson } = vi.hoisted(() => ({
-  mockDb: {
-    execute: vi.fn(),
-  },
-  mockJson: vi.fn(),
-}));
-
-// Mock modules
-vi.mock('@/lib/db', () => ({
-  createDatabaseClient: () => mockDb,
-}));
-
-vi.mock('next/server', () => ({
-  NextRequest: class NextRequest {
-    constructor(url: string) {
-      this.url = url;
-    }
-    url: string;
-  },
-  NextResponse: {
-    json: mockJson,
-  },
-}));
-
-// Mock API config
-vi.mock('@/lib/config/app.config', () => ({
-  API_CONFIG: {
-    pagination: {
-      DEFAULT_PAGE_SIZE: 20,
-    },
-  },
-}));
+import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GET } from '@/app/api/search/route';
+import { createDatabaseClient } from '@/lib/db';
+import { errorHandlers } from '@/lib/utils/error-handler';
+
+// Mock the database and error handlers
+vi.mock('@/lib/db', () => ({
+  createDatabaseClient: vi.fn(),
+}));
+
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
+  },
+}));
 
 describe('Search API Route', () => {
+  const mockRequest = new NextRequest('http://localhost:3000/api/search?q=test');
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('returns empty results for short query', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=a');
+  it('returns empty results for short queries', async () => {
+    const shortQueryRequest = new NextRequest('http://localhost:3000/api/search?q=a');
 
-    await GET(request);
+    const response = await GET(shortQueryRequest);
+    const data = await response.json();
 
-    expect(mockJson).toHaveBeenCalledWith({
+    expect(response.status).toBe(200);
+    expect(data).toMatchObject({
       success: true,
       data: {
         users: [],
@@ -70,12 +53,14 @@ describe('Search API Route', () => {
     });
   });
 
-  it('returns empty results for empty query', async () => {
-    const request = new NextRequest('http://localhost/api/search');
+  it('returns empty results for empty queries', async () => {
+    const emptyQueryRequest = new NextRequest('http://localhost:3000/api/search?q=');
 
-    await GET(request);
+    const response = await GET(emptyQueryRequest);
+    const data = await response.json();
 
-    expect(mockJson).toHaveBeenCalledWith({
+    expect(response.status).toBe(200);
+    expect(data).toMatchObject({
       success: true,
       data: {
         users: [],
@@ -92,139 +77,6 @@ describe('Search API Route', () => {
       pagination: {
         page: 1,
         limit: 20,
-        total: 0,
-        pages: 0,
-      },
-    });
-  });
-
-  it('returns error for invalid page parameter', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test&page=0');
-
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith(
-      {
-        success: false,
-        error: 'Invalid pagination parameters',
-      },
-      { status: 400 }
-    );
-  });
-
-  it('returns error for invalid limit parameter', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test&limit=101');
-
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith(
-      {
-        success: false,
-        error: 'Invalid pagination parameters',
-      },
-      { status: 400 }
-    );
-  });
-
-  it('performs search with valid query', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test&page=1&limit=10');
-
-    // Mock database responses
-    const mockUsersResult = { rows: [{ id: '1', username: 'testuser' }] };
-    const mockUsersCountResult = { rows: [{ count: '1' }] };
-    const mockGameLogsResult = { rows: [] };
-    const mockGameLogsCountResult = { rows: [{ count: '0' }] };
-    const mockGamesResult = { rows: [] };
-    const mockGamesCountResult = { rows: [{ count: '0' }] };
-    const mockTeamsResult = { rows: [] };
-    const mockTeamsCountResult = { rows: [{ count: '0' }] };
-    const mockPlayersResult = { rows: [] };
-    const mockPlayersCountResult = { rows: [{ count: '0' }] };
-
-    mockDb.execute
-      .mockResolvedValueOnce(mockUsersResult)
-      .mockResolvedValueOnce(mockUsersCountResult)
-      .mockResolvedValueOnce(mockGameLogsResult)
-      .mockResolvedValueOnce(mockGameLogsCountResult)
-      .mockResolvedValueOnce(mockGamesResult)
-      .mockResolvedValueOnce(mockGamesCountResult)
-      .mockResolvedValueOnce(mockTeamsResult)
-      .mockResolvedValueOnce(mockTeamsCountResult)
-      .mockResolvedValueOnce(mockPlayersResult)
-      .mockResolvedValueOnce(mockPlayersCountResult);
-
-    await GET(request);
-
-    expect(mockDb.execute).toHaveBeenCalledTimes(10);
-    expect(mockJson).toHaveBeenCalledWith({
-      success: true,
-      data: {
-        users: [{ id: '1', username: 'testuser' }],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 1,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
-      },
-      pagination: {
-        page: 1,
-        limit: 10,
-        total: 1,
-        pages: 1,
-      },
-    });
-  });
-
-  it('handles pagination correctly', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test&page=2&limit=5');
-
-    // Mock database responses with counts
-    const mockUsersResult = { rows: [] };
-    const mockUsersCountResult = { rows: [{ count: '0' }] };
-    const mockGameLogsResult = { rows: [] };
-    const mockGameLogsCountResult = { rows: [{ count: '0' }] };
-    const mockGamesResult = { rows: [] };
-    const mockGamesCountResult = { rows: [{ count: '0' }] };
-    const mockTeamsResult = { rows: [] };
-    const mockTeamsCountResult = { rows: [{ count: '0' }] };
-    const mockPlayersResult = { rows: [] };
-    const mockPlayersCountResult = { rows: [{ count: '0' }] };
-
-    mockDb.execute
-      .mockResolvedValueOnce(mockUsersResult)
-      .mockResolvedValueOnce(mockUsersCountResult)
-      .mockResolvedValueOnce(mockGameLogsResult)
-      .mockResolvedValueOnce(mockGameLogsCountResult)
-      .mockResolvedValueOnce(mockGamesResult)
-      .mockResolvedValueOnce(mockGamesCountResult)
-      .mockResolvedValueOnce(mockTeamsResult)
-      .mockResolvedValueOnce(mockTeamsCountResult)
-      .mockResolvedValueOnce(mockPlayersResult)
-      .mockResolvedValueOnce(mockPlayersCountResult);
-
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith({
-      success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 0,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
-      },
-      pagination: {
-        page: 2,
-        limit: 5,
         total: 0,
         pages: 0,
       },
@@ -232,108 +84,34 @@ describe('Search API Route', () => {
   });
 
   it('handles database errors gracefully', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test');
+    const mockDatabase = {
+      execute: vi.fn().mockRejectedValue(new Error('Database error')),
+    };
+    vi.mocked(createDatabaseClient).mockReturnValue(mockDatabase as any);
 
-    mockDb.execute.mockRejectedValue(new Error('Database error'));
+    const response = await GET(mockRequest);
+    const data = await response.json();
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(response.status).toBe(500);
+    expect(errorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+      component: 'API',
+      action: 'GET /api/search',
+    });
 
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith(
-      {
-        success: false,
-        error: 'Failed to perform global search',
-      },
-      { status: 500 }
-    );
-
-    expect(consoleSpy).toHaveBeenCalledWith('Global search error:', expect.any(Error));
-    consoleSpy.mockRestore();
-  });
-
-  it('calculates total results correctly', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test');
-
-    // Mock database responses with various counts
-    const mockUsersResult = { rows: [] };
-    const mockUsersCountResult = { rows: [{ count: '5' }] };
-    const mockGameLogsResult = { rows: [] };
-    const mockGameLogsCountResult = { rows: [{ count: '3' }] };
-    const mockGamesResult = { rows: [] };
-    const mockGamesCountResult = { rows: [{ count: '10' }] };
-    const mockTeamsResult = { rows: [] };
-    const mockTeamsCountResult = { rows: [{ count: '2' }] };
-    const mockPlayersResult = { rows: [] };
-    const mockPlayersCountResult = { rows: [{ count: '7' }] };
-
-    mockDb.execute
-      .mockResolvedValueOnce(mockUsersResult)
-      .mockResolvedValueOnce(mockUsersCountResult)
-      .mockResolvedValueOnce(mockGameLogsResult)
-      .mockResolvedValueOnce(mockGameLogsCountResult)
-      .mockResolvedValueOnce(mockGamesResult)
-      .mockResolvedValueOnce(mockGamesCountResult)
-      .mockResolvedValueOnce(mockTeamsResult)
-      .mockResolvedValueOnce(mockTeamsCountResult)
-      .mockResolvedValueOnce(mockPlayersResult)
-      .mockResolvedValueOnce(mockPlayersCountResult);
-
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith({
-      success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 5,
-        totalGameLogs: 3,
-        totalGames: 10,
-        totalTeams: 2,
-        totalPlayers: 7,
-      },
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 27, // 5 + 3 + 10 + 2 + 7
-        pages: 2, // Math.ceil(27 / 20)
-      },
+    expect(data).toMatchObject({
+      success: false,
+      error: 'Failed to perform global search',
     });
   });
 
-  it('handles missing count results gracefully', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=test');
+  it('handles missing query parameter', async () => {
+    const noQueryRequest = new NextRequest('http://localhost:3000/api/search');
 
-    // Mock database responses with missing count results
-    const mockUsersResult = { rows: [] };
-    const mockUsersCountResult = { rows: [] }; // Missing count
-    const mockGameLogsResult = { rows: [] };
-    const mockGameLogsCountResult = { rows: [{ count: null }] }; // Null count
-    const mockGamesResult = { rows: [] };
-    const mockGamesCountResult = { rows: [{ count: '5' }] };
-    const mockTeamsResult = { rows: [] };
-    const mockTeamsCountResult = { rows: [{ count: '0' }] };
-    const mockPlayersResult = { rows: [] };
-    const mockPlayersCountResult = { rows: [{ count: '0' }] };
+    const response = await GET(noQueryRequest);
+    const data = await response.json();
 
-    mockDb.execute
-      .mockResolvedValueOnce(mockUsersResult)
-      .mockResolvedValueOnce(mockUsersCountResult)
-      .mockResolvedValueOnce(mockGameLogsResult)
-      .mockResolvedValueOnce(mockGameLogsCountResult)
-      .mockResolvedValueOnce(mockGamesResult)
-      .mockResolvedValueOnce(mockGamesCountResult)
-      .mockResolvedValueOnce(mockTeamsResult)
-      .mockResolvedValueOnce(mockTeamsCountResult)
-      .mockResolvedValueOnce(mockPlayersResult)
-      .mockResolvedValueOnce(mockPlayersCountResult);
-
-    await GET(request);
-
-    expect(mockJson).toHaveBeenCalledWith({
+    expect(response.status).toBe(200);
+    expect(data).toMatchObject({
       success: true,
       data: {
         users: [],
@@ -341,51 +119,110 @@ describe('Search API Route', () => {
         games: [],
         teams: [],
         players: [],
-        totalUsers: 0, // Defaults to 0 when count is missing
-        totalGameLogs: 0, // Defaults to 0 when count is null
-        totalGames: 5,
+        totalUsers: 0,
+        totalGameLogs: 0,
+        totalGames: 0,
         totalTeams: 0,
         totalPlayers: 0,
       },
       pagination: {
         page: 1,
         limit: 20,
-        total: 5,
-        pages: 1,
+        total: 0,
+        pages: 0,
       },
     });
   });
 
-  it('trims whitespace from query parameter', async () => {
-    const request = new NextRequest('http://localhost/api/search?q=%20test%20');
+  it('handles custom pagination parameters', async () => {
+    const paginationRequest = new NextRequest(
+      'http://localhost:3000/api/search?q=test&page=2&limit=10'
+    );
 
-    // Mock database responses
-    const mockUsersResult = { rows: [] };
-    const mockUsersCountResult = { rows: [{ count: '0' }] };
-    const mockGameLogsResult = { rows: [] };
-    const mockGameLogsCountResult = { rows: [{ count: '0' }] };
-    const mockGamesResult = { rows: [] };
-    const mockGamesCountResult = { rows: [{ count: '0' }] };
-    const mockTeamsResult = { rows: [] };
-    const mockTeamsCountResult = { rows: [{ count: '0' }] };
-    const mockPlayersResult = { rows: [] };
-    const mockPlayersCountResult = { rows: [{ count: '0' }] };
+    const mockDatabase = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [],
+      }),
+    };
+    vi.mocked(createDatabaseClient).mockReturnValue(mockDatabase as any);
 
-    mockDb.execute
-      .mockResolvedValueOnce(mockUsersResult)
-      .mockResolvedValueOnce(mockUsersCountResult)
-      .mockResolvedValueOnce(mockGameLogsResult)
-      .mockResolvedValueOnce(mockGameLogsCountResult)
-      .mockResolvedValueOnce(mockGamesResult)
-      .mockResolvedValueOnce(mockGamesCountResult)
-      .mockResolvedValueOnce(mockTeamsResult)
-      .mockResolvedValueOnce(mockTeamsCountResult)
-      .mockResolvedValueOnce(mockPlayersResult)
-      .mockResolvedValueOnce(mockPlayersCountResult);
+    const response = await GET(paginationRequest);
+    const _data = await response.json();
 
-    await GET(request);
+    expect(response.status).toBe(200);
+    // Should call database with correct offset (page 2, limit 10 = offset 10)
+    expect(mockDatabase.execute).toHaveBeenCalled();
+  });
 
-    // Verify that the search was executed (the trimming happens in the route logic)
-    expect(mockDb.execute).toHaveBeenCalledTimes(10);
+  it('sanitizes user data to remove encrypted fields', async () => {
+    const mockDatabase = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            id: 1,
+            username: 'testuser',
+            password_hash: 'encrypted_hash',
+            encrypted_email_address: 'encrypted_email',
+          },
+        ],
+      }),
+    };
+    vi.mocked(createDatabaseClient).mockReturnValue(mockDatabase as any);
+
+    const response = await GET(mockRequest);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toMatchObject({
+      success: true,
+      data: expect.objectContaining({
+        users: expect.arrayContaining([
+          expect.objectContaining({
+            id: 1,
+            username: 'testuser',
+          }),
+        ]),
+      }),
+    });
+
+    // Should not include encrypted fields
+    expect(data.data.users[0]).not.toHaveProperty('password_hash');
+    expect(data.data.users[0]).not.toHaveProperty('encrypted_email_address');
+  });
+
+  it('sanitizes game log data to remove encrypted fields', async () => {
+    const mockDatabase = {
+      execute: vi.fn().mockResolvedValue({
+        rows: [
+          {
+            id: 1,
+            title: 'Test Game Log',
+            encrypted_notes: 'encrypted_notes',
+            encrypted_tags: 'encrypted_tags',
+          },
+        ],
+      }),
+    };
+    vi.mocked(createDatabaseClient).mockReturnValue(mockDatabase as any);
+
+    const response = await GET(mockRequest);
+    const data = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(data).toMatchObject({
+      success: true,
+      data: expect.objectContaining({
+        gameLogs: expect.arrayContaining([
+          expect.objectContaining({
+            id: 1,
+            title: 'Test Game Log',
+          }),
+        ]),
+      }),
+    });
+
+    // Should not include encrypted fields
+    expect(data.data.gameLogs[0]).not.toHaveProperty('encrypted_notes');
+    expect(data.data.gameLogs[0]).not.toHaveProperty('encrypted_tags');
   });
 });

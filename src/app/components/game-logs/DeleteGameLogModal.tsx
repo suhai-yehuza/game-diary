@@ -8,6 +8,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 import { DELETE_GAME_LOG } from '@/lib/graphql/mutations';
 import type { IDeleteGameLogModalProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function DeleteGameLogModal({
   gameLog,
@@ -27,7 +28,11 @@ export function DeleteGameLogModal({
       }
     },
     onError: (error: Error) => {
-      console.error('Error deleting game log:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Delete game log',
+      });
       toast.error('Failed to delete game log');
     },
   });
@@ -40,7 +45,11 @@ export function DeleteGameLogModal({
         },
       });
     } catch (error) {
-      console.error('Error deleting game log:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Delete game log',
+      });
     }
   };
 

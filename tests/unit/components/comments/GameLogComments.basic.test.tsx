@@ -5,6 +5,13 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { GameLogComments } from '@/app/components/comments/GameLogComments';
 import { ParentType } from '@/lib/types/generated/graphql';
 
+// Mock error handlers
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
+  },
+}));
+
 // Mock the useGameLogComments hook
 const mockUseGameLogComments = vi.fn();
 const mockUseDeleteComment = vi.fn();
@@ -393,7 +400,8 @@ describe('GameLogComments', () => {
 
   it('should handle comment deletion error gracefully', async () => {
     const user = userEvent.setup();
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { errorHandlers } = await import('@/lib/utils/error-handler');
+    const mockErrorHandlers = vi.mocked(errorHandlers);
     const mockDeleteComment = vi.fn().mockRejectedValue(new Error('Delete failed'));
     mockUseDeleteComment.mockReturnValue({
       deleteComment: mockDeleteComment,
@@ -414,9 +422,10 @@ describe('GameLogComments', () => {
     const deleteButtons = screen.getAllByText('Delete');
     await user.click(deleteButtons[0]);
 
-    expect(consoleSpy).toHaveBeenCalledWith('Error deleting comment:', expect.any(Error));
-
-    consoleSpy.mockRestore();
+    expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+      component: 'React Component',
+      action: 'Delete comment',
+    });
   });
 
   it('should use commentsTotalCount when expanded and available', () => {

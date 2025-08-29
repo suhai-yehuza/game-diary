@@ -26,8 +26,8 @@ export function NavigationLinks({
   };
 
   const navClass = isStacked
-    ? 'flex flex-col gap-4 h-full text-base font-medium m-0 p-0'
-    : 'flex flex-col lg:flex-row items-start lg:items-center h-full lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0';
+    ? 'flex flex-col gap-4 text-base font-medium m-0 p-0'
+    : 'flex flex-col lg:flex-row items-start lg:items-center lg:space-x-6 lg:space-y-0 text-xs sm:text-sm font-medium m-0 p-0';
 
   return (
     <nav className={navClass}>

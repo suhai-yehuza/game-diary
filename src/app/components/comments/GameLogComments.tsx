@@ -9,6 +9,7 @@ import { Button } from '@/app/components/ui/button';
 import { useGameLogComments, useDeleteComment, useUpdateComment } from '@/hooks/use-comments';
 import type { IComment, IGameLogCommentsProps } from '@/lib/types';
 import { ParentType } from '@/lib/types/generated/graphql';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function GameLogComments({ gameLog, showComments = false }: IGameLogCommentsProps) {
   const [showCommentForm, setShowCommentForm] = useState(false);
@@ -73,7 +74,11 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
         });
       }, 1000); // Remove from optimistic set after 1 second
     } catch (error) {
-      console.error('Error deleting comment:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Delete comment',
+      });
       // Restore the comment if deletion failed
       setOptimisticDeletedComments(prev => {
         const newSet = new Set(prev);

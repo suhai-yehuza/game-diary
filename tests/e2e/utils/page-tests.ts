@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import {
   checkBasicPageStructure,
   checkPageTitle,
@@ -93,6 +94,11 @@ export async function testMultiplePages(
 
       console.log(`✅ Page ${path} passed validation`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Page Tests',
+        action: 'Page validation',
+      });
       console.error(`❌ Page ${path} failed validation:`, error);
       throw error;
     }

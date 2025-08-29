@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import { userQueryResolvers, userSummaryResolver } from '@/lib/graphql/resolvers/user';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Check if encryption key is available for testing
 const hasEncryptionKey =
@@ -41,6 +42,11 @@ describe('User GraphQL Resolvers', () => {
     try {
       return serializeEncryptedField(encryptField(value));
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+        component: 'Unit Test',
+        action: 'Create encrypted field',
+      });
       console.warn('Encryption not available for testing, using plain text:', error);
       return value; // Fall back to plain text for testing
     }

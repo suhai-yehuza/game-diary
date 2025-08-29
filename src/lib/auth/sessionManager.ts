@@ -1,13 +1,4 @@
-interface ISessionData {
-  userId: string;
-  lastActivity: number;
-  permissions: string[];
-  sessionId: string;
-  deviceInfo?: {
-    userAgent: string;
-    ip: string;
-  };
-}
+import type { ISessionData } from '@/lib/types';
 
 class SessionManager {
   private readonly sessions = new Map<string, ISessionData>();

@@ -6,14 +6,7 @@ import React from 'react';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IFriendship } from '@/lib/types';
-
-export interface IFriendRequestCardProps {
-  request: IFriendship;
-  onAccept: (friendshipId: string) => Promise<void>;
-  onReject: (friendshipId: string) => Promise<void>;
-  loading: boolean;
-}
+import type { IFriendRequestCardProps } from '@/lib/types';
 
 export function FriendRequestCard({
   request,

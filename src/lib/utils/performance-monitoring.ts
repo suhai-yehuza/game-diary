@@ -1,16 +1,6 @@
+import type { IPerformanceMetrics } from '@/lib/types';
+
 import { analytics } from './analytics';
-
-// Performance metrics interface
-export interface IPerformanceMetrics {
-  // Core Web Vitals
-  lcp?: number; // Largest Contentful Paint
-  fid?: number; // First Input Delay
-  cls?: number; // Cumulative Layout Shift
-
-  // Page load metrics
-  domContentLoaded?: number;
-  windowLoad?: number;
-}
 
 // TEMPORARILY DISABLED: Performance monitoring to reduce analytics costs
 // Set this to true to re-enable performance monitoring
@@ -281,11 +271,51 @@ export const performanceMonitoring = {
   // Get current performance metrics
   getCurrentMetrics: (): IPerformanceMetrics => {
     if (typeof window === 'undefined' || !('performance' in window)) {
-      return {};
+      return {
+        loadTime: 0,
+        renderTime: 0,
+        memoryUsage: 0,
+        bundleSize: {
+          total: 0,
+          pages: {},
+          chunks: {},
+        },
+        typecheck: {
+          time: 0,
+          errors: 0,
+        },
+        dependencies: {
+          production: 0,
+          development: 0,
+          total: 0,
+        },
+        domContentLoaded: 0,
+        windowLoad: 0,
+      };
     }
 
     const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-    const metrics: IPerformanceMetrics = {};
+    const metrics: IPerformanceMetrics = {
+      loadTime: 0,
+      renderTime: 0,
+      memoryUsage: 0,
+      bundleSize: {
+        total: 0,
+        pages: {},
+        chunks: {},
+      },
+      typecheck: {
+        time: 0,
+        errors: 0,
+      },
+      dependencies: {
+        production: 0,
+        development: 0,
+        total: 0,
+      },
+      domContentLoaded: 0,
+      windowLoad: 0,
+    };
 
     if (navigation) {
       metrics.domContentLoaded = navigation.domContentLoadedEventEnd;

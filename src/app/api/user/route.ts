@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { withEncryption } from '@/lib/middleware/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Helper function to extract user ID from request
 function getUserIdFromRequest(_request: Request): string | undefined {
@@ -54,7 +55,11 @@ async function createUserHandler(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
-    console.error('Error creating user:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/user',
+    });
     return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
   }
 }

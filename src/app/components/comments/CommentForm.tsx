@@ -8,6 +8,7 @@ import { Textarea } from '@/app/components/ui';
 import { Button } from '@/app/components/ui/button';
 import { useCreateComment, useUpdateComment } from '@/hooks/use-comments';
 import type { ICommentFormProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function CommentForm({
   parentId,
@@ -63,7 +64,11 @@ export function CommentForm({
         }
       }
     } catch (error) {
-      console.error('Error submitting comment:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Submit comment',
+      });
     } finally {
       setIsSubmitting(false);
     }

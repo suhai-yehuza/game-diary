@@ -25,7 +25,7 @@ vi.mock('@/lib/graphql/queries', () => ({
 }));
 
 // Mock types
-vi.mock('@/lib/types/constant.types', () => ({
+vi.mock('@/lib/constants', () => ({
   REACTION_EMOJIS: {
     THUMBS_UP: '👍',
     HEART: '❤️',
@@ -35,6 +35,11 @@ vi.mock('@/lib/types/constant.types', () => ({
     FIRE: '🔥',
     EYES: '👀',
     MUSCLE: '💪',
+  },
+  CLASSIFICATION: {
+    PRIVATE: 'private',
+    PROTECTED: 'protected',
+    PUBLIC: 'public',
   },
 }));
 

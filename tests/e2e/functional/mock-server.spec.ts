@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { commonTestSetup } from '@tests/e2e/utils/setup';
 import { setupE2EMocking, clearTestData, TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
@@ -83,6 +84,11 @@ class MockServerTestRunner {
       await testFn();
       console.log(`✅ Mock server test completed: ${this.testName}`);
     } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'E2E Mock Server Test',
+        action: `Test: ${this.testName}`,
+      });
       console.error(`❌ Mock server test failed: ${this.testName}`, error);
       throw error;
     }

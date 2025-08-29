@@ -13,6 +13,7 @@ import {
 import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS } from '@/lib/graphql/queries';
 import { ParentType } from '@/lib/types/generated/graphql';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Mock console methods
 const _mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -339,6 +340,11 @@ describe('use-comments hooks', () => {
             parentType: ParentType.GameLog,
           });
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+            component: 'Unit Test',
+            action: 'Create comment test',
+          });
           expect(error).toBeInstanceOf(Error);
         }
       });
@@ -400,6 +406,11 @@ describe('use-comments hooks', () => {
             content: 'Updated comment',
           });
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+            component: 'Unit Test',
+            action: 'Update comment test',
+          });
           expect(error).toBeInstanceOf(Error);
         }
       });
@@ -453,6 +464,11 @@ describe('use-comments hooks', () => {
         try {
           await result.current.deleteComment('comment-1');
         } catch (error) {
+          // Use centralized error handling
+          errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+            component: 'Unit Test',
+            action: 'Delete comment test',
+          });
           expect(error).toBeInstanceOf(Error);
         }
       });

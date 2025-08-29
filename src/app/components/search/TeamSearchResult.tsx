@@ -3,7 +3,7 @@
 import { Building2, MapPin, Star, Trophy, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { ITeamSearchResultProps } from '@/lib/types/components.types';
+import type { ITeamSearchResultProps } from '@/lib/types';
 
 export function TeamSearchResult({ team }: ITeamSearchResultProps) {
   const router = useRouter();

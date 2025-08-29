@@ -7,14 +7,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IFriendship } from '@/lib/types';
-
-export interface IPendingFriendshipCardProps {
-  pending: IFriendship;
-  onWithdraw: (friendshipId: string, context?: 'cancel-request' | 'remove-friend') => Promise<void>;
-  loading: boolean;
-  onSendRequest: (friendId: string) => Promise<void>;
-}
+import type { IPendingFriendshipCardProps } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 export function PendingFriendshipCard({
   pending,
@@ -37,7 +31,11 @@ export function PendingFriendshipCard({
       await onWithdraw(pending.id, 'cancel-request');
       setRequestCancelled(true);
     } catch (error) {
-      console.error('Error canceling request:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Cancel friend request',
+      });
     } finally {
       setIsOperating(false);
     }
@@ -53,7 +51,11 @@ export function PendingFriendshipCard({
       await onSendRequest(recipient.id);
       setRequestCancelled(false);
     } catch (error) {
-      console.error('Error sending request:', error);
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'React Component',
+        action: 'Send friend request',
+      });
       toast.error('Failed to send friend request');
     } finally {
       setIsOperating(false);

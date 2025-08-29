@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getMockServer } from '@src/lib/mock-server';
 
 export async function GET(request: NextRequest) {
@@ -27,7 +28,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Mock server external API error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'GET /api/mock-server/external-api',
+    });
     return NextResponse.json(
       {
         error: 'Mock server external API failed',
@@ -63,7 +68,11 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error('Mock server external API POST error:', error);
+    // Use centralized error handling
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'API',
+      action: 'POST /api/mock-server/external-api',
+    });
     return NextResponse.json(
       {
         error: 'Mock server external API failed',

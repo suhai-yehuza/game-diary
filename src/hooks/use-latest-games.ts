@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
-import type { IGameResponse, IGamesApiResponse } from '@/lib/types';
+import type { IGameResponse, IGamesApiResponse, ILatestGamesOptions } from '@/lib/types';
 import { getLatestNbaSeason } from '@/lib/utils/nba-season';
 
 // Helper function to detect test environment
@@ -11,13 +11,6 @@ function isTestOrCIEnvironment(): boolean {
     process.env.VITEST === 'true' ||
     (typeof window !== 'undefined' && Boolean(window.__PLAYWRIGHT_TEST__))
   );
-}
-
-export interface ILatestGamesOptions {
-  limit?: number;
-  skip?: boolean;
-  forceRealData?: boolean;
-  seasons?: number[]; // New parameter to specify which seasons to fetch
 }
 
 function isGamesApiResponse(data: unknown): data is IGamesApiResponse {

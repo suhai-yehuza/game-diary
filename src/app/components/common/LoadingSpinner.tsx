@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { ILoadingSpinnerProps } from '@/lib/types/components.types';
+import type { ILoadingSpinnerProps } from '@/lib/types';
 
 export function LoadingSpinner({
   size = 'md',

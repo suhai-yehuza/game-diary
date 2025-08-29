@@ -7,6 +7,7 @@ import { sql } from 'drizzle-orm';
 import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@/lib/db';
 import { isCI } from '@/lib/utils/env-loader';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 import { parseScriptArgs } from '../utils/script-utils';
 
@@ -42,6 +43,11 @@ async function testBasicConnection() {
 
     return db;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Connection Test',
+      action: 'Test basic connection',
+    });
     logger.error(
       '❌ Database connection failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -114,6 +120,11 @@ async function testConnectionStability() {
 
     logger.info('✅ Connection stability test passed!');
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Connection Test',
+      action: 'Test connection stability',
+    });
     logger.error(
       '❌ Connection stability test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -144,6 +155,11 @@ async function testErrorRecovery() {
     };
     logger.info(`✅ Database functional after error: ${result.rows[0]?.test}`);
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Connection Test',
+      action: 'Test error recovery',
+    });
     logger.error(
       '❌ Error recovery test failed:',
       error instanceof Error ? error : new Error(String(error))
@@ -180,6 +196,11 @@ async function main() {
       logger.info('\n🚀 Try running your seeder again - it should be much more stable now!');
     }
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Database Connection Test',
+      action: 'Main database tests',
+    });
     logger.error(
       '\n❌ Database tests failed:',
       error instanceof Error ? error : new Error(String(error))

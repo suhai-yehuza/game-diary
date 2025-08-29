@@ -15,6 +15,7 @@ import {
   useFriendshipMutations,
 } from '@/hooks/use-friendships';
 import type { IFriendship, IUserSummary } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 import { FriendRequestCard as FriendRequestCardComponent } from './FriendRequestCard';
 import { FriendshipCard as FriendshipCardComponent } from './FriendshipCard';
@@ -83,7 +84,11 @@ export function FriendsTable() {
         await refetchRequests();
         await refetchFriendships();
       } catch (error) {
-        console.error('Error accepting request:', error);
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'React Component',
+          action: 'Accept friend request',
+        });
         toast.error('Failed to accept friend request');
       }
     },
@@ -97,7 +102,11 @@ export function FriendsTable() {
         toast.success('Friend request rejected');
         await refetchRequests();
       } catch (error) {
-        console.error('Error rejecting request:', error);
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'React Component',
+          action: 'Reject friend request',
+        });
         toast.error('Failed to reject friend request');
       }
     },
@@ -119,7 +128,11 @@ export function FriendsTable() {
         await refetchFriendships();
         await refetchPendingFriendships();
       } catch (error) {
-        console.error('Error removing friend:', error);
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'React Component',
+          action: 'Remove friend',
+        });
         if (context === 'cancel-request') {
           toast.error('Failed to cancel friend request');
         } else {

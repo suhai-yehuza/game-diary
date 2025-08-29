@@ -6,6 +6,7 @@ import {
   serializeEncryptedField,
   deserializeEncryptedField,
 } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Set the encryption key for testing
 process.env.DATA_ENCRYPTION_KEY =
@@ -45,6 +46,11 @@ function testEncryption() {
     console.log('🎉 Encryption test completed successfully!');
     return true;
   } catch (error) {
+    // Use centralized error handling
+    errorHandlers.validation(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Encryption Test',
+      action: 'Test encryption utility',
+    });
     console.error('❌ Encryption test failed:', error);
     return false;
   }

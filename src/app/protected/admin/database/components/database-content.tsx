@@ -121,7 +121,10 @@ export function AdminDatabaseContent() {
         }
         setCurrentPage(prev => ({ ...prev, [tableName]: page }));
       } else {
-        setError(prev => ({ ...prev, [tableName]: data.error ?? 'Failed to fetch data' }));
+        setError(prev => ({
+          ...prev,
+          [tableName]: typeof data.error === 'string' ? data.error : 'Failed to fetch data',
+        }));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch data';

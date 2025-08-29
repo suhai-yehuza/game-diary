@@ -1,78 +1,62 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { GameLogsHeader } from '@/app/components/game-logs/GameLogsHeader';
 
-describe('GameLogsHeader', () => {
-  it('renders the title correctly', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+// Mock the useMobileDetection hook
+vi.mock('@/app/components/layout/components/SearchBar', () => ({
+  useMobileDetection: () => false,
+}));
 
-    expect(screen.getByText('Game Logs')).toBeInTheDocument();
+describe('GameLogsHeader', () => {
+  const mockOnCreateClick = vi.fn();
+
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('renders the create button correctly', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+  it('renders the header with title and description', () => {
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-    const createButton = screen.getByText('Create New Log');
+    expect(screen.getByText('Game Logs')).toBeInTheDocument();
+    expect(screen.getByText('Track and share your sports viewing experiences')).toBeInTheDocument();
+  });
+
+  it('renders create button with correct text', () => {
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
+
+    const createButton = screen.getByRole('button', { name: /create new log/i });
     expect(createButton).toBeInTheDocument();
   });
 
   it('calls onCreateClick when create button is clicked', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-    const createButton = screen.getByText('Create New Log');
+    const createButton = screen.getByRole('button', { name: /create new log/i });
     fireEvent.click(createButton);
 
-    expect(onCreateClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders the plus icon in the create button', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
-
-    const createButton = screen.getByText('Create New Log');
-    expect(createButton).toBeInTheDocument();
-
-    // Check that the button contains the plus icon
-    const button = screen.getByRole('button');
-    expect(button).toHaveTextContent('Create New Log');
-  });
-
-  it('applies correct CSS classes to the header container', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
-
-    const header = screen.getByText('Game Logs').parentElement?.parentElement;
-    expect(header).toHaveClass('flex', 'justify-between', 'items-center');
+    expect(mockOnCreateClick).toHaveBeenCalledTimes(1);
   });
 
   it('applies correct CSS classes to the title', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
     const title = screen.getByText('Game Logs');
-    expect(title).toHaveClass('font-bold', 'text-neutral-900', 'dark:text-neutral-100', 'text-2xl');
+    expect(title).toHaveClass('font-bold', 'text-white', 'text-2xl');
+  });
+
+  it('applies correct CSS classes to the description', () => {
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
+
+    const description = screen.getByText('Track and share your sports viewing experiences');
+    expect(description).toHaveClass('text-white', 'text-sm', 'sm:text-base');
   });
 
   it('applies correct CSS classes to the create button', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-    const createButton = screen.getByRole('button');
+    const createButton = screen.getByRole('button', { name: /create new log/i });
     expect(createButton).toHaveClass(
-      'justify-center',
-      'text-sm',
-      'focus-visible:outline-none',
-      'focus-visible:ring-2',
-      'focus-visible:ring-ring',
-      'focus-visible:ring-offset-2',
-      'disabled:opacity-50',
-      'disabled:pointer-events-none',
-      'ring-offset-background',
-      'h-10',
       'flex',
       'items-center',
       'gap-2',
@@ -93,19 +77,30 @@ describe('GameLogsHeader', () => {
     );
   });
 
-  it('renders the header as a flex container with space between items', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+  it('renders Plus icon in the create button', () => {
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-    const header = screen.getByText('Game Logs').parentElement?.parentElement;
-    expect(header).toHaveClass('flex', 'justify-between', 'items-center');
+    const createButton = screen.getByRole('button', { name: /create new log/i });
+    // Check for the Plus icon by looking for the icon element
+    const iconElement =
+      createButton.querySelector('[data-testid="plus-icon"]') || createButton.querySelector('svg');
+    expect(iconElement).toBeInTheDocument();
+  });
+
+  it('has proper semantic structure', () => {
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
+
+    const header = screen.getByRole('heading', { name: 'Game Logs' });
+    expect(header.tagName).toBe('H2');
+    expect(header).toBeInTheDocument();
   });
 
   it('has proper accessibility attributes', () => {
-    const onCreateClick = vi.fn();
-    render(<GameLogsHeader onCreateClick={onCreateClick} />);
+    render(<GameLogsHeader onCreateClick={mockOnCreateClick} />);
 
-    const createButton = screen.getByRole('button');
+    const createButton = screen.getByRole('button', { name: /create new log/i });
+    // Check that the button is accessible and clickable
     expect(createButton).toBeInTheDocument();
+    expect(createButton).toHaveAttribute('type', 'button');
   });
 });

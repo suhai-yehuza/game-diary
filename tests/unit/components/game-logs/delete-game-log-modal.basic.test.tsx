@@ -5,6 +5,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { DeleteGameLogModal } from '@/app/components/game-logs/DeleteGameLogModal';
 
+// Mock error handlers
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
+  },
+}));
+
 // Mock sonner toast
 vi.mock('sonner', () => {
   const success = vi.fn();
@@ -196,7 +203,8 @@ describe('DeleteGameLogModal', () => {
 
     mockUseMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
 
-    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const { errorHandlers } = await import('@/lib/utils/error-handler');
+    const mockErrorHandlers = vi.mocked(errorHandlers);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -204,10 +212,11 @@ describe('DeleteGameLogModal', () => {
     fireEvent.click(deleteButton);
 
     await waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith('Error deleting game log:', expect.any(Error));
+      expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
+        component: 'React Component',
+        action: 'Delete game log',
+      });
     });
-
-    consoleSpy.mockRestore();
   });
 
   it('shows success toast on successful deletion (onCompleted)', async () => {
