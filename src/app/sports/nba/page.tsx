@@ -2,6 +2,7 @@
 
 import { ArrowRight, Calendar, Users, Trophy, RefreshCw, Newspaper } from 'lucide-react';
 import Link from 'next/link';
+import { useState, useEffect } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { NBANews } from '@/app/components/sports/nba-news';
@@ -24,6 +25,11 @@ const NavigationCardSkeleton = () => (
 );
 
 export default function NBAPage() {
+  // State for total counts
+  const [totalGames, setTotalGames] = useState<number>(0);
+  const [totalPlayers, setTotalPlayers] = useState<number>(0);
+  const [countsLoading, setCountsLoading] = useState(true);
+
   // Fetch data for navigation cards
   const {
     latestGames,
@@ -53,6 +59,79 @@ export default function NBAPage() {
   // Fetch live games data
   const { games: liveGames, loading: liveGamesLoading } = useLiveGames();
 
+  // Fetch total counts
+  useEffect(() => {
+    const fetchTotalCounts = async () => {
+      try {
+        setCountsLoading(true);
+
+        // Check if we're in mock mode
+        const useMockData =
+          (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
+          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true');
+
+        if (useMockData) {
+          // For mock data, fetch the full responses to get the results count
+          const [gamesResponse, playersResponse] = await Promise.all([
+            fetch('/api/mock-server?action=mock-data&type=nba-games'),
+            fetch('/api/mock-server?action=mock-data&type=nba-players'),
+          ]);
+
+          if (gamesResponse.ok) {
+            const gamesData = await gamesResponse.json();
+            if (
+              gamesData.data &&
+              typeof gamesData.data === 'object' &&
+              'results' in gamesData.data
+            ) {
+              setTotalGames(gamesData.data.results);
+            }
+          }
+
+          if (playersResponse.ok) {
+            const playersData = await playersResponse.json();
+            if (
+              playersData.data &&
+              typeof playersData.data === 'object' &&
+              'results' in playersData.data
+            ) {
+              setTotalPlayers(playersData.data.results);
+            }
+          }
+        } else {
+          // For real data, make API calls to get total counts
+          const [gamesResponse, playersResponse] = await Promise.all([
+            fetch('/api/proxy/games?season=2024&league=standard'),
+            fetch('/api/players?limit=1000'), // Get a large number to get total count
+          ]);
+
+          if (gamesResponse.ok) {
+            const gamesData = await gamesResponse.json();
+            if (gamesData && typeof gamesData === 'object' && 'results' in gamesData) {
+              setTotalGames(gamesData.results);
+            }
+          }
+
+          if (playersResponse.ok) {
+            const playersData = await playersResponse.json();
+            if (playersData && typeof playersData === 'object' && 'results' in playersData) {
+              setTotalPlayers(playersData.results);
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching total counts:', error);
+        // Fallback to using the length of fetched data
+        setTotalGames(latestGames.length);
+        setTotalPlayers(players.length);
+      } finally {
+        setCountsLoading(false);
+      }
+    };
+
+    void fetchTotalCounts();
+  }, [latestGames.length, players.length]);
+
   const navigationCards = [
     {
       title: 'Games',
@@ -60,8 +139,8 @@ export default function NBAPage() {
       href: '/sports/nba/games',
       icon: Calendar,
       color: 'bg-orange-500 hover:bg-orange-600',
-      count: latestGames.length,
-      loading: gamesLoading,
+      count: countsLoading ? latestGames.length : totalGames,
+      loading: gamesLoading || countsLoading,
     },
     {
       title: 'Teams',
@@ -78,8 +157,8 @@ export default function NBAPage() {
       href: '/sports/nba/players',
       icon: Users,
       color: 'bg-green-500 hover:bg-green-600',
-      count: players.length,
-      loading: playersLoading,
+      count: countsLoading ? players.length : totalPlayers,
+      loading: playersLoading || countsLoading,
     },
   ];
 
@@ -190,28 +269,16 @@ export default function NBAPage() {
 
       {/* NBA News Section */}
       <section aria-labelledby="nba-news-heading" className="mt-8 sm:mt-12">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-              <Newspaper className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
-            </div>
-            <h2
-              id="nba-news-heading"
-              className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
-            >
-              Latest NBA News
-            </h2>
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+            <Newspaper className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
           </div>
-          <Link
-            href="https://www.nba.com/news"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium flex items-center gap-2 transition-colors text-sm sm:text-base"
-            aria-label="View all NBA news on NBA.com"
+          <h2
+            id="nba-news-heading"
+            className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
           >
-            View All News
-            <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" aria-hidden="true" />
-          </Link>
+            Latest NBA News
+          </h2>
         </div>
 
         <NBANews limit={6} />

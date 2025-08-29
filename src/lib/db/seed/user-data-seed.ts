@@ -14,6 +14,7 @@ import type {
   ISeedingConfig,
 } from '@/lib/types';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import {
   users,
   friendships,
@@ -800,11 +801,10 @@ export async function seedUserData(
 
     console.log('✅ User data seeding completed successfully!');
   } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('❌ Error seeding user data:', err.message);
-    } else {
-      console.error('❌ Error seeding user data:', err);
-    }
+    errorHandlers.database(err instanceof Error ? err : new Error(String(err)), {
+      component: 'UserDataSeed',
+      action: 'Seed user data',
+    });
     throw err;
   }
 }
@@ -844,11 +844,10 @@ export async function clearUserData() {
 
     console.log('✅ User data cleared successfully!');
   } catch (err: unknown) {
-    if (err instanceof Error) {
-      console.error('❌ Error clearing user data:', err.message);
-    } else {
-      console.error('❌ Error clearing user data:', err);
-    }
+    errorHandlers.database(err instanceof Error ? err : new Error(String(err)), {
+      component: 'UserDataSeed',
+      action: 'Clear user data',
+    });
     throw err;
   }
 }

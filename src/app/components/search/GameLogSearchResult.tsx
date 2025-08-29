@@ -48,8 +48,8 @@ export function GameLogSearchResult({ gameLog }: IGameLogSearchResultProps) {
                     ? `${gameLog.away_team_nickname} @ ${gameLog.home_team_nickname}`
                     : `Game Log #${gameLog.game_id ?? 'unknown'}`}
                 </h3>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                  <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mr-1.5" />
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700">
+                  <span className="w-1.5 h-1.5 bg-emerald-600 dark:bg-emerald-400 rounded-full mr-1.5" />
                   Game Log
                 </span>
               </div>

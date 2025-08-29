@@ -9,6 +9,7 @@ import {
   useNotifications,
 } from '@/app/components/providers/NotificationProvider';
 import { errorHandlers } from '@/lib/utils/error-handler';
+
 // Mock Apollo Client
 vi.mock('@apollo/client', () => ({
   useQuery: vi.fn(),
@@ -115,12 +116,26 @@ describe('NotificationProvider', () => {
         unreadNotificationsCount: 0,
       },
       refetch: vi.fn(),
+      loading: false,
+      error: undefined,
+      client: {} as any,
+      observable: {} as any,
+      networkStatus: 1,
+      called: true,
+      variables: {},
+      previousData: undefined,
+      updateQuery: vi.fn(),
+      startPolling: vi.fn(),
+      stopPolling: vi.fn(),
+      subscribeToMore: vi.fn(),
+      reobserve: vi.fn(),
+      fetchMore: vi.fn(),
     } as any);
 
     // Mock mutations
     mockUseMutation.mockReturnValue([
       vi.fn().mockResolvedValue({}),
-      { loading: false, error: null },
+      { loading: false, error: undefined, called: false, client: {} as any, reset: vi.fn() },
     ] as any);
   });
 
@@ -199,7 +214,10 @@ describe('NotificationProvider', () => {
   describe('Mark as Read', () => {
     it('marks notification as read', async () => {
       const mockMarkAsRead = vi.fn().mockResolvedValue({});
-      mockUseMutation.mockReturnValue([mockMarkAsRead, { loading: false, error: null }] as any);
+      mockUseMutation.mockReturnValue([
+        mockMarkAsRead,
+        { loading: false, error: undefined, called: false, client: {} as any, reset: vi.fn() },
+      ] as any);
 
       render(
         <NotificationProvider>
@@ -219,7 +237,10 @@ describe('NotificationProvider', () => {
 
     it('handles mark as read error', async () => {
       const mockMarkAsRead = vi.fn().mockRejectedValue(new Error('Mark as read failed'));
-      mockUseMutation.mockReturnValue([mockMarkAsRead, { loading: false, error: null }] as any);
+      mockUseMutation.mockReturnValue([
+        mockMarkAsRead,
+        { loading: false, error: undefined, called: false, client: {} as any, reset: vi.fn() },
+      ] as any);
 
       render(
         <NotificationProvider>
@@ -243,7 +264,10 @@ describe('NotificationProvider', () => {
   describe('Mark All as Read', () => {
     it('marks all notifications as read', async () => {
       const mockMarkAllAsRead = vi.fn().mockResolvedValue({});
-      mockUseMutation.mockReturnValue([mockMarkAllAsRead, { loading: false, error: null }] as any);
+      mockUseMutation.mockReturnValue([
+        mockMarkAllAsRead,
+        { loading: false, error: undefined, called: false, client: {} as any, reset: vi.fn() },
+      ] as any);
 
       render(
         <NotificationProvider>
@@ -261,7 +285,10 @@ describe('NotificationProvider', () => {
 
     it('handles mark all as read error', async () => {
       const mockMarkAllAsRead = vi.fn().mockRejectedValue(new Error('Mark all as read failed'));
-      mockUseMutation.mockReturnValue([mockMarkAllAsRead, { loading: false, error: null }] as any);
+      mockUseMutation.mockReturnValue([
+        mockMarkAllAsRead,
+        { loading: false, error: undefined, called: false, client: {} as any, reset: vi.fn() },
+      ] as any);
 
       render(
         <NotificationProvider>
@@ -337,6 +364,20 @@ describe('NotificationProvider', () => {
       mockUseQuery.mockReturnValue({
         data: mockNotifications,
         refetch: vi.fn(),
+        loading: false,
+        error: undefined,
+        client: {} as any,
+        observable: {} as any,
+        networkStatus: 1,
+        called: true,
+        variables: {},
+        previousData: undefined,
+        updateQuery: vi.fn(),
+        startPolling: vi.fn(),
+        stopPolling: vi.fn(),
+        subscribeToMore: vi.fn(),
+        reobserve: vi.fn(),
+        fetchMore: vi.fn(),
       } as any);
 
       render(
@@ -355,6 +396,20 @@ describe('NotificationProvider', () => {
           unreadNotificationsCount: 5,
         },
         refetch: vi.fn(),
+        loading: false,
+        error: undefined,
+        client: {} as any,
+        observable: {} as any,
+        networkStatus: 1,
+        called: true,
+        variables: {},
+        previousData: undefined,
+        updateQuery: vi.fn(),
+        startPolling: vi.fn(),
+        stopPolling: vi.fn(),
+        subscribeToMore: vi.fn(),
+        reobserve: vi.fn(),
+        fetchMore: vi.fn(),
       } as any);
 
       render(

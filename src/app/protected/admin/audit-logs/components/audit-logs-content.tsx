@@ -4,6 +4,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
+import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { API_CONFIG } from '@/lib/config/app.config';
 import type { IAuditLog, IFilters, AuditLogSearchField } from '@/lib/types';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
@@ -23,6 +24,10 @@ export function AdminAuditLogsContent() {
   const [searchField, setSearchField] = useState<AuditLogSearchField>('all');
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc' | null>(null);
+
+  const { handleAsync, handleSync } = useCentralizedErrorHandler({
+    context: { component: 'AdminAuditLogsContent', action: 'Fetch audit logs' },
+  });
 
   // Calculate pagination range
   const pageSize = 20; // Default page size
@@ -121,33 +126,44 @@ export function AdminAuditLogsContent() {
     });
   }, [sortedLogs, searchTerm, searchField]);
 
-  const fetchLogs = async (pageFilters?: IFilters, page = 1) => {
-    try {
+  const fetchLogs = useCallback(
+    async (pageFilters?: IFilters, page = 1) => {
       setLoading(true);
       setError(null);
-      const params = new URLSearchParams({
-        limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
-        offset: ((page - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE).toString(),
-        ...pageFilters,
-      });
 
-      const response = await fetch(`/api/admin/audit-logs?${params}`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      const result = await handleAsync(
+        async () => {
+          const params = new URLSearchParams({
+            limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString(),
+            offset: ((page - 1) * API_CONFIG.pagination.DEFAULT_PAGE_SIZE).toString(),
+            ...pageFilters,
+          });
 
-      const data = (await response.json()) as { logs: IAuditLog[]; total?: number };
-      setLogs(data.logs ?? []);
-      setTotalCount(data.total ?? 0);
-      setTotalPages(
-        Math.ceil((data.total ?? data.logs.length) / API_CONFIG.pagination.DEFAULT_PAGE_SIZE)
+          const response = await fetch(`/api/admin/audit-logs?${params}`);
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = (await response.json()) as { logs: IAuditLog[]; total?: number };
+          setLogs(data.logs ?? []);
+          setTotalCount(data.total ?? 0);
+          setTotalPages(
+            Math.ceil((data.total ?? data.logs.length) / API_CONFIG.pagination.DEFAULT_PAGE_SIZE)
+          );
+          return data;
+        },
+        {
+          action: 'Fetch audit logs',
+        }
       );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch logs');
-    } finally {
+
+      if (!result) {
+        setError('Failed to fetch logs');
+      }
       setLoading(false);
-    }
-  };
+    },
+    [handleAsync]
+  );
 
   const handleFilterChange = (key: keyof IFilters, value: string) => {
     const newFilters = { ...filters, [key]: value || undefined };
@@ -157,38 +173,46 @@ export function AdminAuditLogsContent() {
   };
 
   const handleExport = async () => {
-    try {
-      setExporting(true);
-      setError(null);
-      const response = await fetch('/api/admin/audit-logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(filters),
-      });
+    setExporting(true);
+    setError(null);
 
-      if (!response.ok) {
-        throw new Error(`Export failed: ${response.status}`);
+    const result = await handleAsync(
+      async () => {
+        const response = await fetch('/api/admin/audit-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(filters),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Export failed: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        return true;
+      },
+      {
+        action: 'Export audit logs',
       }
+    );
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `audit-logs-${new Date().toISOString().split('T')[0]}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Export failed');
-    } finally {
-      setExporting(false);
+    if (!result) {
+      setError('Export failed');
     }
+    setExporting(false);
   };
 
   useEffect(() => {
     void fetchLogs();
-  }, []);
+  }, [fetchLogs]);
 
   const getCategoryColor = (category: string) => {
     const isDark = resolvedTheme === 'dark';
@@ -196,12 +220,12 @@ export function AdminAuditLogsContent() {
     switch (category.toLowerCase()) {
       case 'authentication':
         return isDark
-          ? 'bg-blue-900/20 text-blue-300 border-blue-700'
-          : 'bg-blue-100 text-blue-800 border-blue-300';
+          ? 'bg-emerald-900/60 text-emerald-100 border-emerald-700'
+          : 'bg-emerald-100 text-emerald-900 border-emerald-300';
       case 'authorization':
         return isDark
-          ? 'bg-purple-900/20 text-purple-300 border-purple-700'
-          : 'bg-purple-100 text-purple-800 border-purple-300';
+          ? 'bg-emerald-900/60 text-emerald-100 border-emerald-700'
+          : 'bg-emerald-100 text-emerald-900 border-emerald-300';
       case 'data_access':
         return isDark
           ? 'bg-indigo-900/20 text-indigo-300 border-indigo-700'
@@ -257,19 +281,24 @@ export function AdminAuditLogsContent() {
   };
 
   const formatTimestamp = (timestamp: string) => {
-    try {
-      const date = new Date(timestamp);
-      return date.toLocaleString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-      });
-    } catch {
-      return 'Invalid Date';
-    }
+    return (
+      handleSync(
+        () => {
+          const date = new Date(timestamp);
+          return date.toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+        },
+        {
+          action: 'Format timestamp',
+        }
+      ) || 'Invalid Date'
+    );
   };
 
   const truncateUserId = (userId: string | undefined) => {

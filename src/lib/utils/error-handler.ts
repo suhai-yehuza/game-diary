@@ -369,6 +369,14 @@ export const errorHandlers = {
       severity: ErrorSeverity.HIGH,
       ...context,
     }),
+
+  // UI error handler
+  ui: (error: Error | string, context?: Partial<IErrorContext>) =>
+    ErrorHandler.getInstance().handleError(error, {
+      category: ErrorCategory.UI,
+      severity: ErrorSeverity.MEDIUM,
+      ...context,
+    }),
 };
 
 // React hook for error handling

@@ -1,6 +1,18 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 import { testRedisConnection, getCache } from '@/lib/cache';
+
+// Mock Redis service
+vi.mock('@/lib/cache/redis-service', () => ({
+  redisService: {
+    set: vi.fn().mockResolvedValue(undefined),
+    get: vi.fn().mockResolvedValue(null),
+    delete: vi.fn().mockResolvedValue(true),
+    clear: vi.fn().mockResolvedValue(undefined),
+    testConnection: vi.fn().mockResolvedValue(false),
+    getStats: vi.fn().mockReturnValue({}),
+  },
+}));
 
 describe('Cache Utils', () => {
   let cache: any;
@@ -15,13 +27,13 @@ describe('Cache Utils', () => {
   });
 
   describe('testRedisConnection', () => {
-    it('returns a boolean value', () => {
-      const result = testRedisConnection();
+    it('returns a Promise<boolean> value', async () => {
+      const result = await testRedisConnection();
       expect(typeof result).toBe('boolean');
     });
 
-    it('does not throw an error', () => {
-      expect(() => testRedisConnection()).not.toThrow();
+    it('does not throw an error', async () => {
+      await expect(testRedisConnection()).resolves.toBeDefined();
     });
   });
 
@@ -68,7 +80,7 @@ describe('Cache Utils', () => {
       await cache.set('key1', 'value1');
       await cache.set('key2', 'value2');
 
-      cache.clear();
+      await cache.clear();
 
       const result1 = await cache.get('key1');
       const result2 = await cache.get('key2');
@@ -94,15 +106,17 @@ describe('Cache Utils', () => {
     });
 
     it('respects TTL', async () => {
-      await cache.set('test-key', 'test-value', 100); // 100ms TTL
+      // Set a value with a very short TTL
+      await cache.set('test-key', 'test-value', 10); // 10ms TTL
 
       // Should be available immediately
       const immediateResult = await cache.get('test-key');
       expect(immediateResult).toBe('test-value');
 
-      // Wait for TTL to expire
-      await new Promise(resolve => setTimeout(resolve, 150));
+      // Wait for TTL to expire and then some
+      await new Promise(resolve => setTimeout(resolve, 50));
 
+      // Try to get the expired value
       const expiredResult = await cache.get('test-key');
       expect(expiredResult).toBeNull();
     });
@@ -121,7 +135,7 @@ describe('Cache Utils', () => {
     it('updates statistics correctly', async () => {
       // Get a fresh cache instance to avoid interference from other tests
       const freshCache = getCache();
-      freshCache.clear();
+      await freshCache.clear();
 
       // Set a value
       await freshCache.set('test-key', 'test-value');

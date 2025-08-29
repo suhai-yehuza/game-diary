@@ -23,7 +23,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
-import { toast } from 'sonner';
+// import { toast } from 'sonner';
 
 import { GameLogComments } from '@/app/components/comments/GameLogComments';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
@@ -31,21 +31,57 @@ import { ReactionPicker } from '@/app/components/reactions';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
+import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
+import { getButtonVariant } from '@/lib/design-tokens/button-variants';
 import type { IGameLog, IGameLogDetailPageProps } from '@/lib/types';
 import {
   useGetGameLogQuery,
   ParentType,
   type GetGameLogQuery,
 } from '@/lib/types/generated/graphql';
-import { errorHandlers } from '@/lib/utils/error-handler';
+// import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interface moved to src/lib/types/page.types.ts
+
+// Utility function to generate distinct colors for tags
+const getTagColor = (tag: string) => {
+  const colors = [
+    // Emerald - green
+    'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
+    // Blue
+    'bg-blue-100 text-blue-900 dark:bg-blue-900/60 dark:text-blue-100 border-blue-300 dark:border-blue-700',
+    // Orange
+    'bg-orange-100 text-orange-900 dark:bg-orange-900/60 dark:text-orange-100 border-orange-300 dark:border-orange-700',
+    // Purple
+    'bg-purple-100 text-purple-900 dark:bg-purple-900/60 dark:text-purple-100 border-purple-300 dark:border-purple-700',
+    // Red
+    'bg-red-100 text-red-900 dark:bg-red-900/60 dark:text-red-100 border-red-300 dark:border-red-700',
+    // Teal
+    'bg-teal-100 text-teal-900 dark:bg-teal-900/60 dark:text-teal-100 border-teal-300 dark:border-teal-700',
+    // Indigo
+    'bg-indigo-100 text-indigo-900 dark:bg-indigo-900/60 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
+    // Amber
+    'bg-amber-100 text-amber-900 dark:bg-amber-900/60 dark:text-amber-100 border-amber-300 dark:border-amber-700',
+  ];
+
+  // Use tag hash for consistent colors
+  const hash = tag.split('').reduce((a, b) => {
+    a = (a << 5) - a + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+
+  return colors[Math.abs(hash) % colors.length];
+};
 
 export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   const [isClient, setIsClient] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<GetGameLogQuery['gameLog'] | null>(null);
   const [resolvedParams, setResolvedParams] = useState<{ gameLogId: string } | null>(null);
+
+  const { handleParamsResolution } = useCentralizedErrorHandler({
+    context: { component: 'GameLogDetailPage', action: 'Load game log params' },
+  });
 
   // Ensure we're on the client side
   useEffect(() => {
@@ -58,25 +94,16 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   // Load params once on mount
   useEffect(() => {
     const loadParams = async () => {
-      try {
-        const resolved = await params;
-        if (resolved?.gameLogId) {
-          setResolvedParams(resolved);
-        } else {
-          console.error('No gameLogId in params:', resolved);
-        }
-      } catch (error) {
-        // Use centralized error handling
-        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-          component: 'React Component',
-          action: 'Load game log params',
-        });
-        toast.error('Failed to load game log');
+      const resolved = (await handleParamsResolution(params)) as { gameLogId: string } | undefined;
+      if (resolved?.gameLogId) {
+        setResolvedParams(resolved);
+      } else {
+        console.error('No gameLogId in params:', resolved);
       }
     };
 
     void loadParams();
-  }, [params]);
+  }, [params, handleParamsResolution]);
 
   // Calculate query variables and skip condition using useMemo for reactive updates
   const queryVariables = useMemo(() => {
@@ -167,7 +194,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                   </p>
                   <div className="mt-3">
                     <Link href="/sign-in">
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button size="sm" className={getButtonVariant('primary')}>
                         Sign In
                       </Button>
                     </Link>
@@ -251,7 +278,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                       </p>
                       <div className="mt-3">
                         <Link href="/sign-in">
-                          <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white">
+                          <Button size="sm" className={getButtonVariant('primary')}>
                             Sign In
                           </Button>
                         </Link>
@@ -541,7 +568,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
             <Button
               onClick={() => setEditingGameLog(gameLog)}
               size="sm"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className={`flex items-center gap-2 ${getButtonVariant('primary')}`}
             >
               <Edit className="w-4 h-4" />
               Edit Game Log
@@ -785,11 +812,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
             <CardContent>
               <div className="flex flex-wrap gap-2">
                 {gameLog.tags.map(tag => (
-                  <Badge
-                    key={`tag-${tag}`}
-                    variant="secondary"
-                    className="bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300"
-                  >
+                  <Badge key={`tag-${tag}`} variant="secondary" className={getTagColor(tag)}>
                     {tag}
                   </Badge>
                 ))}

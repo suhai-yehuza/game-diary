@@ -563,3 +563,11 @@ export interface INBANewsItem {
 export interface INBANewsProps {
   limit?: number;
 }
+
+// Performance Monitor
+export interface IClientPerformanceMetrics {
+  queryCount: number;
+  averageQueryTime: number;
+  slowQueries: number;
+  totalLoadTime: number;
+}

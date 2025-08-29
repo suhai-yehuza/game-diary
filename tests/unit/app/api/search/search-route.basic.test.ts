@@ -2,8 +2,17 @@ import { NextRequest } from 'next/server';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GET } from '@/app/api/search/route';
+import { cache } from '@/lib/cache';
 import { createDatabaseClient } from '@/lib/db';
 import { errorHandlers } from '@/lib/utils/error-handler';
+
+// Mock the cache
+vi.mock('@/lib/cache', () => ({
+  cache: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
 
 // Mock the database and error handlers
 vi.mock('@/lib/db', () => ({
@@ -21,6 +30,9 @@ describe('Search API Route', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set up cache to return null (cache miss) by default
+    (cache.get as any).mockResolvedValue(null);
+    (cache.set as any).mockResolvedValue(undefined);
   });
 
   it('returns empty results for short queries', async () => {
@@ -94,13 +106,14 @@ describe('Search API Route', () => {
 
     expect(response.status).toBe(500);
     expect(errorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
-      component: 'API',
+      component: 'Search API',
       action: 'GET /api/search',
+      requestId: undefined,
     });
 
     expect(data).toMatchObject({
       success: false,
-      error: 'Failed to perform global search',
+      error: 'Internal server error',
     });
   });
 

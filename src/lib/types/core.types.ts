@@ -503,3 +503,19 @@ export interface IPaginationConstants {
   DEFAULT_SORT_DIRECTION: 'ASC' | 'DESC';
   MAX_CHILD_COMMENT_DEPTH: number;
 }
+
+// ========================================
+// CACHE TYPES
+// ========================================
+
+// Cache namespace for different types of data
+export enum CacheNamespace {
+  API_RESPONSES = 'api',
+  USER_SESSIONS = 'user',
+  GAME_DATA = 'games',
+  TEAM_DATA = 'teams',
+  PLAYER_DATA = 'players',
+  SEARCH_RESULTS = 'search',
+  ANALYTICS = 'analytics',
+  SYSTEM = 'system',
+}

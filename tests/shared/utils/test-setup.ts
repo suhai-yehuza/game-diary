@@ -49,7 +49,6 @@ export class TestDataManager {
           component: 'Test Setup',
           action: 'Cleanup task',
         });
-        console.warn('Cleanup task failed:', error);
       }
     }
     this.cleanupTasks = [];

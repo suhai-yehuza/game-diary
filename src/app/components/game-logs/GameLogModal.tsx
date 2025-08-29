@@ -29,6 +29,7 @@ import type {
   IGameLogSearchResult,
   IGameResponse,
 } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
 
 // Type predicate for linter and type safety
@@ -188,6 +189,10 @@ export function GameLogModal({
 
       setAllGames(sortedGames);
     } catch (err) {
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'GameLogModal',
+        action: 'Load all games',
+      });
       setSearchError(err instanceof Error ? err.message : 'An error occurred');
       setAllGames([]);
     } finally {
@@ -251,6 +256,10 @@ export function GameLogModal({
 
         setSearchResults(searchResults);
       } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'GameLogModal',
+          action: 'Filter games',
+        });
         setSearchError(err instanceof Error ? err.message : 'An error occurred');
         setSearchResults([]);
       } finally {
@@ -402,7 +411,11 @@ export function GameLogModal({
           },
         });
       }
-    } catch {
+    } catch (err) {
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'GameLogModal',
+        action: `${mode} game log`,
+      });
       toast.error(`Failed to ${mode} game log.`);
       onClose();
     }

@@ -3,6 +3,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { API_CONFIG } from '@/lib/config/app.config';
 import type { TabValue } from '@/lib/types';
 import { TABS } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Teams data hook
 export const useTeamsData = () => {
@@ -45,6 +46,10 @@ export const useTeamsData = () => {
         setTeams([]);
       }
     } catch (err) {
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'useTeamsData',
+        action: 'Fetch teams',
+      });
       setTeamsError(err instanceof Error ? err.message : 'Failed to fetch teams');
       // Fallback to empty array on error
       setTeams([]);
@@ -97,6 +102,10 @@ export const useSeasonsData = () => {
         setSeasons([{ value: currentYear.toString(), label: currentYear.toString() }]);
       }
     } catch (err) {
+      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+        component: 'useSeasonsData',
+        action: 'Fetch seasons',
+      });
       setSeasonsError(err instanceof Error ? err.message : 'Failed to fetch seasons');
       // Fallback to current year on error
       const currentYear = new Date().getFullYear();
@@ -173,6 +182,10 @@ export const useApiFetch = () => {
         const result: unknown = await response.json();
         setData(result);
       } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'useApiData',
+          action: 'Fetch API data',
+        });
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);

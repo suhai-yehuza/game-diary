@@ -1,6 +1,6 @@
 'use client';
 
-import { useUser } from '@clerk/nextjs';
+// import { useUser } from '@clerk/nextjs';
 import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -13,24 +13,20 @@ import { SportsPageLayout } from '@/app/components/sports';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
+import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { useGameLogs } from '@/hooks/use-game-logs';
 import { useLatestGames } from '@/hooks/use-latest-games';
+import { getButtonVariant } from '@/lib/design-tokens/button-variants';
 import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/lib/types';
 
 // Interface moved to src/lib/types/page.types.ts
 
 export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
-  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
-  let user = null;
+  const { handleClerkUser } = useCentralizedErrorHandler();
 
-  try {
-    const userData = useUser();
-    user = userData.user;
-  } catch {
-    // Clerk is not configured (e.g., during SSR or in test environment)
-    console.log('Clerk not configured, using fallback user data');
-    user = null;
-  }
+  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
+  const userData = handleClerkUser();
+  const user = userData.user as { id?: string } | null;
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -70,29 +66,35 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     }
   }, [gameLogsData]);
 
+  const { handleAsync } = useCentralizedErrorHandler({
+    context: { component: 'NBAGameDetailPage', action: 'Load game' },
+  });
+
   useEffect(() => {
     const loadGame = async () => {
-      try {
+      const result = await handleAsync(async () => {
         const { gameId } = await params;
         const foundGame = latestGames.find(g => g.id.toString() === gameId);
 
         if (!foundGame) {
-          setError('Game not found');
-          return;
+          throw new Error('Game not found');
         }
 
-        setGame(foundGame);
-      } catch (_err) {
+        return foundGame;
+      });
+
+      if (result) {
+        setGame(result);
+      } else {
         setError('Failed to load game');
-      } finally {
-        setLoading(false);
       }
+      setLoading(false);
     };
 
     if (latestGames.length > 0) {
       void loadGame();
     }
-  }, [params, latestGames]);
+  }, [params, latestGames, handleAsync]);
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -211,7 +213,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
             <Button
               onClick={handleGameLogAction}
               size="sm"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white"
+              className={`flex items-center gap-2 ${getButtonVariant('primary')}`}
             >
               {hasExistingGameLog ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
               {hasExistingGameLog ? 'Edit Game Log' : 'Create Game Log'}

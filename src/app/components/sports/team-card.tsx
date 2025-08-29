@@ -96,7 +96,7 @@ export function TeamCard({ team }: ITeamCardProps) {
           <div className="flex-shrink-0 flex flex-col items-end gap-3 sm:gap-4">
             {/* NBA Team Badge */}
             <div className="flex items-center gap-2">
-              <div className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm border border-purple-700">
+              <div className="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm border border-blue-700">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-white rounded-full" />
                   {team.nbaFranchise ? 'NBA Team' : 'Franchise'}
@@ -110,15 +110,15 @@ export function TeamCard({ team }: ITeamCardProps) {
                 onClick={() => (window.location.href = `/sports/nba/teams/${team.id}`)}
                 variant="default"
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
+                className="bg-slate-700 hover:bg-slate-800 text-white border-slate-700 hover:border-slate-800 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
               >
                 View Team
               </Button>
               <Button
                 onClick={() => (window.location.href = `/sports/nba/players?team=${team.id}`)}
-                variant="default"
+                variant="outline"
                 size="sm"
-                className="bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
+                className="bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200 font-medium px-3 sm:px-4 py-2 text-xs sm:text-sm team-card-button"
               >
                 View Players
               </Button>

@@ -2,6 +2,7 @@ import { NextRequest } from 'next/server';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GET } from '@/app/api/players/route';
+import { cache } from '@/lib/cache';
 import {
   getPlayers,
   getUniqueColleges,
@@ -9,6 +10,14 @@ import {
   getUniquePositions,
 } from '@/lib/db/services/players.service';
 import { errorHandlers } from '@/lib/utils/error-handler';
+
+// Mock the cache
+vi.mock('@/lib/cache', () => ({
+  cache: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
 
 // Mock the players service
 vi.mock('@/lib/db/services/players.service', () => ({
@@ -29,6 +38,9 @@ describe('GET /api/players', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Set up cache to return null (cache miss) by default
+    (cache.get as any).mockResolvedValue(null);
+    (cache.set as any).mockResolvedValue(undefined);
   });
 
   it('should return players with default parameters', async () => {
@@ -235,7 +247,7 @@ describe('GET /api/players', () => {
 
     expect(response.status).toBe(500);
     expect(errorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
-      component: 'API',
+      component: 'Players API',
       action: 'GET /api/players',
       requestId: undefined,
     });
@@ -261,7 +273,7 @@ describe('GET /api/players', () => {
     await GET(requestWithId);
 
     expect(errorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
-      component: 'API',
+      component: 'Players API',
       action: 'GET /api/players',
       requestId: 'test-request-id',
     });

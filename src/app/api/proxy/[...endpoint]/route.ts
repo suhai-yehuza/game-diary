@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+import { redisService } from '@/lib/cache/redis-service';
 import {
   getRapidApiConfig,
   isTestEnvironment,
   isE2ETestEnvironment,
 } from '@/lib/config/app.config';
+import { CacheNamespace } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
@@ -13,12 +15,8 @@ import { MOCK_NBA_PLAYERS } from '@src/lib/mock/nbaPlayersMock';
 import { MOCK_NBA_STANDINGS } from '@src/lib/mock/nbaStandingsMock';
 import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 
-// Simple in-memory cache for API responses
-const apiCache = new Map<string, { data: unknown; timestamp: number; ttl: number }>();
+// Simple in-memory cache for pending requests (deduplication)
 const pendingRequests = new Map<string, Promise<unknown>>();
-
-// Cache TTL in milliseconds (5 minutes)
-const CACHE_TTL = 5 * 60 * 1000;
 
 export async function GET(
   request: NextRequest,
@@ -53,11 +51,11 @@ export async function GET(
       apiKey: !!rapidApiConfig.apiKey,
     });
 
-    // Check cache first
-    const cachedEntry = apiCache.get(cacheKey);
-    if (cachedEntry && Date.now() - cachedEntry.timestamp < cachedEntry.ttl) {
+    // Check cache first using Redis service
+    const cachedData = await redisService.get(cacheKey, CacheNamespace.API_RESPONSES);
+    if (cachedData !== null) {
       console.log(`[API Proxy] Returning cached response for: ${cacheKey}`);
-      return NextResponse.json(cachedEntry.data);
+      return NextResponse.json(cachedData);
     }
 
     // Check for pending request (deduplication)
@@ -107,6 +105,9 @@ export async function GET(
           };
       }
 
+      // Cache mock responses with lower priority
+      await redisService.set(cacheKey, mockResponse, CacheNamespace.API_RESPONSES, 'low');
+
       return NextResponse.json(mockResponse);
     }
 
@@ -131,12 +132,8 @@ export async function GET(
       const data: unknown = await response.json();
       console.log(`[API Proxy] Success response: ${JSON.stringify(data).substring(0, 200)}...`);
 
-      // Cache the successful response
-      apiCache.set(cacheKey, {
-        data,
-        timestamp: Date.now(),
-        ttl: CACHE_TTL,
-      });
+      // Cache the successful response with medium priority
+      await redisService.set(cacheKey, data, CacheNamespace.API_RESPONSES, 'medium');
 
       return data;
     })();
