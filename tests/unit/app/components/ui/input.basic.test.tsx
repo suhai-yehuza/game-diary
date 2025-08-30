@@ -36,7 +36,7 @@ describe('Input Component', () => {
   });
 
   it('renders with disabled state', () => {
-    render(<Input {...({ disabled: true } as any)} data-testid="input" />);
+    render(<Input disabled data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toBeDisabled();
   });
@@ -48,7 +48,7 @@ describe('Input Component', () => {
   });
 
   it('renders with name attribute', () => {
-    render(<Input {...({ name: 'test-name' } as any)} data-testid="input" />);
+    render(<Input name="test-name" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('name', 'test-name');
   });
@@ -71,7 +71,8 @@ describe('Input Component', () => {
         type="password"
         placeholder="Enter password"
         className="password-input"
-        {...({ disabled: true, required: true } as any)}
+        disabled
+        required
         data-testid="input"
       />
     );
@@ -149,88 +150,88 @@ describe('Input Component', () => {
     expect(input).toBeInTheDocument();
   });
 
-  it('handles null className', () => {
-    render(<Input className={null as any} data-testid="input" />);
+  it('handles undefined className', () => {
+    render(<Input className={undefined} data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toBeInTheDocument();
   });
 
   it('renders with readOnly attribute', () => {
-    render(<Input {...({ readOnly: true, autoComplete: 'off' } as any)} data-testid="input" />);
+    render(<Input readOnly autoComplete="off" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('readonly');
     expect(input).toHaveAttribute('autocomplete', 'off');
   });
 
   it('renders with form attribute', () => {
-    render(<Input {...({ form: 'test-form' } as any)} data-testid="input" />);
+    render(<Input form="test-form" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('form', 'test-form');
   });
 
   it('renders with pattern attribute', () => {
-    render(<Input {...({ pattern: '[0-9]+' } as any)} data-testid="input" />);
+    render(<Input pattern="[0-9]+" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('pattern', '[0-9]+');
   });
 
   it('renders with min and max attributes', () => {
-    render(<Input {...({ min: '0', max: '100' } as any)} data-testid="input" />);
+    render(<Input min="0" max="100" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('min', '0');
     expect(input).toHaveAttribute('max', '100');
   });
 
   it('renders with step attribute', () => {
-    render(<Input {...({ step: '0.1' } as any)} data-testid="input" />);
+    render(<Input step="0.1" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('step', '0.1');
   });
 
   it('renders with size attribute', () => {
-    render(<Input {...({ size: 20 } as any)} data-testid="input" />);
+    render(<Input size={20} data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('size', '20');
   });
 
   it('renders with maxLength attribute', () => {
-    render(<Input {...({ maxLength: 50 } as any)} data-testid="input" />);
+    render(<Input maxLength={50} data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('maxlength', '50');
   });
 
   it('renders with minLength attribute', () => {
-    render(<Input {...({ minLength: 3 } as any)} data-testid="input" />);
+    render(<Input minLength={3} data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('minlength', '3');
   });
 
   it('renders with autoCapitalize attribute', () => {
-    render(<Input {...({ autoCapitalize: 'words' } as any)} data-testid="input" />);
+    render(<Input autoCapitalize="words" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('autocapitalize', 'words');
   });
 
   it('renders with autoCorrect attribute', () => {
-    render(<Input {...({ autoCorrect: 'off' } as any)} data-testid="input" />);
+    render(<Input autoCorrect="off" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('autocorrect', 'off');
   });
 
   it('renders with enterKeyHint attribute', () => {
-    render(<Input {...({ enterKeyHint: 'search' } as any)} data-testid="input" />);
+    render(<Input enterKeyHint="search" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('enterkeyhint', 'search');
   });
 
   it('renders with inputMode attribute', () => {
-    render(<Input {...({ inputMode: 'numeric' } as any)} data-testid="input" />);
+    render(<Input inputMode="numeric" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('inputmode', 'numeric');
   });
 
   it('renders with list attribute', () => {
-    render(<Input {...({ list: 'test-list' } as any)} data-testid="input" />);
+    render(<Input list="test-list" data-testid="input" />);
     const input = screen.getByTestId('input');
     expect(input).toHaveAttribute('list', 'test-list');
   });
@@ -238,15 +239,13 @@ describe('Input Component', () => {
   it('renders with all form attributes', () => {
     render(
       <Input
-        {...({
-          type: 'email',
-          placeholder: 'Enter email',
-          required: true,
-          disabled: true,
-          className: 'email-input',
-          id: 'email-field',
-          name: 'email',
-        } as any)}
+        type="email"
+        placeholder="Enter email"
+        required
+        disabled
+        className="email-input"
+        id="email-field"
+        name="email"
         data-testid="input"
       />
     );

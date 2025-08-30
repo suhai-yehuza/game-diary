@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -56,7 +53,7 @@ describe('Database Services Integration Tests', () => {
         expect([200, 302, 401, 403, 404, 500, 503]).toContain(response.status);
 
         if (response.status >= 500) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
         }
       }
@@ -99,7 +96,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 201, 400, 500]).toContain(response.status);
 
       if (response.status === 400) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('error');
       }
     });
@@ -151,7 +148,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('migrations');
         expect(Array.isArray(data.migrations)).toBe(true);
       }
@@ -172,7 +169,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 400, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
       }
     });
@@ -183,7 +180,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('valid');
         expect(typeof data.valid).toBe('boolean');
       }
@@ -278,7 +275,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 400, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
 
         // Should have reasonable response size
         const responseSize = JSON.stringify(data).length;
@@ -297,7 +294,7 @@ describe('Database Services Integration Tests', () => {
         expect([200, 302, 401, 403, 404, 500]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toBeDefined();
         }
       }
@@ -316,7 +313,7 @@ describe('Database Services Integration Tests', () => {
         expect([200, 400, 401, 404, 405, 500]).toContain(response.status);
 
         if (response.status >= 400) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
         }
       }
@@ -334,8 +331,8 @@ describe('Database Services Integration Tests', () => {
       expect([200, 400, 500]).toContain(response2.status);
 
       if (response1.status === 200 && response2.status === 200) {
-        const data1 = (await response1.json()) as any;
-        const data2 = (await response2.json()) as any;
+        const data1 = await response1.json();
+        const data2 = await response2.json();
 
         // Cached responses should be identical (excluding timestamp)
         const { timestamp: timestamp1, ...dataWithoutTimestamp1 } = data1;
@@ -362,7 +359,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('status');
         expect(data).toHaveProperty('connections');
         expect(data).toHaveProperty('performance');
@@ -380,7 +377,7 @@ describe('Database Services Integration Tests', () => {
         expect([200, 302, 401, 403, 404, 500]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
 
           // Should have consistent data structure
           expect(data).toBeDefined();
@@ -409,7 +406,7 @@ describe('Database Services Integration Tests', () => {
       expect([400, 500]).toContain(response.status);
 
       if (response.status === 400) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         // Check for either errors or validationErrors property
         expect(data).toHaveProperty('error');
         // The response may not have validationErrors, so just check for error
@@ -440,7 +437,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 201, 400, 500]).toContain(response.status);
 
       if (response.status === 200 || response.status === 201) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
 
         // Should sanitize malicious input
         if (data.email) {
@@ -470,7 +467,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 400, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('backup_id');
       }
@@ -509,7 +506,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 400, 401, 403, 404, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('verified');
         expect(typeof data.verified).toBe('boolean');
       }
@@ -526,7 +523,7 @@ describe('Database Services Integration Tests', () => {
         expect([200, 302, 401, 403, 404, 500]).toContain(response.status);
 
         if (response.status === 403) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
           expect(data.error).toContain('access');
         }
@@ -549,7 +546,7 @@ describe('Database Services Integration Tests', () => {
 
         // Should not execute malicious SQL
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toBeDefined();
         }
       }
@@ -574,7 +571,7 @@ describe('Database Services Integration Tests', () => {
       expect([200, 201, 400, 500]).toContain(response.status);
 
       if (response.status === 200 || response.status === 201) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
 
         // Should sanitize malicious parameters
         if (data.email) {

@@ -1,10 +1,7 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -12,7 +9,7 @@ describe('API Endpoints Integration Tests', () => {
   describe('Health Check Endpoint', () => {
     test('should return healthy status', async () => {
       const response = await fetch(`${BASE_URL}/api/health`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('status');
@@ -24,7 +21,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should include response time', async () => {
       const response = await fetch(`${BASE_URL}/api/health`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(data).toHaveProperty('response_time');
       expect(typeof data.response_time).toBe('number');
@@ -33,7 +30,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should include version and environment info', async () => {
       const response = await fetch(`${BASE_URL}/api/health`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(data).toHaveProperty('version');
       expect(data).toHaveProperty('environment');
@@ -43,7 +40,7 @@ describe('API Endpoints Integration Tests', () => {
   describe('Search Endpoint', () => {
     test('should handle search requests', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=test`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       // Check for either 'results' or 'data' property based on actual API response
@@ -64,7 +61,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle empty search query', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -72,7 +69,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle search with filters', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=game&type=game-logs`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -80,7 +77,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle search with pagination', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=test&page=1&limit=10`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -105,7 +102,7 @@ describe('API Endpoints Integration Tests', () => {
         body: JSON.stringify(userData),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       // Accept both 200 and 201 status codes for user creation
       expect([200, 201]).toContain(response.status);
@@ -134,7 +131,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle user retrieval', async () => {
       const response = await fetch(`${BASE_URL}/api/user`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       // User retrieval might require authentication, so accept 401 as valid
       expect([200, 401]).toContain(response.status);
@@ -146,7 +143,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle user retrieval with encryption', async () => {
       const response = await fetch(`${BASE_URL}/api/user`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       // Accept 401 for unauthenticated requests
       expect([200, 401]).toContain(response.status);
@@ -164,7 +161,7 @@ describe('API Endpoints Integration Tests', () => {
   describe('Mock Server Endpoints', () => {
     test('should handle health check action', async () => {
       const response = await fetch(`${BASE_URL}/api/mock-server?action=health`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('status');
@@ -172,7 +169,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle stats action', async () => {
       const response = await fetch(`${BASE_URL}/api/mock-server?action=stats`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('requests');
@@ -182,7 +179,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle mock data requests', async () => {
       const response = await fetch(`${BASE_URL}/api/mock-server?action=mock-data&type=live-games`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -195,7 +192,7 @@ describe('API Endpoints Integration Tests', () => {
       const response = await fetch(
         `${BASE_URL}/api/mock-server?action=external-api&endpoint=games/live`
       );
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       // Check for either 'get' property or 'success' property
@@ -209,7 +206,7 @@ describe('API Endpoints Integration Tests', () => {
       const response = await fetch(
         `${BASE_URL}/api/mock-server?action=database&operation=select&table=users`
       );
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -217,7 +214,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle missing action parameter', async () => {
       const response = await fetch(`${BASE_URL}/api/mock-server`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('error');
@@ -225,7 +222,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle invalid action', async () => {
       const response = await fetch(`${BASE_URL}/api/mock-server?action=invalid`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('error');
@@ -244,7 +241,7 @@ describe('API Endpoints Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -254,7 +251,7 @@ describe('API Endpoints Integration Tests', () => {
   describe('Proxy Endpoints', () => {
     test('should handle proxy requests to external APIs', async () => {
       const response = await fetch(`${BASE_URL}/api/proxy/games/live`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('get');
@@ -264,7 +261,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle proxy requests with query parameters', async () => {
       const response = await fetch(`${BASE_URL}/api/proxy/games/live?league=nba`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('get');
@@ -272,7 +269,7 @@ describe('API Endpoints Integration Tests', () => {
 
     test('should handle proxy requests with complex paths', async () => {
       const response = await fetch(`${BASE_URL}/api/proxy/teams/statistics/season/2023`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('get');
@@ -286,8 +283,8 @@ describe('API Endpoints Integration Tests', () => {
       expect(response1.status).toBe(200);
       expect(response2.status).toBe(200);
 
-      const data1 = (await response1.json()) as any;
-      const data2 = (await response2.json()) as any;
+      const data1 = await response1.json();
+      const data2 = await response2.json();
 
       // Both responses should be identical due to caching (excluding timestamp)
       const { timestamp: timestamp1, ...dataWithoutTimestamp1 } = data1;
@@ -411,7 +408,7 @@ describe('API Endpoints Integration Tests', () => {
       expect([200, 401]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('logs');
         expect(Array.isArray(data.logs)).toBe(true);
       }
@@ -423,7 +420,7 @@ describe('API Endpoints Integration Tests', () => {
       expect([200, 401]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('logs');
       }
     });

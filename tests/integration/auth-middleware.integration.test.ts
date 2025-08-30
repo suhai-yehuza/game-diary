@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -178,7 +175,7 @@ describe('Authentication Middleware Integration Tests', () => {
 
         if (response.status === 403) {
           // Should indicate insufficient permissions
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
           expect(data.error).toContain('Admin access required');
         }
@@ -196,7 +193,7 @@ describe('Authentication Middleware Integration Tests', () => {
 
         if (response.status === 401) {
           // Should indicate authentication required
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
           expect(data.error).toContain('Authentication required');
         }
@@ -217,7 +214,7 @@ describe('Authentication Middleware Integration Tests', () => {
         expect([200, 302, 401, 403, 404]).toContain(response.status);
 
         if (response.status === 403) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('error');
           if (requiredRole === 'admin') {
             expect(data.error).toContain('Admin access required');
@@ -305,7 +302,7 @@ describe('Authentication Middleware Integration Tests', () => {
       expect([200, 302, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('id');
         expect(data).toHaveProperty('email_address');
       }
@@ -317,7 +314,7 @@ describe('Authentication Middleware Integration Tests', () => {
       expect([200, 302, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 401) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('error');
       }
     });

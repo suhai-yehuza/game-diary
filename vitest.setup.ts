@@ -212,8 +212,12 @@ Object.defineProperty(window, '__API_MOCK_MODE__', {
   value: true,
 });
 
-// Mock fetch
-(globalThis as any).fetch = vi.fn();
+// Set up fetch polyfill for Node.js environment
+import fetch from 'node-fetch';
+if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
+
+// Note: We don't mock fetch globally here to allow integration tests to use the real fetch
+// Individual tests can mock fetch as needed using vi.mocked(fetch)
 
 // Mock console methods in tests
 const originalError = console.error;

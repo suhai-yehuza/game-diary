@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -29,7 +26,7 @@ describe('Enhanced Search Integration Tests', () => {
   describe('Search API with Different Result Types', () => {
     test('should search for games', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=lakers&type=game`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -38,7 +35,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should search for players', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=lebron&type=player`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -47,7 +44,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should search for teams', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=lakers&type=team`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -56,7 +53,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should search for users', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=user&type=user`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -65,7 +62,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should search for game logs', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=game&type=game-logs`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -78,7 +75,7 @@ describe('Enhanced Search Integration Tests', () => {
       const response = await fetch(
         `${BASE_URL}/api/search?q=lakers&startDate=2024-01-01&endDate=2024-12-31`
       );
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -87,7 +84,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should handle search with user filter', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=game&user=testuser`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -98,7 +95,7 @@ describe('Enhanced Search Integration Tests', () => {
       const response = await fetch(
         `${BASE_URL}/api/search?q=lakers&type=game&type=player&type=team`
       );
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -107,7 +104,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should handle search with pagination', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=test&page=1&limit=10`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -122,7 +119,7 @@ describe('Enhanced Search Integration Tests', () => {
   describe('Search Edge Cases', () => {
     test('should handle empty search query', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -130,7 +127,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should handle search with special characters', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=O'Connor%20Jr.`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -140,7 +137,7 @@ describe('Enhanced Search Integration Tests', () => {
     test('should handle search with very long query', async () => {
       const longQuery = 'a'.repeat(1000);
       const response = await fetch(`${BASE_URL}/api/search?q=${encodeURIComponent(longQuery)}`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -148,7 +145,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should handle search with invalid type', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=test&type=invalid`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -160,7 +157,7 @@ describe('Enhanced Search Integration Tests', () => {
     test('should return search results within reasonable time', async () => {
       const startTime = Date.now();
       const response = await fetch(`${BASE_URL}/api/search?q=lakers`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
       const endTime = Date.now();
 
       expect(response.status).toBe(200);
@@ -179,7 +176,7 @@ describe('Enhanced Search Integration Tests', () => {
 
       for (const response of responses) {
         expect(response.status).toBe(200);
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
       }
     });
@@ -188,7 +185,7 @@ describe('Enhanced Search Integration Tests', () => {
   describe('Search Result Structure', () => {
     test('should return properly structured search results', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=lakers`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -205,7 +202,7 @@ describe('Enhanced Search Integration Tests', () => {
 
     test('should include search analytics when available', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=lakers`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -216,7 +213,7 @@ describe('Enhanced Search Integration Tests', () => {
   describe('Search Suggestions', () => {
     test('should handle search suggestions', async () => {
       const response = await fetch(`${BASE_URL}/api/search?q=leb&suggestions=true`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');

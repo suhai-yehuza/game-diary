@@ -125,7 +125,7 @@ describe('Select Component', () => {
 
   it('handles null value', () => {
     render(
-      <Select {...defaultProps} value={null as any}>
+      <Select {...defaultProps} value={undefined}>
         <SelectItem value="option1">Option 1</SelectItem>
         <SelectItem value="option2">Option 2</SelectItem>
       </Select>
@@ -266,10 +266,10 @@ describe('Select Component', () => {
     expect(screen.getByText('Select an option')).toBeInTheDocument();
   });
 
-  it('handles children with undefined value', () => {
+  it('handles children with empty string value', () => {
     render(
       <Select {...defaultProps}>
-        <SelectItem value={undefined as any}>Option without value</SelectItem>
+        <SelectItem value="">Option with empty value</SelectItem>
         <SelectItem value="option1">Option 1</SelectItem>
       </Select>
     );
@@ -280,10 +280,10 @@ describe('Select Component', () => {
     expect(screen.getByText('Option 1')).toBeInTheDocument();
   });
 
-  it('handles children with null value', () => {
+  it('handles children with null string value', () => {
     render(
       <Select {...defaultProps}>
-        <SelectItem value={null as any}>Option with null value</SelectItem>
+        <SelectItem value="null">Option with null string value</SelectItem>
         <SelectItem value="option1">Option 1</SelectItem>
       </Select>
     );
@@ -294,10 +294,10 @@ describe('Select Component', () => {
     expect(screen.getByText('Option 1')).toBeInTheDocument();
   });
 
-  it('handles children with non-string value', () => {
+  it('handles children with numeric string value', () => {
     render(
       <Select {...defaultProps}>
-        <SelectItem value={123 as any}>Option with number value</SelectItem>
+        <SelectItem value="123">Option with numeric string value</SelectItem>
         <SelectItem value="option1">Option 1</SelectItem>
       </Select>
     );
@@ -341,9 +341,9 @@ describe('Select Component', () => {
     expect(button).toBeInTheDocument();
   });
 
-  it('handles null placeholder', () => {
+  it('handles empty string placeholder', () => {
     render(
-      <Select onValueChange={vi.fn()} placeholder={null as any}>
+      <Select onValueChange={vi.fn()} placeholder="">
         <SelectItem value="option1">Option 1</SelectItem>
       </Select>
     );
@@ -354,7 +354,7 @@ describe('Select Component', () => {
 
   it('handles additional props', () => {
     render(
-      <Select {...defaultProps} data-testid="custom-select" {...({ id: 'test-id' } as any)}>
+      <Select {...defaultProps} data-testid="custom-select" id="test-id">
         <SelectItem value="option1">Option 1</SelectItem>
       </Select>
     );

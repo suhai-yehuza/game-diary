@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const GRAPHQL_ENDPOINT = `${getAppUrl()}/api/graphql`;
 

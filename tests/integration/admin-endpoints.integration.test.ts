@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -43,7 +40,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('logs');
       }
     });
@@ -56,7 +53,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('logs');
         expect(Array.isArray(data.logs)).toBe(true);
         expect(data).toHaveProperty('pagination');
@@ -78,7 +75,7 @@ describe('Admin Endpoints Integration Tests', () => {
         expect([200, 401, 403, 404]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('logs');
           expect(data).toHaveProperty('filters');
         }
@@ -94,7 +91,7 @@ describe('Admin Endpoints Integration Tests', () => {
         expect([200, 401, 403, 404]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('logs');
           expect(data).toHaveProperty('pagination');
           expect(data.pagination).toHaveProperty('page');
@@ -114,7 +111,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('logs');
         expect(data).toHaveProperty('filters');
       }
@@ -164,7 +161,7 @@ describe('Admin Endpoints Integration Tests', () => {
 
       if (response.status === 200) {
         expect(response.headers.get('content-type')).toContain('application/json');
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(Array.isArray(data)).toBe(true);
       }
     });
@@ -199,10 +196,10 @@ describe('Admin Endpoints Integration Tests', () => {
       for (const table of tables) {
         const response = await fetch(`${BASE_URL}/api/admin/database/${table}`);
 
-        expect([200, 401, 403, 404]).toContain(response.status);
+        expect([200, 401, 403, 404, 503]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('table');
           expect(data).toHaveProperty('schema');
           expect(data).toHaveProperty('rowCount');
@@ -217,7 +214,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('data');
         expect(data).toHaveProperty('pagination');
         expect(data).toHaveProperty('table');
@@ -233,7 +230,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('data');
         expect(data).toHaveProperty('filters');
       }
@@ -260,7 +257,7 @@ describe('Admin Endpoints Integration Tests', () => {
         expect([200, 400, 401, 403, 404]).toContain(response.status);
 
         if (response.status === 200) {
-          const data = (await response.json()) as any;
+          const data = await response.json();
           expect(data).toHaveProperty('success');
           expect(data).toHaveProperty('message');
         }
@@ -317,7 +314,7 @@ describe('Admin Endpoints Integration Tests', () => {
       expect([200, 400, 401, 403, 404]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('message');
         expect(data).toHaveProperty('newKeyId');

@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -11,7 +8,7 @@ describe('Cache System Integration Tests', () => {
   describe('Redis Service Integration', () => {
     test('should handle Redis connection test', async () => {
       const response = await fetch(`${BASE_URL}/api/cache?action=test`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -22,7 +19,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should get cache statistics', async () => {
       const response = await fetch(`${BASE_URL}/api/cache?action=stats`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -34,7 +31,7 @@ describe('Cache System Integration Tests', () => {
     test('should handle cache get operation', async () => {
       const testKey = 'test-cache-key';
       const response = await fetch(`${BASE_URL}/api/cache?action=get&key=${testKey}`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -62,13 +59,13 @@ describe('Cache System Integration Tests', () => {
       });
 
       expect(setResponse.status).toBe(200);
-      const setData = (await setResponse.json()) as any;
+      const setData = await setResponse.json();
       expect(setData).toHaveProperty('success');
       expect(setData.success).toBe(true);
 
       // Get cache value
       const getResponse = await fetch(`${BASE_URL}/api/cache?action=get&key=${testKey}`);
-      const getData = (await getResponse.json()) as any;
+      const getData = await getResponse.json();
 
       expect(getResponse.status).toBe(200);
       expect(getData).toHaveProperty('success');
@@ -107,19 +104,19 @@ describe('Cache System Integration Tests', () => {
       });
 
       expect(deleteResponse.status).toBe(200);
-      const deleteData = (await deleteResponse.json()) as any;
+      const deleteData = await deleteResponse.json();
       expect(deleteData).toHaveProperty('success');
       expect(deleteData.success).toBe(true);
 
       // Verify deletion
       const getResponse = await fetch(`${BASE_URL}/api/cache?action=get&key=${testKey}`);
-      const getData = (await getResponse.json()) as any;
+      const getData = await getResponse.json();
       expect(getData.data).toBeNull();
     });
 
     test('should handle cache namespace operations', async () => {
       const response = await fetch(`${BASE_URL}/api/cache?action=namespaces`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -140,7 +137,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -158,7 +155,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -168,7 +165,7 @@ describe('Cache System Integration Tests', () => {
   describe('Hybrid Cache Strategy Integration', () => {
     test('should get hybrid cache statistics', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/hybrid?action=stats`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -180,7 +177,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should get hybrid cache tables configuration', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/hybrid?action=tables`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -195,7 +192,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should test hybrid cache functionality', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/hybrid?action=test`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -209,7 +206,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should get hybrid cache strategy details', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/hybrid?action=strategy`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -236,7 +233,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -256,7 +253,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -275,7 +272,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -297,7 +294,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(false);
@@ -316,7 +313,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(false);
@@ -327,7 +324,7 @@ describe('Cache System Integration Tests', () => {
   describe('Database Cache Integration', () => {
     test('should get database cache statistics', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/db?action=stats`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -339,7 +336,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should test database cache functionality', async () => {
       const response = await fetch(`${BASE_URL}/api/cache/db?action=test`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
@@ -361,7 +358,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -380,7 +377,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -398,7 +395,7 @@ describe('Cache System Integration Tests', () => {
         }),
       });
 
-      const data = (await response.json()) as any;
+      const data = await response.json();
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('success');
       expect(data.success).toBe(true);
@@ -462,7 +459,7 @@ describe('Cache System Integration Tests', () => {
   describe('Cache Error Handling', () => {
     test('should handle invalid cache actions gracefully', async () => {
       const response = await fetch(`${BASE_URL}/api/cache?action=invalid`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('success');
@@ -472,7 +469,7 @@ describe('Cache System Integration Tests', () => {
 
     test('should handle missing cache parameters', async () => {
       const response = await fetch(`${BASE_URL}/api/cache?action=get`);
-      const data = (await response.json()) as any;
+      const data = await response.json();
 
       expect(response.status).toBe(400);
       expect(data).toHaveProperty('success');

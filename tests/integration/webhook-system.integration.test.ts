@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect, describe } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 const BASE_URL = getAppUrl();
 
@@ -36,7 +33,7 @@ describe('Webhook System Integration Tests', () => {
       expect([200, 400, 401, 404, 405, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('message');
       }
@@ -69,7 +66,7 @@ describe('Webhook System Integration Tests', () => {
       expect([200, 400, 401, 404, 405, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('message');
       }
@@ -98,7 +95,7 @@ describe('Webhook System Integration Tests', () => {
       expect([200, 400, 401, 404, 405, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('success');
         expect(data).toHaveProperty('message');
       }
@@ -311,7 +308,7 @@ describe('Webhook System Integration Tests', () => {
       expect([200, 400, 401, 404, 405, 500]).toContain(response.status);
 
       if (response.status === 200) {
-        const data = (await response.json()) as any;
+        const data = await response.json();
         expect(data).toHaveProperty('message');
         expect(data.message).toContain('Unhandled event type');
       }
