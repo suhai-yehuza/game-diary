@@ -97,6 +97,7 @@ export const USER_SUMMARY_FRAGMENT = gql`
     last_name
     email_address
     image_url
+    isAdmin
   }
 `;
 
@@ -362,6 +363,7 @@ export const SEARCH_USERS_ADMIN = gql`
           email_address
           phone_number
           image_url
+          isAdmin
           created_at
         }
         cursor
@@ -406,6 +408,7 @@ export const SEARCH_GAME_LOGS_ADMIN = gql`
             username
             first_name
             last_name
+            isAdmin
           }
         }
         cursor

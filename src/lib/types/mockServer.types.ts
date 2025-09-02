@@ -43,6 +43,7 @@ export interface MockUser {
   email: string;
   username: string;
   avatar_url?: string;
+  isAdmin?: boolean;
   created_at: string;
   updated_at: string;
 }

@@ -2,6 +2,10 @@
 /**
  * @fileoverview Unified database management system for migrations, setup, and maintenance.
  * Consolidates all database operations into a single, well-organized module.
+ *
+ * Admin User Preservation:
+ * - Users with isAdmin = true are automatically preserved during table truncation
+ * - Set isAdmin = true for any user accounts you want to keep during cleanup operations
  */
 
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
@@ -1118,6 +1122,10 @@ async function setupDatabase(
 
 /**
  * Truncate tables based on scope
+ *
+ * Note: When truncating internal tables, users with isAdmin = true are automatically preserved
+ * in the users table instead of being truncated. This allows maintaining admin/important user
+ * accounts during cleanup operations.
  */
 async function truncateTables(scope: 'internal' | 'external' | 'all'): Promise<void> {
   logger.info(`Connecting to database: ${process.env.DATABASE_URL}`);
@@ -1173,7 +1181,35 @@ async function truncateAllInternalTables() {
     logger.info('Truncating users table...');
     const beforeUsers = await sqlClient`SELECT COUNT(*) as count FROM "users"`;
     logger.info(`Table users before: ${beforeUsers[0]?.count ?? 'unknown'} rows`);
-    await sqlDirect`TRUNCATE TABLE "users" CASCADE`;
+
+    // Check for admin users to preserve
+    logger.info('Checking for admin users to preserve...');
+
+    try {
+      // Query for admin users
+      const adminUsers = await sqlClient`SELECT id, username FROM "users" WHERE "isAdmin" = true`;
+      const adminUserCount = adminUsers.length;
+
+      if (adminUserCount > 0) {
+        logger.info(
+          `Found ${adminUserCount} admin users to preserve: ${adminUsers.map(u => `${u.username} (${u.id})`).join(', ')}`
+        );
+
+        // Delete all non-admin users
+        const deleteQuery = `DELETE FROM "users" WHERE "isAdmin" = false`;
+        await sqlClient.unsafe(deleteQuery);
+        logger.info(`Deleted non-admin users while preserving ${adminUserCount} admin accounts`);
+      } else {
+        logger.info('No admin users found, truncating all users');
+        await sqlDirect`TRUNCATE TABLE "users" CASCADE`;
+      }
+    } catch (preserveError) {
+      logger.warn(
+        `Failed to preserve admin users, falling back to full truncate: ${preserveError instanceof Error ? preserveError.message : String(preserveError)}`
+      );
+      await sqlDirect`TRUNCATE TABLE "users" CASCADE`;
+    }
+
     const afterUsers = await sqlClient`SELECT COUNT(*) as count FROM "users"`;
     logger.info(`Table users after: ${afterUsers[0]?.count ?? 'unknown'} rows`);
     logger.info('✅ Truncated users');
@@ -1461,6 +1497,7 @@ async function main(): Promise<void> {
           throw new Error('Invalid scope. Must be: internal|external|all');
         }
 
+        // Note: Users with isAdmin = true will be preserved during internal table truncation
         await truncateTables(scope);
         break;
 
@@ -1501,7 +1538,7 @@ Commands:
   validate-triggers            Validate triggers and functions in database
   setup [complete|triggers-only] Setup database (default: complete)
   copy-migrations              Copy custom migrations to drizzle directory
-  truncate --scope=<scope>     Truncate tables (scope: internal|external|all)
+  truncate --scope=<scope>     Truncate tables (scope: internal|external|all) [preserves users with isAdmin = true]
   drop --scope=<scope>         Drop tables (scope: internal|external|all)
   reset --mode=canonical|drizzle --env=dev|staging|prod Reset database to canonical schema or setup drizzle
 

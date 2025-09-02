@@ -12,6 +12,7 @@ export const MOCK_USERS = {
     email_address: 'test1@example.com',
     phone_number: null,
     image_url: 'https://example.com/avatar1.jpg',
+    isAdmin: true,
   },
   user2: {
     id: 'user-2',
@@ -21,6 +22,7 @@ export const MOCK_USERS = {
     email_address: 'test2@example.com',
     phone_number: null,
     image_url: 'https://example.com/avatar2.jpg',
+    isAdmin: false,
   },
   user3: {
     id: 'user-3',
@@ -30,6 +32,7 @@ export const MOCK_USERS = {
     email_address: 'test3@example.com',
     phone_number: null,
     image_url: undefined,
+    isAdmin: false,
   },
 };
 

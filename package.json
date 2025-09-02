@@ -258,6 +258,7 @@
     "validate:dryness": "tsx scripts/utils/validate-dryness.ts",
     "validate:dryness:fix": "pnpm validate:dryness && echo 'Run the recommendations above to fix DRY violations'",
     "validate:e2e-coverage": "./scripts/validation/validate-e2e-coverage.sh",
+    "validate:emoji-sync": "tsx scripts/validate-reaction-emoji-sync.ts",
     "validate:env": "./scripts/validation-pipeline.sh env",
     "validate:git": "tsx scripts/git/validate-branch-name.ts --current && echo '✅ Git validation passed'",
     "validate:git:comprehensive": "tsx scripts/git/validate-git-comprehensive.ts --unpushed-only",

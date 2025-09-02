@@ -521,15 +521,15 @@ export const DEFAULT_DISTRIBUTION_CONFIG: IStatisticalSeedingConfig = {
   },
 
   // Reaction-specific distributions
-  commentReactionProbability: 0.3, // 30% of comments get reactions by default
-  gameLogReactionProbability: 0.5, // 50% of game logs get reactions by default
+  commentReactionProbability: 0.5, // Increased from 30% to 50% of comments get reactions by default
+  gameLogReactionProbability: 0.7, // Increased from 50% to 70% of game logs get reactions by default
 
   // User engagement distributions
-  userGameLogProbability: 0.4, // 40% of users generate game logs by default (following 80/20 rule)
-  userFriendshipProbability: 0.6, // 60% of users form friendships by default
+  userGameLogProbability: 0.6, // Increased from 40% to 60% of users generate game logs by default (following 80/20 rule)
+  userFriendshipProbability: 0.7, // Increased from 60% to 70% of users form friendships by default
 
   // Game engagement distributions
-  gameLogGameProbability: 0.3, // 30% of games get logged by default (following 80/20 rule)
+  gameLogGameProbability: 0.4, // Increased from 30% to 40% of games get logged by default (following 80/20 rule)
 
   // Advanced settings
   enableRealisticPatterns: true,
@@ -560,13 +560,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userContentQuality: { type: 'uniform', parameters: { min: 0.1, max: 1.0 } },
     userActivityAge: { type: 'uniform', parameters: { min: 0, max: 365 } },
     gameRating: { type: 'uniform', parameters: { min: 1, max: 5 } },
-    commentCount: { type: 'uniform', parameters: { min: 0, max: 20 } },
-    reactionCount: { type: 'uniform', parameters: { min: 0, max: 50 } },
+    commentCount: { type: 'uniform', parameters: { min: 0, max: 30 } }, // Min 0 for Pareto distribution
+    reactionCount: { type: 'uniform', parameters: { min: 0, max: 80 } }, // Min 0 for Pareto distribution
     contentViralProbability: { type: 'uniform', parameters: { min: 0, max: 1 } },
     activityAge: { type: 'uniform', parameters: { min: 0, max: 365 } },
     responseTime: { type: 'uniform', parameters: { min: 0, max: 24 } },
     sessionDuration: { type: 'uniform', parameters: { min: 5, max: 120 } },
-    gameLogsPerUser: { type: 'uniform', parameters: { min: 3, max: 15 } },
+    gameLogsPerUser: { type: 'uniform', parameters: { min: 0, max: 25 } }, // Min 0 for Pareto distribution
     gameLogClassification: { type: 'uniform', parameters: { min: 0, max: 1 } },
     gameLogTags: { type: 'uniform', parameters: { min: 1, max: 5 } },
     friendshipStatus: { type: 'uniform', parameters: { min: 0, max: 1 } },
@@ -577,11 +577,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableTimeDecay: false,
 
     // Pareto distribution probabilities
-    commentReactionProbability: 0.3,
-    gameLogReactionProbability: 0.5,
-    userGameLogProbability: 0.4,
-    userFriendshipProbability: 0.6,
-    gameLogGameProbability: 0.3,
+    commentReactionProbability: 0.5, // Increased from 0.3
+    gameLogReactionProbability: 0.7, // Increased from 0.5
+    userGameLogProbability: 0.6, // Increased from 0.4
+    userFriendshipProbability: 0.7, // Increased from 0.6
+    gameLogGameProbability: 0.4, // Increased from 0.3
   },
 
   // Pareto distribution (80/20 rule) for all data types
@@ -592,13 +592,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userContentQuality: { type: 'pareto', parameters: { min: 0.1, max: 1.0, alpha: 1.0 } },
     userActivityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
     gameRating: { type: 'pareto', parameters: { min: 1, max: 5, alpha: 1.0 } },
-    commentCount: { type: 'pareto', parameters: { min: 0, max: 20, alpha: 1.0 } },
-    reactionCount: { type: 'pareto', parameters: { min: 0, max: 50, alpha: 1.0 } },
+    commentCount: { type: 'pareto', parameters: { min: 0, max: 30, alpha: 1.0 } }, // Min 0 for Pareto distribution
+    reactionCount: { type: 'pareto', parameters: { min: 0, max: 80, alpha: 1.0 } }, // Min 0 for Pareto distribution
     contentViralProbability: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
     activityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
     responseTime: { type: 'pareto', parameters: { min: 0, max: 24, alpha: 1.0 } },
     sessionDuration: { type: 'pareto', parameters: { min: 5, max: 120, alpha: 1.0 } },
-    gameLogsPerUser: { type: 'pareto', parameters: { min: 3, max: 15, alpha: 1.0 } },
+    gameLogsPerUser: { type: 'pareto', parameters: { min: 0, max: 25, alpha: 1.0 } }, // Min 0 for Pareto distribution
     gameLogClassification: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
     gameLogTags: { type: 'pareto', parameters: { min: 1, max: 5, alpha: 1.0 } },
     friendshipStatus: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
@@ -609,11 +609,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableTimeDecay: false,
 
     // Pareto distribution probabilities
-    commentReactionProbability: 0.3,
-    gameLogReactionProbability: 0.5,
-    userGameLogProbability: 0.4,
-    userFriendshipProbability: 0.6,
-    gameLogGameProbability: 0.3,
+    commentReactionProbability: 0.5, // Increased from 0.3
+    gameLogReactionProbability: 0.7, // Increased from 0.5
+    userGameLogProbability: 0.6, // Increased from 0.4
+    userFriendshipProbability: 0.7, // Increased from 0.6
+    gameLogGameProbability: 0.4, // Increased from 0.3
   },
 
   // Normal distribution (bell curve) for all data types
@@ -627,8 +627,8 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     },
     userActivityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
     gameRating: { type: 'normal', parameters: { mean: 3, stdDev: 1, min: 1, max: 5 } },
-    commentCount: { type: 'normal', parameters: { mean: 10, stdDev: 5, min: 0, max: 20 } },
-    reactionCount: { type: 'normal', parameters: { mean: 25, stdDev: 12, min: 0, max: 50 } },
+    commentCount: { type: 'normal', parameters: { mean: 15, stdDev: 8, min: 0, max: 30 } }, // Min 0 for Pareto distribution
+    reactionCount: { type: 'normal', parameters: { mean: 40, stdDev: 20, min: 0, max: 80 } }, // Min 0 for Pareto distribution
     contentViralProbability: {
       type: 'normal',
       parameters: { mean: 0.5, stdDev: 0.2, min: 0, max: 1 },
@@ -636,7 +636,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     activityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
     responseTime: { type: 'normal', parameters: { mean: 12, stdDev: 6, min: 0, max: 24 } },
     sessionDuration: { type: 'normal', parameters: { mean: 60, stdDev: 30, min: 5, max: 120 } },
-    gameLogsPerUser: { type: 'normal', parameters: { mean: 9, stdDev: 4, min: 3, max: 15 } },
+    gameLogsPerUser: { type: 'normal', parameters: { mean: 15, stdDev: 6, min: 0, max: 25 } }, // Min 0 for Pareto distribution
     gameLogClassification: {
       type: 'normal',
       parameters: { mean: 0.5, stdDev: 0.2, min: 0, max: 1 },
@@ -653,11 +653,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableTimeDecay: false,
 
     // Pareto distribution probabilities
-    commentReactionProbability: 0.3,
-    gameLogReactionProbability: 0.5,
-    userGameLogProbability: 0.4,
-    userFriendshipProbability: 0.6,
-    gameLogGameProbability: 0.3,
+    commentReactionProbability: 0.5, // Increased from 0.3
+    gameLogReactionProbability: 0.7, // Increased from 0.5
+    userGameLogProbability: 0.6, // Increased from 0.4
+    userFriendshipProbability: 0.7, // Increased from 0.6
+    gameLogGameProbability: 0.4, // Increased from 0.3
   },
 
   // Exponential distribution for all data types

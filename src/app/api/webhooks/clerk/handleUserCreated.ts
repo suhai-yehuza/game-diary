@@ -8,6 +8,27 @@ import { extractEmail, extractPhoneNumber, validateUserContact } from '@/lib/uti
 // Helper function
 const createResponse = (message: string, status: number) => new Response(message, { status });
 
+/**
+ * Ensures consistent user ID handling across the application
+ * - Uses provided ID if it exists (e.g., Clerk user ID)
+ * - Throws error if no ID provided (Clerk webhook should always send user ID)
+ * - Logs the ID source for debugging
+ */
+export const ensureUserId = (providedId?: string): string => {
+  if (!providedId) {
+    const error = new Error(
+      'No user ID provided from Clerk webhook - this indicates a webhook configuration issue or Clerk API problem'
+    );
+    webhookLogger.error('Critical error: Clerk webhook missing user ID', error, {
+      webhookData: 'User ID field is missing from webhook payload',
+    });
+    throw error;
+  }
+
+  webhookLogger.info(`Using Clerk user ID: ${providedId}`);
+  return providedId;
+};
+
 export const handleUserCreated = async (data: IClerkUserData) => {
   const {
     id,
@@ -25,7 +46,8 @@ export const handleUserCreated = async (data: IClerkUserData) => {
     last_sign_in_at,
   } = data;
 
-  if (!id) throw new Error('Missing user ID');
+  const userId = id;
+  webhookLogger.info(`Creating user with Clerk ID: ${userId}`);
 
   // Extract contact information
   const email = extractEmail(data);
@@ -50,7 +72,7 @@ export const handleUserCreated = async (data: IClerkUserData) => {
   const encryptedPhone = phone ? serializeEncryptedField(encryptField(phone)) : null;
 
   const userData = {
-    id,
+    id: userId, // Use Clerk's user ID directly
     object,
     username: finalUsername,
     first_name: first_name ?? '',
@@ -68,6 +90,7 @@ export const handleUserCreated = async (data: IClerkUserData) => {
     bio: null,
     timezone: null,
     preferred_language: 'en',
+    isAdmin: false, // Default to non-admin, can be updated manually
     inbound_friendship_ids: [],
     outbound_friendship_ids: [],
   };

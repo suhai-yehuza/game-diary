@@ -127,6 +127,8 @@ You can also use the unified script directly with options:
 
 > 💡 **Memory Optimization**: The new seeding system handles large datasets without memory issues. See [User Data Seeding Guide](docs/USER_DATA_SEEDING.md) for details.
 
+> 🔄 **Hybrid Approach**: User seeding now works alongside Clerk webhooks. Use `--no-users` flag to skip user creation when you have existing users. See [Hybrid Seeding Approach](docs/HYBRID_SEEDING_APPROACH.md) for details.
+
 ## Project Structure
 
 ```

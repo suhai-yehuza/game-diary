@@ -131,25 +131,29 @@ class CompleteDatabaseSetup {
       description: 'Ensure notifications table has proper unique constraints',
       apply: async () => {
         try {
-          // Check if constraint already exists
+          // Check if the existing constraint exists (the one from the schema)
           const existingConstraint = await this.db.execute(sql`
             SELECT 1 FROM pg_constraint
-            WHERE conname = 'notifications_user_id_type_created_at_key'
+            WHERE conname = 'notifications_user_target_type_unique'
           `);
 
           if (existingConstraint.rows.length > 0) {
-            logger.info('✅ Notifications unique constraint already exists');
+            logger.info(
+              '✅ Notifications unique constraint already exists (notifications_user_target_type_unique)'
+            );
             return true;
           }
 
-          // Add unique constraint
+          // If the main constraint doesn't exist, add it
           await this.db.execute(sql`
             ALTER TABLE notifications
-            ADD CONSTRAINT notifications_user_id_type_created_at_key
-            UNIQUE (user_id, type, created_at)
+            ADD CONSTRAINT notifications_user_target_type_unique
+            UNIQUE (user_id, target_id, target_type, type)
           `);
 
-          logger.info('✅ Added notifications unique constraint');
+          logger.info(
+            '✅ Added notifications unique constraint (notifications_user_target_type_unique)'
+          );
           return true;
         } catch (error) {
           if (error instanceof Error && error.message.includes('already exists')) {
@@ -171,7 +175,7 @@ class CompleteDatabaseSetup {
         try {
           const result = await this.db.execute(sql`
             SELECT 1 FROM pg_constraint
-            WHERE conname = 'notifications_user_id_type_created_at_key'
+            WHERE conname = 'notifications_user_target_type_unique'
           `);
           return result.rows.length > 0;
         } catch {
@@ -194,6 +198,7 @@ class CompleteDatabaseSetup {
       description: 'Populate reaction emojis table with default emojis',
       apply: async () => {
         try {
+          // Keep in sync with REACTION_EMOJIS in src/lib/constants/index.ts
           const emojis = [
             '👍',
             '👎',
@@ -201,7 +206,6 @@ class CompleteDatabaseSetup {
             '😂',
             '😮',
             '😢',
-            '😄',
             '😠',
             '🔥',
             '👏',
@@ -215,6 +219,7 @@ class CompleteDatabaseSetup {
             '🏈',
             '💯',
             '⭐',
+            '🎉',
           ];
 
           for (const emoji of emojis) {

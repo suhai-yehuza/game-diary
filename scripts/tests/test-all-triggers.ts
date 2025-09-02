@@ -91,7 +91,7 @@ class TriggerValidator {
 
       // 7. Clean up test NBA games (depends on teams)
       const nbaGamesDeleted = await db.execute(
-        sql`DELETE FROM nba_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test_%'`
+        sql`DELETE FROM nba_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test_%' OR id LIKE 'test-game-%'`
       );
       logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
 

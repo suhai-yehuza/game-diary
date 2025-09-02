@@ -49,27 +49,53 @@ import { encryptField, serializeEncryptedField } from '@src/lib/utils/encryption
 import { errorHandlers } from '@src/lib/utils/error-handler';
 import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
+// Hybrid approach utilities for Clerk compatibility
+function checkHybridApproachSettings() {
+  const disableUserSeeding = process.env.DISABLE_USER_SEEDING === 'true';
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (disableUserSeeding) {
+    console.log('⚠️  User seeding disabled via DISABLE_USER_SEEDING environment variable');
+    return { userSeedingEnabled: false, reason: 'environment_variable' };
+  }
+
+  if (isProduction) {
+    console.log('⚠️  User seeding disabled in production environment');
+    return { userSeedingEnabled: false, reason: 'production_environment' };
+  }
+
+  if (GENERATION_CONFIG.HYBRID_APPROACH.WARN_ABOUT_CLERK_CONFLICTS) {
+    console.log('⚠️  HYBRID APPROACH: User seeding will create Clerk-compatible IDs');
+    console.log('   - Seeded users will have IDs like: seeded_user_1, seeded_user_2, etc.');
+    console.log('   - These users CANNOT authenticate via Clerk (they are test data only)');
+    console.log('   - Set DISABLE_USER_SEEDING=true to prevent user creation');
+    console.log('   - Set NODE_ENV=production to automatically disable in production');
+  }
+
+  return { userSeedingEnabled: true, reason: 'development_seeding' };
+}
+
 // Configuration for data generation
 const GENERATION_CONFIG = {
   USERS: {
     COUNT: 100, // Generate 100 users
-    MIN_FRIENDSHIPS_PER_USER: 2,
-    MAX_FRIENDSHIPS_PER_USER: 8,
+    MIN_FRIENDSHIPS_PER_USER: 3, // Increased from 2
+    MAX_FRIENDSHIPS_PER_USER: 12, // Increased from 8
   },
   GAME_LOGS: {
-    MIN_PER_USER: 3,
-    MAX_PER_USER: 15,
+    MIN_PER_USER: 5, // Increased from 3
+    MAX_PER_USER: 25, // Increased from 15
   },
   COMMENTS: {
-    MIN_PER_GAME_LOG: 1,
-    MAX_PER_GAME_LOG: 5,
-    CHILD_COMMENT_CHANCE: 0.3, // 30% chance of child comments
+    MIN_PER_GAME_LOG: 2, // Increased from 1
+    MAX_PER_GAME_LOG: 8, // Increased from 5
+    CHILD_COMMENT_CHANCE: 0.4, // Increased from 0.3 (40% chance of child comments)
   },
   REACTIONS: {
-    MIN_PER_GAME_LOG: 1,
-    MAX_PER_GAME_LOG: 4,
-    MIN_PER_COMMENT: 0,
-    MAX_PER_COMMENT: 2,
+    MIN_PER_GAME_LOG: 2, // Increased from 1
+    MAX_PER_GAME_LOG: 8, // Increased from 4
+    MIN_PER_COMMENT: 0, // Min 0 for Pareto distribution (some comments get 0 reactions)
+    MAX_PER_COMMENT: 4, // Increased from 2
   },
   SAFETY_LIMITS: {
     MAX_USERS: 100000,
@@ -88,6 +114,13 @@ const GENERATION_CONFIG = {
     REACTION_BATCH_SIZE: 3000,
     MEMORY_WARNING_THRESHOLD: 100000, // Warn when generating >100k records
     GARBAGE_COLLECTION_HINT_THRESHOLD: 50000, // Suggest GC after 50k records
+  },
+  // Hybrid approach settings for Clerk compatibility
+  HYBRID_APPROACH: {
+    ENABLE_CLERK_COMPATIBLE_IDS: true, // Use Clerk-style IDs for seeded users
+    SEEDED_USER_PREFIX: 'seeded_user_', // Prefix to identify seeded users
+    WARN_ABOUT_CLERK_CONFLICTS: true, // Show warnings about potential conflicts
+    ALLOW_USER_SEEDING_OVERRIDE: true, // Allow disabling user seeding via env var
   },
 } as const;
 
@@ -261,6 +294,8 @@ class MemoryMonitor {
 
 // Generate realistic user data - now returns a generator for memory efficiency
 export function* generateUsersStream(count: number): Generator<ISeedUser, void, unknown> {
+  const hybridSettings = checkHybridApproachSettings();
+
   for (let i = 0; i < count; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
@@ -273,8 +308,15 @@ export function* generateUsersStream(count: number): Generator<ISeedUser, void, 
     const encryptedEmail = serializeEncryptedField(encryptField(plainEmail));
     const encryptedPhone = serializeEncryptedField(encryptField(plainPhone));
 
+    // Use Clerk-compatible IDs for seeded users
+    const userId =
+      hybridSettings.userSeedingEnabled &&
+      GENERATION_CONFIG.HYBRID_APPROACH.ENABLE_CLERK_COMPATIBLE_IDS
+        ? `${GENERATION_CONFIG.HYBRID_APPROACH.SEEDED_USER_PREFIX}${i + 1}`
+        : generateUUIDv7();
+
     yield {
-      id: generateUUIDv7(),
+      id: userId,
       object: 'user',
       username,
       first_name: firstName,
@@ -297,6 +339,7 @@ export function* generateUsersStream(count: number): Generator<ISeedUser, void, 
         'America/Anchorage',
       ]),
       preferred_language: faker.helpers.arrayElement(['en', 'es', 'fr']),
+      isAdmin: false, // Seeded users are never admins
       inbound_friendship_ids: [],
       outbound_friendship_ids: [],
     };
@@ -690,7 +733,7 @@ export function* generateReactionsStream(
 
   // Generate reactions on comments using Pareto distribution
   // Only a subset of comments should have reactions (following 80/20 rule)
-  const commentReactionProbability = distributionConfig?.commentReactionProbability ?? 0.3; // 30% of comments get reactions by default
+  const commentReactionProbability = distributionConfig?.commentReactionProbability ?? 0.5; // Increased from 30% to 50% of comments get reactions by default
 
   console.log(`📊 Comment reaction probability: ${(commentReactionProbability * 100).toFixed(1)}%`);
 
@@ -757,6 +800,7 @@ function parseCommandLineArgs() {
     .description('🌱 User Data Seeding Script')
     .version('1.0.0')
     .option('-u, --users <count>', 'Number of users to generate', parseInt)
+    .option('--no-users', 'Skip user creation (only seed other data)')
     .option('-s, --scenario <type>', 'Use predefined scenario (small, medium, large)', 'small')
     .option('-d, --distribution <preset>', 'Use statistical distribution preset')
     .option('-c, --clear', 'Clear all user data before seeding')
@@ -768,6 +812,7 @@ function parseCommandLineArgs() {
 
   return {
     users: options.users,
+    noUsers: options.noUsers,
     clear: options.clear,
     help: options.help,
     scenario: options.scenario,
@@ -784,6 +829,7 @@ function showHelp() {
     .description('🌱 User Data Seeding Script')
     .version('1.0.0')
     .option('-u, --users <count>', 'Number of users to generate', parseInt)
+    .option('--no-users', 'Skip user creation (only seed other data)')
     .option('-s, --scenario <type>', 'Use predefined scenario (small, medium, large)', 'small')
     .option('-d, --distribution <preset>', 'Use statistical distribution preset')
     .option('-c, --clear', 'Clear all user data before seeding')
@@ -888,7 +934,7 @@ async function main() {
   console.log('💡 This script is memory-optimized for large datasets');
 
   try {
-    await seedUserData({ userCount }, undefined, distributionConfig);
+    await seedUserData({ userCount }, undefined, distributionConfig, { noUsers: options.noUsers });
     console.log('✅ User data seeding completed successfully!');
   } catch (error) {
     console.error('❌ User data seeding failed:', error);
@@ -901,7 +947,7 @@ export async function seedUserData(
   config?: Partial<ISeedingConfig>,
   _optimizationConfig?: unknown,
   distributionConfig?: IStatisticalSeedingConfig,
-  _options?: { overrideSafetyLimits?: boolean }
+  _options?: { overrideSafetyLimits?: boolean; noUsers?: boolean }
 ) {
   const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 
@@ -986,6 +1032,37 @@ export async function seedUserData(
 
   validateConfiguration(finalConfig);
 
+  // Check hybrid approach settings for Clerk compatibility
+  const hybridSettings = checkHybridApproachSettings();
+
+  // Override with command-line option if provided
+  if (_options?.noUsers) {
+    hybridSettings.userSeedingEnabled = false;
+    hybridSettings.reason = 'command_line_option';
+  }
+
+  if (!hybridSettings.userSeedingEnabled) {
+    console.log('🚫 User seeding is disabled. Skipping user creation...');
+    console.log(`   Reason: ${hybridSettings.reason}`);
+    console.log(
+      '   Other data (game logs, friendships, etc.) will still be seeded if users exist.'
+    );
+
+    // Check if we have existing users to work with
+    const existingUsers = await db.select({ id: users.id }).from(users);
+    if (existingUsers.length === 0) {
+      console.log('❌ No existing users found. Cannot seed other data without users.');
+      console.log('   Please either:');
+      console.log('   1. Enable user seeding (remove DISABLE_USER_SEEDING=true)');
+      console.log('   2. Create users via Clerk webhooks first');
+      console.log('   3. Set NODE_ENV to development');
+      console.log('   4. Use --no-users flag to skip user creation');
+      return;
+    }
+
+    console.log(`✅ At least one existing user found. Proceeding with other data seeding...`);
+  }
+
   // Timing utility function
   const timeStep = async <T>(stepName: string, stepFunction: () => Promise<T>): Promise<T> => {
     const startTime = Date.now();
@@ -997,34 +1074,38 @@ export async function seedUserData(
   };
 
   try {
-    // Step 1: Generate and insert users in streaming fashion
-    console.log(`👥 Generating and inserting ${finalConfig.userCount} users...`);
-    await timeStep('Generate and insert users', async () => {
-      const userStream = generateUsersStream(finalConfig.userCount);
-      let userBatch: ISeedUser[] = [];
-      let totalUsers = 0;
+    // Step 1: Generate and insert users in streaming fashion (if enabled)
+    if (hybridSettings.userSeedingEnabled) {
+      console.log(`👥 Generating and inserting ${finalConfig.userCount} users...`);
+      await timeStep('Generate and insert users', async () => {
+        const userStream = generateUsersStream(finalConfig.userCount);
+        let userBatch: ISeedUser[] = [];
+        let totalUsers = 0;
 
-      for (const user of userStream) {
-        userBatch.push(user);
+        for (const user of userStream) {
+          userBatch.push(user);
 
-        if (userBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.USER_BATCH_SIZE) {
+          if (userBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.USER_BATCH_SIZE) {
+            await db.insert(users).values(userBatch).onConflictDoNothing();
+            totalUsers += userBatch.length;
+            userBatch = [];
+
+            memoryMonitor.checkMemory(totalUsers);
+          }
+        }
+
+        // Insert remaining users
+        if (userBatch.length > 0) {
           await db.insert(users).values(userBatch).onConflictDoNothing();
           totalUsers += userBatch.length;
-          userBatch = [];
-
-          memoryMonitor.checkMemory(totalUsers);
         }
-      }
 
-      // Insert remaining users
-      if (userBatch.length > 0) {
-        await db.insert(users).values(userBatch).onConflictDoNothing();
-        totalUsers += userBatch.length;
-      }
-
-      console.log(`📊 Total users inserted: ${totalUsers}`);
-      return totalUsers;
-    });
+        console.log(`📊 Total users inserted: ${totalUsers}`);
+        return totalUsers;
+      });
+    } else {
+      console.log('⏭️  Skipping user creation (disabled by hybrid approach)');
+    }
 
     // Step 2: Generate and insert friendships in streaming fashion
     console.log(`🤝 Generating and inserting friendships...`);

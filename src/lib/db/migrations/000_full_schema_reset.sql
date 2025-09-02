@@ -155,6 +155,7 @@ CREATE TABLE "users" (
     "bio" text,
     "timezone" varchar(50),
     "preferred_language" varchar(10) DEFAULT 'en',
+    "isAdmin" boolean DEFAULT false NOT NULL,
     "inbound_friendship_ids" varchar(255)[] DEFAULT '{}' NOT NULL,
     "outbound_friendship_ids" varchar(255)[] DEFAULT '{}' NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
@@ -231,10 +232,10 @@ CREATE TABLE "reaction_emojis" (
     "emoji" varchar(10) PRIMARY KEY NOT NULL
 );
 
--- Populate allowed emojis (keep in sync with application constants)
+-- Populate allowed emojis (keep in sync with REACTION_EMOJIS in src/lib/constants/index.ts)
 INSERT INTO "reaction_emojis" ("emoji") VALUES
     ('👍'), ('👎'), ('❤️'), ('😂'), ('😮'), ('😢'), ('😠'), ('🔥'), ('👏'), ('👀'),
-    ('🚀'), ('💪'), ('🐐'), ('🎯'), ('🏀'), ('⚽'), ('🏈');
+    ('🚀'), ('💪'), ('🐐'), ('🎯'), ('🏀'), ('⚽'), ('🏈'), ('💯'), ('⭐'), ('🎉');
 
 -- Reactions table - User reactions to content
 CREATE TABLE "reactions" (

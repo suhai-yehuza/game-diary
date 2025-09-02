@@ -172,6 +172,7 @@ CREATE TABLE "users" (
 	"bio" text,
 	"timezone" varchar(50),
 	"preferred_language" varchar(10) DEFAULT 'en',
+	"isAdmin" boolean DEFAULT false NOT NULL,
 	"inbound_friendship_ids" varchar(255)[] DEFAULT '{}' NOT NULL,
 	"outbound_friendship_ids" varchar(255)[] DEFAULT '{}' NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL,

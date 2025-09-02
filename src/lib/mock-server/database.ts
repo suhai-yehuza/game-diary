@@ -43,6 +43,7 @@ function generateMockUsers(count = 50): MockUser[] {
       email: `${username}@example.com`,
       username: `${username}_${i + 1}`,
       avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      isAdmin: i === 0, // Make the first user an admin for testing
       created_at: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });

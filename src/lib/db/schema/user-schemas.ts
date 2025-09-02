@@ -40,6 +40,9 @@ export const users = pgTable(
     timezone: varchar('timezone', { length: 50 }),
     preferred_language: varchar('preferred_language', { length: 10 }).default('en'),
 
+    // Admin status for user preservation during cleanup operations
+    isAdmin: boolean('isAdmin').notNull().default(false),
+
     // Friendship arrays
     inbound_friendship_ids: varchar('inbound_friendship_ids', { length: 255 })
       .array()

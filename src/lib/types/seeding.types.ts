@@ -64,6 +64,7 @@ export interface ISeedUser {
   bio: string;
   timezone: string;
   preferred_language: string;
+  isAdmin?: boolean; // Admin status for user preservation during cleanup
   inbound_friendship_ids: string[];
   outbound_friendship_ids: string[];
 }

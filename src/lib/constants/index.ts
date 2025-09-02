@@ -6,7 +6,7 @@
 
 // ============= Constants =============
 
-// Reaction emoji source of truth
+// Reaction emoji source of truth - keep database migrations and setup scripts in sync with this
 export const REACTION_EMOJIS = {
   THUMBS_UP: '👍',
   THUMBS_DOWN: '👎',
@@ -27,6 +27,7 @@ export const REACTION_EMOJIS = {
   FOOTBALL: '🏈',
   PERFECT: '💯',
   STAR: '⭐',
+  CELEBRATE: '🎉',
 } as const;
 
 // Enums as Constant Objects
