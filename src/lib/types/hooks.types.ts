@@ -73,6 +73,18 @@ export interface IUseLiveGamesOptions {
   initialData?: IGamesApiResponse;
 }
 
+export interface IUseLiveGamesReturn {
+  liveGames: IGamesApiResponse | null;
+  games: IGamesApiResponse['response'];
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+  hasLiveGames: boolean;
+  currentPollingInterval: number;
+  lastLiveGamesFound: number | null;
+  timeSinceLastLiveGames: string | null;
+}
+
 // Types for use-search hook
 export interface IUseSearchOptions {
   debounceMs?: number;
@@ -275,6 +287,24 @@ export interface ILatestGamesOptions {
   seasons?: string[];
 }
 
+export interface ILatestGamesProgress {
+  total: number;
+  completed: number;
+  failed: number;
+  currentSeason?: string;
+  failedSeasons: string[];
+}
+
+export interface ILatestGamesReturn {
+  latestGames: import('./externalApi.types').IGameResponse[];
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+  season: string;
+  progress: ILatestGamesProgress | null;
+  note?: string;
+}
+
 export interface IFilterState {
   searchTerm: string;
   statusFilter: string;
@@ -320,8 +350,4 @@ export interface ICentralizedErrorHandlerOptions {
   context?: Partial<IErrorContext>;
 }
 
-// Cache hook types
-export interface ICacheOptions {
-  namespace?: string;
-  priority?: 'low' | 'medium' | 'high' | 'critical';
-}
+// Cache hook types removed

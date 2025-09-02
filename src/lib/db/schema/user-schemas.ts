@@ -1,7 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { pgTable, varchar, text, timestamp, boolean, unique, integer } from 'drizzle-orm/pg-core';
 
-import { FRIENDSHIP_STATUS, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/constants';
+import { FRIENDSHIP_STATUS, TARGET_TYPES } from '@/lib/constants';
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 
 // Users table - minimal schema focusing on app-specific data and relationships
@@ -119,6 +119,11 @@ export const comments = pgTable(
   })
 );
 
+// Reaction Emojis table - Source of truth for allowed emojis
+export const reactionEmojis = pgTable('reaction_emojis', {
+  emoji: varchar('emoji', { length: 10 }).primaryKey().notNull(),
+});
+
 // Reactions table - extending base table configuration
 export const reactions = pgTable(
   'reactions',
@@ -132,7 +137,7 @@ export const reactions = pgTable(
     target_id: varchar('target_id', { length: 255 }).notNull(),
     emoji: varchar('emoji', { length: 10 })
       .notNull()
-      .$type<(typeof REACTION_EMOJIS)[keyof typeof REACTION_EMOJIS]>(),
+      .references(() => reactionEmojis.emoji),
     ...baseTableConfig,
   },
   _table => ({
@@ -142,7 +147,6 @@ export const reactions = pgTable(
     reactionTargetDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target_deleted ON reactions (target_id, target_type, deleted_at) WHERE deleted_at IS NULL`,
     uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
     targetTypeCheck: sql`CHECK (target_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
-    emojiCheck: sql`CHECK (emoji IN ('${sql.join(Object.values(REACTION_EMOJIS), "','")}'))`,
   })
 );
 

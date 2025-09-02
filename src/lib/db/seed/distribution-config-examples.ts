@@ -309,6 +309,13 @@ export const PARETO_DEMO_CONFIG: IStatisticalSeedingConfig = {
   enableViralContent: true,
   enablePowerUsers: true,
   enableTimeDecay: true,
+
+  // Pareto distribution probabilities
+  commentReactionProbability: 0.4,
+  gameLogReactionProbability: 0.6,
+  userGameLogProbability: 0.5,
+  userFriendshipProbability: 0.7,
+  gameLogGameProbability: 0.4,
 };
 
 // ============================================================================

@@ -41,6 +41,13 @@ vi.mock('@/lib/constants', () => ({
     PROTECTED: 'protected',
     PUBLIC: 'public',
   },
+  API_ENDPOINTS: {
+    NBA: {
+      GAMES: '/api/games',
+      TEAMS: '/api/teams',
+      PLAYERS: '/api/players',
+    },
+  },
 }));
 
 import {

@@ -344,7 +344,7 @@ export const UTILITY_CONFIG = {
 
   // Mock configurations
   mock: {
-    enabled: process.env.E2E_MOCK_MODE === 'true',
+    enabled: process.env.MOCK_MODE === 'true',
     dataTypes: MOCK_SERVER_CONFIG.mockDataTypes,
     endpoints: MOCK_SERVER_CONFIG.apiEndpoints,
   },

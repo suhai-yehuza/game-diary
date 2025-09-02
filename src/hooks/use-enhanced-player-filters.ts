@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
+import { API_LIMITS } from '@/lib/constants';
 import type {
   IPlayerResponse,
   IEnhancedPlayerFilterState,
@@ -78,7 +79,7 @@ export function useEnhancedPlayerFilters() {
       }
       params.append('sortBy', filters.sortBy);
       params.append('sortDirection', filters.sortDirection);
-      params.append('limit', '100'); // Adjust as needed
+      params.append('limit', API_LIMITS.PLAYERS.LARGE.toString());
 
       const response = await fetch(`/api/players?${params.toString()}`);
       if (!response.ok) {

@@ -191,7 +191,7 @@ export interface IGameResponse {
   status: {
     clock?: string;
     halftime: boolean;
-    short: string;
+    short: string | undefined | null;
     long: string;
   };
   periods: {
@@ -266,7 +266,7 @@ export interface IGameStatisticsResponse {
     week: string;
     status: {
       long: string;
-      short: string;
+      short: string | undefined | null;
       timer?: string;
     };
   };
@@ -627,17 +627,9 @@ export interface IApiNavItem {
 // API ENDPOINT CONFIGURATION
 // ========================================
 
-export const NBA_API_ENDPOINTS = {
-  SEASONS: '/seasons',
-  LEAGUES: '/leagues',
-  GAMES: '/games',
-  GAME_STATISTICS: '/games/statistics',
-  TEAMS: '/teams',
-  TEAM_STATISTICS: '/teams/statistics',
-  PLAYERS: '/players',
-  PLAYER_STATISTICS: '/players/statistics',
-  STANDINGS: '/standings',
-} as const;
+import { API_ENDPOINTS } from '@/lib/constants';
+
+export const NBA_API_ENDPOINTS = API_ENDPOINTS.NBA;
 
 export type NBAEndpoint = (typeof NBA_API_ENDPOINTS)[keyof typeof NBA_API_ENDPOINTS];
 

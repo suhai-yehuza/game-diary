@@ -11,6 +11,7 @@ import { Pagination } from '@/app/components/sports/pagination';
 import { Button } from '@/app/components/ui/button';
 import { useGameFilters } from '@/hooks/use-game-filters';
 import { useLatestGames } from '@/hooks/use-latest-games';
+import { API_LIMITS } from '@/lib/constants';
 
 export default function NBAGamesPage() {
   const [currentPage, setCurrentPage] = useState(1);
@@ -48,7 +49,7 @@ export default function NBAGamesPage() {
     error: gamesError,
     refetch: refetchGames,
   } = useLatestGames({
-    limit: 1000,
+    limit: API_LIMITS.GAMES.LARGE,
     forceRealData: false, // Use mock data instead of external API
     seasons: seasonsToFetch,
   });
@@ -81,11 +82,38 @@ export default function NBAGamesPage() {
     setCurrentPage(1);
   }, [clearFilters]);
 
+  // Deduplicate games by ID to prevent React key conflicts
+  const uniqueFilteredGames = useMemo(() => {
+    const seen = new Set<number>();
+    const duplicates = new Map<number, number>();
+
+    const result = filteredGames.filter(game => {
+      // Use the database id directly - it's already unique (season-game.id format)
+      const uniqueGameId = game.id;
+      if (seen.has(uniqueGameId)) {
+        duplicates.set(uniqueGameId, (duplicates.get(uniqueGameId) || 1) + 1);
+        return false;
+      }
+      seen.add(uniqueGameId);
+      return true;
+    });
+
+    // Log duplicates in development for debugging
+    if (process.env.NODE_ENV === 'development' && duplicates.size > 0) {
+      console.warn('🚨 Found duplicate game IDs:', Object.fromEntries(duplicates));
+      console.warn(
+        `📊 Original count: ${filteredGames.length}, After deduplication: ${result.length}`
+      );
+    }
+
+    return result;
+  }, [filteredGames]);
+
   // Pagination
-  const totalPages = Math.ceil(filteredGames.length / gamesPerPage);
+  const totalPages = Math.ceil(uniqueFilteredGames.length / gamesPerPage);
   const startIndex = (currentPage - 1) * gamesPerPage;
   const endIndex = startIndex + gamesPerPage;
-  const currentGames = filteredGames.slice(startIndex, endIndex);
+  const currentGames = uniqueFilteredGames.slice(startIndex, endIndex);
 
   return (
     <SportsPageLayout

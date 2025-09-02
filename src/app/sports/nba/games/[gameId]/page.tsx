@@ -308,6 +308,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
+                    style={{ width: 'auto', height: 'auto' }}
                   />
                 )}
                 <h3 className="text-xl font-bold score-text">{game.teams.home.name}</h3>

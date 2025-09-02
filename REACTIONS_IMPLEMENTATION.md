@@ -85,9 +85,6 @@ CREATE TABLE "reactions" (
 - 🏀 (basketball)
 - ⚽ (soccer)
 - 🏈 (football)
-- ⚾ (baseball)
-- 🎾 (tennis)
-- ⛳ (golf)
 
 **Reaction Emojis:**
 

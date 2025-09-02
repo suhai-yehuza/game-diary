@@ -5,6 +5,29 @@ import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ClientProviders } from '@src/app/components/providers';
 import AllSportsPage from '@src/app/sports/all-sports/page';
 
+// Mock CacheProgressTracker component
+vi.mock('@/app/components/cache/CacheProgressTracker', () => {
+  return {
+    CacheProgressTracker: ({ isVisible, _onComplete }: any) => (
+      <div data-testid="cache-progress-tracker">
+        {isVisible ? 'Progress Tracker Visible' : 'Progress Tracker Hidden'}
+      </div>
+    ),
+  };
+});
+
+// Mock lucide-react icons
+vi.mock('lucide-react', () => ({
+  Trash2: () => <span data-testid="trash2-icon">Trash2</span>,
+  Moon: () => <span data-testid="moon-icon">Moon</span>,
+  Sun: () => <span data-testid="sun-icon">Sun</span>,
+  Monitor: () => <span data-testid="monitor-icon">Monitor</span>,
+  ArrowLeft: () => <span data-testid="arrow-left-icon">ArrowLeft</span>,
+  Clock: () => <span data-testid="clock-icon">Clock</span>,
+  RefreshCw: () => <span data-testid="refresh-cw-icon">RefreshCw</span>,
+  MapPin: () => <span data-testid="map-pin-icon">MapPin</span>,
+}));
+
 // Mock Next.js Link component
 vi.mock('next/link', () => ({
   default: ({ children, href, className, ...props }: any) => (
@@ -64,7 +87,7 @@ describe('AllSportsPage', () => {
 
     // Check for heading
     const heading = screen.getByRole('heading', { level: 1 });
-    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-2');
+    expect(heading).toHaveClass('text-3xl', 'font-bold', 'mb-2', 'all-sports-title');
   });
 
   it('has proper semantic structure', () => {

@@ -22,7 +22,15 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 
   if (networkError) {
-    console.error(`[Network error]: ${networkError}`);
+    // Don't log 403 errors as they are expected for unauthenticated users
+    const isAuthError =
+      networkError.message?.includes('403') ||
+      networkError.message?.includes('Forbidden') ||
+      networkError.message?.includes('Authentication required');
+
+    if (!isAuthError) {
+      console.error(`[Network error]: ${networkError}`);
+    }
   }
 });
 

@@ -1,9 +1,6 @@
-import fetch from 'node-fetch';
 import { test, expect } from 'vitest';
 
 import { getAppUrl } from '@src/lib/config/app.config';
-
-if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
 
 // Helper to create a test user via the API
 async function createTestUser(userData: { email: string; phone?: string }) {
@@ -86,7 +83,7 @@ test('should log failed access attempts (API)', async () => {
   }
   expect(unauthorizedResult.status).toBe(401);
   if (typeof unauthorizedResult.data === 'string') {
-    expect(unauthorizedResult.data).toMatch(/unauthorized/i);
+    expect(unauthorizedResult.data).toMatch(/authentication required|unauthorized/i);
   }
   const auditResponse = await fetch(`${getAppUrl()}/api/admin/audit-logs`, {
     headers: { 'Content-Type': 'application/json' },
@@ -97,8 +94,8 @@ test('should log failed access attempts (API)', async () => {
     // Ensure auditLogs is an array
     auditLogs = Array.isArray(auditData)
       ? auditData
-      : Array.isArray((auditData as any)?.logs)
-        ? (auditData as any).logs
+      : Array.isArray(auditData?.logs)
+        ? auditData.logs
         : [];
   } catch (_e) {
     // If audit logs endpoint is protected and returns non-JSON, skip this assertion

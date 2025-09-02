@@ -189,7 +189,7 @@ export const createMockApiResponse = (games: IGameResponse[]): IGamesApiResponse
   get: 'games',
   parameters: {
     season: '2024',
-    league: 'standard',
+    // league: 'standard',
   },
   errors: [],
   results: games.length,
@@ -436,19 +436,19 @@ export const MOCK_API_RESPONSES = {
 export const MOCK_ENV = {
   development: {
     NODE_ENV: 'development',
-    API_MOCK_MODE: 'true',
+    MOCK_MODE: 'true',
     CI: 'false',
     VITEST: 'false',
   },
   test: {
     NODE_ENV: 'test',
-    API_MOCK_MODE: 'false',
+    MOCK_MODE: 'false',
     CI: 'true',
     VITEST: 'true',
   },
   production: {
     NODE_ENV: 'production',
-    API_MOCK_MODE: 'false',
+    MOCK_MODE: 'false',
     CI: 'false',
     VITEST: 'false',
   },

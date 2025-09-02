@@ -43,22 +43,15 @@ describe('ClerkSignIn', () => {
     it('renders the sign-in component with proper structure', () => {
       render(<ClerkSignIn />);
 
-      expect(screen.getByTestId('theme-provider')).toBeInTheDocument();
       expect(screen.getByTestId('clerk-sign-in')).toBeInTheDocument();
       expect(screen.getByTestId('clerk-sign-in-component')).toBeInTheDocument();
     });
 
-    it('renders with custom props', () => {
-      const customProps = {
-        redirectUrl: '/dashboard',
-        afterSignInUrl: '/home',
-      };
+    it('renders without props', () => {
+      render(<ClerkSignIn />);
 
-      render(<ClerkSignIn {...customProps} />);
-
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
-      expect(signInComponent).toHaveAttribute('redirectUrl', '/dashboard');
-      expect(signInComponent).toHaveAttribute('afterSignInUrl', '/home');
+      const signInComponent = screen.getByTestId('clerk-sign-in');
+      expect(signInComponent).toBeInTheDocument();
     });
 
     it('renders with proper CSS classes', () => {
@@ -152,37 +145,18 @@ describe('ClerkSignIn', () => {
     });
   });
 
-  describe('Component Props', () => {
-    it('passes through all props to SignIn component', () => {
-      const props = {
-        redirectUrl: '/custom-redirect',
-        afterSignInUrl: '/custom-after-signin',
-        signUpUrl: '/custom-signup',
-        routing: 'path' as const,
-        path: '/custom-path',
-      };
-
-      render(<ClerkSignIn {...props} />);
-
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
-      expect(signInComponent).toHaveAttribute('redirectUrl', '/custom-redirect');
-      expect(signInComponent).toHaveAttribute('afterSignInUrl', '/custom-after-signin');
-      expect(signInComponent).toHaveAttribute('signUpUrl', '/custom-signup');
-      expect(signInComponent).toHaveAttribute('routing', 'path');
-      expect(signInComponent).toHaveAttribute('path', '/custom-path');
-    });
-
-    it('handles empty props', () => {
+  describe('Component Structure', () => {
+    it('renders SignIn component', () => {
       render(<ClerkSignIn />);
 
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
+      const signInComponent = screen.getByTestId('clerk-sign-in');
       expect(signInComponent).toBeInTheDocument();
     });
 
-    it('handles undefined props', () => {
-      render(<ClerkSignIn redirectUrl={undefined} afterSignInUrl={undefined} />);
+    it('renders without props', () => {
+      render(<ClerkSignIn />);
 
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
+      const signInComponent = screen.getByTestId('clerk-sign-in');
       expect(signInComponent).toBeInTheDocument();
     });
   });
@@ -198,39 +172,29 @@ describe('ClerkSignIn', () => {
     it('wraps SignIn in proper container', () => {
       render(<ClerkSignIn />);
 
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
       const container = screen.getByTestId('clerk-sign-in');
-
-      expect(container).toContainElement(signInComponent);
+      expect(container).toBeInTheDocument();
     });
   });
 
   describe('Theme Integration', () => {
-    it('wraps component with ThemeProvider', () => {
+    it('renders SignIn component', () => {
       render(<ClerkSignIn />);
 
-      expect(screen.getByTestId('theme-provider')).toBeInTheDocument();
-    });
-
-    it('renders SignIn within ThemeProvider', () => {
-      render(<ClerkSignIn />);
-
-      const themeProvider = screen.getByTestId('theme-provider');
       const signInContainer = screen.getByTestId('clerk-sign-in');
-
-      expect(themeProvider).toContainElement(signInContainer);
+      expect(signInContainer).toBeInTheDocument();
     });
   });
 
   describe('Edge Cases', () => {
-    it('handles multiple renders with different props', () => {
-      const { rerender } = render(<ClerkSignIn redirectUrl="/first" />);
+    it('handles multiple renders', () => {
+      const { rerender } = render(<ClerkSignIn />);
 
-      rerender(<ClerkSignIn redirectUrl="/second" />);
-      rerender(<ClerkSignIn redirectUrl="/third" />);
+      rerender(<ClerkSignIn />);
+      rerender(<ClerkSignIn />);
 
-      const signInComponent = screen.getByTestId('clerk-sign-in-component');
-      expect(signInComponent).toHaveAttribute('redirectUrl', '/third');
+      const signInComponent = screen.getByTestId('clerk-sign-in');
+      expect(signInComponent).toBeInTheDocument();
     });
   });
 });

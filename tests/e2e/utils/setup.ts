@@ -119,7 +119,7 @@ export async function setupMockDataForScenario(page: Page, scenario: string): Pr
   // Inject mock data into page context if needed
   await page.evaluate(() => {
     // Set a flag to indicate mock mode is active
-    (window as any).__E2E_MOCK_MODE__ = true;
+    (window as any).__MOCK_MODE__ = true;
   });
 }
 

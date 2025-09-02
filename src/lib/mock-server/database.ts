@@ -287,22 +287,37 @@ async function generateMockNBAData() {
   const nbaTeams = await mockDataProvider.getNbaTeamsMock();
   const nbaPlayers = await mockDataProvider.getNbaPlayersMock();
 
+  // Create mock seasons
+  const seasons = [
+    { id: 1, year: 2024 },
+    { id: 2, year: 2023 },
+    { id: 3, year: 2022 },
+    { id: 4, year: 2021 },
+    { id: 5, year: 2020 },
+  ];
+
   return {
+    seasons,
     nba_games: Array.isArray(nbaGames)
       ? nbaGames.map((game: Record<string, unknown>, index: number) => ({
-          id: `nba_game_${index + 1}`,
+          id: `2024-nba_game_${index + 1}`,
+          game_type: 'nba',
+          season: '2024', // Default to 2024 season
+          nba_game_id: `nba_game_${index + 1}`,
           home_team_id:
             (game.home_team_id as string) || `team_${Math.floor(Math.random() * 30) + 1}`,
           away_team_id:
             (game.away_team_id as string) || `team_${Math.floor(Math.random() * 30) + 1}`,
-          home_score: (game.home_score as number) || Math.floor(Math.random() * 150),
-          away_score: (game.away_score as number) || Math.floor(Math.random() * 150),
+          home_team_score: (game.home_score as number) || Math.floor(Math.random() * 150),
+          away_team_score: (game.away_score as number) || Math.floor(Math.random() * 150),
           status:
-            (game.status as string) ||
-            ['scheduled', 'live', 'finished'][Math.floor(Math.random() * 3)],
+            (game.status as 'scheduled' | 'live' | 'finished') ||
+            (['scheduled', 'live', 'finished'] as const)[Math.floor(Math.random() * 3)],
           date: (game.date as string) || new Date().toISOString(),
-          season: (game.season as string) || '2023-24',
-          league: (game.league as string) || 'NBA',
+          average_rating: '0.00',
+          total_ratings: 0,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         }))
       : [],
     teams: Array.isArray(nbaTeams)
@@ -358,7 +373,10 @@ export function createMockDatabase() {
 
   // Initialize NBA data
   void generateMockNBAData().then(nbaData => {
-    Object.assign(mockData, nbaData);
+    mockData.seasons = nbaData.seasons;
+    mockData.nba_games = nbaData.nba_games;
+    mockData.teams = nbaData.teams;
+    mockData.nba_players = nbaData.nba_players;
   });
 
   const mockData: MockDatabaseSchema = {
@@ -369,6 +387,7 @@ export function createMockDatabase() {
     reactions,
     game_ratings: gameRatings,
     notifications,
+    seasons: [],
     nba_games: [],
     teams: [],
     nba_players: [],

@@ -8,6 +8,9 @@ vi.mock('@/lib/utils/e2e-test-setup', () => ({
   isTestOrCIEnvironment: () => true,
 }));
 
+// Mock Redis service to avoid complex internal fetch calls
+// Cache mock removed
+
 // Mock fetch globally
 global.fetch = vi.fn();
 
@@ -212,7 +215,13 @@ describe('useNBAPlayers Hook', () => {
 
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ response: mockPlayers }),
+      json: async () => ({
+        get: 'players',
+        parameters: {},
+        errors: [],
+        results: mockPlayers.length,
+        response: mockPlayers,
+      }),
     });
 
     const { result } = renderHook(() => useNBAPlayers({ forceRealData: true }));
@@ -230,8 +239,13 @@ describe('useNBAPlayers Hook', () => {
   });
 
   it('should filter out inactive players', async () => {
+    const playersWithInactive = [...mockPlayersResponse.response, mockInactivePlayer];
     const responseWithInactive = {
-      response: [...mockPlayersResponse.response, mockInactivePlayer],
+      get: 'players',
+      parameters: {},
+      errors: [],
+      results: playersWithInactive.length,
+      response: playersWithInactive,
     };
 
     (global.fetch as any).mockResolvedValueOnce({
@@ -239,7 +253,7 @@ describe('useNBAPlayers Hook', () => {
       json: async () => responseWithInactive,
     });
 
-    const { result } = renderHook(() => useNBAPlayers());
+    const { result } = renderHook(() => useNBAPlayers({ forceRealData: true }));
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
@@ -279,7 +293,7 @@ describe('useNBAPlayers Hook', () => {
     });
 
     expect(result.current.players).toEqual([]);
-    expect(result.current.error).toBe('API request failed: 500 Internal Server Error');
+    expect(result.current.error).toBe('Mock API request failed: 500 Internal Server Error');
   });
 
   it('should skip fetching when skip option is true', async () => {

@@ -72,6 +72,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -117,6 +118,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -175,6 +177,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -208,6 +211,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -239,6 +243,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -271,6 +276,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -302,6 +308,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -331,6 +338,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -360,6 +368,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -404,6 +413,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -420,6 +430,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: 'Failed to fetch games',
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -436,6 +447,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -470,6 +482,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);
@@ -501,6 +514,7 @@ describe('IntegratedGames Branch Coverage', () => {
         error: null,
         refetch: vi.fn(),
         season: 2024,
+        note: undefined,
       });
 
       render(<IntegratedGames />);

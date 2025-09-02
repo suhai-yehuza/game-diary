@@ -4,6 +4,7 @@
  */
 
 import type { ISortDirection, IPageInfo, Permission, Role } from './shared.types';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 
 // ========================================
 // COMMON UTILITY TYPES
@@ -293,7 +294,7 @@ export const SPORTS_CONFIG = {
     name: 'NBA',
     fullName: 'National Basketball Association',
     description: 'National Basketball Association - Live scores, stats, and more',
-    color: 'bg-orange-600 hover:bg-orange-700',
+    color: TAILWIND_CLASSES.sports.nba,
     href: '/sports/nba',
     icon: '🏀',
   },
@@ -301,7 +302,7 @@ export const SPORTS_CONFIG = {
     name: 'NFL',
     fullName: 'National Football League',
     description: 'National Football League - Live scores, stats, and more',
-    color: 'bg-blue-600 hover:bg-blue-700',
+    color: TAILWIND_CLASSES.sports.nfl,
     href: '/sports/nfl',
     icon: '🏈',
   },
@@ -309,7 +310,7 @@ export const SPORTS_CONFIG = {
     name: 'MLB',
     fullName: 'Major League Baseball',
     description: 'Major League Baseball - Live scores, stats, and more',
-    color: 'bg-red-600 hover:bg-red-700',
+    color: TAILWIND_CLASSES.sports.mlb,
     href: '/sports/mlb',
     icon: '⚾',
   },
@@ -317,7 +318,7 @@ export const SPORTS_CONFIG = {
     name: 'NHL',
     fullName: 'National Hockey League',
     description: 'National Hockey League - Live scores, stats, and more',
-    color: 'bg-indigo-800 hover:bg-indigo-900',
+    color: TAILWIND_CLASSES.sports.nhl,
     href: '/sports/nhl',
     icon: '🏒',
   },
@@ -325,7 +326,7 @@ export const SPORTS_CONFIG = {
     name: 'MLS',
     fullName: 'Major League Soccer',
     description: 'Major League Soccer - Live scores, stats, and more',
-    color: 'bg-green-600 hover:bg-green-700',
+    color: TAILWIND_CLASSES.sports.mls,
     href: '/sports/mls',
     icon: '⚽',
   },
@@ -336,6 +337,18 @@ export type SportKey = keyof typeof SPORTS_CONFIG;
 // ========================================
 // AUTHENTICATION TYPES
 // ========================================
+
+export interface ISignUpPageProps {
+  params: {
+    'sign-up'?: string[];
+  };
+}
+
+export interface ISignInPageProps {
+  params: {
+    'sign-in'?: string[];
+  };
+}
 
 export interface IAuthState {
   isLoaded: boolean;
@@ -509,13 +522,171 @@ export interface IPaginationConstants {
 // ========================================
 
 // Cache namespace for different types of data
+// CLEANED UP: Only NBA API cache and system (for testing) remain
 export enum CacheNamespace {
-  API_RESPONSES = 'api',
-  USER_SESSIONS = 'user',
-  GAME_DATA = 'games',
-  TEAM_DATA = 'teams',
-  PLAYER_DATA = 'players',
-  SEARCH_RESULTS = 'search',
-  ANALYTICS = 'analytics',
-  SYSTEM = 'system',
+  API_RESPONSES = 'api', // NBA API responses only
+  SYSTEM = 'system', // System/testing only
+}
+
+// ========================================
+// NBA CACHE SERVICE TYPES
+// ========================================
+
+export interface ISeasonData {
+  response: number[];
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: unknown[];
+  results: number;
+}
+
+export interface ITeamData {
+  response: Array<{
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    city: string;
+    logo: string;
+    allStar: boolean;
+    nbaFranchise: boolean;
+    leagues: {
+      standard: {
+        conference: string;
+        division: string;
+      };
+    };
+  }>;
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: unknown[];
+  results: number;
+}
+
+export interface IGameData {
+  response: Array<{
+    id: number;
+    date: string;
+    time: string;
+    timestamp: number;
+    timezone: string;
+    stage: number;
+    week: string | null;
+    status: {
+      clock: string | null;
+      halftime: boolean;
+      short: number;
+      long: string;
+    };
+    league: {
+      id: number;
+      name: string;
+      type: string;
+      season: number;
+      logo: string;
+    };
+    country: {
+      id: number;
+      name: string;
+      code: string;
+      flag: string;
+    };
+    teams: {
+      home: {
+        id: number;
+        name: string;
+        nickname: string;
+        code: string;
+        logo: string;
+      };
+      away: {
+        id: number;
+        name: string;
+        nickname: string;
+        code: string;
+        logo: string;
+      };
+    };
+    scores: {
+      home: {
+        win: number;
+        loss: number;
+        series: {
+          win: number;
+          loss: number;
+        };
+        linescore: number[];
+        points: number;
+      };
+      away: {
+        win: number;
+        loss: number;
+        series: {
+          win: number;
+          loss: number;
+        };
+        linescore: number[];
+        points: number;
+      };
+    };
+  }>;
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: unknown[];
+  results: number;
+}
+
+export interface IPlayerData {
+  response: Array<{
+    id: number;
+    firstname: string;
+    lastname: string;
+    birth: {
+      date: string;
+      country: string;
+    };
+    nba: {
+      start: number;
+      pro: number;
+    };
+    height: {
+      feets: string;
+      inches: string;
+      meters: string;
+    };
+    weight: {
+      pounds: string;
+      kilograms: string;
+    };
+    college: string;
+    affiliation: string;
+    leagues: {
+      standard: {
+        jersey: number;
+        active: boolean;
+        pos: string;
+      };
+    };
+  }>;
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: unknown[];
+  results: number;
+}
+
+export interface IGamesSummary {
+  numberOfSeasons: number;
+  totalGames: number;
+  seasons: Array<Record<string, number>>;
+  timestamp: number;
+  priority: string;
+}
+
+export interface IPlayersSummary {
+  numberOfSeasons: number;
+  numberOfTeams: number;
+  totalPlayers: number;
+  players: Array<Record<string, number>>;
+  timestamp: number;
+  priority: string;
 }

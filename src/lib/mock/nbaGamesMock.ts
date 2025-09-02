@@ -40,7 +40,7 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
   get: 'games',
   parameters: {
     season: '2024',
-    league: 'standard',
+    // league: 'standard',
   },
   errors: [],
   results: 7,

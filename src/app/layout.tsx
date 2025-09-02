@@ -103,7 +103,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className="scroll-smooth antialiased"
       suppressHydrationWarning
       // Set mock mode state at the root level for immediate availability
-      data-mock-mode={process.env.API_MOCK_MODE === 'true' ? 'true' : 'false'}
+      data-mock-mode={process.env.MOCK_MODE === 'true' ? 'true' : 'false'}
     >
       <head>
         {/* Theme initialization script - runs before hydration to prevent flashing */}

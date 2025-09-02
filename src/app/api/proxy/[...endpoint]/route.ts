@@ -1,13 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { redisService } from '@/lib/cache/redis-service';
-import {
-  getRapidApiConfig,
-  isTestEnvironment,
-  isE2ETestEnvironment,
-} from '@/lib/config/app.config';
-import { CacheNamespace } from '@/lib/types';
+import { getRapidApiConfig } from '@/lib/config/app.config';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
@@ -34,34 +28,13 @@ export async function GET(
       apiUrl.searchParams.append(key, value);
     });
 
-    const cacheKey = apiUrl.toString();
-    console.log(`[API Proxy] Making request to: ${cacheKey}`);
-
-    // Debug environment variables
-    console.log('[API Proxy] Environment debug:', {
-      NODE_ENV: process.env.NODE_ENV,
-      CI: process.env.CI,
-      GITHUB_ACTIONS: process.env.GITHUB_ACTIONS,
-      PLAYWRIGHT_TEST: process.env.PLAYWRIGHT_TEST,
-      PLAYWRIGHT_CI: process.env.PLAYWRIGHT_CI,
-      E2E_MOCK_MODE: process.env.E2E_MOCK_MODE,
-      API_MOCK_MODE: process.env.API_MOCK_MODE,
-      isTestEnvironment,
-      isE2ETestEnvironment,
-      apiKey: !!rapidApiConfig.apiKey,
-    });
-
-    // Check cache first using Redis service
-    const cachedData = await redisService.get(cacheKey, CacheNamespace.API_RESPONSES);
-    if (cachedData !== null) {
-      console.log(`[API Proxy] Returning cached response for: ${cacheKey}`);
-      return NextResponse.json(cachedData);
-    }
+    const fullUrl = apiUrl.toString();
+    console.log(`[API Proxy] Making request to: ${fullUrl}`);
 
     // Check for pending request (deduplication)
-    if (pendingRequests.has(cacheKey)) {
-      console.log(`[API Proxy] Waiting for pending request: ${cacheKey}`);
-      const cachedData = await pendingRequests.get(cacheKey);
+    if (pendingRequests.has(fullUrl)) {
+      console.log(`[API Proxy] Waiting for pending request: ${fullUrl}`);
+      const cachedData = await pendingRequests.get(fullUrl);
       return NextResponse.json(cachedData);
     }
 
@@ -105,8 +78,7 @@ export async function GET(
           };
       }
 
-      // Cache mock responses with lower priority
-      await redisService.set(cacheKey, mockResponse, CacheNamespace.API_RESPONSES, 'low');
+      // Cache logic removed
 
       return NextResponse.json(mockResponse);
     }
@@ -132,21 +104,20 @@ export async function GET(
       const data: unknown = await response.json();
       console.log(`[API Proxy] Success response: ${JSON.stringify(data).substring(0, 200)}...`);
 
-      // Cache the successful response with medium priority
-      await redisService.set(cacheKey, data, CacheNamespace.API_RESPONSES, 'medium');
+      // Cache logic removed
 
       return data;
     })();
 
     // Store the pending request
-    pendingRequests.set(cacheKey, requestPromise);
+    pendingRequests.set(fullUrl, requestPromise);
 
     try {
       const data = await requestPromise;
       return NextResponse.json(data);
     } finally {
       // Clean up pending request
-      pendingRequests.delete(cacheKey);
+      pendingRequests.delete(fullUrl);
     }
   } catch (error) {
     // Use centralized error handling

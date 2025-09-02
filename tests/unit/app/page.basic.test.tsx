@@ -5,6 +5,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ClientProviders } from '@src/app/components/providers';
 import HomePage from '@src/app/page';
 
+// Mock CacheProgressTracker component
+vi.mock('@/app/components/cache/CacheProgressTracker', () => {
+  return {
+    CacheProgressTracker: ({ isVisible, _onComplete }: any) => (
+      <div data-testid="cache-progress-tracker">
+        {isVisible ? 'Progress Tracker Visible' : 'Progress Tracker Hidden'}
+      </div>
+    ),
+  };
+});
+
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
   useUser: () => ({
@@ -58,6 +69,9 @@ vi.mock('lucide-react', () => ({
   ),
   ArrowDown: ({ className, ...props }: any) => (
     <div className={className} data-testid="arrow-down" {...props} />
+  ),
+  Trash2: ({ className, ...props }: any) => (
+    <div className={className} data-testid="trash2" {...props} />
   ),
 }));
 

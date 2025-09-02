@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { useTopGameLogs } from '@/hooks/use-top-game-logs';
+import { API_LIMITS } from '@/lib/constants';
 import type { IGameLog as _IGameLog } from '@/lib/types';
 
 export function IntegratedGameLogs() {
-  const { topGameLogs, loading, error } = useTopGameLogs({ limit: 100 });
+  const { topGameLogs, loading, error } = useTopGameLogs({ limit: API_LIMITS.GAME_LOGS.LARGE });
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -179,6 +180,7 @@ export function IntegratedGameLogs() {
                     width={24}
                     height={24}
                     className="rounded-full"
+                    style={{ width: 'auto', height: 'auto' }}
                   />
                 ) : (
                   <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">

@@ -57,6 +57,7 @@ export default defineConfig({
     },
     testTimeout: 10000,
     hookTimeout: 10000,
+    // Ignore specific unhandled rejections that are part of error testing
     environmentOptions: {
       jsdom: {
         resources: 'usable',

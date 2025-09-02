@@ -10,7 +10,7 @@ export function Logo({ isMenuExpanded }: ILogoProps) {
   }
 
   return (
-    <div className="pl-10 hidden lg:flex items-center">
+    <div className="pl-10 hidden lg:flex items-center gap-3">
       <Link href="/" className="min-w-[44px] min-h-[44px] flex items-center justify-center">
         <Image
           src="/logos/gamelog-large.svg"

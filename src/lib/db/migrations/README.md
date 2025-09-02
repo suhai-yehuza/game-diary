@@ -1,17 +1,21 @@
 # Database Migrations
 
-This directory contains SQL migration files for the game diary application.
+This directory contains a consolidated SQL migration file for the game diary application.
 
 ## Migration Files
 
-1. **000_optimized_triggers_and_constraints.sql** - Comprehensive database setup including:
-   - Comment depth field for nested comments (0-10 levels)
-   - Game ratings triggers
-   - Friendship notification triggers
-   - Comment notification triggers
-   - Reaction notification triggers
-   - Friendship user array triggers
-   - Performance indexes
+1. **000_full_schema_reset.sql** - Complete database setup including:
+   - All tables with proper structure and constraints
+   - Foreign key relationships with cascade delete
+   - Row-level security policies
+   - Audit logging infrastructure
+   - Performance indexes and constraints (consolidated from all previous migrations)
+   - Database triggers and functions
+   - Season field support for NBA games
+   - Enhanced ID format: ${season}-${game.id} for nba_games
+   - Optimized reaction emoji constraints
+   - Enhanced performance indexes for game_logs, friendships, and NBA tables
+   - Comprehensive index documentation and comments
 
 ## Applying Migrations
 

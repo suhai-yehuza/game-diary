@@ -1,7 +1,13 @@
 import { relations } from 'drizzle-orm';
 
 import { game_logs, game_ratings, nba_games } from '@/lib/db/schema/game-schemas';
-import { users, friendships, comments, reactions } from '@/lib/db/schema/user-schemas';
+import {
+  users,
+  friendships,
+  comments,
+  reactions,
+  reactionEmojis,
+} from '@/lib/db/schema/user-schemas';
 
 // User-related relations
 export const usersRelations = relations(users, ({ many }) => ({
@@ -32,11 +38,20 @@ export const commentsRelations = relations(comments, ({ one, many }) => ({
   reactions: many(reactions),
 }));
 
+// Reaction Emojis relations
+export const reactionEmojisRelations = relations(reactionEmojis, ({ many }) => ({
+  reactions: many(reactions),
+}));
+
 // Reaction-related relations
 export const reactionsRelations = relations(reactions, ({ one }) => ({
   user: one(users, {
     fields: [reactions.user_id],
     references: [users.id],
+  }),
+  emoji: one(reactionEmojis, {
+    fields: [reactions.emoji],
+    references: [reactionEmojis.emoji],
   }),
 }));
 

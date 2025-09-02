@@ -19,6 +19,7 @@ export const gameMutationResolvers = {
         away_team_id: string;
         game_type: string;
         nba_game_id?: string;
+        season?: string;
         status: string;
         home_team_score?: number;
         away_team_score?: number;
@@ -31,7 +32,14 @@ export const gameMutationResolvers = {
     }
 
     try {
-      const gameId = generateUUIDv7();
+      // Generate the new formatted ID if we have season and nba_game_id
+      let gameId: string;
+      if (args.input.season && args.input.nba_game_id) {
+        gameId = `${args.input.season}-${args.input.nba_game_id}`;
+      } else {
+        gameId = generateUUIDv7();
+      }
+
       const newGame = await db()
         ?.insert(nba_games)
         .values({
@@ -40,6 +48,7 @@ export const gameMutationResolvers = {
           home_team_id: args.input.home_team_id,
           away_team_id: args.input.away_team_id,
           game_type: args.input.game_type,
+          season: args.input.season,
           nba_game_id: args.input.nba_game_id,
           status: args.input.status,
           home_team_score: args.input.home_team_score,
@@ -54,6 +63,7 @@ export const gameMutationResolvers = {
               date: newGame[0].date,
               status: newGame[0].status,
               game_type: newGame[0].game_type,
+              season: newGame[0].season,
               nba_game_id: newGame[0].nba_game_id,
               home_team_id: newGame[0].home_team_id,
               away_team_id: newGame[0].away_team_id,

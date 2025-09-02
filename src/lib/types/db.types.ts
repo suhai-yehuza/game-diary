@@ -7,6 +7,18 @@ import type * as schema from '@src/lib/db/schema';
 // Seeding types
 export type MadeAttempted = { made?: number; attempted?: number } | null | undefined;
 
+export type IDbRefreshProgressCallback = (progress: {
+  currentStep: string;
+  stepNumber: number;
+  totalSteps: number;
+  progress: number;
+  status: 'idle' | 'running' | 'completed' | 'error';
+  message: string;
+  details: string;
+  startTime?: Date;
+  estimatedTimeRemaining?: string;
+}) => void;
+
 // Drizzle insert types
 export type UserInsert = InferInsertModel<typeof schema.users>;
 export type FriendshipInsert = InferInsertModel<typeof schema.friendships>;

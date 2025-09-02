@@ -375,9 +375,9 @@ describe('GameFilters Component', () => {
 
   it('renders status options', () => {
     render(<GameFilters {...defaultProps} />);
-    expect(screen.getByText('Finished')).toBeInTheDocument();
-    expect(screen.getByText('Scheduled')).toBeInTheDocument();
-    expect(screen.getByText('Cancelled')).toBeInTheDocument();
+    expect(screen.getByText('FINISHED')).toBeInTheDocument();
+    expect(screen.getByText('SCHEDULED')).toBeInTheDocument();
+    expect(screen.getByText('CANCELLED')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes to main container', () => {
@@ -409,7 +409,7 @@ describe('GameFilters Component', () => {
 
   it('handles large games count', () => {
     render(<GameFilters {...defaultProps} filteredGamesCount={9999} />);
-    expect(screen.getByText('9999')).toBeInTheDocument();
+    expect(screen.getByText('10.00K')).toBeInTheDocument();
     expect(screen.getByText('games found')).toBeInTheDocument();
   });
 });

@@ -107,6 +107,7 @@ export type CreateGameInput = {
   home_team_id: Scalars['String']['input'];
   home_team_score?: InputMaybe<Scalars['Int']['input']>;
   nba_game_id?: InputMaybe<Scalars['ID']['input']>;
+  season?: InputMaybe<Scalars['String']['input']>;
   status: Scalars['String']['input'];
 };
 
@@ -271,6 +272,7 @@ export type Game = {
   home_team_score?: Maybe<Scalars['Int']['output']>;
   id: Scalars['ID']['output'];
   nba_game_id?: Maybe<Scalars['String']['output']>;
+  season?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   total_ratings?: Maybe<Scalars['Int']['output']>;
   updated_at: Scalars['DateTime']['output'];
@@ -367,6 +369,7 @@ export type GameLogSearchFilters = {
 export enum GameStatusEnum {
   Cancelled = 'CANCELLED',
   Finished = 'FINISHED',
+  InProgress = 'IN_PROGRESS',
   Live = 'LIVE',
   Scheduled = 'SCHEDULED'
 }

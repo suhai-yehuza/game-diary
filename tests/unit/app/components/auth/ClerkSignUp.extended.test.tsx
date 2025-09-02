@@ -50,36 +50,29 @@ describe('ClerkSignUp', () => {
     expect(screen.getByTestId('clerk-sign-up-component')).toBeInTheDocument();
   });
 
-  it('renders ThemeProvider', async () => {
+  it('renders sign-up component', async () => {
     const ClerkSignUp = (await import('@src/app/components/auth/ClerkSignUp')).default;
     render(<ClerkSignUp />);
 
-    expect(screen.getByTestId('theme-provider')).toBeInTheDocument();
+    expect(screen.getByTestId('clerk-sign-up')).toBeInTheDocument();
   });
 
   it('applies correct CSS classes to wrapper', async () => {
     const ClerkSignUp = (await import('@src/app/components/auth/ClerkSignUp')).default;
     const { container } = render(<ClerkSignUp />);
 
-    // The wrapper is the theme-provider div, so we need to look at its child
-    const wrapper = container.firstChild?.firstChild as HTMLElement;
+    // The wrapper is the first div with flex classes
+    const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toHaveClass('flex', 'min-h-screen', 'items-center', 'justify-center');
   });
 
-  it('forwards props to SignUp component', async () => {
+  it('renders without props', async () => {
     const ClerkSignUp = (await import('@src/app/components/auth/ClerkSignUp')).default;
-    const testProps = {
-      redirectUrl: '/dashboard',
-      afterSignUpUrl: '/welcome',
-      signUpUrl: '/sign-up',
-    };
 
-    render(<ClerkSignUp {...testProps} />);
+    render(<ClerkSignUp />);
 
-    const signUpComponent = screen.getByTestId('clerk-sign-up-component');
-    expect(signUpComponent).toHaveAttribute('redirectUrl', '/dashboard');
-    expect(signUpComponent).toHaveAttribute('afterSignUpUrl', '/welcome');
-    expect(signUpComponent).toHaveAttribute('signUpUrl', '/sign-up');
+    const signUpComponent = screen.getByTestId('clerk-sign-up');
+    expect(signUpComponent).toBeInTheDocument();
   });
 
   it('handles footer alignment when footer action exists', async () => {

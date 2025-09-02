@@ -13,6 +13,9 @@ vi.mock('@/lib/utils/nba-season', () => ({
   getLatestNbaSeason: vi.fn(() => '2024'),
 }));
 
+// Mock Redis service to avoid complex internal fetch calls
+// Cache mock removed
+
 // Mock window.__API_MOCK_MODE__
 const _mockWindow = {
   __API_MOCK_MODE__: false,
@@ -98,7 +101,7 @@ const createMockApiResponse = (games: IGameResponse[]): IGamesApiResponse => ({
   get: 'games',
   parameters: {
     season: '2024',
-    league: 'standard',
+    // league: 'standard',
   },
   errors: [],
   results: games.length,
@@ -172,12 +175,13 @@ describe('useLatestGames', () => {
         createMockGame(2, '2024-12-22T19:30:00.000Z', 'FT'),
       ];
 
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse(mockGames),
+        json: async () => ({ data: createMockApiResponse(mockGames) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -185,7 +189,8 @@ describe('useLatestGames', () => {
 
       expect(result.current.latestGames).toHaveLength(2);
       expect(result.current.error).toBeNull();
-      expect(mockFetch).toHaveBeenCalledWith('/api/proxy/games?season=2024&league=standard');
+      // The hook now calls the mock server endpoint
+      expect(mockFetch).toHaveBeenCalledWith('/api/mock-server?action=mock-data&type=nba-games');
     });
 
     it('should sort games by date (most recent first)', async () => {
@@ -195,12 +200,13 @@ describe('useLatestGames', () => {
         createMockGame(3, '2024-12-22T19:30:00.000Z', 'FT'), // Middle
       ];
 
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse(mockGames),
+        json: async () => ({ data: createMockApiResponse(mockGames) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -216,12 +222,13 @@ describe('useLatestGames', () => {
         createMockGame(i + 1, `2024-12-${20 + i}T19:30:00.000Z`, 'FT')
       );
 
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse(mockGames),
+        json: async () => ({ data: createMockApiResponse(mockGames) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ limit: 5, forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames({ limit: 5 }));
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -317,6 +324,12 @@ describe('useLatestGames', () => {
 
       const mockGames = [createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT')];
 
+      // Mock the cache initialization call
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ success: true }),
+      });
+      // Mock the database API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: async () => createMockApiResponse(mockGames),
@@ -328,7 +341,8 @@ describe('useLatestGames', () => {
         expect(result.current.loading).toBe(false);
       });
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/proxy/games?season=2024&league=standard');
+      // The hook now calls multiple endpoints in sequence: cache check, init, then fallback
+      expect(mockFetch).toHaveBeenCalledWith('/api/games?season=2024');
     });
 
     it('should use mock data in test environment', async () => {
@@ -360,17 +374,19 @@ describe('useLatestGames', () => {
       const mockGames1 = [createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT')];
       const mockGames2 = [createMockGame(2, '2024-12-24T19:30:00.000Z', 'FT')];
 
+      // Mock sequence for initial load
       mockFetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => createMockApiResponse(mockGames1),
+          json: async () => ({ data: createMockApiResponse(mockGames1) }),
         })
+        // Mock sequence for refetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => createMockApiResponse(mockGames2),
+          json: async () => ({ data: createMockApiResponse(mockGames2) }),
         });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -386,18 +402,19 @@ describe('useLatestGames', () => {
         expect(result.current.latestGames[0].id).toBe(2);
       });
 
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledTimes(2); // 1 call for initial load + 1 call for refetch
     });
   });
 
   describe('Edge cases', () => {
     it('should handle empty response array', async () => {
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse([]),
+        json: async () => ({ data: createMockApiResponse([]) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -416,12 +433,13 @@ describe('useLatestGames', () => {
         createMockGame(2, '2024-12-22T19:30:00.000Z', 'FT'),
       ];
 
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse(mockGames as any),
+        json: async () => ({ data: createMockApiResponse(mockGames as any) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);
@@ -434,12 +452,13 @@ describe('useLatestGames', () => {
     it('should handle SSR environment', async () => {
       const mockGames = [createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT')];
 
+      // Mock the mock server API call
       mockFetch.mockResolvedValueOnce({
         ok: true,
-        json: async () => createMockApiResponse(mockGames),
+        json: async () => ({ data: createMockApiResponse(mockGames) }),
       });
 
-      const { result } = renderHook(() => useLatestGames({ forceRealData: true }));
+      const { result } = renderHook(() => useLatestGames());
 
       await waitFor(() => {
         expect(result.current.loading).toBe(false);

@@ -13,6 +13,8 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
+import { GAME_STATUS_VALUES } from '@/lib/constants';
 import type { IGameFiltersProps } from '@/lib/types';
 
 export function GameFilters({
@@ -89,9 +91,19 @@ export function GameFilters({
             }}
           >
             <option value="all">All Statuses</option>
-            <option value="finished">Finished</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="cancelled">Cancelled</option>
+            <option value={GAME_STATUS_VALUES.FINISHED.toLowerCase()}>
+              {GAME_STATUS_VALUES.FINISHED}
+            </option>
+            <option value={GAME_STATUS_VALUES.LIVE.toLowerCase()}>{GAME_STATUS_VALUES.LIVE}</option>
+            <option value={GAME_STATUS_VALUES.IN_PROGRESS.toLowerCase()}>
+              {GAME_STATUS_VALUES.IN_PROGRESS.replace('_', ' ')}
+            </option>
+            <option value={GAME_STATUS_VALUES.SCHEDULED.toLowerCase()}>
+              {GAME_STATUS_VALUES.SCHEDULED}
+            </option>
+            <option value={GAME_STATUS_VALUES.CANCELLED.toLowerCase()}>
+              {GAME_STATUS_VALUES.CANCELLED}
+            </option>
           </select>
 
           <select
@@ -250,10 +262,10 @@ export function GameFilters({
         {/* Results Summary and Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mt-4 pt-4 border-t border-slate-300 dark:border-gray-400">
           <div className="text-slate-100 dark:text-gray-700 text-sm sm:text-base">
-            <span className="font-medium">{filteredGamesCount}</span> games found
+            <span className="font-medium">{formatNumberShort(filteredGamesCount)}</span> games found
             {hasActiveFilters && (
               <span className="text-blue-300 dark:text-blue-600 ml-1">
-                (filtered from {totalGames} total)
+                (filtered from {formatNumberShort(totalGames)} total)
               </span>
             )}
           </div>

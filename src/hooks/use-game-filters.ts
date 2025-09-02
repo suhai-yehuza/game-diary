@@ -1,5 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
+import { GAME_STATUS_VALUES } from '@/lib/constants';
 import type { IGameResponse, IFilterState, IFilterOptions } from '@/lib/types';
 
 const INITIAL_FILTERS: IFilterState = {
@@ -91,32 +92,46 @@ export function useGameFilters(games: IGameResponse[]) {
 
         // Handle common status mappings
         switch (filterStatus) {
-          case 'finished': {
-            return status === 'ft' || status === '3' || statusLong === 'finished';
-          }
-          case 'live': {
+          case GAME_STATUS_VALUES.FINISHED.toLowerCase(): {
             return (
-              status === 'live' ||
+              status === GAME_STATUS_VALUES.FINISHED.toLowerCase() ||
+              status === 'ft' ||
+              status === '3' ||
+              statusLong === 'finished'
+            );
+          }
+          case GAME_STATUS_VALUES.LIVE.toLowerCase(): {
+            return (
+              status === GAME_STATUS_VALUES.LIVE.toLowerCase() ||
               statusLong === 'live' ||
               ['q1', 'q2', 'q3', 'q4', 'ot', '2', '4'].includes(status)
             );
           }
-          case 'scheduled': {
+          case GAME_STATUS_VALUES.IN_PROGRESS.toLowerCase(): {
+            // Games that are in progress but not currently live
+            return (
+              status === GAME_STATUS_VALUES.IN_PROGRESS.toLowerCase() ||
+              statusLong === 'in_progress' ||
+              ['2', '4'].includes(status) // Numeric status codes for in-progress games
+            );
+          }
+          case GAME_STATUS_VALUES.SCHEDULED.toLowerCase(): {
             // Scheduled games must have future dates
             const isScheduledStatus =
               status === 'ns' || status === '1' || statusLong === 'scheduled';
             return isScheduledStatus && gameDate > now;
           }
-          case 'cancelled': {
-            // Include explicitly cancelled games, postponed games, and past scheduled games
+          case GAME_STATUS_VALUES.CANCELLED.toLowerCase(): {
+            // Only include explicitly cancelled or postponed games
             const isExplicitlyCancelled =
-              status === 'cancelled' ||
+              status === GAME_STATUS_VALUES.CANCELLED.toLowerCase() ||
               statusLong === 'cancelled' ||
               statusLong === 'postponed' ||
               statusLong === 'cancelled/postponed';
-            const isPastScheduled =
-              (status === 'ns' || status === '1' || statusLong === 'scheduled') && gameDate <= now;
-            return isExplicitlyCancelled || isPastScheduled;
+
+            // Don't automatically mark past scheduled games as cancelled
+            // They might have been played and have scores
+            return isExplicitlyCancelled;
           }
           default: {
             return status === filterStatus || statusLong === filterStatus;

@@ -23,6 +23,7 @@ vi.mock('lucide-react', () => ({
   Sun: () => <span data-testid="sun-icon">Sun</span>,
   Monitor: () => <span data-testid="monitor-icon">Monitor</span>,
   Hash: () => <span data-testid="hash-icon">Hash</span>,
+  Trash2: () => <span data-testid="trash2-icon">Trash2</span>,
 }));
 
 vi.mock('next/navigation', () => ({

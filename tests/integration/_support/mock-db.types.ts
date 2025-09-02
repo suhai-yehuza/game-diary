@@ -3,7 +3,7 @@
 export type TestUser = {
   id: string;
   username: string;
-  email: string;
+  email_address: string;
   first_name?: string;
   last_name?: string;
   created_at?: string;
@@ -13,8 +13,14 @@ export type TestUser = {
 export type TestGameLog = {
   id: string;
   user_id: string;
-  title: string;
-  content: string;
+  game_id: string;
+  classification: string;
+  watched_setting: string;
+  watched_scope: string;
+  watched_date: string;
+  watched_location: string;
+  rating_for_game: number;
+  notes: string;
   created_at?: string;
   updated_at?: string;
 };
@@ -35,5 +41,5 @@ export type TestNotification = {
   title: string;
   message: string;
   created_at: string;
-  read_at: string | null;
+  read: boolean;
 };

@@ -6,8 +6,8 @@
  * to ensure consistent state between server and client.
  *
  * @typedef {Object} CustomWindow
- * @property {boolean} [__API_MOCK_MODE__]
- * @property {boolean} [__SERVER_API_MOCK_MODE__]
+ * @property {boolean} [__MOCK_MODE__]
+ * @property {boolean} [__SERVER_MOCK_MODE__]
  */
 
 (function () {
@@ -16,7 +16,7 @@
 
     /** @type {Window & CustomWindow} */
     const customWindow = window;
-    customWindow.__API_MOCK_MODE__ = mockMode;
-    customWindow.__SERVER_API_MOCK_MODE__ = mockMode;
+    customWindow.__MOCK_MODE__ = mockMode;
+    customWindow.__SERVER_MOCK_MODE__ = mockMode;
   }
 })();

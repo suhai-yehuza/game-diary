@@ -73,6 +73,12 @@ async function checkDatabase() {
 
     // Get database instance and execute query
     const database = db();
+    if (!database) {
+      return {
+        healthy: false,
+        error: 'Database not available',
+      };
+    }
     await database.execute('SELECT 1 as health_check');
 
     return {

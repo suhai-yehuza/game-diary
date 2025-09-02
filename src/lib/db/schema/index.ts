@@ -4,6 +4,7 @@ import {
   reactionsRelations,
   gameLogsRelations,
   friendshipsRelations,
+  reactionEmojisRelations,
 } from '@/lib/db/schema/relations';
 import {
   nba_games,
@@ -15,7 +16,13 @@ import {
   seasons,
 } from '@src/lib/db/schema/game-schemas';
 import { notifications } from '@src/lib/db/schema/notification-schemas';
-import { users, friendships, reactions, comments } from '@src/lib/db/schema/user-schemas';
+import {
+  users,
+  friendships,
+  reactions,
+  comments,
+  reactionEmojis,
+} from '@src/lib/db/schema/user-schemas';
 
 export {
   usersRelations,
@@ -23,6 +30,7 @@ export {
   reactionsRelations,
   gameLogsRelations,
   friendshipsRelations,
+  reactionEmojisRelations,
 } from '@/lib/db/schema/relations';
 
 // Schema types are exported from @/lib/types instead
@@ -37,7 +45,7 @@ export {
   seasons,
 } from '@src/lib/db/schema/game-schemas';
 export { notifications } from '@src/lib/db/schema/notification-schemas';
-export { users, friendships, reactions } from '@src/lib/db/schema/user-schemas';
+export { users, friendships, reactions, reactionEmojis } from '@src/lib/db/schema/user-schemas';
 
 // Export the schema object
 export const schema = {
@@ -52,6 +60,10 @@ export const schema = {
   reactions: {
     ...reactions,
     relations: reactionsRelations,
+  },
+  reactionEmojis: {
+    ...reactionEmojis,
+    relations: reactionEmojisRelations,
   },
   notifications,
   friendships: {

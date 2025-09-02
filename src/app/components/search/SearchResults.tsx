@@ -9,6 +9,8 @@ import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
 import { SearchAnalytics, useSearchAnalytics } from '@/app/components/search/SearchAnalytics';
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import type { ISearchResultsProps, ResultType } from '@/lib/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
@@ -97,7 +99,9 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                 Search Results
               </h1>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">{searchInsights.total} results found</span>
+                <span className="font-medium">
+                  {formatNumberShort(searchInsights.total)} results found
+                </span>
                 <span className="hidden sm:inline">•</span>
                 <span>
                   Results for:&nbsp;
@@ -167,7 +171,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               }`}
               onClick={() => handleFilterChange('all')}
             >
-              All ({searchInsights.total})
+              All ({formatNumberShort(searchInsights.total)})
             </button>
             <button
               className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
@@ -179,7 +183,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             >
               <User className="w-3 h-3 sm:w-4 sm:h-4" />
               <span className={activeFilter === 'users' ? 'bg-semantic-success' : ''}>
-                Users ({getFilterCount('users')})
+                Users ({formatNumberShort(getFilterCount('users'))})
               </span>
             </button>
             <button
@@ -191,8 +195,8 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               onClick={() => handleFilterChange('games')}
             >
               <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className={activeFilter === 'games' ? 'bg-accent-orange' : ''}>
-                Games ({getFilterCount('games')})
+              <span className={activeFilter === 'games' ? TAILWIND_CLASSES.status.info : ''}>
+                Games ({formatNumberShort(getFilterCount('games'))})
               </span>
             </button>
             <button
@@ -204,18 +208,18 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               onClick={() => handleFilterChange('gameLogs')}
             >
               <Trophy className="w-3 h-3 sm:w-4 sm:h-4" />
-              Game Logs ({getFilterCount('gameLogs')})
+              Game Logs ({formatNumberShort(getFilterCount('gameLogs'))})
             </button>
             <button
               className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'teams'
                   ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  : 'text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
               }`}
               onClick={() => handleFilterChange('teams')}
             >
               <Building2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              Teams ({getFilterCount('teams')})
+              Teams ({formatNumberShort(getFilterCount('teams'))})
             </button>
             <button
               className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
@@ -226,7 +230,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               onClick={() => handleFilterChange('players')}
             >
               <User className="w-3 h-3 sm:w-4 sm:h-4" />
-              Players ({getFilterCount('players')})
+              Players ({formatNumberShort(getFilterCount('players'))})
             </button>
           </div>
         </div>
@@ -268,7 +272,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               getFilterCount('users') > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Users ({getFilterCount('users')})
+                    Users ({formatNumberShort(getFilterCount('users'))})
                   </h2>
                   <div className="space-y-3">
                     {results.data.users?.map(user => (
@@ -283,7 +287,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               getFilterCount('games') > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Games ({getFilterCount('games')})
+                    Games ({formatNumberShort(getFilterCount('games'))})
                   </h2>
                   <div className="space-y-3">
                     {results.data.games?.map(game => (
@@ -298,7 +302,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               getFilterCount('gameLogs') > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Game Logs ({getFilterCount('gameLogs')})
+                    Game Logs ({formatNumberShort(getFilterCount('gameLogs'))})
                   </h2>
                   <div className="space-y-3">
                     {results.data.gameLogs?.map(gameLog => (
@@ -313,7 +317,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               getFilterCount('teams') > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Teams ({getFilterCount('teams')})
+                    Teams ({formatNumberShort(getFilterCount('teams'))})
                   </h2>
                   <div className="space-y-3">
                     {results.data.teams?.map(team => (
@@ -328,7 +332,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               getFilterCount('players') > 0 && (
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    Players ({getFilterCount('players')})
+                    Players ({formatNumberShort(getFilterCount('players'))})
                   </h2>
                   <div className="space-y-3">
                     {results.data.players?.map(player => (
@@ -346,7 +350,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                   className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
-                  View All Results
+                  View All {formatNumberShort(searchInsights.total)} Results
                 </button>
               </div>
             )}

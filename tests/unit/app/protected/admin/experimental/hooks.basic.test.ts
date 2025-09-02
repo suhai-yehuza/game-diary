@@ -41,6 +41,13 @@ vi.mock('@/lib/constants', () => ({
     PROTECTED: 'PROTECTED',
     PUBLIC: 'PUBLIC',
   },
+  API_ENDPOINTS: {
+    NBA: {
+      GAMES: '/api/games',
+      TEAMS: '/api/teams',
+      PLAYERS: '/api/players',
+    },
+  },
 }));
 
 describe('Admin Experimental Hooks', () => {

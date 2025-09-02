@@ -1,14 +1,14 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { cache } from '@/lib/cache';
+// import { cache } from '@/lib/cache'; // DISABLED: Using only NBA API cache now
 import {
   getPlayers,
   getUniqueColleges,
   getUniqueCountries,
   getUniquePositions,
 } from '@/lib/db/services/players.service';
-import { CacheNamespace } from '@/lib/types';
+// import { CacheNamespace } from '@/lib/types'; // Unused import
 import type { IPlayersApiResponse, IPlayerFilters } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
@@ -42,16 +42,8 @@ export async function GET(request: NextRequest) {
     // Special endpoint for filter options
     const getOptions = searchParams.get('options');
     if (getOptions === 'true') {
-      // Cache filter options for 1 hour since they don't change frequently
-      const optionsCacheKey = 'players:filter-options';
-      const cachedOptions = await cache.get(optionsCacheKey, CacheNamespace.PLAYER_DATA);
-
-      if (cachedOptions !== null) {
-        console.log('[Players API] Cache hit for filter options');
-        return NextResponse.json(cachedOptions);
-      }
-
-      console.log('[Players API] Cache miss for filter options, fetching from database...');
+      // DISABLED: Database caching - fetch filter options directly
+      console.log('[Players API] Fetching filter options from database (no caching)...');
 
       const [colleges, countries, positions] = await Promise.all([
         getUniqueColleges(),
@@ -64,10 +56,6 @@ export async function GET(request: NextRequest) {
         countries,
         positions,
       };
-
-      // Cache for 1 hour
-      await cache.set(optionsCacheKey, options, 60 * 60 * 1000, CacheNamespace.PLAYER_DATA);
-      console.log('[Players API] Cached filter options');
 
       return NextResponse.json(options);
     }
@@ -85,22 +73,14 @@ export async function GET(request: NextRequest) {
       offset,
     };
 
-    // Generate cache key based on filters and pagination
-    const cacheKey = `players:${JSON.stringify(filters)}:${page}:${limit}`;
-
-    // Try to get from cache first
-    const cachedResult = await cache.get(cacheKey, CacheNamespace.PLAYER_DATA);
-    if (cachedResult !== null) {
-      console.log(`[Players API] Cache hit for filters: ${JSON.stringify(filters)}`);
-      return NextResponse.json(cachedResult);
-    }
-
-    console.log(
-      `[Players API] Cache miss for filters: ${JSON.stringify(filters)}, fetching from database...`
-    );
+    // Cache logic removed - fetch directly from database
+    console.log(`[Players API] Fetching from database for filters: ${JSON.stringify(filters)}`);
+    console.log(`[Players API] Limit: ${limit}, Offset: ${offset}`);
 
     // Fetch players from database
     const { players, total } = await getPlayers(filters);
+
+    console.log(`[Players API] Retrieved ${players.length} players, total: ${total}`);
 
     // Format response to match external API structure
     const response: IPlayersApiResponse = {
@@ -117,10 +97,6 @@ export async function GET(request: NextRequest) {
       results: total,
       response: players,
     };
-
-    // Cache the result for 15 minutes (player data doesn't change frequently)
-    await cache.set(cacheKey, response, 15 * 60 * 1000, CacheNamespace.PLAYER_DATA);
-    console.log(`[Players API] Cached result for filters: ${JSON.stringify(filters)}`);
 
     return NextResponse.json(response);
   } catch (error) {

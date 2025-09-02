@@ -89,9 +89,9 @@ class DatabaseManager {
 const connectionString = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 const dbManager = new DatabaseManager({ connectionString });
 
-// Initialize database connection in all runtimes except explicit CI/test runners
+// Initialize database connection in all runtimes except explicit CI/test runners or when MOCK_MODE is enabled
 // Note: Production platforms like Vercel are NOT considered CI by our isCI().
-if (connectionString && !isCI()) {
+if (connectionString && !isCI() && process.env.MOCK_MODE !== 'true') {
   dbManager.initialize().catch(error => {
     // Use centralized error handling
     errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
@@ -102,7 +102,19 @@ if (connectionString && !isCI()) {
 }
 
 // Export database instance for backward compatibility
-export const db = dbManager.getDatabase.bind(dbManager);
+export const db = () => {
+  // If MOCK_MODE is enabled, return null to indicate no database connection
+  if (process.env.MOCK_MODE === 'true') {
+    return null;
+  }
+
+  try {
+    return dbManager.getDatabase();
+  } catch (_error) {
+    // If database is not initialized, return null
+    return null;
+  }
+};
 
 // Export database manager for advanced usage
 export { dbManager };

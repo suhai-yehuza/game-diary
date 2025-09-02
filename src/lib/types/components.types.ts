@@ -127,6 +127,16 @@ export interface IEmptyStateProps {
 // ADMIN COMPONENT TYPES
 // ========================================
 
+export interface IDbRefreshButtonSimpleProps {
+  onProgressChange?: (progress: {
+    isRefreshing: boolean;
+    progress: IDbRefreshProgress;
+    status: 'idle' | 'success' | 'error';
+    message: string;
+    onTerminate: () => void;
+  }) => void;
+}
+
 export interface IErrorBoundaryState {
   hasError: boolean;
   error?: Error;
@@ -429,12 +439,6 @@ export interface IClassificationIconProps {
   classification: string;
 }
 
-export interface ISignUpPageProps {
-  params: {
-    'sign-up': string[];
-  };
-}
-
 // ========================================
 // COMPONENT SPECIFIC TYPES (MOVED FROM APP DIRECTORY)
 // ========================================
@@ -570,4 +574,39 @@ export interface IClientPerformanceMetrics {
   averageQueryTime: number;
   slowQueries: number;
   totalLoadTime: number;
+}
+
+// Cache component types removed
+
+// ========================================
+// DB REFRESH COMPONENT TYPES
+// ========================================
+
+export interface IDbRefreshJob {
+  id: string;
+  name: string;
+  status: 'pending' | 'loading' | 'ready' | 'error';
+  count?: number;
+  progress?: number;
+  total?: number;
+}
+
+export interface IDbRefreshProgress {
+  currentStep: string;
+  stepNumber: number;
+  totalSteps: number;
+  progress: number;
+  status: 'idle' | 'running' | 'completed' | 'error';
+  message: string;
+  details: string;
+  startTime?: Date;
+  estimatedTimeRemaining?: string;
+}
+
+export interface IDbRefreshProgressTrackerProps {
+  isVisible: boolean;
+  onComplete?: () => void;
+  progress?: IDbRefreshProgress;
+  onTerminate?: () => void;
+  isTerminating?: boolean;
 }

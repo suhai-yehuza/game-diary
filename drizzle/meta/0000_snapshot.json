@@ -1,5 +1,5 @@
 {
-  "id": "274c25e6-daa2-4dde-8356-1b5e1f423c1a",
+  "id": "63b20e3a-9789-4424-a41e-a611a05aaf0b",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -72,8 +72,12 @@
           "name": "comments_user_id_users_id_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -140,8 +144,12 @@
           "name": "friendships_friend_id_users_id_fk",
           "tableFrom": "friendships",
           "tableTo": "users",
-          "columnsFrom": ["friend_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "friend_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -149,8 +157,12 @@
           "name": "friendships_user_id_users_id_fk",
           "tableFrom": "friendships",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -160,7 +172,10 @@
         "friendships_friend_id_user_id_unique": {
           "name": "friendships_friend_id_user_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["friend_id", "user_id"]
+          "columns": [
+            "friend_id",
+            "user_id"
+          ]
         }
       },
       "policies": {},
@@ -264,14 +279,118 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_game_logs_user_created": {
+          "name": "idx_game_logs_user_created",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_classification_created": {
+          "name": "idx_game_logs_classification_created",
+          "columns": [
+            {
+              "expression": "classification",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_user_classification_created": {
+          "name": "idx_game_logs_user_classification_created",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "classification",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_game_id": {
+          "name": "idx_game_logs_game_id",
+          "columns": [
+            {
+              "expression": "game_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_deleted_at": {
+          "name": "idx_game_logs_deleted_at",
+          "columns": [
+            {
+              "expression": "deleted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "game_logs_user_id_users_id_fk": {
           "name": "game_logs_user_id_users_id_fk",
           "tableFrom": "game_logs",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -279,8 +398,12 @@
           "name": "game_logs_game_id_nba_games_id_fk",
           "tableFrom": "game_logs",
           "tableTo": "nba_games",
-          "columnsFrom": ["game_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -290,7 +413,10 @@
         "game_logs_user_id_game_id_unique": {
           "name": "game_logs_user_id_game_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["user_id", "game_id"]
+          "columns": [
+            "user_id",
+            "game_id"
+          ]
         }
       },
       "policies": {},
@@ -354,8 +480,12 @@
           "name": "game_ratings_game_id_nba_games_id_fk",
           "tableFrom": "game_ratings",
           "tableTo": "nba_games",
-          "columnsFrom": ["game_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "game_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -365,7 +495,9 @@
         "game_ratings_game_id_unique": {
           "name": "game_ratings_game_id_unique",
           "nullsNotDistinct": false,
-          "columns": ["game_id"]
+          "columns": [
+            "game_id"
+          ]
         }
       },
       "policies": {},
@@ -396,7 +528,9 @@
         "leagues_name_unique": {
           "name": "leagues_name_unique",
           "nullsNotDistinct": false,
-          "columns": ["name"]
+          "columns": [
+            "name"
+          ]
         }
       },
       "policies": {},
@@ -409,7 +543,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(20)",
+          "type": "varchar(50)",
           "primaryKey": true,
           "notNull": true
         },
@@ -419,6 +553,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'nba'"
+        },
+        "season": {
+          "name": "season",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
         },
         "nba_game_id": {
           "name": "nba_game_id",
@@ -431,6 +571,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
+        },
+        "stage": {
+          "name": "stage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "home_team_id": {
           "name": "home_team_id",
@@ -461,6 +607,54 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        },
+        "status_data": {
+          "name": "status_data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scores": {
+          "name": "scores",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arena": {
+          "name": "arena",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "periods": {
+          "name": "periods",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "officials": {
+          "name": "officials",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "times_tied": {
+          "name": "times_tied",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lead_changes": {
+          "name": "lead_changes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nugget": {
+          "name": "nugget",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "average_rating": {
           "name": "average_rating",
@@ -700,12 +894,35 @@
           "name": "notifications_user_id_users_id_fk",
           "tableFrom": "notifications",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.reaction_emojis": {
+      "name": "reaction_emojis",
+      "schema": "",
+      "columns": {
+        "emoji": {
+          "name": "emoji",
+          "type": "varchar(10)",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -773,9 +990,26 @@
           "name": "reactions_user_id_users_id_fk",
           "tableFrom": "reactions",
           "tableTo": "users",
-          "columnsFrom": ["user_id"],
-          "columnsTo": ["id"],
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "reactions_emoji_reaction_emojis_emoji_fk": {
+          "name": "reactions_emoji_reaction_emojis_emoji_fk",
+          "tableFrom": "reactions",
+          "tableTo": "reaction_emojis",
+          "columnsFrom": [
+            "emoji"
+          ],
+          "columnsTo": [
+            "emoji"
+          ],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
@@ -784,7 +1018,12 @@
         "reactions_user_id_target_type_target_id_emoji_unique": {
           "name": "reactions_user_id_target_type_target_id_emoji_unique",
           "nullsNotDistinct": false,
-          "columns": ["user_id", "target_type", "target_id", "emoji"]
+          "columns": [
+            "user_id",
+            "target_type",
+            "target_id",
+            "emoji"
+          ]
         }
       },
       "policies": {},
@@ -815,7 +1054,9 @@
         "seasons_year_unique": {
           "name": "seasons_year_unique",
           "nullsNotDistinct": false,
-          "columns": ["year"]
+          "columns": [
+            "year"
+          ]
         }
       },
       "policies": {},
@@ -1068,7 +1309,9 @@
         "users_email_address_unique": {
           "name": "users_email_address_unique",
           "nullsNotDistinct": false,
-          "columns": ["email_address"]
+          "columns": [
+            "email_address"
+          ]
         }
       },
       "policies": {},

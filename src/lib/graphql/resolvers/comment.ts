@@ -1,4 +1,4 @@
-import { eq, and, desc, sql, isNull } from 'drizzle-orm';
+import { eq, and, sql, isNull, desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
@@ -65,14 +65,15 @@ export const commentQueryResolvers = {
 
     try {
       // Get the paginated results
-      const commentsData = await db()?.query.comments.findMany({
-        where: whereClause,
-        limit,
-        orderBy: [desc(comments.created_at)],
-        with: {
-          user: true,
-        },
-      });
+      const commentsData =
+        (await db()?.query.comments.findMany({
+          where: whereClause,
+          limit,
+          orderBy: [desc(comments.created_at)],
+          with: {
+            user: true,
+          },
+        })) ?? [];
 
       // Get the total count for pagination
       const totalCountResult = await db()
@@ -150,14 +151,15 @@ export const commentResolver = {
     const limit = args.pagination?.first ?? API_CONFIG.pagination.DEFAULT_COMMENT_PAGE_SIZE;
 
     // Get child comments for this comment
-    const childCommentsData = await db()?.query.comments.findMany({
-      where: and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'COMMENT')),
-      limit,
-      orderBy: [desc(comments.created_at)],
-      with: {
-        user: true,
-      },
-    });
+    const childCommentsData =
+      (await db()?.query.comments.findMany({
+        where: and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'COMMENT')),
+        limit,
+        orderBy: [desc(comments.created_at)],
+        with: {
+          user: true,
+        },
+      })) ?? [];
 
     // Get the total count for pagination
     const totalCountResult = await db()
@@ -214,9 +216,19 @@ export const commentResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for child comment count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(comments)
         .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'COMMENT')));
 
@@ -226,6 +238,7 @@ export const commentResolver = {
       errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
         component: 'GraphQL Resolver',
         action: 'Fetch child comment count',
+        timestamp: new Date(),
       });
       return 0;
     }
@@ -237,9 +250,19 @@ export const commentResolver = {
       throw new AuthorizationError('Authentication required');
     }
 
+    // If MOCK_MODE is enabled, return 0 for reaction count
+    if (process.env.MOCK_MODE === 'true') {
+      return 0;
+    }
+
     try {
-      const totalCountResult = await db()
-        ?.select({ count: sql<number>`count(*)` })
+      const database = db();
+      if (!database) {
+        return 0;
+      }
+
+      const totalCountResult = await database
+        .select({ count: sql<number>`count(*)` })
         .from(reactions)
         .where(
           and(
@@ -255,6 +278,7 @@ export const commentResolver = {
       errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
         component: 'GraphQL Resolver',
         action: 'Fetch reaction count',
+        timestamp: new Date(),
       });
       return 0;
     }

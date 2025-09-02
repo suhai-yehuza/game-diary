@@ -6,11 +6,17 @@
 -- - Foreign key relationships with cascade delete
 -- - Row-level security policies
 -- - Audit logging infrastructure
--- - Performance indexes and constraints
+-- - Performance indexes and constraints (consolidated from all migration files)
 -- - Database triggers and functions
+-- - Season field support for NBA games
+-- - Enhanced ID format: ${season}-${game.id} for nba_games
+-- - Optimized reaction emoji constraints
+-- - Enhanced performance indexes for game_logs, friendships, and NBA tables
+-- - Comprehensive index documentation and comments
 --
--- Last Updated: 2024-07-14
+-- Last Updated: 2024-12-30
 -- UUID v7 Standardization: Application-level ID generation
+-- Season-aware game ID format for multi-season support
 
 -- ============================================================================
 -- SECTION 0: CLEAN SLATE - DROP ALL EXISTING OBJECTS
@@ -99,15 +105,25 @@ CREATE TABLE "nba_players" (
 
 -- NBA Games table - External API data
 CREATE TABLE "nba_games" (
-    "id" varchar(20) PRIMARY KEY NOT NULL,
+    "id" varchar(50) PRIMARY KEY NOT NULL, -- Format: ${season}-${game.id}
     "game_type" varchar(50) DEFAULT 'nba' NOT NULL,
+    "season" varchar(20), -- Season year (e.g., "2023", "2024")
     "nba_game_id" varchar(255),
     "date" timestamp NOT NULL,
+    "stage" integer, -- Game stage (e.g., regular season, playoffs, etc.)
     "home_team_id" varchar(255) NOT NULL,
     "away_team_id" varchar(255) NOT NULL,
     "home_team_score" integer,
     "away_team_score" integer,
-    "status" varchar(50) NOT NULL,
+    "status" varchar(50) NOT NULL, -- Keep for backward compatibility
+    "status_data" jsonb, -- New field to store complete status object
+    "scores" jsonb, -- New field to store complete scores object with win/loss, series, linescore
+    "arena" jsonb, -- New field to store complete arena object
+    "periods" jsonb, -- New field to store complete periods object
+    "officials" text[], -- Array of official names
+    "times_tied" integer, -- Number of times the game was tied
+    "lead_changes" integer, -- Number of lead changes
+    "nugget" text, -- Game summary/description
     "average_rating" numeric(4, 2) DEFAULT '0.00' NOT NULL,
     "total_ratings" integer DEFAULT 0 NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
@@ -210,6 +226,16 @@ CREATE TABLE "comments" (
     "deleted_at" timestamp (6) with time zone
 );
 
+-- Reaction Emojis table - Source of truth for allowed emojis
+CREATE TABLE "reaction_emojis" (
+    "emoji" varchar(10) PRIMARY KEY NOT NULL
+);
+
+-- Populate allowed emojis (keep in sync with application constants)
+INSERT INTO "reaction_emojis" ("emoji") VALUES
+    ('👍'), ('👎'), ('❤️'), ('😂'), ('😮'), ('😢'), ('😠'), ('🔥'), ('👏'), ('👀'),
+    ('🚀'), ('💪'), ('🐐'), ('🎯'), ('🏀'), ('⚽'), ('🏈');
+
 -- Reactions table - User reactions to content
 CREATE TABLE "reactions" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
@@ -222,6 +248,13 @@ CREATE TABLE "reactions" (
     "deleted_at" timestamp (6) with time zone,
     CONSTRAINT "reactions_user_id_target_type_target_id_emoji_unique" UNIQUE("user_id","target_type","target_id","emoji")
 );
+
+-- Add foreign key constraint to ensure only valid reaction emojis are stored
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_emoji_fk"
+FOREIGN KEY ("emoji") REFERENCES "reaction_emojis"("emoji");
+
+-- Add comment explaining the constraint
+COMMENT ON CONSTRAINT "reactions_emoji_fk" ON "reactions" IS 'Ensures only valid reaction emojis are stored - source of truth is reaction_emojis table, which should be kept in sync with application constants.';
 
 -- Notifications table - User notifications
 CREATE TABLE "notifications" (
@@ -236,7 +269,8 @@ CREATE TABLE "notifications" (
     "read" boolean DEFAULT false,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
-    "deleted_at" timestamp DEFAULT null
+    "deleted_at" timestamp DEFAULT null,
+    CONSTRAINT "notifications_user_target_type_unique" UNIQUE("user_id", "target_id", "target_type", "type")
 );
 
 -- ============================================================================
@@ -399,19 +433,33 @@ CREATE INDEX IF NOT EXISTS "idx_users_created_at" ON "users" ("created_at");
 CREATE INDEX IF NOT EXISTS "idx_users_deleted_at" ON "users" ("deleted_at");
 
 -- Friendship indexes
+-- Core performance indexes for friendships
+CREATE INDEX IF NOT EXISTS "idx_friendships_status_users" ON "friendships" ("status", "user_id", "friend_id");
+CREATE INDEX IF NOT EXISTS "idx_friendships_bidirectional" ON "friendships" ("user_id", "friend_id", "status");
+
+-- Individual column indexes for filtering
 CREATE INDEX IF NOT EXISTS "idx_friendships_status" ON "friendships" ("status");
 CREATE INDEX IF NOT EXISTS "idx_friendships_user_id" ON "friendships" ("user_id");
 CREATE INDEX IF NOT EXISTS "idx_friendships_friend_id" ON "friendships" ("friend_id");
+
+-- Composite indexes for common query patterns
 CREATE INDEX IF NOT EXISTS "idx_friendships_user_friend_status" ON "friendships" ("user_id", "friend_id", "status");
 CREATE INDEX IF NOT EXISTS "idx_friendships_friend_user_status" ON "friendships" ("friend_id", "user_id", "status");
 
 -- Game log indexes
+-- Core performance indexes for game logs
+CREATE INDEX IF NOT EXISTS "idx_game_logs_user_created" ON "game_logs" ("user_id", "created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_game_logs_classification_created" ON "game_logs" ("classification", "created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_game_logs_user_classification_created" ON "game_logs" ("user_id", "classification", "created_at" DESC);
+
+-- Individual column indexes for filtering
 CREATE INDEX IF NOT EXISTS "idx_game_logs_user_id" ON "game_logs" ("user_id");
 CREATE INDEX IF NOT EXISTS "idx_game_logs_game_id" ON "game_logs" ("game_id");
 CREATE INDEX IF NOT EXISTS "idx_game_logs_classification" ON "game_logs" ("classification");
 CREATE INDEX IF NOT EXISTS "idx_game_logs_watched_date" ON "game_logs" ("watched_date");
 CREATE INDEX IF NOT EXISTS "idx_game_logs_rating" ON "game_logs" ("rating_for_game");
-CREATE INDEX IF NOT EXISTS "idx_game_logs_created_at" ON "game_logs" ("created_at");
+CREATE INDEX IF NOT EXISTS "idx_game_logs_created_at" ON "game_logs" ("created_at" DESC);
+CREATE INDEX IF NOT EXISTS "idx_game_logs_deleted_at" ON "game_logs" ("deleted_at");
 
 -- Comment indexes
 CREATE INDEX IF NOT EXISTS "idx_comments_parent" ON "comments" ("parent_id", "parent_type");
@@ -425,10 +473,66 @@ CREATE INDEX IF NOT EXISTS "idx_reactions_target" ON "reactions" ("target_id", "
 CREATE INDEX IF NOT EXISTS "idx_reactions_user" ON "reactions" ("user_id");
 CREATE INDEX IF NOT EXISTS "idx_reactions_emoji" ON "reactions" ("emoji");
 
+-- Optimized partial index for non-deleted reactions
+CREATE INDEX IF NOT EXISTS "idx_reactions_target_deleted" ON "reactions" ("target_id", "target_type", "deleted_at")
+WHERE "deleted_at" IS NULL;
+COMMENT ON INDEX "idx_reactions_target_deleted" IS 'Partial index for non-deleted reactions - improves query performance by excluding soft-deleted records';
+
 -- Notification indexes
 CREATE INDEX IF NOT EXISTS "idx_notifications_user_resolved" ON "notifications" ("user_id", "resolved");
 CREATE INDEX IF NOT EXISTS "idx_notifications_target" ON "notifications" ("target_id", "target_type");
 CREATE INDEX IF NOT EXISTS "idx_notifications_created_at" ON "notifications" ("created_at");
+
+-- NBA Games table performance indexes
+CREATE INDEX IF NOT EXISTS "idx_nba_games_season" ON "nba_games" ("season");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_date" ON "nba_games" ("date");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_status" ON "nba_games" ("status");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_home_team" ON "nba_games" ("home_team_id");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_away_team" ON "nba_games" ("away_team_id");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_season_date" ON "nba_games" ("season", "date");
+CREATE INDEX IF NOT EXISTS "idx_nba_games_nba_game_id" ON "nba_games" ("nba_game_id");
+
+-- NBA Players table performance indexes
+CREATE INDEX IF NOT EXISTS "idx_nba_players_first_name" ON "nba_players" ("first_name");
+CREATE INDEX IF NOT EXISTS "idx_nba_players_last_name" ON "nba_players" ("last_name");
+CREATE INDEX IF NOT EXISTS "idx_nba_players_teams" ON "nba_players" USING gin ("teams");
+
+-- ============================================================================
+-- INDEX COMMENTS FOR DOCUMENTATION
+-- ============================================================================
+
+-- Game logs index comments
+COMMENT ON INDEX "idx_game_logs_user_created" IS 'Optimizes queries for user''s game logs ordered by creation date';
+COMMENT ON INDEX "idx_game_logs_classification_created" IS 'Optimizes queries for public/protected game logs';
+COMMENT ON INDEX "idx_game_logs_user_classification_created" IS 'Optimizes friends game logs queries';
+COMMENT ON INDEX "idx_game_logs_user_id" IS 'Optimizes user-specific game log lookups';
+COMMENT ON INDEX "idx_game_logs_classification" IS 'Optimizes classification filtering';
+COMMENT ON INDEX "idx_game_logs_game_id" IS 'Optimizes game-specific game log lookups';
+COMMENT ON INDEX "idx_game_logs_created_at" IS 'Optimizes chronological ordering';
+COMMENT ON INDEX "idx_game_logs_deleted_at" IS 'Optimizes soft delete filtering';
+COMMENT ON INDEX "idx_game_logs_rating" IS 'Optimizes rating range queries';
+COMMENT ON INDEX "idx_game_logs_watched_date" IS 'Optimizes watched date queries';
+
+-- Friendships index comments
+COMMENT ON INDEX "idx_friendships_status_users" IS 'Optimizes friendship status queries';
+COMMENT ON INDEX "idx_friendships_bidirectional" IS 'Optimizes bidirectional friendship lookups';
+COMMENT ON INDEX "idx_friendships_user_id" IS 'Optimizes user-specific friendship lookups';
+COMMENT ON INDEX "idx_friendships_friend_id" IS 'Optimizes friend-specific friendship lookups';
+COMMENT ON INDEX "idx_friendships_status" IS 'Optimizes status filtering';
+COMMENT ON INDEX "idx_friendships_user_friend_status" IS 'Optimizes user-friend-status queries';
+COMMENT ON INDEX "idx_friendships_friend_user_status" IS 'Optimizes friend-user-status queries';
+
+-- NBA games index comments
+COMMENT ON INDEX "idx_nba_games_season" IS 'Optimizes season-based game queries';
+COMMENT ON INDEX "idx_nba_games_date" IS 'Optimizes date-based game queries';
+COMMENT ON INDEX "idx_nba_games_status" IS 'Optimizes status-based game filtering';
+COMMENT ON INDEX "idx_nba_games_season_date" IS 'Optimizes season and date range queries';
+COMMENT ON INDEX "idx_nba_games_nba_game_id" IS 'Optimizes external API ID lookups';
+
+-- NBA players index comments
+COMMENT ON INDEX "idx_nba_players_first_name" IS 'Optimizes first name searches';
+COMMENT ON INDEX "idx_nba_players_last_name" IS 'Optimizes last name searches';
+COMMENT ON INDEX "idx_nba_players_teams" IS 'Optimizes JSON team data searches using GIN index';
 
 -- Audit log indexes
 CREATE INDEX IF NOT EXISTS "audit_logs_timestamp_idx" ON "audit_logs" ("timestamp");

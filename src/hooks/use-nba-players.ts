@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 
 import type { IPlayersApiResponse, IPlayerResponse, IUseNBAPlayersOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
+import { errorHandlers } from '@/lib/utils/error-handler';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 function isPlayersApiResponse(data: unknown): data is IPlayersApiResponse {
   return (
@@ -28,44 +30,44 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
-      const useMockData =
-        !forceRealData &&
-        ((typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-          isTestOrCIEnvironment());
+      // Use mock data in development if MOCK_MODE is enabled, or in test environments
+      const useMockData = !forceRealData && (isMockModeEnabled() || isTestOrCIEnvironment());
 
-      let endpoint: string;
       if (useMockData) {
-        endpoint = '/api/mock-server?action=mock-data&type=nba-players';
-      } else {
-        // Fetch from our database API instead of external proxy
-        const params = new URLSearchParams({
-          limit: '200', // Get more players by default
-        });
-        if (teamId) {
-          params.append('team', teamId);
+        // Handle mock data
+        const response = await fetch('/api/mock-server?action=mock-data&type=nba-players');
+        if (!response.ok) {
+          throw new Error(`Mock API request failed: ${response.status} ${response.statusText}`);
         }
-        endpoint = `/api/players?${params.toString()}`;
-      }
 
-      const response = await fetch(endpoint);
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status} ${response.statusText}`);
-      }
-
-      const data = (await response.json()) as unknown;
-
-      // Handle mock server response format
-      if (useMockData && typeof data === 'object' && data !== null && 'data' in data) {
-        const mockData = (data as { data: unknown }).data;
-        if (isPlayersApiResponse(mockData)) {
-          setPlayers(mockData.response || []);
-        } else {
-          setPlayers([]);
+        const data = (await response.json()) as unknown;
+        if (typeof data === 'object' && data !== null && 'data' in data) {
+          const mockData = (data as { data: unknown }).data;
+          if (isPlayersApiResponse(mockData)) {
+            setPlayers(mockData.response || []);
+          } else {
+            setPlayers([]);
+          }
         }
         return;
       }
+
+      // Cache logic removed - fetch directly from database API
+      console.log('👥 Fetching players from database API...');
+      const params = new URLSearchParams({
+        limit: '200', // Get more players by default
+      });
+      if (teamId) {
+        params.append('team', teamId);
+      }
+      const endpoint = `/api/players?${params.toString()}`;
+
+      const response = await fetch(endpoint);
+      if (!response.ok) {
+        throw new Error(`Database API request failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = (await response.json()) as unknown;
 
       // Handle database API response
       if (isPlayersApiResponse(data)) {
@@ -73,6 +75,7 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
         const activePlayers = (data.response || []).filter(
           player => player.leagues?.standard?.active !== false
         );
+        console.log(`✅ Loaded ${activePlayers.length} players from database`);
         setPlayers(activePlayers);
       } else {
         setPlayers([]);
@@ -81,6 +84,7 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
       setPlayers([]);
+      errorHandlers.api(error, { component: 'useNBAPlayers', action: 'fetchPlayers' });
     } finally {
       setLoading(false);
     }

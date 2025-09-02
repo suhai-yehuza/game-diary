@@ -173,6 +173,14 @@ vi.mock('@/lib/types', () => ({
     PLAYERS: 'players',
     STANDINGS: 'standings',
     SEARCH: 'search',
+    DATABASE: 'database',
+    CACHE: 'cache',
+  },
+  LogLevel: {
+    DEBUG: 'debug',
+    INFO: 'info',
+    WARN: 'warn',
+    ERROR: 'error',
   },
 }));
 

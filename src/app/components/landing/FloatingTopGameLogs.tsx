@@ -7,10 +7,11 @@ import { useState, useEffect } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useTopGameLogs } from '@/hooks/use-top-game-logs';
+import { API_LIMITS } from '@/lib/constants';
 import type { IGameLog } from '@/lib/types';
 
 export function FloatingTopGameLogs() {
-  const { topGameLogs, loading, error } = useTopGameLogs({ limit: 100 });
+  const { topGameLogs, loading, error } = useTopGameLogs({ limit: API_LIMITS.GAME_LOGS.LARGE });
   const { bannerHeight } = useBannerVisibility();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -354,6 +355,7 @@ export function FloatingTopGameLogs() {
                           width={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                           height={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                           className="rounded-full"
+                          style={{ width: 'auto', height: 'auto' }}
                         />
                       ) : (
                         <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
@@ -361,11 +363,11 @@ export function FloatingTopGameLogs() {
                         </span>
                       )}
                     </div>
-                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white break-words leading-tight">
                       {currentGameLog.game?.home_team?.name}
                     </span>
                     <span className="text-xs sm:text-sm text-gray-500">vs</span>
-                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white break-words leading-tight">
                       {currentGameLog.game?.away_team?.name}
                     </span>
                     <div className="w-4 h-4 sm:w-6 sm:h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
@@ -376,6 +378,7 @@ export function FloatingTopGameLogs() {
                           width={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                           height={isLargeScreen ? 24 : isMediumScreen ? 20 : 16}
                           className="rounded-full"
+                          style={{ width: 'auto', height: 'auto' }}
                         />
                       ) : (
                         <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">

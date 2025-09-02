@@ -2,7 +2,7 @@
 const nextConfig = {
   // Environment variables exposed to the client
   env: {
-    NEXT_PUBLIC_API_MOCK_MODE: process.env.API_MOCK_MODE || 'false',
+    NEXT_PUBLIC_MOCK_MODE: process.env.MOCK_MODE || 'false',
     CUSTOM_KEY: 'value',
   },
 

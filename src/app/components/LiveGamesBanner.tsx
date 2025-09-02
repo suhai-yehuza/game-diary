@@ -9,6 +9,7 @@ import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
 import type { IGameResponse } from '@/lib/types';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 /**
  * Determines which games to display based on environment and data availability
@@ -20,12 +21,7 @@ function getDisplayGames(realGames: IGameResponse[] | null): IGameResponse[] {
   }
 
   // Check if we should show mock games
-  const shouldShowMockGames =
-    // Development with mock mode
-    (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-    // Test/CI environment
-    (typeof window !== 'undefined' &&
-      (window.__API_MOCK_MODE__ || window.__E2E_MOCK_MODE__ || window.__PLAYWRIGHT_TEST__));
+  const shouldShowMockGames = isMockModeEnabled();
 
   if (shouldShowMockGames) {
     return MOCK_LIVE_GAMES.response;
