@@ -734,11 +734,21 @@ describe('Database Operations Integration Tests', () => {
     test('should enforce foreign key constraints', async () => {
       const invalidUserId = 'non-existent-user-id';
       const gameId = `test-game-${Date.now()}`;
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      // Create test teams first
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES 
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
 
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
 
       try {
@@ -768,10 +778,21 @@ describe('Database Operations Integration Tests', () => {
         VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
       `);
 
+      // Create test teams first
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES 
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
 
       await db.execute(`
@@ -804,11 +825,22 @@ describe('Database Operations Integration Tests', () => {
           ('${friendId}', 'complexfriend', 'friend@example.com', 'Complex', 'Friend', NOW(), NOW())
       `);
 
+      // Create test teams first
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES 
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create a test game first
       const gameId = `test-game-${Date.now()}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
 
       // Create game logs
@@ -906,11 +938,22 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test.skip('should handle concurrent operations', async () => {
+      // Create test teams first
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES 
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create a test game first
       const gameId = `test-game-${Date.now()}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
 
       const promises = Array.from({ length: 5 }, (_, i) =>

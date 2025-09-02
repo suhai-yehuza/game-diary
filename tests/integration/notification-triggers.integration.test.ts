@@ -513,10 +513,21 @@ describe('Notification Triggers Integration Tests', () => {
         VALUES ('${testUserId}', 'gameloguser', 'gamelog${Date.now()}@example.com', 'GameLog', 'User', NOW(), NOW())
       `);
 
+      // Create test teams first
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create test game
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${testGameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${testGameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
     });
 
@@ -728,10 +739,21 @@ describe('Notification Triggers Integration Tests', () => {
         VALUES ('${testUserId}', 'duplicateuser', 'duplicate${Date.now()}@example.com', 'Duplicate', 'User', NOW(), NOW())
       `);
 
+      // Create test teams first
+      const homeTeamId = `test-home-team-${Date.now()}`;
+      const awayTeamId = `test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO teams (id, name, created_at, updated_at)
+        VALUES
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create test game
       await db.execute(`
-        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
-        VALUES ('${testGameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
+        VALUES ('${testGameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
       `);
     });
 
