@@ -747,8 +747,8 @@ describe('Database Operations Integration Tests', () => {
 
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       try {
@@ -791,8 +791,8 @@ describe('Database Operations Integration Tests', () => {
 
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       await db.execute(`
