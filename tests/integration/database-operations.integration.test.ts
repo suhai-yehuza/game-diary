@@ -733,11 +733,18 @@ describe('Database Operations Integration Tests', () => {
 
     test('should enforce foreign key constraints', async () => {
       const invalidUserId = 'non-existent-user-id';
+      const gameId = `test-game-${Date.now()}`;
+
+      // Create a test game first
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+      `);
 
       try {
         await db.execute(`
           INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-          VALUES ('test-gamelog', '${invalidUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+          VALUES ('test-gamelog', '${invalidUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
         `);
         throw new Error('Should have failed due to foreign key constraint');
       } catch (error) {
@@ -753,16 +760,23 @@ describe('Database Operations Integration Tests', () => {
     test('should handle cascading deletes', async () => {
       const userId = `test-cascade-${Date.now()}`;
       const gameLogId = `test-cascade-gamelog-${Date.now()}`;
+      const gameId = `test-game-${Date.now()}`;
 
-      // Create user and game log
+      // Create user, game, and game log
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
       `);
 
+      // Create a test game first
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+      `);
+
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${userId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+        VALUES ('${gameLogId}', '${userId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
       `);
 
       // Delete user (should cascade to game logs)
@@ -790,12 +804,19 @@ describe('Database Operations Integration Tests', () => {
           ('${friendId}', 'complexfriend', 'friend@example.com', 'Complex', 'Friend', NOW(), NOW())
       `);
 
+      // Create a test game first
+      const gameId = `test-game-${Date.now()}`;
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+      `);
+
       // Create game logs
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
         VALUES
-          ('complex-gamelog-1', '${testUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content 1', NOW(), NOW()),
-          ('complex-gamelog-2', '${testUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content 2', NOW(), NOW())
+          ('complex-gamelog-1', '${testUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content 1', NOW(), NOW()),
+          ('complex-gamelog-2', '${testUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content 2', NOW(), NOW())
       `);
 
       // Create friendship
@@ -885,10 +906,17 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test.skip('should handle concurrent operations', async () => {
+      // Create a test game first
+      const gameId = `test-game-${Date.now()}`;
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${gameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
+      `);
+
       const promises = Array.from({ length: 5 }, (_, i) =>
         db.execute(`
           INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-          VALUES ('concurrent-${Date.now()}-${i}', '${testUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content ${i}', NOW(), NOW())
+          VALUES ('concurrent-${Date.now()}-${i}', '${testUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content ${i}', NOW(), NOW())
         `)
       );
 

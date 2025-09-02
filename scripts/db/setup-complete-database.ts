@@ -181,93 +181,9 @@ class CompleteDatabaseSetup {
     };
   }
 
-  /**
-   * Create RLS helper functions
-   */
-  private async createRlsHelperFunctions(): Promise<DatabaseFix> {
-    return {
-      name: 'RLS Helper Functions',
-      description: 'Create Row Level Security helper functions',
-      apply: async () => {
-        try {
-          // Create function to get current user ID
-          await this.db.execute(sql`
-            CREATE OR REPLACE FUNCTION get_current_user_id()
-            RETURNS UUID AS $$
-            BEGIN
-              RETURN current_setting('app.current_user_id')::UUID;
-            EXCEPTION
-              WHEN OTHERS THEN
-                RETURN NULL;
-            END;
-            $$ LANGUAGE plpgsql SECURITY DEFINER;
-          `);
-
-          logger.info('✅ RLS helper functions created');
-          return true;
-        } catch (error) {
-          if (error instanceof Error) {
-            logger.error('❌ Failed to create RLS helper functions:', error);
-          } else {
-            logger.error('❌ Failed to create RLS helper functions:', new Error(String(error)));
-          }
-          return false;
-        }
-      },
-      verify: async () => {
-        try {
-          const result = await this.db.execute(sql`
-            SELECT 1 FROM pg_proc WHERE proname = 'get_current_user_id'
-          `);
-          return result.rows.length > 0;
-        } catch {
-          return false;
-        }
-      },
-    };
-  }
-
-  /**
-   * Create UUID generation function
-   */
-  private async createUuidGenerationFunction(): Promise<DatabaseFix> {
-    return {
-      name: 'UUID Generation Function',
-      description: 'Create function for generating UUIDs',
-      apply: async () => {
-        try {
-          await this.db.execute(sql`
-            CREATE OR REPLACE FUNCTION generate_uuid()
-            RETURNS UUID AS $$
-            BEGIN
-              RETURN gen_random_uuid();
-            END;
-            $$ LANGUAGE plpgsql;
-          `);
-
-          logger.info('✅ UUID generation function created');
-          return true;
-        } catch (error) {
-          if (error instanceof Error) {
-            logger.error('❌ Failed to create UUID generation function:', error);
-          } else {
-            logger.error('❌ Failed to create UUID generation function:', new Error(String(error)));
-          }
-          return false;
-        }
-      },
-      verify: async () => {
-        try {
-          const result = await this.db.execute(sql`
-            SELECT 1 FROM pg_proc WHERE proname = 'generate_uuid'
-          `);
-          return result.rows.length > 0;
-        } catch {
-          return false;
-        }
-      },
-    };
-  }
+  // Note: RLS helper functions (get_current_user_id, set_current_user_context, clear_current_user_context)
+  // and UUID generation function (generate_uuid_v7) are created by the database migrations
+  // and don't need to be recreated here.
 
   /**
    * Populate reaction emojis
@@ -383,8 +299,6 @@ class CompleteDatabaseSetup {
       const fixes = [
         await this.ensurePgcryptoExtension(),
         await this.ensureNotificationsUniqueConstraint(),
-        await this.createRlsHelperFunctions(),
-        await this.createUuidGenerationFunction(),
         await this.populateReactionEmojis(),
         await this.setupDatabaseTriggers(),
       ];

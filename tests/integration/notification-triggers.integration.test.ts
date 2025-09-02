@@ -505,12 +505,18 @@ describe('Notification Triggers Integration Tests', () => {
 
     beforeAll(async () => {
       testUserId = `test-gamelog-user-${Date.now()}`;
-      testGameId = 'test-game-1756807992486'; // Use existing game ID
+      testGameId = `test-game-${Date.now()}`;
 
       // Create test user
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES ('${testUserId}', 'gameloguser', 'gamelog${Date.now()}@example.com', 'GameLog', 'User', NOW(), NOW())
+      `);
+
+      // Create test game
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${testGameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
       `);
     });
 
@@ -710,14 +716,22 @@ describe('Notification Triggers Integration Tests', () => {
   // Notification System Validation
   describe('Notification System Validation', () => {
     let testUserId: string;
+    let testGameId: string;
 
     beforeAll(async () => {
       testUserId = `test-duplicate-${Date.now()}`;
+      testGameId = `test-game-${Date.now()}`;
 
       // Create test user
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES ('${testUserId}', 'duplicateuser', 'duplicate${Date.now()}@example.com', 'Duplicate', 'User', NOW(), NOW())
+      `);
+
+      // Create test game
+      await db.execute(`
+        INSERT INTO nba_games (id, home_team, away_team, game_date, season, created_at, updated_at)
+        VALUES ('${testGameId}', 'Test Home Team', 'Test Away Team', NOW(), '2024-25', NOW(), NOW())
       `);
     });
 
@@ -728,12 +742,12 @@ describe('Notification Triggers Integration Tests', () => {
       // Create game log multiple times
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${uniqueUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+        VALUES ('${gameLogId}', '${uniqueUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
       `);
 
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${uniqueUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+        VALUES ('${gameLogId}', '${uniqueUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
       `);
 
       // Should only have one notification
@@ -760,7 +774,7 @@ describe('Notification Triggers Integration Tests', () => {
       // Create game log
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
       `);
 
       // Delete user
@@ -782,7 +796,7 @@ describe('Notification Triggers Integration Tests', () => {
       // Create game log
       await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', 'test-game-1756807992486', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
       `);
 
       // Check notification data integrity
