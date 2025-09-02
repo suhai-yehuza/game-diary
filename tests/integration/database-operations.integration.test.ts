@@ -839,8 +839,8 @@ describe('Database Operations Integration Tests', () => {
       // Create a test game first
       const gameId = `test-game-${Date.now()}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       // Create game logs
@@ -952,8 +952,8 @@ describe('Database Operations Integration Tests', () => {
       // Create a test game first
       const gameId = `test-game-${Date.now()}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
+        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
+        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       const promises = Array.from({ length: 5 }, (_, i) =>
