@@ -13,6 +13,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import type { IPlayerFiltersProps } from '@/lib/types';
 
 export function PlayerFilters({
@@ -202,10 +203,11 @@ export function PlayerFilters({
         {/* Results Summary and Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mt-4 pt-4 border-t border-slate-300 dark:border-gray-400">
           <div className="text-slate-100 dark:text-gray-700 text-sm sm:text-base">
-            <span className="font-medium">{filteredPlayersCount}</span> players found
+            <span className="font-medium">{formatNumberShort(filteredPlayersCount)}</span> players
+            found
             {hasActiveFilters && (
               <span className="text-blue-300 dark:text-blue-600 ml-1">
-                (filtered from {totalPlayers} total)
+                (filtered from {formatNumberShort(totalPlayers)} total)
               </span>
             )}
           </div>

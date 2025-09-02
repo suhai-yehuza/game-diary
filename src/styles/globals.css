@@ -494,6 +494,28 @@ a.group.block p.nba-card-description.mb-3 {
   color: rgb(209, 213, 219) !important; /* Light text for dark theme */
 }
 
+/* Team name text handling - prevent overflow and improve readability */
+.game-card-enhanced .break-words,
+.game-card-enhanced .leading-tight {
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  hyphens: auto !important;
+  line-height: 1.2 !important;
+}
+
+/* Ensure team names don't overflow in game cards */
+.game-card-enhanced .min-w-0 {
+  min-width: 0 !important;
+}
+
+/* Improve text contrast for team names */
+.game-card-enhanced .text-gray-900 {
+  color: rgb(17, 24, 39) !important; /* Darker text for better readability */
+}
+.dark .game-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important; /* Bright text for dark theme */
+}
+
 /* Game card icons - ensure proper contrast */
 .game-card-enhanced svg {
   color: rgb(17, 24, 39) !important; /* Dark icons for maximum contrast in light theme */
@@ -2160,6 +2182,14 @@ button {
 .floating-component-secondary {
   position: fixed;
   z-index: 30;
+}
+
+/* === E2E Test Overlay Hiding === */
+/* Hide specific debug overlays during E2E tests to prevent pointer event interception */
+.playwright-test .fixed[class*='font-mono'],
+[data-playwright-test='true'] .fixed[class*='font-mono'] {
+  display: none !important;
+  pointer-events: none !important;
 }
 
 /* === Search input cleanup === */

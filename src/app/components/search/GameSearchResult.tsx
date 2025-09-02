@@ -3,6 +3,7 @@
 import { Calendar, Star, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { BRAND_COLORS, GRADIENTS } from '@/lib/constants/colors';
 import type { IGameSearchResultProps } from '@/lib/types';
 
 function formatDate(dateString: string) {
@@ -37,12 +38,16 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
       onClick={handleClick}
     >
       {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 to-transparent dark:from-orange-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+      <div
+        className={`absolute inset-0 ${GRADIENTS.sports.nba.background} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+      />
 
       <div className="relative flex items-start space-x-4">
         {/* Enhanced Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-orange-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
+          <div
+            className={`w-14 h-14 ${GRADIENTS.sports.nba.avatar} rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300`}
+          >
             <Trophy className="w-7 h-7 text-white" />
           </div>
         </div>
@@ -52,11 +57,15 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3 mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white break-words leading-tight">
                   {gameTitle}
                 </h3>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 border border-orange-200 dark:border-orange-800">
-                  <span className="w-1.5 h-1.5 bg-orange-500 rounded-full mr-1.5" />
+                <span
+                  className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${GRADIENTS.sports.nba.badge} text-[${BRAND_COLORS.nextjs.cyan}] dark:text-[${BRAND_COLORS.nextjs.cyan}] border border-[${BRAND_COLORS.nextjs.cyan}]/30 dark:border-[${BRAND_COLORS.nextjs.cyan}]/50 flex-shrink-0`}
+                >
+                  <span
+                    className={`w-1.5 h-1.5 bg-[${BRAND_COLORS.nextjs.cyan}] rounded-full mr-1.5`}
+                  />
                   Game
                 </span>
               </div>

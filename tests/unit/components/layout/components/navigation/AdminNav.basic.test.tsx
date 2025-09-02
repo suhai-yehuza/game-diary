@@ -168,7 +168,7 @@ describe('AdminNav', () => {
   describe('AdminNavWithAuth Component', () => {
     beforeEach(() => {
       // Mock process.env for E2E test detection
-      vi.stubEnv('E2E_MOCK_MODE', 'false');
+      vi.stubEnv('MOCK_MODE', 'false');
     });
 
     afterEach(() => {
@@ -307,7 +307,7 @@ describe('AdminNav', () => {
 
   describe('E2E Test Mode', () => {
     beforeEach(() => {
-      vi.stubEnv('E2E_MOCK_MODE', 'true');
+      vi.stubEnv('MOCK_MODE', 'true');
     });
 
     afterEach(() => {

@@ -7,60 +7,19 @@ export async function GET(request: NextRequest, { params }: { params: { playerId
   try {
     const { playerId } = params;
 
-    // Use hybrid database for player query (API + Redis, DB fallback)
-    const { hybridDB } = await import('@/lib/db/hybrid-db');
+    // Import and use the database service directly instead of making HTTP request
+    const { getPlayerById } = await import('@/lib/db/services/players.service');
 
-    const player = await hybridDB.getPlayerById(playerId);
+    // Get player by ID directly from database
+    const player = await getPlayerById(playerId);
 
-    if (!player || typeof player !== 'object' || player === null) {
+    if (!player) {
       return NextResponse.json({ error: 'Player not found' }, { status: 404 });
     }
 
-    // Type guard to ensure player has the expected structure
-    const playerData = player as {
-      id: string | number;
-      first_name?: string;
-      last_name?: string;
-      birth?: string | null;
-      nba?: string | null;
-      height?: string | null;
-      weight?: string | null;
-      college?: string | null;
-      affiliation?: string | null;
-      teams?: string | null;
-      leagues?: string | null;
-      image_url?: string | null;
-      created_at?: string | null;
-      updated_at?: string | null;
-    };
-
-    // Helper function to safely parse JSON fields
-    const parseJsonField = (field: string | null | undefined): unknown => {
-      if (!field) return null;
-      try {
-        return JSON.parse(field) as unknown;
-      } catch {
-        return field; // Return as string if parsing fails
-      }
-    };
-
-    // Return player data in the expected format
-    return NextResponse.json({
-      id: parseInt(String(playerData.id)),
-      firstname: playerData.first_name || '',
-      lastname: playerData.last_name || '',
-      birth: parseJsonField(playerData.birth),
-      nba: parseJsonField(playerData.nba),
-      height: parseJsonField(playerData.height),
-      weight: parseJsonField(playerData.weight),
-      college: playerData.college || '',
-      affiliation: playerData.affiliation || '',
-      teams: parseJsonField(playerData.teams),
-      leagues: parseJsonField(playerData.leagues),
-      image_url: playerData.image_url || '',
-      created_at: playerData.created_at || '',
-      updated_at: playerData.updated_at || '',
-    });
+    // The getPlayerById function already returns the player in the correct format
+    // so we can return it directly
+    return NextResponse.json(player);
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {

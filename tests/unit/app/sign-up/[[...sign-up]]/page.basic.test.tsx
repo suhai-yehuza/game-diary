@@ -16,13 +16,22 @@ vi.mock('@clerk/nextjs', () => ({
 }));
 
 // Mock next/navigation
+const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({
   redirect: vi.fn(),
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
 }));
 
 // Mock the SSO utils
 vi.mock('@/lib/utils/sso-utils', () => ({
-  isClerkCatchallRouteServer: vi.fn().mockReturnValue(false),
+  isClerkCatchallRouteServer: vi.fn(),
 }));
 
 // Mock Next.js Image component
@@ -56,12 +65,13 @@ describe('SignUpPage', () => {
   beforeEach(() => {
     // Set up environment variable for Clerk
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
+    vi.clearAllMocks();
+    mockPush.mockClear();
   });
 
-  it('renders the sign-up page with correct structure', () => {
+  it('renders with empty params', () => {
     render(<SignUpPage params={{ 'sign-up': [] }} />);
-
-    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+    expect(screen.getByText('Create your account')).toBeInTheDocument();
   });
 
   it('renders Clerk SignUp component', () => {
@@ -78,17 +88,31 @@ describe('SignUpPage', () => {
     expect(div).toHaveClass('flex', 'min-h-screen', 'items-center', 'justify-center');
   });
 
-  it('renders sign up title', () => {
-    render(<SignUpPage params={{ 'sign-up': [] }} />);
-
-    expect(screen.getByText('Create your account')).toBeInTheDocument();
-  });
-
   it('renders welcome message', () => {
     render(<SignUpPage params={{ 'sign-up': [] }} />);
 
     expect(
-      screen.getByText('Join us and start tracking your favorite sports!')
+      screen.getByText('Join Game Diary to start tracking your sports experiences.')
     ).toBeInTheDocument();
+  });
+
+  it('handles undefined sign-up segments', () => {
+    render(<SignUpPage params={{ 'sign-up': [] }} />);
+
+    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+  });
+
+  it('does not redirect when first segment is not a catchall route', () => {
+    render(<SignUpPage params={{ 'sign-up': ['some-other-route'] }} />);
+
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(screen.getByTestId('clerk-signup')).toBeInTheDocument();
+  });
+
+  it('handles multiple segments correctly', () => {
+    render(<SignUpPage params={{ 'sign-up': ['segment1', 'segment2'] }} />);
+
+    // Should not redirect since segment1 is not a catchall route
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });

@@ -103,17 +103,28 @@ export interface MockNotification {
   created_at: string;
 }
 
+// NBA Season types
+export interface MockNBASeason {
+  id: number;
+  year: number;
+}
+
 // NBA Game types
 export interface MockNBAGame {
   id: string;
+  game_type: string;
+  season: string;
+  nba_game_id: string;
   home_team_id: string;
   away_team_id: string;
-  home_score: number;
-  away_score: number;
+  home_team_score: number;
+  away_team_score: number;
   status: 'scheduled' | 'live' | 'finished';
   date: string;
-  season: string;
-  league: string;
+  average_rating: string;
+  total_ratings: number;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface MockNBATeam {
@@ -145,6 +156,7 @@ export interface MockDatabaseSchema {
   reactions: MockReaction[];
   game_ratings: MockGameRating[];
   notifications: MockNotification[];
+  seasons: MockNBASeason[];
   nba_games: MockNBAGame[];
   teams: MockNBATeam[];
   nba_players: MockNBAPlayer[];

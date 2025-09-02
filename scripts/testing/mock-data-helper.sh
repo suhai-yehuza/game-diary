@@ -82,8 +82,7 @@ check_server_running() {
 
 print_environment_vars() {
   echo "Environment Variables:"
-  echo "  E2E_MOCK_MODE: ${E2E_MOCK_MODE:-'not set'}"
-  echo "  API_MOCK_MODE: ${API_MOCK_MODE:-'not set'}"
+  echo "  MOCK_MODE: ${MOCK_MODE:-'not set'}"
   echo "  E2E_POST_DEPLOY_VERIFICATION: ${E2E_POST_DEPLOY_VERIFICATION:-'not set'}"
   echo "  CI: ${CI:-'not set'}"
 }
@@ -189,12 +188,11 @@ enable_mock_mode() {
   log_info "Enabling mock mode..."
 
   # Set environment variables
-  export E2E_MOCK_MODE=true
-  export API_MOCK_MODE=true
+  export MOCK_MODE=true
   unset E2E_POST_DEPLOY_VERIFICATION
 
   echo "Environment variables set:"
-  echo "  E2E_MOCK_MODE=true"
+  echo "  MOCK_MODE=true"
   echo "  API_MOCK_MODE=true"
   echo "  E2E_POST_DEPLOY_VERIFICATION=unset"
 
@@ -210,12 +208,10 @@ disable_mock_mode() {
   log_info "Disabling mock mode..."
 
   # Unset environment variables
-  unset E2E_MOCK_MODE
-  unset API_MOCK_MODE
+  unset MOCK_MODE
 
   echo "Environment variables unset:"
-  echo "  E2E_MOCK_MODE=unset"
-  echo "  API_MOCK_MODE=unset"
+  echo "  MOCK_MODE=unset"
 
   echo -e "\n${YELLOW}Mock mode disabled!${NC}"
   echo "Tests will now use real API data (if available)"
@@ -242,7 +238,7 @@ run_mock_tests() {
 
   # Run a quick smoke test with mock data
   echo -e "\nRunning smoke test with mock data..."
-  if E2E_MOCK_MODE=true API_MOCK_MODE=true pnpm test:e2e:sanity; then
+  if MOCK_MODE=true pnpm test:e2e:sanity; then
     echo -e "\n${GREEN}✓ Smoke test with mock data passed!${NC}"
   else
     echo -e "\n${RED}✗ Smoke test with mock data failed!${NC}"

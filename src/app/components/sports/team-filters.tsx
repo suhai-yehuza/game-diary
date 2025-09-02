@@ -13,6 +13,7 @@ import {
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import type { ITeamFiltersProps } from '@/lib/types';
 
 export function TeamFilters({
@@ -163,10 +164,10 @@ export function TeamFilters({
         {/* Results Summary and Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mt-4 pt-4 border-t border-slate-300 dark:border-gray-400">
           <div className="text-slate-100 dark:text-gray-700 text-sm sm:text-base">
-            <span className="font-medium">{filteredTeamsCount}</span> teams found
+            <span className="font-medium">{formatNumberShort(filteredTeamsCount)}</span> teams found
             {hasActiveFilters && (
               <span className="text-blue-300 dark:text-blue-600 ml-1">
-                (filtered from {totalTeams} total)
+                (filtered from {formatNumberShort(totalTeams)} total)
               </span>
             )}
           </div>

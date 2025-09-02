@@ -1,20 +1,8 @@
 import { faker } from '@faker-js/faker';
 import { neon } from '@neondatabase/serverless';
-import type { Table } from 'drizzle-orm';
+import { Command } from 'commander';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import type {
-  Database,
-  IStatisticalSeedingConfig,
-  ISeedUser,
-  ISeedFriendship,
-  ISeedGameLog,
-  ISeedComment,
-  ISeedReaction,
-  ISeedingConfig,
-} from '@/lib/types';
-import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
-import { errorHandlers } from '@/lib/utils/error-handler';
 import {
   users,
   friendships,
@@ -37,6 +25,7 @@ import {
   generateActivityAgeWithConfig,
   generateGameRatingWithConfig,
   generateCommentCountWithConfig,
+  DISTRIBUTION_CONFIG_PRESETS,
 } from '@src/lib/db/seed/statistical-distributions';
 import {
   CLASSIFICATION,
@@ -46,6 +35,18 @@ import {
   REACTION_EMOJIS,
   TARGET_TYPES,
 } from '@src/lib/types';
+import type {
+  Database,
+  IStatisticalSeedingConfig,
+  ISeedUser,
+  ISeedFriendship,
+  ISeedGameLog,
+  ISeedComment,
+  ISeedReaction,
+  ISeedingConfig,
+} from '@src/lib/types';
+import { encryptField, serializeEncryptedField } from '@src/lib/utils/encryption';
+import { errorHandlers } from '@src/lib/utils/error-handler';
 import { generateUUIDv7 } from '@src/lib/utils/id-generator';
 
 // Configuration for data generation
@@ -76,6 +77,17 @@ const GENERATION_CONFIG = {
     MAX_COMMENTS_PER_GAME_LOG: 100,
     MAX_REACTIONS_PER_ITEM: 200,
     MAX_TOTAL_RECORDS: 10000000, // 10M records max
+  },
+  // Memory optimization settings
+  MEMORY_OPTIMIZATION: {
+    BATCH_SIZE: 1000,
+    USER_BATCH_SIZE: 500,
+    FRIENDSHIP_BATCH_SIZE: 2000,
+    GAME_LOG_BATCH_SIZE: 1500,
+    COMMENT_BATCH_SIZE: 2000,
+    REACTION_BATCH_SIZE: 3000,
+    MEMORY_WARNING_THRESHOLD: 100000, // Warn when generating >100k records
+    GARBAGE_COLLECTION_HINT_THRESHOLD: 50000, // Suggest GC after 50k records
   },
 } as const;
 
@@ -201,13 +213,58 @@ const BASKETBALL_DATA = {
   ],
 } as const;
 
-// Generate realistic user data
-export function generateUsers(count: number): ISeedUser[] {
-  const users: ISeedUser[] = [];
+// Memory monitoring utility
+class MemoryMonitor {
+  private readonly startMemory: number;
+  private lastCheck: number;
+  private readonly checkInterval: number;
+
+  constructor(checkIntervalMs = 10000) {
+    this.startMemory = this.getMemoryUsage();
+    this.lastCheck = Date.now();
+    this.checkInterval = checkIntervalMs;
+  }
+
+  private getMemoryUsage(): number {
+    if (typeof process !== 'undefined' && process.memoryUsage) {
+      return process.memoryUsage().heapUsed;
+    }
+    return 0;
+  }
+
+  checkMemory(recordCount: number): void {
+    const now = Date.now();
+    if (now - this.lastCheck >= this.checkInterval) {
+      const currentMemory = this.getMemoryUsage();
+      const memoryIncrease = currentMemory - this.startMemory;
+      const memoryMB = Math.round(memoryIncrease / 1024 / 1024);
+
+      console.log(`📊 Memory usage: ${memoryMB}MB increase, ${recordCount} records processed`);
+
+      if (recordCount > GENERATION_CONFIG.MEMORY_OPTIMIZATION.GARBAGE_COLLECTION_HINT_THRESHOLD) {
+        console.log('💡 Consider running garbage collection if available');
+      }
+
+      this.lastCheck = now;
+    }
+  }
+
+  getMemoryStats(): { start: number; current: number; increase: number } {
+    const current = this.getMemoryUsage();
+    return {
+      start: this.startMemory,
+      current,
+      increase: current - this.startMemory,
+    };
+  }
+}
+
+// Generate realistic user data - now returns a generator for memory efficiency
+export function* generateUsersStream(count: number): Generator<ISeedUser, void, unknown> {
   for (let i = 0; i < count; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const username = faker.internet.userName({ firstName, lastName });
+    const username = faker.internet.username({ firstName, lastName });
     // Generate plain values first
     const plainEmail = faker.internet.email({ firstName, lastName });
     const plainPhone = faker.phone.number();
@@ -216,7 +273,7 @@ export function generateUsers(count: number): ISeedUser[] {
     const encryptedEmail = serializeEncryptedField(encryptField(plainEmail));
     const encryptedPhone = serializeEncryptedField(encryptField(plainPhone));
 
-    users.push({
+    yield {
       id: generateUUIDv7(),
       object: 'user',
       username,
@@ -242,9 +299,8 @@ export function generateUsers(count: number): ISeedUser[] {
       preferred_language: faker.helpers.arrayElement(['en', 'es', 'fr']),
       inbound_friendship_ids: [],
       outbound_friendship_ids: [],
-    });
+    };
   }
-  return users;
 }
 
 function generateUserBio(): string {
@@ -266,11 +322,32 @@ function generateUserBio(): string {
   return faker.helpers.arrayElement(bioTemplates);
 }
 
-// Generate friendships between users
-export function generateFriendships(users: ISeedUser[], config: ISeedingConfig): ISeedFriendship[] {
-  const friendships: ISeedFriendship[] = [];
+// Generate friendships between users - now returns a generator
+export function* generateFriendshipsStream(
+  users: ISeedUser[],
+  config: ISeedingConfig,
+  distributionConfig?: IStatisticalSeedingConfig
+): Generator<ISeedFriendship, void, unknown> {
+  const processedPairs = new Set<string>();
+
+  // Apply Pareto distribution: only some users form friendships
+  const userFriendshipProbability = distributionConfig?.userFriendshipProbability ?? 0.6; // 60% of users form friendships by default
+
+  console.log(`📊 User friendship probability: ${(userFriendshipProbability * 100).toFixed(1)}%`);
+
+  let usersWithFriendships = 0;
+  let totalUsersProcessed = 0;
 
   for (const user of users) {
+    totalUsersProcessed++;
+
+    // Apply Pareto distribution: only some users form friendships
+    if (Math.random() > userFriendshipProbability) {
+      continue; // Skip this user
+    }
+
+    usersWithFriendships++;
+
     const friendshipCount = faker.number.int({
       min: config.friendshipsPerUser.min,
       max: config.friendshipsPerUser.max,
@@ -284,16 +361,13 @@ export function generateFriendships(users: ISeedUser[], config: ISeedingConfig):
     );
 
     for (const friend of selectedFriends) {
-      // Avoid duplicate friendships (user1-user2 and user2-user1)
-      if (
-        friendships.some(
-          f =>
-            (f.user_id === friend.id && f.friend_id === user.id) ||
-            (f.user_id === user.id && f.friend_id === friend.id)
-        )
-      ) {
+      // Create a unique key for this pair to avoid duplicates
+      const pairKey = [user.id, friend.id].sort().join('-');
+
+      if (processedPairs.has(pairKey)) {
         continue;
       }
+      processedPairs.add(pairKey);
 
       // Create more realistic friendship scenarios that will trigger notifications
       // 60% pending (will create friend request notifications)
@@ -305,32 +379,53 @@ export function generateFriendships(users: ISeedUser[], config: ISeedingConfig):
         { value: FRIENDSHIP_STATUS.REJECTED, weight: 10 },
       ]);
 
-      friendships.push({
+      yield {
         id: generateUUIDv7(),
         friend_id: friend.id,
         user_id: user.id,
         status,
-      });
+      };
     }
   }
 
-  return friendships;
+  console.log(
+    `📊 Users processed: ${totalUsersProcessed}, Users with friendships: ${usersWithFriendships} (${((usersWithFriendships / totalUsersProcessed) * 100).toFixed(1)}%)`
+  );
 }
 
-// Generate game logs using actual game IDs with realistic statistical distributions
-export function generateGameLogs(
+// Generate game logs using streaming - now returns a generator for memory efficiency
+export function* generateGameLogsStream(
   users: ISeedUser[],
   gameIds: string[],
   config: ISeedingConfig,
   distributionConfig?: IStatisticalSeedingConfig
-): ISeedGameLog[] {
-  const gameLogs: ISeedGameLog[] = [];
-
+): Generator<ISeedGameLog, void, unknown> {
   // Generate game popularity weights using Pareto distribution
   // This ensures 20% of games get 80% of the game logs
   const gamePopularityWeights = generateGamePopularityWeights(gameIds.length);
 
+  // Apply Pareto distribution: only some users generate game logs
+  const userGameLogProbability = distributionConfig?.userGameLogProbability ?? 0.4; // 40% of users generate game logs by default
+
+  // Apply Pareto distribution: only some games get logged
+  const gameLogGameProbability = distributionConfig?.gameLogGameProbability ?? 0.3; // 30% of games get logged by default
+
+  console.log(`📊 User game log probability: ${(userGameLogProbability * 100).toFixed(1)}%`);
+  console.log(`📊 Game log game probability: ${(gameLogGameProbability * 100).toFixed(1)}%`);
+
+  let usersWithGameLogs = 0;
+  let totalUsersProcessed = 0;
+
   for (const user of users) {
+    totalUsersProcessed++;
+
+    // Apply Pareto distribution: only some users generate game logs
+    if (Math.random() > userGameLogProbability) {
+      continue; // Skip this user
+    }
+
+    usersWithGameLogs++;
+
     // Use user engagement to determine activity level
     const userBehavior = distributionConfig
       ? generateUserBehaviorWithConfig(distributionConfig)
@@ -356,7 +451,10 @@ export function generateGameLogs(
     const uniqueGameIndices = Array.from(new Set(selectedGameIndices));
     const userGames = uniqueGameIndices.map(index => gameIds[index]);
 
-    for (const gameId of userGames) {
+    // Apply game probability filter
+    const filteredUserGames = userGames.filter(() => Math.random() <= gameLogGameProbability);
+
+    for (const gameId of filteredUserGames) {
       // Generate realistic activity age (most recent, some older)
       const activityAge = distributionConfig
         ? generateActivityAgeWithConfig(distributionConfig)
@@ -375,7 +473,7 @@ export function generateGameLogs(
         ? generateGameRatingWithConfig(distributionConfig)
         : generateGameRating();
 
-      gameLogs.push({
+      yield {
         id: generateUUIDv7(),
         user_id: user.id,
         game_id: gameId,
@@ -390,21 +488,23 @@ export function generateGameLogs(
           BASKETBALL_DATA.TAGS,
           faker.number.int({ min: 1, max: 4 })
         ),
-      });
+      };
     }
   }
-  return gameLogs;
+
+  console.log(
+    `📊 Users processed: ${totalUsersProcessed}, Users with game logs: ${usersWithGameLogs} (${((usersWithGameLogs / totalUsersProcessed) * 100).toFixed(1)}%)`
+  );
+  console.log(`📊 Game log game probability: ${(gameLogGameProbability * 100).toFixed(1)}%`);
 }
 
-// Generate comments on game logs with support for up to 5 levels of nesting using realistic distributions
-export function generateComments(
+// Generate comments on game logs with streaming support - now returns a generator
+export function* generateCommentsStream(
   users: ISeedUser[],
   gameLogs: ISeedGameLog[],
   config: ISeedingConfig,
   distributionConfig?: IStatisticalSeedingConfig
-): ISeedComment[] {
-  const comments: ISeedComment[] = [];
-
+): Generator<ISeedComment, void, unknown> {
   for (const gameLog of gameLogs) {
     // Use realistic comment count distribution (Poisson + Power Law for viral content)
     const commentCount = distributionConfig
@@ -428,23 +528,21 @@ export function generateComments(
         content: generateCommentContent(),
         depth: 0, // Top-level comment
       };
-      comments.push(comment);
+      yield comment;
 
       // Recursively generate nested comments (up to 5 levels deep)
-      generateNestedComments(comment, comments, users, 1, config);
+      yield* generateNestedCommentsStream(comment, users, 1, config);
     }
   }
-  return comments;
 }
 
-// Helper function to generate nested comments recursively
-function generateNestedComments(
+// Helper function to generate nested comments recursively - now returns a generator
+function* generateNestedCommentsStream(
   parentComment: ISeedComment,
-  comments: ISeedComment[],
   users: ISeedUser[],
   currentDepth: number,
   config: ISeedingConfig
-) {
+): Generator<ISeedComment, void, unknown> {
   // Stop at depth 10 (max allowed)
   if (currentDepth >= 10) return;
 
@@ -465,10 +563,10 @@ function generateNestedComments(
       content: generateNestedCommentContent(currentDepth),
       depth: currentDepth,
     };
-    comments.push(reply);
+    yield reply;
 
     // Recursively generate replies to this reply
-    generateNestedComments(reply, comments, users, currentDepth + 1, config);
+    yield* generateNestedCommentsStream(reply, users, currentDepth + 1, config);
   }
 }
 
@@ -527,39 +625,37 @@ function generateCommentContent(): string {
   return faker.helpers.arrayElement(templates);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function generateChildCommentContent(): string {
-  const templates = [
-    'Totally agree!',
-    'Great point!',
-    'I think so too.',
-    'Absolutely!',
-    'Well said!',
-    "Couldn't agree more.",
-    'Spot on!',
-    'Exactly my thoughts.',
-    'You nailed it!',
-    'Perfect analysis!',
-  ];
-
-  return faker.helpers.arrayElement(templates);
-}
-
-// Generate reactions on game logs and comments using realistic distributions
-export function generateReactions(
+// Generate reactions on game logs and comments using streaming - now returns a generator
+export function* generateReactionsStream(
   users: ISeedUser[],
   gameLogs: ISeedGameLog[],
   comments: ISeedComment[],
   config: ISeedingConfig,
   distributionConfig?: IStatisticalSeedingConfig
-) {
-  const reactions: ISeedReaction[] = [];
-  const maxReactionsPerBatch = 10000; // Limit memory usage for very large datasets
-  let hasWarnedLarge = false;
-  let hasWarnedVeryLarge = false;
+): Generator<ISeedReaction, void, unknown> {
+  let totalReactions = 0;
 
-  // Generate reactions on game logs
+  // Generate reactions on game logs using Pareto distribution
+  // Only a subset of game logs should have reactions (following 80/20 rule)
+  const gameLogReactionProbability = distributionConfig?.gameLogReactionProbability ?? 0.5; // 50% of game logs get reactions by default
+
+  console.log(
+    `📊 Game log reaction probability: ${(gameLogReactionProbability * 100).toFixed(1)}%`
+  );
+
+  let gameLogsWithReactions = 0;
+  let totalGameLogsProcessed = 0;
+
   for (const gameLog of gameLogs) {
+    totalGameLogsProcessed++;
+
+    // Apply Pareto distribution: only some game logs get reactions
+    if (Math.random() > gameLogReactionProbability) {
+      continue; // Skip this game log
+    }
+
+    gameLogsWithReactions++;
+
     // Use configuration for reaction count per game log
     const reactionCount = distributionConfig
       ? Math.round(generateValue(distributionConfig.reactionCount))
@@ -572,27 +668,45 @@ export function generateReactions(
       const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
       for (const reactor of reactors) {
         if (reactor.id === gameLog.user_id) continue; // Skip if same user
-        reactions.push({
+
+        yield {
           id: generateUUIDv7(),
           user_id: reactor.id,
           target_type: TARGET_TYPES.GAME_LOG,
           target_id: gameLog.id,
+          // Note: REACTION_EMOJIS constant should be kept in sync with the reaction_emojis database table
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
-        });
+        };
 
-        // Memory management: warn only once when thresholds are crossed
-        if (!hasWarnedLarge && reactions.length > maxReactionsPerBatch) {
-          console.warn(
-            `⚠️  Large reaction dataset detected: ${reactions.length} reactions generated so far`
-          );
-          hasWarnedLarge = true;
+        totalReactions++;
+
+        // Progress indicator for very large datasets
+        if (totalReactions % 100000 === 0) {
+          console.log(`📊 Progress: ${totalReactions} reactions generated`);
         }
       }
     }
   }
 
-  // Generate reactions on comments
+  // Generate reactions on comments using Pareto distribution
+  // Only a subset of comments should have reactions (following 80/20 rule)
+  const commentReactionProbability = distributionConfig?.commentReactionProbability ?? 0.3; // 30% of comments get reactions by default
+
+  console.log(`📊 Comment reaction probability: ${(commentReactionProbability * 100).toFixed(1)}%`);
+
+  let commentsWithReactions = 0;
+  let totalCommentsProcessed = 0;
+
   for (const comment of comments) {
+    totalCommentsProcessed++;
+
+    // Apply Pareto distribution: only some comments get reactions
+    if (Math.random() > commentReactionProbability) {
+      continue; // Skip this comment
+    }
+
+    commentsWithReactions++;
+
     // Use configuration for reaction count per comment
     const reactionCount = distributionConfig
       ? Math.round(generateValue(distributionConfig.reactionCount))
@@ -605,37 +719,184 @@ export function generateReactions(
       const reactors = faker.helpers.arrayElements(users, Math.min(reactionCount, users.length));
       for (const reactor of reactors) {
         if (reactor.id === comment.user_id) continue; // Skip if same user
-        reactions.push({
+
+        yield {
           id: generateUUIDv7(),
           user_id: reactor.id,
           target_type: TARGET_TYPES.COMMENT,
           target_id: comment.id,
+          // Note: REACTION_EMOJIS constant should be kept in sync with the reaction_emojis database table
           emoji: faker.helpers.arrayElement(Object.values(REACTION_EMOJIS)),
-        });
+        };
 
-        // Memory management: warn only once when thresholds are crossed
-        if (!hasWarnedVeryLarge && reactions.length > maxReactionsPerBatch * 2) {
-          console.warn(
-            `⚠️  Very large reaction dataset detected: ${reactions.length} reactions generated so far`
-          );
-          hasWarnedVeryLarge = true;
+        totalReactions++;
+
+        // Progress indicator for very large datasets
+        if (totalReactions % 100000 === 0) {
+          console.log(`📊 Progress: ${totalReactions} reactions generated`);
         }
       }
     }
   }
 
-  console.log(`📊 Generated ${reactions.length} total reactions`);
-  return reactions;
+  console.log(`📊 Generated ${totalReactions} total reactions`);
+  console.log(
+    `📊 Game logs processed: ${totalGameLogsProcessed}, Game logs with reactions: ${gameLogsWithReactions} (${((gameLogsWithReactions / totalGameLogsProcessed) * 100).toFixed(1)}%)`
+  );
+  console.log(
+    `📊 Comments processed: ${totalCommentsProcessed}, Comments with reactions: ${commentsWithReactions} (${((commentsWithReactions / totalCommentsProcessed) * 100).toFixed(1)}%)`
+  );
 }
 
-// Helper function to batch insert large arrays
-async function batchInsert<T>(db: Database, table: Table, data: T[], batchSize = 500) {
-  for (let i = 0; i < data.length; i += batchSize) {
-    const batch = data.slice(i, i + batchSize);
-    await db.insert(table).values(batch);
+// Command line argument parsing using commander for robust CLI handling
+function parseCommandLineArgs() {
+  const program = new Command();
+
+  program
+    .name('seed-user-data')
+    .description('🌱 User Data Seeding Script')
+    .version('1.0.0')
+    .option('-u, --users <count>', 'Number of users to generate', parseInt)
+    .option('-s, --scenario <type>', 'Use predefined scenario (small, medium, large)', 'small')
+    .option('-d, --distribution <preset>', 'Use statistical distribution preset')
+    .option('-c, --clear', 'Clear all user data before seeding')
+    .option('-h, --help', 'Show this help message');
+
+  // Parse arguments
+  program.parse(process.argv);
+  const options = program.opts();
+
+  return {
+    users: options.users,
+    clear: options.clear,
+    help: options.help,
+    scenario: options.scenario,
+    distribution: options.distribution,
+  };
+}
+
+// Show help information using commander's built-in help
+function showHelp() {
+  const program = new Command();
+
+  program
+    .name('seed-user-data')
+    .description('🌱 User Data Seeding Script')
+    .version('1.0.0')
+    .option('-u, --users <count>', 'Number of users to generate', parseInt)
+    .option('-s, --scenario <type>', 'Use predefined scenario (small, medium, large)', 'small')
+    .option('-d, --distribution <preset>', 'Use statistical distribution preset')
+    .option('-c, --clear', 'Clear all user data before seeding')
+    .option('-h, --help', 'Show this help message');
+
+  console.log(`
+🌱 User Data Seeding Script
+
+Scenarios:
+  small                         100 users (default)
+  medium                        1000 users
+  large                         10000 users
+  custom                        Use --users flag to specify count
+
+Examples:
+  pnpm run seed:user-data                    # Seed with 100 users (default)
+  pnpm run seed:user-data --users 500       # Seed with 500 custom users
+  pnpm run seed:user-data --scenario large  # Seed with 10000 users
+  pnpm run seed:user-data --distribution pareto  # Use Pareto distribution
+  pnpm run seed:user-data --scenario large --distribution pareto  # Large dataset with Pareto
+  pnpm run seed:user-data --distribution normal  # Use normal distribution
+  pnpm run seed:user-data --distribution realistic  # Use realistic patterns
+  pnpm run seed:user-data --clear           # Clear user data only
+
+Available Distribution Presets:
+  uniform, normal, pareto, exponential, poisson, realistic,
+  high-engagement, low-engagement, performance
+
+Memory Optimization:
+  This script is optimized for large datasets and will automatically:
+  - Use streaming generators to minimize memory usage
+  - Process data in configurable batches
+  - Monitor memory usage in real-time
+  - Provide progress indicators for long operations
+`);
+
+  program.help();
+}
+
+// Main execution function for standalone script
+async function main() {
+  const options = parseCommandLineArgs();
+
+  // Commander handles help automatically, but we can still show custom help if needed
+  if (options.help) {
+    showHelp();
+    return;
+  }
+
+  if (options.clear) {
+    console.log('🧹 Clearing user data...');
+    await clearUserData();
+    return;
+  }
+
+  // Determine user count based on scenario or custom value
+  let userCount = 100; // default
+
+  if (options.scenario) {
+    switch (options.scenario) {
+      case 'small':
+        userCount = 100;
+        break;
+      case 'medium':
+        userCount = 1000;
+        break;
+      case 'large':
+        userCount = 10000;
+        break;
+      case 'custom':
+        if (options.users) {
+          userCount = options.users;
+        } else {
+          console.error('❌ Custom scenario requires --users flag');
+          process.exit(1);
+        }
+        break;
+    }
+  } else if (options.users) {
+    userCount = options.users;
+  }
+
+  // Validate and get distribution config if specified
+  let distributionConfig: IStatisticalSeedingConfig | undefined;
+  if (options.distribution) {
+    const distributionKey = options.distribution.toUpperCase();
+    if (distributionKey in DISTRIBUTION_CONFIG_PRESETS) {
+      distributionConfig =
+        DISTRIBUTION_CONFIG_PRESETS[distributionKey as keyof typeof DISTRIBUTION_CONFIG_PRESETS];
+      console.log(`📊 Using distribution preset: ${options.distribution}`);
+    } else {
+      const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS)
+        .map(p => p.toLowerCase())
+        .join(', ');
+      console.error(`❌ Unknown distribution preset: ${options.distribution}`);
+      console.error(`Available presets: ${validPresets}`);
+      process.exit(1);
+    }
+  }
+
+  console.log(`🚀 Starting user data seeding with ${userCount} users...`);
+  console.log('💡 This script is memory-optimized for large datasets');
+
+  try {
+    await seedUserData({ userCount }, undefined, distributionConfig);
+    console.log('✅ User data seeding completed successfully!');
+  } catch (error) {
+    console.error('❌ User data seeding failed:', error);
+    process.exit(1);
   }
 }
 
+// Export the main function for programmatic use
 export async function seedUserData(
   config?: Partial<ISeedingConfig>,
   _optimizationConfig?: unknown,
@@ -653,6 +914,9 @@ export async function seedUserData(
 
   // Merge provided config with defaults
   const finalConfig = { ...DEFAULT_CONFIG, ...config };
+
+  // Initialize memory monitor
+  const memoryMonitor = new MemoryMonitor();
 
   // Validate configuration for potential issues
   const validateConfiguration = (config: ISeedingConfig, _overrideSafetyLimits = false) => {
@@ -733,27 +997,72 @@ export async function seedUserData(
   };
 
   try {
-    // Step 1: Generate users
-    console.log(`👥 Generating ${finalConfig.userCount} users...`);
-    const usersData = await timeStep('Generate users', () =>
-      Promise.resolve(generateUsers(finalConfig.userCount))
-    );
+    // Step 1: Generate and insert users in streaming fashion
+    console.log(`👥 Generating and inserting ${finalConfig.userCount} users...`);
+    await timeStep('Generate and insert users', async () => {
+      const userStream = generateUsersStream(finalConfig.userCount);
+      let userBatch: ISeedUser[] = [];
+      let totalUsers = 0;
 
-    // Step 2: Insert users into database
-    await timeStep('Insert users', () => batchInsert(db, users, usersData));
+      for (const user of userStream) {
+        userBatch.push(user);
 
-    // Step 3: Generate friendships
-    console.log(`🤝 Generating friendships...`);
-    const friendshipsData = await timeStep('Generate friendships', () =>
-      Promise.resolve(generateFriendships(usersData, finalConfig))
-    );
+        if (userBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.USER_BATCH_SIZE) {
+          await db.insert(users).values(userBatch).onConflictDoNothing();
+          totalUsers += userBatch.length;
+          userBatch = [];
 
-    // Step 4: Insert friendships into database
-    if (friendshipsData.length > 0) {
-      await timeStep('Insert friendships', () => batchInsert(db, friendships, friendshipsData));
-    }
+          memoryMonitor.checkMemory(totalUsers);
+        }
+      }
 
-    // Step 5: Get available games for game logs
+      // Insert remaining users
+      if (userBatch.length > 0) {
+        await db.insert(users).values(userBatch).onConflictDoNothing();
+        totalUsers += userBatch.length;
+      }
+
+      console.log(`📊 Total users inserted: ${totalUsers}`);
+      return totalUsers;
+    });
+
+    // Step 2: Generate and insert friendships in streaming fashion
+    console.log(`🤝 Generating and inserting friendships...`);
+    await timeStep('Generate and insert friendships', async () => {
+      // We need to get users from DB for friendship generation
+      const usersFromDB = (await db.select().from(users)) as ISeedUser[];
+
+      const friendshipStream = generateFriendshipsStream(
+        usersFromDB,
+        finalConfig,
+        distributionConfig
+      );
+      let friendshipBatch: ISeedFriendship[] = [];
+      let totalFriendships = 0;
+
+      for (const friendship of friendshipStream) {
+        friendshipBatch.push(friendship);
+
+        if (friendshipBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.FRIENDSHIP_BATCH_SIZE) {
+          await db.insert(friendships).values(friendshipBatch).onConflictDoNothing();
+          totalFriendships += friendshipBatch.length;
+          friendshipBatch = [];
+
+          memoryMonitor.checkMemory(totalFriendships);
+        }
+      }
+
+      // Insert remaining friendships
+      if (friendshipBatch.length > 0) {
+        await db.insert(friendships).values(friendshipBatch).onConflictDoNothing();
+        totalFriendships += friendshipBatch.length;
+      }
+
+      console.log(`📊 Total friendships inserted: ${totalFriendships}`);
+      return totalFriendships;
+    });
+
+    // Step 3: Get available games for game logs
     console.log(`🎮 Getting available games...`);
     const availableGames = await timeStep('Get available games', () =>
       db.select({ id: nba_games.id }).from(nba_games)
@@ -764,40 +1073,174 @@ export async function seedUserData(
       throw new Error('No games available for seeding game logs');
     }
 
-    // Step 6: Generate game logs
-    console.log(`📝 Generating game logs...`);
-    const gameLogsData = await timeStep('Generate game logs', () =>
-      Promise.resolve(generateGameLogs(usersData, gameIds, finalConfig, distributionConfig))
-    );
+    // Step 4: Generate and insert game logs in streaming fashion
+    console.log(`📝 Generating and inserting game logs...`);
+    await timeStep('Generate and insert game logs', async () => {
+      const usersFromDB = (await db.select().from(users)) as ISeedUser[];
+      const gameLogStream = generateGameLogsStream(
+        usersFromDB,
+        gameIds,
+        finalConfig,
+        distributionConfig
+      );
+      let gameLogBatch: ISeedGameLog[] = [];
+      let totalGameLogs = 0;
 
-    // Step 7: Insert game logs into database
-    if (gameLogsData.length > 0) {
-      await timeStep('Insert game logs', () => batchInsert(db, game_logs, gameLogsData));
-    }
+      for (const gameLog of gameLogStream) {
+        gameLogBatch.push(gameLog);
 
-    // Step 8: Generate comments
-    console.log(`💬 Generating comments...`);
-    const commentsData = await timeStep('Generate comments', () =>
-      Promise.resolve(generateComments(usersData, gameLogsData, finalConfig, distributionConfig))
-    );
+        if (gameLogBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.GAME_LOG_BATCH_SIZE) {
+          await db.insert(game_logs).values(gameLogBatch).onConflictDoNothing();
+          totalGameLogs += gameLogBatch.length;
+          gameLogBatch = [];
 
-    // Step 9: Insert comments into database
-    if (commentsData.length > 0) {
-      await timeStep('Insert comments', () => batchInsert(db, comments, commentsData));
-    }
+          memoryMonitor.checkMemory(totalGameLogs);
+        }
+      }
 
-    // Step 10: Generate reactions
-    console.log(`👍 Generating reactions...`);
-    const reactionsData = await timeStep('Generate reactions', () =>
-      Promise.resolve(
-        generateReactions(usersData, gameLogsData, commentsData, finalConfig, distributionConfig)
-      )
-    );
+      // Insert remaining game logs
+      if (gameLogBatch.length > 0) {
+        await db.insert(game_logs).values(gameLogBatch).onConflictDoNothing();
+        totalGameLogs += gameLogBatch.length;
+      }
 
-    // Step 11: Insert reactions into database
-    if (reactionsData.length > 0) {
-      await timeStep('Insert reactions', () => batchInsert(db, reactions, reactionsData));
-    }
+      console.log(`📊 Total game logs inserted: ${totalGameLogs}`);
+      return totalGameLogs;
+    });
+
+    // Step 5: Generate and insert comments in streaming fashion
+    console.log(`💬 Generating and inserting comments...`);
+    await timeStep('Generate and insert comments', async () => {
+      const usersFromDB = (await db.select().from(users)) as ISeedUser[];
+      const gameLogsFromDB = (await db.select().from(game_logs)) as ISeedGameLog[];
+
+      const commentStream = generateCommentsStream(
+        usersFromDB,
+        gameLogsFromDB,
+        finalConfig,
+        distributionConfig
+      );
+      let commentBatch: ISeedComment[] = [];
+      let totalComments = 0;
+
+      for (const comment of commentStream) {
+        commentBatch.push(comment);
+
+        if (commentBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.COMMENT_BATCH_SIZE) {
+          await db.insert(comments).values(commentBatch).onConflictDoNothing();
+          totalComments += commentBatch.length;
+          commentBatch = [];
+
+          memoryMonitor.checkMemory(totalComments);
+        }
+      }
+
+      // Insert remaining comments
+      if (commentBatch.length > 0) {
+        await db.insert(comments).values(commentBatch).onConflictDoNothing();
+        totalComments += commentBatch.length;
+      }
+
+      console.log(`📊 Total comments inserted: ${totalComments}`);
+      return totalComments;
+    });
+
+    // Step 6: Generate and insert reactions in streaming fashion
+    console.log(`👍 Generating and inserting reactions...`);
+    await timeStep('Generate and insert reactions', async () => {
+      const usersFromDB = (await db.select().from(users)) as ISeedUser[];
+      const gameLogsFromDB = (await db.select().from(game_logs)) as ISeedGameLog[];
+
+      // Process comments in chunks to avoid memory issues with large datasets
+      const COMMENT_CHUNK_SIZE = 10000; // Process 10k comments at a time
+      let totalReactions = 0;
+      let offset = 0;
+      let hasMoreComments = true;
+      let chunkCount = 0;
+
+      console.log(`📊 Starting chunked comment processing with chunk size: ${COMMENT_CHUNK_SIZE}`);
+
+      while (hasMoreComments) {
+        try {
+          chunkCount++;
+          console.log(
+            `📊 Processing comments chunk ${chunkCount}: offset ${offset}, size ${COMMENT_CHUNK_SIZE}`
+          );
+
+          // Fetch comments in chunks
+          const commentsChunk = (await db
+            .select()
+            .from(comments)
+            .limit(COMMENT_CHUNK_SIZE)
+            .offset(offset)) as ISeedComment[];
+
+          if (commentsChunk.length === 0) {
+            console.log(`📊 No more comments found at offset ${offset}`);
+            hasMoreComments = false;
+            break;
+          }
+
+          console.log(
+            `📊 Fetched ${commentsChunk.length} comments for chunk ${chunkCount} (${offset + 1} to ${offset + commentsChunk.length})`
+          );
+
+          // Generate reactions for this chunk
+          const reactionStream = generateReactionsStream(
+            usersFromDB,
+            gameLogsFromDB,
+            commentsChunk,
+            finalConfig,
+            distributionConfig
+          );
+
+          let reactionBatch: ISeedReaction[] = [];
+          let chunkReactions = 0;
+
+          for (const reaction of reactionStream) {
+            reactionBatch.push(reaction);
+
+            if (reactionBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.REACTION_BATCH_SIZE) {
+              await db.insert(reactions).values(reactionBatch).onConflictDoNothing();
+              chunkReactions += reactionBatch.length;
+              totalReactions += reactionBatch.length;
+              reactionBatch = [];
+
+              memoryMonitor.checkMemory(totalReactions);
+            }
+          }
+
+          // Insert remaining reactions from this chunk
+          if (reactionBatch.length > 0) {
+            await db.insert(reactions).values(reactionBatch).onConflictDoNothing();
+            chunkReactions += reactionBatch.length;
+            totalReactions += reactionBatch.length;
+          }
+
+          console.log(
+            `📊 Chunk ${chunkCount} completed: ${chunkReactions} reactions, Total so far: ${totalReactions}`
+          );
+          offset += COMMENT_CHUNK_SIZE;
+
+          // Add a small delay between chunks to prevent overwhelming the database
+          if (hasMoreComments) {
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+        } catch (error) {
+          console.error(`❌ Error processing chunk ${chunkCount} at offset ${offset}:`, error);
+          throw error;
+        }
+      }
+
+      console.log(`📊 Completed processing ${chunkCount} chunks`);
+
+      console.log(`📊 Total reactions inserted: ${totalReactions}`);
+      return totalReactions;
+    });
+
+    // Final memory statistics
+    const finalMemoryStats = memoryMonitor.getMemoryStats();
+    const memoryMB = Math.round(finalMemoryStats.increase / 1024 / 1024);
+    console.log(`📊 Final memory usage: ${memoryMB}MB increase`);
 
     console.log('✅ User data seeding completed successfully!');
   } catch (err: unknown) {
@@ -850,4 +1293,12 @@ export async function clearUserData() {
     });
     throw err;
   }
+}
+
+// Execute main function if this script is run directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(error => {
+    console.error('❌ Fatal error:', error);
+    process.exit(1);
+  });
 }

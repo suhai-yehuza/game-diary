@@ -2,14 +2,17 @@
 
 import { ArrowRight, Calendar, Users, Trophy, RefreshCw, Newspaper } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { NBANews } from '@/app/components/sports/nba-news';
+import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
+import { API_LIMITS } from '@/lib/constants';
+import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 
 // Skeleton components for better loading states
 const NavigationCardSkeleton = () => (
@@ -27,6 +30,7 @@ const NavigationCardSkeleton = () => (
 export default function NBAPage() {
   // State for total counts
   const [totalGames, setTotalGames] = useState<number>(0);
+  const [totalTeams, setTotalTeams] = useState<number>(0);
   const [totalPlayers, setTotalPlayers] = useState<number>(0);
   const [countsLoading, setCountsLoading] = useState(true);
 
@@ -36,7 +40,7 @@ export default function NBAPage() {
     loading: gamesLoading,
     error: gamesError,
   } = useLatestGames({
-    limit: 6,
+    limit: API_LIMITS.GAMES.DEFAULT,
     forceRealData: false, // Use mock data instead of external API
   });
 
@@ -59,78 +63,45 @@ export default function NBAPage() {
   // Fetch live games data
   const { games: liveGames, loading: liveGamesLoading } = useLiveGames();
 
-  // Fetch total counts
-  useEffect(() => {
-    const fetchTotalCounts = async () => {
-      try {
-        setCountsLoading(true);
+  // Fetch total counts from database
+  const fetchTotalCounts = useCallback(async () => {
+    try {
+      // Get counts directly from database
+      const response = await fetch('/api/nba-hub/counts');
+      const data = await response.json();
 
-        // Check if we're in mock mode
-        const useMockData =
-          (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true');
+      if (data.success) {
+        setTotalGames(data.counts.games);
+        setTotalTeams(data.counts.teams);
+        setTotalPlayers(data.counts.players);
 
-        if (useMockData) {
-          // For mock data, fetch the full responses to get the results count
-          const [gamesResponse, playersResponse] = await Promise.all([
-            fetch('/api/mock-server?action=mock-data&type=nba-games'),
-            fetch('/api/mock-server?action=mock-data&type=nba-players'),
-          ]);
+        console.log(
+          `📊 NBA Hub counts from database: ${data.counts.games} games, ${data.counts.teams} teams, ${data.counts.players} players`
+        );
 
-          if (gamesResponse.ok) {
-            const gamesData = await gamesResponse.json();
-            if (
-              gamesData.data &&
-              typeof gamesData.data === 'object' &&
-              'results' in gamesData.data
-            ) {
-              setTotalGames(gamesData.data.results);
-            }
-          }
-
-          if (playersResponse.ok) {
-            const playersData = await playersResponse.json();
-            if (
-              playersData.data &&
-              typeof playersData.data === 'object' &&
-              'results' in playersData.data
-            ) {
-              setTotalPlayers(playersData.data.results);
-            }
-          }
-        } else {
-          // For real data, make API calls to get total counts
-          const [gamesResponse, playersResponse] = await Promise.all([
-            fetch('/api/proxy/games?season=2024&league=standard'),
-            fetch('/api/players?limit=1000'), // Get a large number to get total count
-          ]);
-
-          if (gamesResponse.ok) {
-            const gamesData = await gamesResponse.json();
-            if (gamesData && typeof gamesData === 'object' && 'results' in gamesData) {
-              setTotalGames(gamesData.results);
-            }
-          }
-
-          if (playersResponse.ok) {
-            const playersData = await playersResponse.json();
-            if (playersData && typeof playersData === 'object' && 'results' in playersData) {
-              setTotalPlayers(playersData.results);
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching total counts:', error);
+        setCountsLoading(false);
+      } else {
         // Fallback to using the length of fetched data
         setTotalGames(latestGames.length);
+        setTotalTeams(teams.length);
         setTotalPlayers(players.length);
-      } finally {
         setCountsLoading(false);
+        console.log('📊 NBA Hub using fallback counts from fetched data');
       }
-    };
+    } catch (error) {
+      console.error('Error fetching database counts:', error);
+      // Fallback to using the length of fetched data
+      setTotalGames(latestGames.length);
+      setTotalTeams(teams.length);
+      setTotalPlayers(players.length);
+      setCountsLoading(false);
+    }
+  }, [latestGames.length, teams.length, players.length]);
 
+  useEffect(() => {
+    // Fetch immediately on page load
     void fetchTotalCounts();
-  }, [latestGames.length, players.length]);
+  }, [fetchTotalCounts]); // Now depends on fetchTotalCounts
 
   const navigationCards = [
     {
@@ -138,8 +109,11 @@ export default function NBAPage() {
       description: 'Browse and filter NBA games',
       href: '/sports/nba/games',
       icon: Calendar,
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: TAILWIND_CLASSES.sports.nba,
       count: countsLoading ? latestGames.length : totalGames,
+      formattedCount: countsLoading
+        ? `${latestGames.length} games`
+        : `${formatNumberShort(totalGames)} games`,
       loading: gamesLoading || countsLoading,
     },
     {
@@ -147,17 +121,23 @@ export default function NBAPage() {
       description: 'Explore all NBA teams',
       href: '/sports/nba/teams',
       icon: Trophy,
-      color: 'bg-blue-500 hover:bg-blue-600',
-      count: teams.length,
-      loading: teamsLoading,
+      color: TAILWIND_CLASSES.sports.nfl, // Using NFL blue for Teams
+      count: countsLoading ? teams.length : totalTeams,
+      formattedCount: countsLoading
+        ? `${teams.length} teams`
+        : `${formatNumberShort(totalTeams)} teams`,
+      loading: teamsLoading || countsLoading,
     },
     {
       title: 'Players',
       description: 'Discover NBA players',
       href: '/sports/nba/players',
       icon: Users,
-      color: 'bg-green-500 hover:bg-green-600',
+      color: TAILWIND_CLASSES.sports.mls, // Using MLS green for Players
       count: countsLoading ? players.length : totalPlayers,
+      formattedCount: countsLoading
+        ? `${players.length} players`
+        : `${formatNumberShort(totalPlayers)} players`,
       loading: playersLoading || countsLoading,
     },
   ];
@@ -173,9 +153,25 @@ export default function NBAPage() {
     <SportsPageLayout title="" description="" showLiveGamesButton={false}>
       {/* Hero Section */}
       <div className="mb-6 sm:mb-8">
-        {/* Title and Live Games Button - Horizontally Aligned */}
+        {/* Title, Refresh Button, and Live Games Button - Horizontally Aligned */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-4">
-          <h1 className="text-3xl sm:text-4xl font-bold nba-hub-title">NBA Hub</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl sm:text-4xl font-bold nba-hub-title">NBA Hub</h1>
+
+            {/* Refresh Counts Button */}
+            <button
+              onClick={() => {
+                setCountsLoading(true);
+                void fetchTotalCounts();
+              }}
+              disabled={countsLoading}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Refresh database counts"
+            >
+              <RefreshCw className={`w-4 h-4 ${countsLoading ? 'animate-spin' : ''}`} />
+              Refresh
+            </button>
+          </div>
 
           {/* Live Games Button */}
           <Link
@@ -258,7 +254,7 @@ export default function NBAPage() {
                       Loading...
                     </span>
                   ) : (
-                    `${card.count} ${card.title.toLowerCase()}`
+                    card.formattedCount
                   )}
                 </div>
               </Link>

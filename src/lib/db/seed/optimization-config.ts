@@ -58,16 +58,6 @@ export const OPTIMIZATION_CONFIG = {
     jitter_factor: 0.1,
   },
 
-  // Circuit breaker settings
-  circuit_breaker: {
-    // Failure threshold before opening circuit
-    failure_threshold: 5,
-    // Timeout before attempting to close circuit (ms)
-    timeout: 60000,
-    // Success threshold to close circuit
-    success_threshold: 3,
-  },
-
   // Rate limiting
   rate_limiting: {
     // Requests per second for external APIs
@@ -83,7 +73,7 @@ export const OPTIMIZATION_CONFIG = {
     // Use prepared statements
     use_prepared_statements: true,
     // Connection pool size
-    connection_pool_size: 20,
+    connection_pool_size: 10, // Reduced from 20
     // Query timeout (ms)
     query_timeout: 30000,
     // Use concurrent index creation
@@ -148,8 +138,6 @@ export const OPTIMIZATION_CONFIG = {
     enable_parallel: true,
     // Enable caching
     enable_caching: true,
-    // Enable compression for large data
-    enable_compression: false,
     // Enable data validation
     enable_validation: true,
     // Enable automatic index optimization
@@ -189,8 +177,8 @@ export const PERFORMANCE_THRESHOLDS = {
   // Memory usage thresholds (MB)
   memory: {
     warning: 500,
-    critical: 1000,
-    max: 1500,
+    critical: 2000,
+    max: 5000,
   },
 
   // Error rate thresholds (percentage)
@@ -200,10 +188,6 @@ export const PERFORMANCE_THRESHOLDS = {
     max: 25,
   },
 } as const;
-
-// Constants for magic numbers
-const SECONDS_PER_MINUTE = 60;
-const MILLISECONDS_PER_SECOND = 1000;
 
 // Environment-specific configurations
 export const ENVIRONMENT_CONFIGS = {
@@ -218,13 +202,6 @@ export const ENVIRONMENT_CONFIGS = {
       ...OPTIMIZATION_CONFIG.monitoring,
       enabled: true,
       log_interval: 100,
-    },
-    connectionPool: {
-      min: 2,
-      max: 10,
-      idleTimeoutMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
-      acquireTimeoutMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
-      reapIntervalMillis: SECONDS_PER_MINUTE * MILLISECONDS_PER_SECOND, // 60 seconds
     },
   },
 
@@ -334,70 +311,3 @@ export class PerformanceTracker {
     return 'poor';
   }
 }
-
-// Export types
-
-// Add missing getCacheManager function
-import type { ICacheManager } from '@/lib/types';
-
-// Cache TTL constant
-const CACHE_TTL_MS = 3600000; // 1 hour in milliseconds
-
-// Note: Methods must be async to satisfy ICacheManager interface, even if not using await
-class InMemoryCache implements ICacheManager {
-  private readonly cache = new Map<string, { value: unknown; expires: number }>();
-
-  async get<T>(key: string): Promise<T | null> {
-    await Promise.resolve(); // Satisfy async requirement
-    const item = this.cache.get(key);
-    if (!item) return null;
-
-    if (Date.now() > item.expires) {
-      this.cache.delete(key);
-      return null;
-    }
-
-    return item.value as T;
-  }
-
-  async set<T>(key: string, value: T, ttl: number = CACHE_TTL_MS): Promise<void> {
-    await Promise.resolve(); // Satisfy async requirement
-    this.cache.set(key, {
-      value,
-      expires: Date.now() + ttl,
-    });
-  }
-
-  async delete(key: string): Promise<void> {
-    await Promise.resolve(); // Satisfy async requirement
-    this.cache.delete(key);
-  }
-
-  async clear(): Promise<void> {
-    await Promise.resolve(); // Satisfy async requirement
-    this.cache.clear();
-  }
-}
-
-let cacheManager: ICacheManager | null = null;
-
-export function getCacheManager(): ICacheManager {
-  cacheManager ??= new InMemoryCache();
-  return cacheManager;
-}
-
-// Add missing API_CONFIG export
-export const API_CONFIG = {
-  rapidApi: {
-    key: process.env.RAPID_API_KEY ?? '',
-    host: process.env.RAPID_API_HOST ?? 'api-nba-v1.p.rapidapi.com',
-    baseUrl: 'https://api-nba-v1.p.rapidapi.com',
-  },
-  nbaApi: {
-    key: process.env.NBA_API_KEY ?? '',
-    host: process.env.NBA_API_HOST ?? 'nba-stats-db.herokuapp.com',
-    baseUrl: 'https://nba-stats-db.herokuapp.com',
-  },
-  timeout: 30000,
-  retries: 3,
-} as const;

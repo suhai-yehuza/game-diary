@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import type { IGameResponse, IGamesApiResponse, ILatestGamesOptions } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 import { getLatestNbaSeason } from '@/lib/utils/nba-season';
 
 // Helper function to detect test environment
@@ -29,6 +31,9 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
   const [latestGames, setLatestGames] = useState<IGameResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note] = useState<string | undefined>(
+    'Loading data with rate limiting... This may take a moment.'
+  );
 
   const fetchLatestGames = useCallback(async () => {
     if (skip) return;
@@ -37,13 +42,9 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
       setLoading(true);
       setError(null);
 
-      // Use mock data in development if API_MOCK_MODE is enabled, or in test environments
+      // Use mock data in development if MOCK_MODE is enabled, or in test environments
       // But force real data if forceRealData is true
-      const useMockData = forceRealData
-        ? false
-        : (typeof window !== 'undefined' && window.__API_MOCK_MODE__) ||
-          (process.env.NODE_ENV === 'development' && process.env.API_MOCK_MODE === 'true') ||
-          isTestOrCIEnvironment();
+      const useMockData = forceRealData ? false : isMockModeEnabled() || isTestOrCIEnvironment();
 
       let allGames: IGameResponse[] = [];
 
@@ -62,15 +63,15 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
           }
         }
       } else {
-        // For real data, fetch from specified seasons or default to latest season
+        // Cache logic removed - fetch directly from database API
+        console.log('🎮 Fetching games from database API...');
         const seasonsToFetch = seasons && seasons.length > 0 ? seasons : [latestSeason];
 
-        // Fetch games from all specified seasons
         const seasonPromises = seasonsToFetch.map(async season => {
-          const response = await fetch(`/api/proxy/games?season=${season}&league=standard`);
+          const response = await fetch(`/api/games?season=${season}`);
           if (!response.ok) {
             throw new Error(
-              `API request failed for season ${season}: ${response.status} ${response.statusText}`
+              `Database API request failed for season ${season}: ${response.status} ${response.statusText}`
             );
           }
 
@@ -83,6 +84,7 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
 
         const seasonResults = await Promise.all(seasonPromises);
         allGames = seasonResults.flat();
+        console.log(`✅ Loaded ${allGames.length} games from database`);
       }
 
       // Sort games by date (most recent first)
@@ -100,6 +102,8 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       setError(errorMessage);
       setLatestGames([]);
+      const errorObj = err instanceof Error ? err : new Error(String(err));
+      errorHandlers.api(errorObj, { component: 'useLatestGames', action: 'fetchLatestGames' });
     } finally {
       setLoading(false);
     }
@@ -119,5 +123,6 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
     error,
     refetch,
     season: latestSeason,
+    note,
   };
 }

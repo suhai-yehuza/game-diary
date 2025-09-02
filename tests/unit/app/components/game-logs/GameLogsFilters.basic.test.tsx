@@ -1,100 +1,327 @@
-import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+import { GameLogsFilters } from '@/app/components/game-logs/GameLogsFilters';
+
+// Mock child components
+vi.mock('@/app/components/game-logs/GameLogsSearch', () => ({
+  GameLogsSearch: ({ onSearchChange, onClear, searchTerm, searchField }: any) => (
+    <div data-testid="game-logs-search">
+      <input
+        data-testid="search-input"
+        value={searchTerm || ''}
+        onChange={e => onSearchChange?.(e.target.value)}
+        placeholder={`Search by ${searchField}`}
+      />
+      <button data-testid="clear-search" onClick={onClear}>
+        Clear
+      </button>
+    </div>
+  ),
+}));
+
+vi.mock('@/app/components/game-logs/GameLogsSort', () => ({
+  GameLogsSort: ({
+    sortKey,
+    sortDirection,
+    onSort,
+    displayedCount,
+    totalCount,
+    classification,
+  }: any) => (
+    <div data-testid="game-logs-sort">
+      <select
+        data-testid="sort-field"
+        defaultValue={sortKey || ''}
+        onChange={e => onSort?.(e.target.value, sortDirection)}
+      >
+        <option value="date">Date</option>
+        <option value="title">Title</option>
+        <option value="rating">Rating</option>
+      </select>
+      <button
+        data-testid="sort-direction"
+        onClick={() => onSort?.(sortKey, sortDirection === 'asc' ? 'desc' : 'asc')}
+      >
+        {sortDirection}
+      </button>
+      <span data-testid="count-display">
+        {displayedCount} of {totalCount}
+      </span>
+      <span data-testid="classification">{classification || ''}</span>
+    </div>
+  ),
+}));
 
 describe('GameLogsFilters', () => {
-  it('can be imported successfully', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogsFilters');
-    expect(importedModule.GameLogsFilters).toBeDefined();
-    expect(typeof importedModule.GameLogsFilters).toBe('function');
+  const defaultProps = {
+    searchTerm: 'test search',
+    searchField: 'title',
+    sortConfig: {
+      field: 'date',
+      direction: 'asc' as const,
+    },
+    displayedCount: 10,
+    totalCount: 25,
+    classification: 'all',
+    onSearchChange: vi.fn(),
+    onSearchClear: vi.fn(),
+    onSort: vi.fn(),
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
   });
 
-  it('has the correct export name', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogsFilters');
-    expect(importedModule).toHaveProperty('GameLogsFilters');
+  it('renders the component with search and filter section', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    expect(screen.getByText('Search & Filter')).toBeInTheDocument();
   });
 
-  it('is a React component', async () => {
-    const { GameLogsFilters } = await import('@/app/components/game-logs/GameLogsFilters');
-    // React functional components are functions
-    expect(typeof GameLogsFilters).toBe('function');
-    // Components should have a length (parameters) indicating they accept props
-    expect(GameLogsFilters.length).toBeGreaterThanOrEqual(0);
+  it('renders GameLogsSearch component with correct props', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('test search')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search by title')).toBeInTheDocument();
   });
 
-  it('component name is correct', async () => {
-    const { GameLogsFilters } = await import('@/app/components/game-logs/GameLogsFilters');
-    expect(GameLogsFilters.name).toBe('GameLogsFilters');
+  it('renders GameLogsSort component with correct props', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
+    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
+    expect(screen.getByText('asc')).toBeInTheDocument();
+    expect(screen.getByText('10 of 25')).toBeInTheDocument();
+    expect(screen.getByText('all')).toBeInTheDocument();
   });
 
-  it('has proper component structure', async () => {
-    const { GameLogsFilters } = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles search change correctly', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    const searchInput = screen.getByTestId('search-input');
 
-    // Check that the component is callable
-    expect(typeof GameLogsFilters).toBe('function');
+    fireEvent.change(searchInput, { target: { value: 'new search' } });
 
-    // Check that it's not null or undefined
-    expect(GameLogsFilters).not.toBeNull();
-    expect(GameLogsFilters).not.toBeUndefined();
+    expect(defaultProps.onSearchChange).toHaveBeenCalledWith('new search');
   });
 
-  it('can be destructured from import', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogsFilters');
-    const { GameLogsFilters } = importedModule;
+  it('handles search clear correctly', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    const clearButton = screen.getByTestId('clear-search');
 
-    expect(GameLogsFilters).toBeDefined();
-    expect(typeof GameLogsFilters).toBe('function');
+    fireEvent.click(clearButton);
+
+    expect(defaultProps.onSearchClear).toHaveBeenCalled();
   });
 
-  it('has correct module structure', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles sort field change correctly', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    const sortField = screen.getByTestId('sort-field');
 
-    // Check that the module has the expected structure
-    expect(importedModule).toHaveProperty('GameLogsFilters');
-    expect(typeof importedModule.GameLogsFilters).toBe('function');
+    fireEvent.change(sortField, { target: { value: 'title' } });
 
-    // Check that it's the default export
-    expect(importedModule.GameLogsFilters).toBe(importedModule.GameLogsFilters);
+    expect(defaultProps.onSort).toHaveBeenCalledWith('title', 'asc');
   });
 
-  it('accepts the expected props interface', async () => {
-    const { GameLogsFilters } = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles sort direction change correctly', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    const sortDirection = screen.getByTestId('sort-direction');
 
-    // The component should accept props (length > 0 for function parameters)
-    expect(GameLogsFilters.length).toBeGreaterThan(0);
+    fireEvent.click(sortDirection);
+
+    expect(defaultProps.onSort).toHaveBeenCalledWith('date', 'desc');
   });
 
-  it('is a named export', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles sort direction change from desc to asc', () => {
+    const descProps = {
+      ...defaultProps,
+      sortConfig: {
+        field: 'date',
+        direction: 'desc' as const,
+      },
+    };
 
-    // Should be a named export, not default
-    expect(importedModule.GameLogsFilters).toBeDefined();
-    expect(typeof importedModule.GameLogsFilters).toBe('function');
+    render(<GameLogsFilters {...descProps} />);
+    const sortDirection = screen.getByTestId('sort-direction');
+
+    fireEvent.click(sortDirection);
+
+    expect(defaultProps.onSort).toHaveBeenCalledWith('date', 'asc');
   });
 
-  it('has consistent import behavior', async () => {
-    const module1 = await import('@/app/components/game-logs/GameLogsFilters');
-    const module2 = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles empty search term', () => {
+    const emptySearchProps = {
+      ...defaultProps,
+      searchTerm: '',
+    };
 
-    // Multiple imports should return the same component
-    expect(module1.GameLogsFilters).toBe(module2.GameLogsFilters);
+    render(<GameLogsFilters {...emptySearchProps} />);
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  it('can be imported with destructuring', async () => {
-    const { GameLogsFilters } = await import('@/app/components/game-logs/GameLogsFilters');
+  it('handles empty search term', () => {
+    const emptySearchProps = {
+      ...defaultProps,
+      searchTerm: '',
+    };
 
-    expect(GameLogsFilters).toBeDefined();
-    expect(typeof GameLogsFilters).toBe('function');
-    expect(GameLogsFilters.name).toBe('GameLogsFilters');
+    render(<GameLogsFilters {...emptySearchProps} />);
+    expect(screen.getByDisplayValue('')).toBeInTheDocument();
   });
 
-  it('maintains function identity across imports', async () => {
-    const { GameLogsFilters: Component1 } = await import(
-      '@/app/components/game-logs/GameLogsFilters'
+  it('handles different search fields', () => {
+    const contentSearchProps = {
+      ...defaultProps,
+      searchField: 'content',
+    };
+
+    render(<GameLogsFilters {...contentSearchProps} />);
+    expect(screen.getByPlaceholderText('Search by content')).toBeInTheDocument();
+  });
+
+  it('handles different sort configurations', () => {
+    const titleSortProps = {
+      ...defaultProps,
+      sortConfig: {
+        field: 'title',
+        direction: 'desc' as const,
+      },
+    };
+
+    render(<GameLogsFilters {...titleSortProps} />);
+    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
+    expect(screen.getByText('desc')).toBeInTheDocument();
+  });
+
+  it('handles undefined sort config', () => {
+    const undefinedSortProps = {
+      ...defaultProps,
+      sortConfig: null,
+    };
+
+    render(<GameLogsFilters {...undefinedSortProps} />);
+    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
+    expect(screen.getByText('asc')).toBeInTheDocument();
+  });
+
+  it('handles null sort config', () => {
+    const nullSortProps = {
+      ...defaultProps,
+      sortConfig: null,
+    };
+
+    render(<GameLogsFilters {...nullSortProps} />);
+    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
+    expect(screen.getByText('asc')).toBeInTheDocument();
+  });
+
+  it('handles different count displays', () => {
+    const zeroCountProps = {
+      ...defaultProps,
+      displayedCount: 0,
+      totalCount: 0,
+    };
+
+    render(<GameLogsFilters {...zeroCountProps} />);
+    expect(screen.getByText('0 of 0')).toBeInTheDocument();
+  });
+
+  it('handles large count displays', () => {
+    const largeCountProps = {
+      ...defaultProps,
+      displayedCount: 999999,
+      totalCount: 1000000,
+    };
+
+    render(<GameLogsFilters {...largeCountProps} />);
+    expect(screen.getByText('999999 of 1000000')).toBeInTheDocument();
+  });
+
+  it('handles different classifications', () => {
+    const classificationProps = {
+      ...defaultProps,
+      classification: 'favorites',
+    };
+
+    render(<GameLogsFilters {...classificationProps} />);
+    expect(screen.getByText('favorites')).toBeInTheDocument();
+  });
+
+  it('handles empty classification', () => {
+    const emptyClassificationProps = {
+      ...defaultProps,
+      classification: '',
+    };
+
+    render(<GameLogsFilters {...emptyClassificationProps} />);
+    expect(screen.getByTestId('classification')).toBeInTheDocument();
+  });
+
+  it('applies correct CSS classes to main container', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+    const container = screen.getByText('Search & Filter').closest('div')?.parentElement;
+    expect(container).toHaveClass(
+      'bg-white',
+      'dark:bg-gray-800',
+      'rounded-lg',
+      'border',
+      'border-gray-200',
+      'dark:border-gray-700',
+      'p-4',
+      'sm:p-6',
+      'space-y-4'
     );
-    const { GameLogsFilters: Component2 } = await import(
-      '@/app/components/game-logs/GameLogsFilters'
-    );
+  });
 
-    // Should be the same function reference
-    expect(Component1).toBe(Component2);
+  it('renders with proper section structure', () => {
+    render(<GameLogsFilters {...defaultProps} />);
+
+    // Check that both sections are rendered
+    expect(screen.getByText('Search & Filter')).toBeInTheDocument();
+
+    // Check that the sort section has the border-t class (indicating it's separated)
+    const sortSection = screen.getByTestId('game-logs-sort').closest('div');
+    expect(sortSection?.parentElement).toHaveClass(
+      'border-t',
+      'border-gray-200',
+      'dark:border-gray-700',
+      'pt-4'
+    );
+  });
+
+  it('handles missing callback functions gracefully', () => {
+    const noCallbacksProps = {
+      ...defaultProps,
+      onSearchChange: () => {},
+      onSearchClear: () => {},
+      onSort: () => {},
+    };
+
+    render(<GameLogsFilters {...noCallbacksProps} />);
+
+    // Should render without errors
+    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
+    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
+  });
+
+  it('handles all props being optional', () => {
+    const minimalProps = {
+      searchTerm: '',
+      searchField: 'title',
+      sortConfig: {
+        field: 'date',
+        direction: 'asc' as const,
+      },
+      displayedCount: 0,
+      totalCount: 0,
+      classification: 'all',
+      onSearchChange: () => {},
+      onSearchClear: () => {},
+      onSort: () => {},
+    };
+
+    render(<GameLogsFilters {...minimalProps} />);
+
+    // Should render without errors
+    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
+    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
   });
 });

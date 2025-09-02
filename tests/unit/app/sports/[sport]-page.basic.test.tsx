@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 
 import { SimpleSportsPage } from '@/app/components/sports';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
-import SportPage from '@/app/sports/[sport]/page';
+import SportPage, { generateMetadata } from '@/app/sports/[sport]/page';
 
 // Mock the modules using factory functions
 vi.mock('next/navigation', () => ({
@@ -49,5 +49,48 @@ describe('SportPage', () => {
   it('renders nothing if param is missing', async () => {
     await SportPage({ params: Promise.resolve({ sport: '' }) });
     expect(mockNotFound).toHaveBeenCalled();
+  });
+});
+
+describe('generateMetadata', () => {
+  const firstSportKey = Object.keys(SPORTS_CONFIG)[0];
+  const firstSportConfig = SPORTS_CONFIG[firstSportKey as keyof typeof SPORTS_CONFIG];
+
+  it('generates metadata for valid sport', async () => {
+    const metadata = await generateMetadata({ params: Promise.resolve({ sport: firstSportKey }) });
+
+    expect(metadata).toEqual({
+      title: firstSportConfig.name,
+      description: firstSportConfig.description,
+    });
+  });
+
+  it('generates fallback metadata for invalid sport', async () => {
+    const metadata = await generateMetadata({ params: Promise.resolve({ sport: 'invalidsport' }) });
+
+    expect(metadata).toEqual({
+      title: 'Sport Not Found - Game Diary',
+      description: 'The requested sport could not be found',
+    });
+  });
+
+  it('generates fallback metadata for empty sport', async () => {
+    const metadata = await generateMetadata({ params: Promise.resolve({ sport: '' }) });
+
+    expect(metadata).toEqual({
+      title: 'Sport Not Found - Game Diary',
+      description: 'The requested sport could not be found',
+    });
+  });
+
+  it('generates fallback metadata for undefined sport', async () => {
+    const metadata = await generateMetadata({
+      params: Promise.resolve({ sport: undefined as any }),
+    });
+
+    expect(metadata).toEqual({
+      title: 'Sport Not Found - Game Diary',
+      description: 'The requested sport could not be found',
+    });
   });
 });

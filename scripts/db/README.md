@@ -1,204 +1,131 @@
-# Database Management System
+# Database Management Scripts
 
-This directory contains a unified database management system that consolidates all database operations into a single, well-organized module.
+This directory contains scripts for managing your Game Diary database, including ensuring all fixes are applied and testing triggers.
 
-## Overview
+## 🚀 Quick Start - After Creating a New Database
 
-The database management system has been consolidated from multiple separate scripts into a unified `database-manager.ts` that provides:
-
-- **Shared utilities**: Common database connection, SQL parsing, and error handling
-- **Consistent patterns**: Unified approach to migrations, setup, and maintenance
-- **Reduced duplication**: Eliminates code duplication across multiple files
-- **Better maintainability**: Single source of truth for database operations
-
-## Files
-
-### Core Files
-
-- **`database-manager.ts`** - Main unified database management system
-- **`migrate.ts`** - Backward compatibility wrapper for migrations
-- **`README.md`** - This documentation
-
-### Legacy Files (Deprecated)
-
-The following files are now deprecated and will be removed in future versions:
-
-- `apply-migrations.ts` - Replaced by `database-manager.ts migrate`
-- `apply-consolidated-migration.ts` - Replaced by `database-manager.ts migrate-file`
-- `apply-cascade-delete-migration.ts` - Replaced by `database-manager.ts migrate-file`
-- `drizzle-migrate.ts` - Replaced by `database-manager.ts migrate`
-- `setup-database.ts` - Replaced by `database-manager.ts setup`
-- `validate-migrations.ts` - Replaced by `database-manager.ts validate`
-- `view-migrations.ts` - Replaced by `database-manager.ts view`
-- `copy-custom-migrations.ts` - Replaced by `database-manager.ts copy-migrations`
-- `truncate-tables.ts` - Replaced by `database-manager.ts truncate`
-
-## Usage
-
-### Basic Commands
+When you create a new database (either by dropping and recreating, or setting up a fresh instance), run this command to ensure all fixes are applied:
 
 ```bash
-# Apply all pending migrations
-tsx scripts/db/database-manager.ts migrate
+# For development database
+pnpm db:ensure-fixes:dev
 
-# Apply migrations with dry run
-tsx scripts/db/database-manager.ts migrate --dry-run
+# For production database
+pnpm db:ensure-fixes:prod
 
-# Apply a specific migration file
-tsx scripts/db/database-manager.ts migrate-file drizzle/000_schema_with_cascade.sql
-
-# View migration history
-tsx scripts/db/database-manager.ts view
-
-# Validate migration files
-tsx scripts/db/database-manager.ts validate
-
-# Setup database (complete)
-tsx scripts/db/database-manager.ts setup complete
-
-# Setup database (triggers only)
-tsx scripts/db/database-manager.ts setup triggers-only
-
-# Copy custom migrations
-tsx scripts/db/database-manager.ts copy-migrations
-
-# Truncate tables
-tsx scripts/db/database-manager.ts truncate --scope=internal
-tsx scripts/db/database-manager.ts truncate --scope=external
-tsx scripts/db/database-manager.ts truncate --scope=all
+# For any environment (defaults to development)
+pnpm db:ensure-fixes
 ```
 
-### Environment Options
+## 🔧 What the Script Does
+
+The `ensure-database-fixes.ts` script automatically applies and verifies all critical database fixes:
+
+### 1. **pgcrypto Extension**
+
+- Ensures the PostgreSQL `pgcrypto` extension is available
+- Required for `gen_random_bytes()` function used in UUID generation
+
+### 2. **Notifications Unique Constraint**
+
+- Adds unique constraint on `(user_id, target_id, target_type, type)`
+- Prevents duplicate notifications for the same event
+
+### 3. **RLS Helper Functions**
+
+- `get_current_user_id()` - Gets current user context
+- `set_current_user_context(user_id)` - Sets user context for RLS policies
+- `clear_current_user_context()` - Clears user context
+
+### 4. **UUID Generation Function**
+
+- `generate_uuid_v7()` - Creates UUID v7 format with timestamp
+- Used by triggers for generating notification IDs
+
+### 5. **Reaction Emojis**
+
+- Populates `reaction_emojis` table with 17 common emojis
+- Required for foreign key constraints on reactions
+
+### 6. **Database Triggers**
+
+- Sets up all notification triggers for:
+  - Game ratings (insert/update/delete)
+  - Comments (on game logs, replies, self-comments)
+  - Reactions (on game logs, comments, self-reactions)
+  - Friendships (request, accept, reject, remove)
+
+## 📋 Available Commands
 
 ```bash
-# Specify environment
-tsx scripts/db/database-manager.ts migrate --env=production
-tsx scripts/db/database-manager.ts setup complete --env=staging
+# Ensure all fixes are applied
+pnpm db:ensure-fixes:dev      # Development database
+pnpm db:ensure-fixes:prod     # Production database
 
-# Run tests after setup
-tsx scripts/db/database-manager.ts setup complete --test
+# Test all triggers after fixes
+pnpm db:test:all-triggers     # Development
+pnpm db:test:all-triggers:prod # Production
+
+# Traditional database commands
+pnpm db:migrate:dev           # Run migrations (development)
+pnpm db:migrate:prod          # Run migrations (production)
+pnpm db:triggers              # Setup triggers only
 ```
 
-### Backward Compatibility
+## 🔄 Workflow for New Database Setup
 
-For existing scripts and CI/CD pipelines, the following wrappers maintain backward compatibility:
+1. **Create new database** (or drop and recreate existing one)
+2. **Run the fixes script**:
+   ```bash
+   pnpm db:ensure-fixes:dev    # or :prod for production
+   ```
+3. **Verify everything works**:
+   ```bash
+   pnpm db:test:all-triggers   # or :prod for production
+   ```
 
-```bash
-# Old way (still works)
-tsx scripts/db/apply-migrations.ts
-tsx scripts/db/setup-database.ts
+## 🛡️ Safety Features
 
-# New way (recommended)
-tsx scripts/db/database-manager.ts migrate
-tsx scripts/db/database-manager.ts setup
+- **Idempotent**: Safe to run multiple times
+- **Verification**: Each fix is verified after application
+- **Error Handling**: Graceful failure with detailed logging
+- **Environment Aware**: Automatically detects and uses correct environment
+
+## 🚨 Troubleshooting
+
+If some fixes fail:
+
+1. **Check the logs** for specific error messages
+2. **Verify database connection** and permissions
+3. **Run individual commands** to isolate issues:
+
+   ```bash
+   # Check if pgcrypto extension exists
+   psql -c "SELECT * FROM pg_extension WHERE extname = 'pgcrypto';"
+
+   # Check if functions exist
+   psql -c "SELECT proname FROM pg_proc WHERE proname LIKE '%user_context%';"
+   ```
+
+## 📁 File Structure
+
+```
+scripts/db/
+├── ensure-database-fixes.ts    # Main fixes script
+├── database-manager.ts         # Traditional database management
+├── README.md                   # This file
+└── migrations/                 # SQL migration files
 ```
 
-## Features
+## 🎯 Why This Approach?
 
-### Shared Database Connection
+Instead of manually running individual SQL commands, this script:
 
-All operations use a single, optimized database connection with:
+- ✅ **Automates** the entire setup process
+- ✅ **Verifies** each fix was applied correctly
+- ✅ **Documents** what needs to be done
+- ✅ **Prevents** forgetting critical fixes
+- ✅ **Standardizes** the setup across environments
+- ✅ **Tests** everything works after setup
 
-- Automatic retry logic
-- Connection pooling
-- Timeout handling
-- Error recovery
-
-### Unified SQL Parsing
-
-Consistent SQL statement parsing that handles:
-
-- Dollar-quoted strings (functions, triggers)
-- Comments and empty lines
-- Multi-statement files
-- Transaction safety
-
-### Migration Management
-
-Comprehensive migration system with:
-
-- Automatic migration tracking
-- Checksum verification
-- Rollback support
-- Dry-run capabilities
-- Verification reporting
-
-### Error Handling
-
-Consistent error handling across all operations:
-
-- Detailed error messages
-- Automatic rollback on failure
-- Graceful degradation
-- Logging and reporting
-
-## Migration from Old Scripts
-
-### Step 1: Update Package.json Scripts
-
-Replace old script references:
-
-```json
-{
-  "scripts": {
-    // Old
-    "db:migrate": "tsx scripts/db/apply-migrations.ts",
-    "db:setup": "tsx scripts/db/setup-database.ts",
-
-    // New
-    "db:migrate": "tsx scripts/db/database-manager.ts migrate",
-    "db:setup": "tsx scripts/db/database-manager.ts setup complete"
-  }
-}
-```
-
-### Step 2: Update CI/CD Pipelines
-
-Update any CI/CD scripts to use the new commands:
-
-```bash
-# Old
-tsx scripts/db/apply-migrations.ts production
-
-# New
-tsx scripts/db/database-manager.ts migrate --env=production
-```
-
-### Step 3: Update Documentation
-
-Update any documentation that references the old script names.
-
-## Benefits of Consolidation
-
-1. **Reduced Maintenance**: Single codebase to maintain instead of 9 separate files
-2. **Consistent Behavior**: All operations use the same patterns and error handling
-3. **Better Testing**: Easier to test unified functionality
-4. **Improved Performance**: Shared connection pooling and optimized utilities
-5. **Enhanced Debugging**: Centralized logging and error reporting
-6. **Future-Proof**: Easier to add new features and maintain backward compatibility
-
-## Troubleshooting
-
-### Common Issues
-
-1. **Connection Timeouts**: The system automatically retries connections with exponential backoff
-2. **Migration Conflicts**: Use `--dry-run` to preview changes before applying
-3. **Permission Errors**: Ensure database user has appropriate permissions
-4. **File Not Found**: Verify migration files exist in `src/lib/db/migrations`
-
-### Debug Mode
-
-Enable debug logging by setting the environment variable:
-
-```bash
-DEBUG=true tsx scripts/db/database-manager.ts migrate
-```
-
-### Getting Help
-
-For issues or questions:
-
-1. Check the logs for detailed error messages
-2. Use `--dry-run` to preview operations
-3. Verify database connectivity and permissions
-4. Review migration file syntax and structure
+Your database will be fully functional with all features working correctly after running this script! 🎉

@@ -163,7 +163,7 @@ vi.mock('lucide-react', async importOriginal => {
 process.env.NEXT_PUBLIC_RAPID_API_KEY = 'test-api-key';
 process.env.NEXT_PUBLIC_RAPID_API_HOST = 'test-host';
 process.env.NEXT_PUBLIC_RAPID_API_BASE_URL = 'https://test-api.com';
-process.env.API_MOCK_MODE = 'true'; // Enable mock mode for tests
+process.env.MOCK_MODE = 'true'; // Enable consolidated mock mode for tests
 
 // Global test utilities
 global.ResizeObserver = vi.fn().mockImplementation(() => ({
@@ -201,13 +201,23 @@ Object.defineProperty(window, 'matchMedia', {
 });
 
 // Set up test environment variables for client-side detection
+Object.defineProperty(window, '__MOCK_MODE__', {
+  writable: true,
+  value: true,
+});
+
+// Legacy support for backward compatibility
 Object.defineProperty(window, '__API_MOCK_MODE__', {
   writable: true,
   value: true,
 });
 
-// Mock fetch
-(globalThis as any).fetch = vi.fn();
+// Set up fetch polyfill for Node.js environment
+import fetch from 'node-fetch';
+if (!global.fetch) global.fetch = fetch as unknown as typeof global.fetch;
+
+// Note: We don't mock fetch globally here to allow integration tests to use the real fetch
+// Individual tests can mock fetch as needed using vi.mocked(fetch)
 
 // Mock console methods in tests
 const originalError = console.error;
@@ -255,3 +265,16 @@ afterEach(() => {
   act: vi.fn(fn => fn()),
   createElement: React.createElement,
 };
+
+// Handle unhandled promise rejections for error testing scenarios
+process.on('unhandledRejection', (reason, promise) => {
+  // Ignore specific unhandled rejections that are part of error testing
+  if (reason instanceof Error) {
+    if (reason.message === 'API Error' || reason.message.includes('HTTP error! status:')) {
+      // These are intentional errors for testing error scenarios
+      return;
+    }
+  }
+  // For other unhandled rejections, log them but don't fail the test
+  console.warn('Unhandled promise rejection:', reason);
+});

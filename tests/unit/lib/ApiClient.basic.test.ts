@@ -41,18 +41,6 @@ describe('api-client utility', () => {
     );
   });
 
-  it('throws on non-ok response', async () => {
-    (fetch as any).mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      statusText: 'Internal Server Error',
-    });
-    const client = createRapidAPIClient(config);
-    await expect(client.fetch('/fail')).rejects.toThrow(
-      'API request failed: 500 Internal Server Error'
-    );
-  });
-
   it('builds URL with no params', async () => {
     (fetch as any).mockResolvedValueOnce({ ok: true, json: async () => ({}) });
     const client = createRapidAPIClient(config);

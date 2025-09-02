@@ -81,7 +81,7 @@ runs:
 
         # Test-specific variables
         if [ "${{ inputs.include-test }}" = "true" ]; then
-          echo "E2E_MOCK_MODE=true" >> $GITHUB_ENV
+          echo "MOCK_MODE=true" >> $GITHUB_ENV
           echo "API_MOCK_MODE=true" >> $GITHUB_ENV
           echo "E2E_AUTH_BYPASS=true" >> $GITHUB_ENV
           echo "TEST_USER_EMAIL=test@game-diary.com" >> $GITHUB_ENV

@@ -5,14 +5,20 @@ import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { logger } from '@/lib/utils/logger';
 import { isAuthCallbackServer } from '@/lib/utils/sso-utils';
 
+// Create route matchers
 const isAuthRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
   '/sign-in(.*)',
   '/sign-up(.*)',
 ]);
+
 // const isProtectedRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
 //   '/protected(.*)',
 // ]);
-// const isAdminRoute = createRouteMatcher(['/protected/admin(.*)']);
+
+const isAdminRoute = (createRouteMatcher as (routes: string[]) => (req: Request) => boolean)([
+  '/protected/admin(.*)',
+  '/api/admin(.*)',
+]);
 
 export const middleware = (
   clerkMiddleware as unknown as (
@@ -41,6 +47,11 @@ export const middleware = (
 
   // Skip auth for proxy endpoint (public API for external data)
   if (url.pathname.startsWith('/api/proxy/')) {
+    return NextResponse.next();
+  }
+
+  // Skip auth for mock server endpoint (public API for testing)
+  if (url.pathname.startsWith('/api/mock-server')) {
     return NextResponse.next();
   }
 
@@ -79,6 +90,13 @@ export const middleware = (
     return NextResponse.redirect(new URL('/protected/user', url));
   }
 
+  // Check for admin routes - these require special handling
+  if (isAdminRoute(req)) {
+    // For admin routes, we'll let the individual API endpoints handle authentication
+    // This allows for more granular control and proper error responses
+    return NextResponse.next();
+  }
+
   // If user is not authenticated and trying to access protected routes, allow the request to continue
   // The protected layout will handle showing the Clerk sign-in modal.
 
@@ -88,12 +106,13 @@ export const middleware = (
 
 export const config = {
   matcher: [
-    // Specific routes that need middleware
-    '/protected/:path*',
-    '/sign-in/:path*',
-    '/sign-up/:path*',
-    '/api/:path*',
-    // Home page
-    '/',
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - public folder
+     */
+    '/((?!_next/static|_next/image|favicon.ico|public/).*)',
   ],
 };

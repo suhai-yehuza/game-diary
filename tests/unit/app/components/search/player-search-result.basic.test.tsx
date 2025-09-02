@@ -24,6 +24,13 @@ vi.mock('lucide-react', () => ({
   ArrowRight: ({ className }: any) => <div data-testid="arrowright-icon" className={className} />,
 }));
 
+// Mock error handlers
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    ui: vi.fn(),
+  },
+}));
+
 describe('PlayerSearchResult', () => {
   const defaultPlayer = {
     id: '1',
@@ -164,5 +171,354 @@ describe('PlayerSearchResult', () => {
 
     // Check that the component renders with the expected structure
     expect(screen.getByText('LeBron James')).toBeInTheDocument();
+  });
+
+  // Enhanced tests for height parsing
+  describe('height parsing', () => {
+    it('handles height as JSON string with feet and inches', () => {
+      const playerWithJsonHeight = {
+        ...defaultPlayer,
+        height: '{"feets": 6, "inches": 9}',
+      };
+      render(<PlayerSearchResult player={playerWithJsonHeight} />);
+
+      expect(screen.getByText('6\'9" • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles height as JSON string with meters', () => {
+      const playerWithMetersHeight = {
+        ...defaultPlayer,
+        height: '{"meters": 2.06}',
+      };
+      render(<PlayerSearchResult player={playerWithMetersHeight as any} />);
+
+      expect(screen.getByText('2.06m • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles height as object with feet and inches', () => {
+      const playerWithObjectHeight = {
+        ...defaultPlayer,
+        height: { feets: 6, inches: 9 },
+      };
+      render(<PlayerSearchResult player={playerWithObjectHeight as any} />);
+
+      expect(screen.getByText('6\'9" • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles height as object with meters', () => {
+      const playerWithObjectMetersHeight = {
+        ...defaultPlayer,
+        height: { meters: 2.06 },
+      };
+      render(<PlayerSearchResult player={playerWithObjectMetersHeight as any} />);
+
+      expect(screen.getByText('2.06m • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles height as direct properties', () => {
+      const playerWithDirectHeight = {
+        ...defaultPlayer,
+        feets: 6,
+        inches: 9,
+      };
+      render(<PlayerSearchResult player={playerWithDirectHeight} />);
+
+      expect(screen.getByText('6\'9" • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles height as direct meters property', () => {
+      const playerWithDirectMeters = {
+        ...defaultPlayer,
+        meters: 2.06,
+      };
+      render(<PlayerSearchResult player={playerWithDirectMeters} />);
+
+      expect(screen.getByText('2.06m • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles invalid JSON height gracefully', () => {
+      const playerWithInvalidJsonHeight = {
+        ...defaultPlayer,
+        height: '{"invalid": "json"',
+      };
+      render(<PlayerSearchResult player={playerWithInvalidJsonHeight} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+
+    it('handles null height', () => {
+      const playerWithNullHeight = {
+        ...defaultPlayer,
+        height: null,
+      };
+      render(<PlayerSearchResult player={playerWithNullHeight as any} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+  });
+
+  // Enhanced tests for weight parsing
+  describe('weight parsing', () => {
+    it('handles weight as JSON string with pounds', () => {
+      const playerWithJsonWeight = {
+        ...defaultPlayer,
+        weight: '{"pounds": 250}',
+      };
+      render(<PlayerSearchResult player={playerWithJsonWeight} />);
+
+      expect(screen.getByText('6-9 • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles weight as JSON string with kilograms', () => {
+      const playerWithKgWeight = {
+        ...defaultPlayer,
+        weight: '{"kilograms": 113}',
+      };
+      render(<PlayerSearchResult player={playerWithKgWeight} />);
+
+      expect(screen.getByText('6-9 • 113 kg')).toBeInTheDocument();
+    });
+
+    it('handles weight as object with pounds', () => {
+      const playerWithObjectWeight = {
+        ...defaultPlayer,
+        weight: { pounds: 250 },
+      };
+      render(<PlayerSearchResult player={playerWithObjectWeight as any} />);
+
+      expect(screen.getByText('6-9 • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles weight as object with kilograms', () => {
+      const playerWithObjectKgWeight = {
+        ...defaultPlayer,
+        weight: { kilograms: 113 },
+      };
+      render(<PlayerSearchResult player={playerWithObjectKgWeight as any} />);
+
+      expect(screen.getByText('6-9 • 113 kg')).toBeInTheDocument();
+    });
+
+    it('handles weight as direct properties', () => {
+      const playerWithDirectWeight = {
+        ...defaultPlayer,
+        pounds: 250,
+      };
+      render(<PlayerSearchResult player={playerWithDirectWeight} />);
+
+      expect(screen.getByText('6-9 • 250 lbs')).toBeInTheDocument();
+    });
+
+    it('handles weight as direct kilograms property', () => {
+      const playerWithDirectKg = {
+        ...defaultPlayer,
+        kilograms: 113,
+      };
+      render(<PlayerSearchResult player={playerWithDirectKg} />);
+
+      expect(screen.getByText('6-9 • 113 kg')).toBeInTheDocument();
+    });
+
+    it('handles invalid JSON weight gracefully', () => {
+      const playerWithInvalidJsonWeight = {
+        ...defaultPlayer,
+        weight: '{"invalid": "json"',
+      };
+      render(<PlayerSearchResult player={playerWithInvalidJsonWeight} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+
+    it('handles null weight', () => {
+      const playerWithNullWeight = {
+        ...defaultPlayer,
+        weight: null,
+      };
+      render(<PlayerSearchResult player={playerWithNullWeight as any} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+  });
+
+  // Enhanced tests for teams parsing
+  describe('teams parsing', () => {
+    it('handles teams as JSON string array', () => {
+      const playerWithJsonTeams = {
+        ...defaultPlayer,
+        teams: '[{"team_name": "Los Angeles Lakers"}, {"team_name": "Miami Heat"}]',
+      };
+      render(<PlayerSearchResult player={playerWithJsonTeams} />);
+
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+      expect(screen.getByText('+1 more')).toBeInTheDocument();
+    });
+
+    it('handles teams as JSON string array with name property', () => {
+      const playerWithJsonTeamsName = {
+        ...defaultPlayer,
+        teams: '[{"name": "Los Angeles Lakers"}, {"name": "Miami Heat"}]',
+      };
+      render(<PlayerSearchResult player={playerWithJsonTeamsName} />);
+
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+      expect(screen.getByText('+1 more')).toBeInTheDocument();
+    });
+
+    it('handles teams as direct array', () => {
+      const playerWithArrayTeams = {
+        ...defaultPlayer,
+        teams: [{ team_name: 'Los Angeles Lakers' }, { team_name: 'Miami Heat' }],
+      };
+      render(<PlayerSearchResult player={playerWithArrayTeams as any} />);
+
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+      expect(screen.getByText('+1 more')).toBeInTheDocument();
+    });
+
+    it('handles teams as direct array with name property', () => {
+      const playerWithArrayTeamsName = {
+        ...defaultPlayer,
+        teams: [{ name: 'Los Angeles Lakers' }, { name: 'Miami Heat' }],
+      };
+      render(<PlayerSearchResult player={playerWithArrayTeamsName as any} />);
+
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+      expect(screen.getByText('+1 more')).toBeInTheDocument();
+    });
+
+    it('handles teams as simple string', () => {
+      const playerWithStringTeams = {
+        ...defaultPlayer,
+        teams: 'Los Angeles Lakers',
+      };
+      render(<PlayerSearchResult player={playerWithStringTeams} />);
+
+      expect(screen.getByText('Los Angeles Lakers')).toBeInTheDocument();
+    });
+
+    it('handles invalid JSON teams gracefully', () => {
+      const playerWithInvalidJsonTeams = {
+        ...defaultPlayer,
+        teams: '[{"invalid": "json"',
+      };
+      render(<PlayerSearchResult player={playerWithInvalidJsonTeams} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+
+    it('handles teams with unknown team names', () => {
+      const playerWithUnknownTeams = {
+        ...defaultPlayer,
+        teams: '[{"invalid": "data"}]',
+      };
+      render(<PlayerSearchResult player={playerWithUnknownTeams} />);
+
+      expect(screen.getByText('Unknown Team')).toBeInTheDocument();
+    });
+
+    it('handles null teams', () => {
+      const playerWithNullTeams = {
+        ...defaultPlayer,
+        teams: null,
+      };
+      render(<PlayerSearchResult player={playerWithNullTeams as any} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+    });
+  });
+
+  // Enhanced tests for NBA status
+  describe('NBA status', () => {
+    it('handles NBA status as object with start year', () => {
+      const playerWithNbaObject = {
+        ...defaultPlayer,
+        nba: { start: 2003 },
+      };
+      render(<PlayerSearchResult player={playerWithNbaObject as any} />);
+
+      expect(screen.getByText('NBA 2003+')).toBeInTheDocument();
+    });
+
+    it('handles NBA status as string', () => {
+      const playerWithNbaString = {
+        ...defaultPlayer,
+        nba: '23',
+      };
+      render(<PlayerSearchResult player={playerWithNbaString} />);
+
+      expect(screen.getByText('NBA Player')).toBeInTheDocument();
+    });
+
+    it('handles NBA status as number', () => {
+      const playerWithNbaNumber = {
+        ...defaultPlayer,
+        nba: 23,
+      };
+      render(<PlayerSearchResult player={playerWithNbaNumber as any} />);
+
+      expect(screen.getByText('NBA Player')).toBeInTheDocument();
+    });
+  });
+
+  // Enhanced tests for college handling
+  describe('college handling', () => {
+    it('handles missing-college value', () => {
+      const playerWithMissingCollege = {
+        ...defaultPlayer,
+        college: 'missing-college',
+      };
+      render(<PlayerSearchResult player={playerWithMissingCollege} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+      expect(screen.queryByText('missing-college')).not.toBeInTheDocument();
+    });
+
+    it('handles null college', () => {
+      const playerWithNullCollege = {
+        ...defaultPlayer,
+        college: null,
+      };
+      render(<PlayerSearchResult player={playerWithNullCollege as any} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+      expect(screen.queryByText('St. Vincent-St. Mary HS (OH)')).not.toBeInTheDocument();
+    });
+  });
+
+  // Enhanced tests for physical stats display
+  describe('physical stats display', () => {
+    it('handles null height and weight combination', () => {
+      const playerWithNullStats = {
+        ...defaultPlayer,
+        height: null,
+        weight: null,
+      };
+      render(<PlayerSearchResult player={playerWithNullStats as any} />);
+
+      expect(screen.getByText('LeBron James')).toBeInTheDocument();
+      expect(screen.queryByText('null • null')).not.toBeInTheDocument();
+    });
+
+    it('shows physical stats available message when raw data exists', () => {
+      const playerWithRawStats = {
+        ...defaultPlayer,
+        height: '{"invalid": "data"}',
+        weight: '{"invalid": "data"}',
+      };
+      render(<PlayerSearchResult player={playerWithRawStats} />);
+
+      expect(screen.getByText('Physical stats available')).toBeInTheDocument();
+    });
+
+    it('shows multiple teams message when raw teams data exists', () => {
+      const playerWithRawTeams = {
+        ...defaultPlayer,
+        teams: '[{"team_name": "Lakers"}, {"team_name": "Heat"}]',
+      };
+      render(<PlayerSearchResult player={playerWithRawTeams} />);
+
+      expect(screen.getByText('Lakers')).toBeInTheDocument();
+      expect(screen.getByText('+1 more')).toBeInTheDocument();
+    });
   });
 });

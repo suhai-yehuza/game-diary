@@ -691,6 +691,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                         width={64}
                         height={64}
                         className="w-16 h-16 mx-auto mb-2"
+                        style={{ width: 'auto', height: 'auto' }}
                       />
                     )}
                     <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">

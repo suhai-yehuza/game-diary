@@ -47,11 +47,74 @@ class TriggerValidator {
   // Static method for global cleanup
   static async globalCleanup(environment = 'development') {
     const db = createDatabaseClient({ env: environment });
-    await db.execute(
-      sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
-    );
-    await db.execute(sql`DELETE FROM game_ratings WHERE game_id LIKE 'testtrig_%'`);
-    await db.execute(sql`DELETE FROM users WHERE id LIKE 'testtrig_%'`);
+
+    logger.info('🧹 Starting comprehensive test data cleanup...');
+
+    try {
+      // Clean up all test-related data in the correct order (respecting foreign key constraints)
+
+      // 1. Clean up reactions (depends on comments and game_logs)
+      const reactionsDeleted = await db.execute(
+        sql`DELETE FROM reactions WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
+      );
+      logger.info(`   🗑️  Deleted ${reactionsDeleted.rowCount || 0} test reactions`);
+
+      // 2. Clean up comments (depends on game_logs)
+      const commentsDeleted = await db.execute(
+        sql`DELETE FROM comments WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
+      );
+      logger.info(`   🗑️  Deleted ${commentsDeleted.rowCount || 0} test comments`);
+
+      // 3. Clean up game_logs (depends on users and nba_games)
+      const gameLogsDeleted = await db.execute(
+        sql`DELETE FROM game_logs WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
+      );
+      logger.info(`   🗑️  Deleted ${gameLogsDeleted.rowCount || 0} test game logs`);
+
+      // 4. Clean up game_ratings (depends on nba_games)
+      const gameRatingsDeleted = await db.execute(
+        sql`DELETE FROM game_ratings WHERE game_id LIKE 'test_%' OR game_id LIKE 'testtrig_%' OR game_id LIKE '2024-ttg_%'`
+      );
+      logger.info(`   🗑️  Deleted ${gameRatingsDeleted.rowCount || 0} test game ratings`);
+
+      // 5. Clean up friendships (depends on users)
+      const friendshipsDeleted = await db.execute(
+        sql`DELETE FROM friendships WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%' OR friend_id LIKE 'testtrig_%'`
+      );
+      logger.info(`   🗑️  Deleted ${friendshipsDeleted.rowCount || 0} test friendships`);
+
+      // 6. Clean up notifications (depends on users)
+      const notificationsDeleted = await db.execute(
+        sql`DELETE FROM notifications WHERE user_id LIKE 'testtrig_%'`
+      );
+      logger.info(`   🗑️  Deleted ${notificationsDeleted.rowCount || 0} test notifications`);
+
+      // 7. Clean up test NBA games (depends on teams)
+      const nbaGamesDeleted = await db.execute(
+        sql`DELETE FROM nba_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test_%'`
+      );
+      logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
+
+      // 8. Clean up test teams
+      const teamsDeleted = await db.execute(
+        sql`DELETE FROM teams WHERE id IN ('test_team_1', 'test_team_2')`
+      );
+      logger.info(`   🗑️  Deleted ${teamsDeleted.rowCount || 0} test teams`);
+
+      // 9. Clean up test users (should be last as they're referenced by other tables)
+      const usersDeleted = await db.execute(
+        sql`DELETE FROM users WHERE id LIKE 'testtrig_%' OR id LIKE 'test_%'`
+      );
+      logger.info(`   🗑️  Deleted ${usersDeleted.rowCount || 0} test users`);
+
+      logger.info('✅ Test data cleanup completed successfully');
+    } catch (error) {
+      logger.error(
+        '❌ Error during test data cleanup:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+      throw error;
+    }
   }
 
   private async getTestUsers(): Promise<{ user1Id: string; user2Id: string }> {
@@ -82,13 +145,13 @@ class TriggerValidator {
     `);
 
     // Create a unique test NBA game id (max 20 chars)
-    const gameId = `ttg_${generateId().replace(/-/g, '').slice(0, 16)}`; // 'ttg_' + 16 chars = 19 chars, fits varchar(20)
+    const gameId = `2024-ttg_${generateId().replace(/-/g, '').slice(0, 16)}`; // Format: ${season}-${game.id}
 
     // Insert a test NBA game with error logging
     try {
       await this.db.execute(sql`
-        INSERT INTO nba_games (id, game_type, date, home_team_id, away_team_id, status, created_at, updated_at)
-        VALUES (${gameId}, 'nba', NOW(), ${homeTeamId}, ${awayTeamId}, 'Final', NOW(), NOW())
+        INSERT INTO nba_games (id, game_type, season, date, home_team_id, away_team_id, status, created_at, updated_at)
+        VALUES (${gameId}, 'nba', '2024', NOW(), ${homeTeamId}, ${awayTeamId}, 'Final', NOW(), NOW())
       `);
     } catch (error: any) {
       console.error('nba_games insert error:', error);
@@ -162,6 +225,10 @@ class TriggerValidator {
       const gameId = await this.getTestGame();
       const userId1 = `testtrig_user_${generateId()}`;
       const userId2 = `testtrig_user_${generateId()}`;
+
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
+
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -196,6 +263,10 @@ class TriggerValidator {
       const gameId = await this.getTestGame();
       const userId1 = `testtrig_user_${generateId()}`;
       const userId2 = `testtrig_user_${generateId()}`;
+
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
+
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -236,6 +307,10 @@ class TriggerValidator {
       const gameId = await this.getTestGame();
       const userId1 = `testtrig_user_${generateId()}`;
       const userId2 = `testtrig_user_${generateId()}`;
+
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
+
       // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -283,6 +358,9 @@ class TriggerValidator {
     const commentId = `test_comment_${generateId()}`;
 
     try {
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -334,6 +412,9 @@ class TriggerValidator {
     const replyId = `test_reply_${generateId()}`;
 
     try {
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -389,6 +470,9 @@ class TriggerValidator {
     const commentId = `test_self_comment_${generateId()}`;
 
     try {
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
       // Create test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -442,11 +526,22 @@ class TriggerValidator {
     const reactionId = `test_reaction_${generateId()}`;
 
     try {
-      // Create test users
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
+      // Create first test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Set user context for the second user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
+
+      // Create second test user
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
       `);
 
       // Create test game log
@@ -493,11 +588,22 @@ class TriggerValidator {
     const reactionId = `test_reaction_${generateId()}`;
 
     try {
-      // Create test users
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
+      // Create first test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Set user context for the second user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
+
+      // Create second test user
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
       `);
 
       // Create test game log
@@ -549,6 +655,9 @@ class TriggerValidator {
     const reactionId = `test_self_reaction_${generateId()}`;
 
     try {
+      // Set user context for the first user before inserting
+      await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
+
       // Create test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
@@ -830,24 +939,87 @@ class TriggerValidator {
   }
 }
 
+// Export the cleanup function for use in other scripts
+export async function cleanupTestData(environment = 'development'): Promise<void> {
+  try {
+    await TriggerValidator.globalCleanup(environment);
+    logger.info('✅ Test data cleanup completed successfully');
+  } catch (error) {
+    logger.error(
+      '❌ Test data cleanup failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    throw error;
+  }
+}
+
 // Main execution
 async function main(): Promise<void> {
   try {
-    // Parse environment from command line arguments
+    // Parse command line arguments
     let environment = 'development';
+    let cleanupOnly = false;
+
     for (const arg of process.argv) {
       if (arg.startsWith('--env=')) {
         environment = arg.split('=')[1];
-        break;
+      } else if (arg === '--cleanup-only') {
+        cleanupOnly = true;
+      } else if (arg === '--help' || arg === '-h') {
+        console.log(`
+🧪 NBA Database Trigger Test Script
+
+Usage:
+  pnpm tsx scripts/tests/test-all-triggers.ts [options]
+
+Options:
+  --env=<environment>     Database environment (default: development)
+  --cleanup-only         Only run cleanup, skip tests
+  --help, -h            Show this help message
+
+Examples:
+  # Run tests and cleanup
+  pnpm tsx scripts/tests/test-all-triggers.ts
+
+  # Run tests for production environment
+  pnpm tsx scripts/tests/test-all-triggers.ts --env=production
+
+  # Only cleanup test data
+  pnpm tsx scripts/tests/test-all-triggers.ts --cleanup-only
+
+  # Cleanup for specific environment
+  pnpm tsx scripts/tests/test-all-triggers.ts --cleanup-only --env=production
+        `);
+        process.exit(0);
       }
+    }
+
+    if (cleanupOnly) {
+      logger.info(`🧹 Running cleanup only for ${environment} environment`);
+
+      // Safety check for production environments
+      if (environment === 'production') {
+        logger.warn('⚠️  WARNING: You are about to run cleanup on PRODUCTION database!');
+        logger.warn('   This will delete test data. Are you sure? (y/N)');
+
+        // In a real script, you might want to add a readline prompt here
+        // For now, we'll just warn and continue
+        logger.warn('   Proceeding with cleanup in 3 seconds...');
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+
+      await TriggerValidator.globalCleanup(environment);
+      logger.info('✅ Cleanup completed successfully');
+      return;
     }
 
     logger.info(`🧪 Running trigger tests for ${environment} environment`);
 
     const validator = new TriggerValidator(environment);
     await validator.runAllTests();
+
     // Global cleanup to remove any leftover test data
-    // Consider adding ON DELETE CASCADE to your schema for users/game_logs if appropriate
+    logger.info('🧹 Running post-test cleanup...');
     await TriggerValidator.globalCleanup(environment);
   } catch (error) {
     // Use centralized error handling

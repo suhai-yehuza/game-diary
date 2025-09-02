@@ -85,9 +85,15 @@ neonConfig.fetchFunction = (input: RequestInfo | URL, init?: RequestInit) => {
 };
 
 // Create a single SQL client instance for raw SQL operations
+// Use the same connection method as the main application
 const sqlClient = neon(process.env.DATABASE_URL!);
 
 const sqlDirect = neonDirect(process.env.DATABASE_URL!);
+
+// Also create a Drizzle client for consistency
+import { drizzle } from 'drizzle-orm/neon-http';
+import * as schema from '@src/lib/db/schema';
+const drizzleClient = drizzle(sqlClient, { schema });
 
 // ============================================================================
 // SHARED UTILITIES
@@ -222,6 +228,109 @@ async function runCommand(command: string, description: string): Promise<void> {
     const { stdout, stderr } = await execAsync(command);
     if (stdout) logger.info(stdout);
     if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat')) logger.error(stderr);
+    logger.info(`✅ ${description} completed`);
+  } catch (error: unknown) {
+    logger.error(`❌ Failed: ${description}`);
+    if (error instanceof Error) {
+      logger.error(error.message);
+    } else {
+      logger.error(String(error));
+    }
+    throw error;
+  }
+}
+
+/**
+ * Run interactive commands that require user input
+ */
+async function runInteractiveCommand(command: string, description: string): Promise<void> {
+  logger.info(`\n📌 ${description}...`);
+  try {
+    // For drizzle-kit push --force, we need to handle the interactive prompt
+    if (command.includes('drizzle-kit push --force')) {
+      logger.info('🔧 Detected drizzle-kit push --force, using direct SQL execution instead...');
+      // Instead of using drizzle-kit push --force, apply the migration file directly
+      // Find the most recent migration file
+      const drizzleDir = 'drizzle';
+      const migrationFiles = readdirSync(drizzleDir)
+        .filter(file => file.endsWith('.sql') && file !== '000_full_schema_reset.sql')
+        .sort()
+        .reverse();
+
+      if (migrationFiles.length > 0) {
+        const migrationFile = `drizzle/${migrationFiles[0]}`;
+        logger.info(`📄 Found migration file: ${migrationFile}`);
+
+        const sqlContent = readFileSync(migrationFile, 'utf-8');
+        const statements = sqlContent.split('--> statement-breakpoint').filter(stmt => stmt.trim());
+
+        logger.info(`📄 Applying ${statements.length} SQL statements from migration file...`);
+
+        // Execute all statements using Drizzle client for better compatibility
+        logger.info('  🔧 Executing statements using Drizzle client for better compatibility...');
+
+        for (let i = 0; i < statements.length; i++) {
+          const statement = statements[i].trim();
+          if (statement) {
+            try {
+              logger.info(
+                `  🔧 Executing statement ${i + 1}/${statements.length}: ${statement.substring(0, 50)}...`
+              );
+              // Try Drizzle client first, fallback to direct SQL
+              try {
+                await drizzleClient.execute(sql.raw(statement));
+              } catch (drizzleError) {
+                logger.warn(
+                  `  ⚠️  Drizzle execution failed, trying direct SQL: ${drizzleError instanceof Error ? drizzleError.message : String(drizzleError)}`
+                );
+                await sqlClient.unsafe(statement);
+              }
+              logger.info(`  ✅ Applied statement ${i + 1}/${statements.length}`);
+
+              // Small delay to ensure statement is processed
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+              logger.error(
+                `  ❌ Statement ${i + 1} failed: ${error instanceof Error ? error.message : String(error)}`
+              );
+              // Log the full statement for debugging
+              logger.error(`  📄 Failed statement: ${statement}`);
+              throw error;
+            }
+          }
+        }
+
+        logger.info('  ✅ All statements executed successfully');
+
+        // Verify that tables were actually created
+        logger.info('  🔍 Verifying table creation...');
+        try {
+          const tableCount = await sqlClient.unsafe(
+            "SELECT COUNT(*) as count FROM information_schema.tables WHERE table_schema = 'public'"
+          );
+          logger.info(
+            `  📊 Found ${(tableCount as any)[0]?.count || 'unknown'} tables in public schema`
+          );
+
+          // List the actual tables
+          const tables = await sqlClient.unsafe(
+            "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name"
+          );
+          const tableNames = (tables as any).map((t: any) => t.table_name);
+          logger.info(`  📋 Tables: ${tableNames.join(', ')}`);
+        } catch (verifyError) {
+          logger.warn('  ⚠️  Table verification failed (non-critical)');
+        }
+      } else {
+        throw new Error(`No migration files found in ${drizzleDir} directory`);
+      }
+    } else {
+      // For other commands, use the regular runCommand logic
+      const { stdout, stderr } = await execAsync(command);
+      if (stdout) logger.info(stdout);
+      if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat'))
+        logger.error(stderr);
+    }
     logger.info(`✅ ${description} completed`);
   } catch (error: unknown) {
     logger.error(`❌ Failed: ${description}`);
@@ -901,18 +1010,43 @@ async function setupDatabase(
     // Step 2: Ensure schema exists (for both modes)
     logger.info('📋 Step 2: Ensuring database schema exists...');
 
-    // Check if key tables exist
-    const tablesExist = await db.execute(sql`
-      SELECT COUNT(*) as count
-      FROM information_schema.tables
-      WHERE table_schema = 'public'
-      AND table_name IN ('users', 'game_logs', 'friendships', 'comments', 'reactions', 'notifications')
-    `);
+    try {
+      // Check if key tables exist
+      const tablesExist = await db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        AND table_name IN ('users', 'game_logs', 'friendships', 'comments', 'reactions', 'notifications')
+      `);
 
-    const tableCount = parseInt(String(tablesExist.rows[0]?.count || '0'));
+      const tableCount = parseInt(String(tablesExist.rows[0]?.count || '0'));
 
-    if (tableCount < 6) {
-      logger.info('⚠️  Schema incomplete, setting up database tables...');
+      if (tableCount < 6) {
+        logger.info('⚠️  Schema incomplete, setting up database tables...');
+
+        // Generate Drizzle migrations
+        await runCommand('pnpm db:generate:safe', 'Generating Drizzle migrations (safe mode)');
+
+        // Copy custom migrations
+        await copyCustomMigrations();
+
+        // Push schema to database with --force flag
+        await runInteractiveCommand(
+          'drizzle-kit push --force',
+          'Creating database tables (force mode)'
+        );
+
+        // Wait for tables to be ready
+        logger.info('\n⏳ Waiting for tables to be ready...');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        logger.info('✅ Database schema setup complete');
+      } else {
+        logger.info('✅ Database schema already exists');
+      }
+    } catch (error) {
+      // If the query fails (e.g., no tables exist yet), set up the schema
+      logger.info('⚠️  Could not check existing schema, setting up database tables...');
 
       // Generate Drizzle migrations
       await runCommand('pnpm db:generate:safe', 'Generating Drizzle migrations (safe mode)');
@@ -921,15 +1055,16 @@ async function setupDatabase(
       await copyCustomMigrations();
 
       // Push schema to database with --force flag
-      await runCommand('drizzle-kit push --force', 'Creating database tables (force mode)');
+      await runInteractiveCommand(
+        'drizzle-kit push --force',
+        'Creating database tables (force mode)'
+      );
 
       // Wait for tables to be ready
       logger.info('\n⏳ Waiting for tables to be ready...');
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       logger.info('✅ Database schema setup complete');
-    } else {
-      logger.info('✅ Database schema already exists');
     }
 
     // Step 3: Create migration tracking table (for both modes)

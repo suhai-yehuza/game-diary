@@ -15,6 +15,18 @@ vi.mock('@clerk/nextjs', () => ({
   SignIn: ({ children }: any) => <div data-testid="clerk-signin">{children}</div>,
 }));
 
+// Mock next/navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    refresh: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
+
 // Mock Next.js Image component
 vi.mock('next/image', () => ({
   default: ({ src, alt, _priority, ...props }: any) => (
@@ -49,33 +61,33 @@ describe('SignInPage', () => {
   });
 
   it('renders the sign-in page with correct structure', () => {
-    render(<SignInPage />);
+    render(<SignInPage params={{ 'sign-in': [] }} />);
 
-    expect(screen.getByTestId('clerk-signin')).toBeInTheDocument();
+    expect(screen.getByTestId('clerk-sign-in')).toBeInTheDocument();
   });
 
   it('renders Clerk SignIn component', () => {
-    render(<SignInPage />);
+    render(<SignInPage params={{ 'sign-in': [] }} />);
 
     const signInComponent = screen.getByTestId('clerk-signin');
     expect(signInComponent).toBeInTheDocument();
   });
 
   it('applies correct CSS classes to container', () => {
-    const { container } = render(<SignInPage />);
+    const { container } = render(<SignInPage params={{ 'sign-in': [] }} />);
 
     const div = container.querySelector('.flex.min-h-screen');
     expect(div).toHaveClass('flex', 'min-h-screen', 'items-center', 'justify-center');
   });
 
   it('renders sign in title', () => {
-    render(<SignInPage />);
+    render(<SignInPage params={{ 'sign-in': [] }} />);
 
     expect(screen.getByText('Sign in to your account')).toBeInTheDocument();
   });
 
   it('renders welcome message', () => {
-    render(<SignInPage />);
+    render(<SignInPage params={{ 'sign-in': [] }} />);
 
     expect(screen.getByText('Welcome back! Please sign in to continue.')).toBeInTheDocument();
   });

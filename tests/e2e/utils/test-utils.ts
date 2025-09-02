@@ -199,7 +199,7 @@ export async function safeGoto(
     }
 
     // In mock mode, try to handle navigation interruptions more gracefully
-    if (process.env.E2E_MOCK_MODE === 'true') {
+    if (process.env.MOCK_MODE === 'true') {
       console.log('🔄 Attempting to recover from navigation interruption...');
 
       try {
@@ -275,7 +275,7 @@ export async function waitForPageLoad(page: Page, timeout = TIMEOUTS.MEDIUM): Pr
       action: 'Page load check',
     });
     // In mock mode, be more lenient
-    if (process.env.E2E_MOCK_MODE === 'true') {
+    if (process.env.MOCK_MODE === 'true') {
       console.log('⚠️ Page load check failed in mock mode, but continuing:', error);
 
       // Wait a bit more and try one more time
@@ -349,7 +349,7 @@ export async function clearTestData(page: Page): Promise<void> {
 export async function setupE2EMocking(page: Page): Promise<void> {
   // Enable mock mode for the page
   await page.evaluate(() => {
-    (window as any).__E2E_MOCK_MODE__ = true;
+    (window as any).__MOCK_MODE__ = true;
   });
 
   // Wait for mock setup to complete

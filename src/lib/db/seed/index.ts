@@ -496,7 +496,7 @@ async function main() {
     if (seedExternal) {
       performanceTracker.startTimer('external_api_seeding');
       console.log('\n🏀 Seeding external API data (NBA)...');
-      await seedExternalApiData(optimizationConfig);
+      await seedExternalApiData();
       const externalTime = performanceTracker.endTimer('external_api_seeding');
       console.log(`✅ External API seeding completed in ${formatDuration(externalTime)}`);
     }

@@ -14,7 +14,7 @@ test.describe('Protected Route Clerk Sign-In Modal', () => {
 
       // Check if we're in a test environment where Clerk might not be fully configured
       const isTestEnvironment =
-        process.env.E2E_MOCK_MODE === 'true' ||
+        process.env.MOCK_MODE === 'true' ||
         process.env.GITHUB_ACTIONS === 'true' ||
         process.env.PLAYWRIGHT_CI === 'true';
 
@@ -56,7 +56,7 @@ test.describe('Protected Route Clerk Sign-In Modal', () => {
 
       // Check if we're in a test environment where Clerk might not be fully configured
       const isTestEnvironment =
-        process.env.E2E_MOCK_MODE === 'true' ||
+        process.env.MOCK_MODE === 'true' ||
         process.env.GITHUB_ACTIONS === 'true' ||
         process.env.PLAYWRIGHT_CI === 'true';
 

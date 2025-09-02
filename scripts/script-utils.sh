@@ -180,7 +180,7 @@ start_server_with_retry() {
     local env_vars=""
     case $environment in
         "test")
-            env_vars="API_MOCK_MODE=true E2E_MOCK_MODE=true"
+            env_vars="MOCK_MODE=true"
             ;;
         "production")
             env_vars="NODE_ENV=production"

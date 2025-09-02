@@ -1,5 +1,5 @@
 {
-  "id": "274c25e6-daa2-4dde-8356-1b5e1f423c1a",
+  "id": "e7d6474b-2a8d-4f63-b3af-cd83bedb783a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -264,7 +264,107 @@
           "notNull": false
         }
       },
-      "indexes": {},
+      "indexes": {
+        "idx_game_logs_user_created": {
+          "name": "idx_game_logs_user_created",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_classification_created": {
+          "name": "idx_game_logs_classification_created",
+          "columns": [
+            {
+              "expression": "classification",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_user_classification_created": {
+          "name": "idx_game_logs_user_classification_created",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "classification",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "created_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_game_id": {
+          "name": "idx_game_logs_game_id",
+          "columns": [
+            {
+              "expression": "game_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "idx_game_logs_deleted_at": {
+          "name": "idx_game_logs_deleted_at",
+          "columns": [
+            {
+              "expression": "deleted_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {
         "game_logs_user_id_users_id_fk": {
           "name": "game_logs_user_id_users_id_fk",
@@ -409,7 +509,7 @@
       "columns": {
         "id": {
           "name": "id",
-          "type": "varchar(20)",
+          "type": "varchar(50)",
           "primaryKey": true,
           "notNull": true
         },
@@ -419,6 +519,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'nba'"
+        },
+        "season": {
+          "name": "season",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
         },
         "nba_game_id": {
           "name": "nba_game_id",
@@ -431,6 +537,12 @@
           "type": "timestamp",
           "primaryKey": false,
           "notNull": true
+        },
+        "stage": {
+          "name": "stage",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         },
         "home_team_id": {
           "name": "home_team_id",
@@ -461,6 +573,54 @@
           "type": "varchar(50)",
           "primaryKey": false,
           "notNull": true
+        },
+        "status_data": {
+          "name": "status_data",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scores": {
+          "name": "scores",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "arena": {
+          "name": "arena",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "periods": {
+          "name": "periods",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "officials": {
+          "name": "officials",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "times_tied": {
+          "name": "times_tied",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lead_changes": {
+          "name": "lead_changes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "nugget": {
+          "name": "nugget",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "average_rating": {
           "name": "average_rating",
@@ -712,6 +872,25 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.reaction_emojis": {
+      "name": "reaction_emojis",
+      "schema": "",
+      "columns": {
+        "emoji": {
+          "name": "emoji",
+          "type": "varchar(10)",
+          "primaryKey": true,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.reactions": {
       "name": "reactions",
       "schema": "",
@@ -776,6 +955,15 @@
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "reactions_emoji_reaction_emojis_emoji_fk": {
+          "name": "reactions_emoji_reaction_emojis_emoji_fk",
+          "tableFrom": "reactions",
+          "tableTo": "reaction_emojis",
+          "columnsFrom": ["emoji"],
+          "columnsTo": ["emoji"],
+          "onDelete": "no action",
           "onUpdate": "no action"
         }
       },

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { useLiveGames } from '@/hooks/use-live-games';
 import type { IClientPerformanceMetrics } from '@/lib/types';
 
 export function PerformanceMonitor() {
@@ -12,20 +13,10 @@ export function PerformanceMonitor() {
     totalLoadTime: 0,
   });
 
-  const [isVisible, setIsVisible] = useState(false);
+  // Get live games polling information
+  const { hasLiveGames, currentPollingInterval, timeSinceLastLiveGames } = useLiveGames();
 
   useEffect(() => {
-    // Show in development or when explicitly enabled
-    const shouldShow =
-      process.env.NODE_ENV === 'development' ||
-      process.env.NEXT_PUBLIC_SHOW_PERFORMANCE_MONITOR === 'true';
-    console.log('Performance Monitor - NODE_ENV:', process.env.NODE_ENV);
-    console.log('Performance Monitor - shouldShow:', shouldShow);
-
-    if (shouldShow) {
-      setIsVisible(true);
-    }
-
     // Listen for performance events
     const handleSlowQuery = (event: CustomEvent) => {
       setMetrics(prev => ({
@@ -81,40 +72,48 @@ export function PerformanceMonitor() {
     };
   }, []);
 
-  // For debugging - always show if not visible but in development
-  if (!isVisible && process.env.NODE_ENV === 'development') {
-    console.log('Performance Monitor - forcing visibility for debugging');
-    return (
-      <div className="fixed bottom-4 right-4 bg-red-500 text-white p-4 rounded-lg text-xs font-mono z-50 max-w-xs">
-        <div className="font-bold mb-2">Performance Monitor (Debug)</div>
-        <div>NODE_ENV: {process.env.NODE_ENV}</div>
-        <div>isVisible: {isVisible.toString()}</div>
-        <div>Component loaded but not visible</div>
-      </div>
-    );
-  }
-
-  if (!isVisible) {
+  // Only show in development mode
+  if (process.env.NODE_ENV !== 'development') {
     return null;
   }
 
   return (
-    <div className="fixed bottom-4 right-4 bg-black/90 text-white p-4 rounded-lg text-xs font-mono z-[9999] max-w-xs border border-white/20 shadow-2xl">
-      <div className="font-bold mb-2 text-white">Performance Monitor</div>
-      <div className="space-y-1 text-white">
-        <div>Queries: {metrics.queryCount}</div>
-        <div>Avg Time: {metrics.averageQueryTime.toFixed(0)}ms</div>
-        <div>Slow Queries: {metrics.slowQueries}</div>
-        <div>Load Time: {metrics.totalLoadTime.toFixed(0)}ms</div>
+    <>
+      {/* Left Performance Monitor */}
+      <div className="fixed bottom-4 left-4 bg-black/90 text-white p-4 rounded-lg text-xs font-mono z-[9999] max-w-xs border border-white/20 shadow-2xl">
+        <div className="font-bold mb-2 text-white">Performance Monitor (Left)</div>
+        <div className="space-y-1 text-white">
+          <div>Queries: {metrics.queryCount}</div>
+          <div>Avg Time: {metrics.averageQueryTime.toFixed(0)}ms</div>
+          <div>Slow Queries: {metrics.slowQueries}</div>
+          <div>Load Time: {metrics.totalLoadTime.toFixed(0)}ms</div>
+        </div>
+        <div className="mt-2 text-xs text-gray-300">
+          {metrics.slowQueries > 0 ? (
+            <div className="text-yellow-400">⚠️ {metrics.slowQueries} slow queries detected</div>
+          ) : null}
+          {metrics.averageQueryTime > 1000 ? (
+            <div className="text-red-400">🚨 High average query time</div>
+          ) : null}
+        </div>
       </div>
-      <div className="mt-2 text-xs text-gray-300">
-        {metrics.slowQueries > 0 && (
-          <div className="text-yellow-400">⚠️ {metrics.slowQueries} slow queries detected</div>
-        )}
-        {metrics.averageQueryTime > 1000 && (
-          <div className="text-red-400">🚨 High average query time</div>
-        )}
+
+      {/* Right Performance Monitor */}
+      <div className="fixed bottom-4 right-4 bg-gray-800/90 text-white p-4 rounded-lg text-xs font-mono z-[9999] max-w-xs border border-gray-600 shadow-2xl">
+        <div className="font-bold mb-2 text-white">Live Games Polling (Right)</div>
+        <div className="space-y-1 text-white">
+          <div>Status: {hasLiveGames ? '🟢 LIVE' : '⚪ NO GAMES'}</div>
+          <div>Polling: {currentPollingInterval / 1000}s</div>
+          {timeSinceLastLiveGames ? <div>Last Live: {timeSinceLastLiveGames}</div> : null}
+          <div className="mt-2 text-xs text-gray-300">
+            {hasLiveGames ? (
+              <div className="text-green-400">Frequent polling (30s)</div>
+            ) : (
+              <div className="text-blue-400">Reduced polling (5m)</div>
+            )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

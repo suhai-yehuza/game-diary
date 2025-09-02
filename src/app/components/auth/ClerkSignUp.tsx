@@ -3,14 +3,7 @@
 import { SignUp } from '@clerk/nextjs';
 import { useEffect } from 'react';
 
-import { ThemeProvider } from '@/app/components/providers/ThemeProvider';
-
-export default function ClerkSignUp(props: React.ComponentProps<typeof SignUp>) {
-  // Check if Clerk is available
-  if (typeof SignUp === 'undefined') {
-    throw new Error('Clerk not available');
-  }
-
+export default function ClerkSignUp() {
   useEffect(() => {
     // Force footer alignment after component mounts
     const fixFooterAlignment = () => {
@@ -42,12 +35,10 @@ export default function ClerkSignUp(props: React.ComponentProps<typeof SignUp>) 
   }, []);
 
   return (
-    <ThemeProvider>
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="w-full max-w-md space-y-8" data-testid="clerk-sign-up">
-          <SignUp {...props} />
-        </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="w-full max-w-md space-y-8" data-testid="clerk-sign-up">
+        <SignUp />
       </div>
-    </ThemeProvider>
+    </div>
   );
 }

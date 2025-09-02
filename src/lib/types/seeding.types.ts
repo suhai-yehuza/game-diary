@@ -5,12 +5,17 @@
  */
 
 import type { IReactionEmojiValue } from '@/lib/constants';
+import type { IDbRefreshProgressCallback } from './db.types';
+
+// Re-export for convenience
+export type { IDbRefreshProgressCallback };
 
 // ============================================================================
 // SEEDING CONFIGURATION TYPES
 // ============================================================================
 
 export interface ISeedingConfig {
+  // User data generation properties
   userCount: number;
   gameLogsPerUser: { min: number; max: number };
   commentsPerGameLog: { min: number; max: number };
@@ -18,6 +23,20 @@ export interface ISeedingConfig {
   reactionsPerGameLog: { min: number; max: number };
   reactionsPerComment: { min: number; max: number };
   childCommentChance: number;
+
+  // External API seeding properties
+  startSeason?: number;
+  endSeason?: number;
+  specificSeasons?: number[];
+  progressCallback?: IDbRefreshProgressCallback;
+}
+
+// External API seeding configuration (subset of ISeedingConfig)
+export interface IExternalApiSeedingConfig {
+  startSeason?: number;
+  endSeason?: number;
+  specificSeasons?: number[];
+  progressCallback?: IDbRefreshProgressCallback;
 }
 
 export type ScenarioKey = 'SMALL' | 'MEDIUM' | 'LARGE' | 'PARETO-DEMO' | 'CUSTOM';
@@ -148,6 +167,17 @@ export interface IStatisticalSeedingConfig {
   // Social distributions
   friendshipStatus: IDistributionConfig;
   notificationFrequency: IDistributionConfig;
+
+  // Reaction-specific distributions
+  commentReactionProbability: number; // Probability that a comment gets reactions (0.0 to 1.0)
+  gameLogReactionProbability: number; // Probability that a game log gets reactions (0.0 to 1.0)
+
+  // User engagement distributions
+  userGameLogProbability: number; // Probability that a user generates game logs (0.0 to 1.0)
+  userFriendshipProbability: number; // Probability that a user forms friendships (0.0 to 1.0)
+
+  // Game engagement distributions
+  gameLogGameProbability: number; // Probability that a game gets logged (0.0 to 1.0)
 
   // Advanced settings
   enableRealisticPatterns: boolean;

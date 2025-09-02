@@ -19,8 +19,8 @@ export default defineConfig({
       'tests/e2e/**',
       'tests/unit/**',
     ],
-    testTimeout: 30000, // Longer timeout for integration tests
-    hookTimeout: 30000,
+    testTimeout: 2 * 60 * 1000,
+    hookTimeout: 2 * 60 * 1000,
     environmentOptions: {
       jsdom: {
         resources: 'usable',

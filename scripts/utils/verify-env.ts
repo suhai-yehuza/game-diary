@@ -73,7 +73,7 @@ const requiredEnvSchema = z.object({
   // CI/Testing flags
   CI: z.string().optional(),
   GITHUB_ACTIONS: z.string().optional(),
-  API_MOCK_MODE: z.string().optional(),
+  MOCK_MODE: z.string().optional(),
 });
 
 function validateEnvironment(): void {

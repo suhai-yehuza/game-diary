@@ -10,6 +10,7 @@ import {
   boolean,
   serial,
   index,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
@@ -30,15 +31,25 @@ export const seasons = pgTable('seasons', {
 
 // NBA Games table - extending base table configuration
 export const nba_games = pgTable('nba_games', {
-  id: varchar('id', { length: 20 }).primaryKey(), // External API game ID
+  id: varchar('id', { length: 50 }).primaryKey(), // Format: ${season}-${game.id}
   game_type: varchar('game_type', { length: 50 }).notNull().default('nba'),
+  season: varchar('season', { length: 20 }),
   nba_game_id: varchar('nba_game_id', { length: 255 }),
   date: timestamp('date').notNull(),
+  stage: integer('stage'), // Game stage (e.g., regular season, playoffs, etc.)
   home_team_id: varchar('home_team_id', { length: 255 }).notNull(),
   away_team_id: varchar('away_team_id', { length: 255 }).notNull(),
   home_team_score: integer('home_team_score'),
   away_team_score: integer('away_team_score'),
-  status: varchar('status', { length: 50 }).notNull(),
+  status: varchar('status', { length: 50 }).notNull(), // Keep for backward compatibility
+  status_data: jsonb('status_data'), // New field to store complete status object
+  scores: jsonb('scores'), // New field to store complete scores object with win/loss, series, linescore
+  arena: jsonb('arena'), // New field to store complete arena object
+  periods: jsonb('periods'), // New field to store complete periods object
+  officials: text('officials').array(), // Array of official names
+  times_tied: integer('times_tied'), // Number of times the game was tied
+  lead_changes: integer('lead_changes'), // Number of lead changes
+  nugget: text('nugget'), // Game summary/description
   average_rating: decimal('average_rating', { precision: 4, scale: 2 }).notNull().default('0.00'),
   total_ratings: integer('total_ratings').notNull().default(0),
   created_at: timestamp('created_at').defaultNow().notNull(),

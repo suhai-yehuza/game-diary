@@ -6,6 +6,7 @@ import { ThemeProvider } from 'next-themes';
 import { Suspense } from 'react';
 import { Toaster } from 'sonner';
 
+// Cache initializer components removed
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
 import { NotificationProvider } from '@/app/components/providers/NotificationProvider';
@@ -38,6 +39,7 @@ export function ClientProviders({ children }: IClientProvidersProps) {
               <NotificationProvider>
                 {children}
                 <NotificationOnLogin />
+                {/* Cache initializer removed */}
               </NotificationProvider>
             </ClerkProviderWrapper>
           </Suspense>
@@ -49,6 +51,7 @@ export function ClientProviders({ children }: IClientProvidersProps) {
             expand={true}
             theme="dark"
           />
+          {/* Cache status display removed */}
         </ThemeProvider>
       </MenuProvider>
     </ApolloProvider>

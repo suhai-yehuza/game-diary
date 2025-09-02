@@ -258,7 +258,7 @@ export const INTERNAL_PROXY_ENDPOINTS = {
 // Add test environment detection
 export const isTestEnvironment =
   process.env.NODE_ENV === 'test' ||
-  (process.env.API_MOCK_MODE === 'true' && !process.env.NEXT_PUBLIC_RAPID_API_KEY) ||
+  (process.env.MOCK_MODE === 'true' && !process.env.NEXT_PUBLIC_RAPID_API_KEY) ||
   // Treat CI runs as test-like regardless of NODE_ENV so mocks are consistent for integration
   process.env.CI === 'true';
 
@@ -266,7 +266,7 @@ export const isTestEnvironment =
 export const isE2ETestEnvironment =
   process.env.DEPLOYMENT_URL !== undefined ||
   process.env.PLAYWRIGHT_BASE_URL !== undefined ||
-  process.env.E2E_MOCK_MODE === 'true' ||
+  process.env.MOCK_MODE === 'true' ||
   process.env.PLAYWRIGHT_CI === 'true' ||
   process.env.CI === 'true' ||
   process.env.GITHUB_ACTIONS === 'true' ||

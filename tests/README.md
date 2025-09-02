@@ -78,6 +78,51 @@ tests/
     └── index.ts           # Main shared utilities export
 ```
 
+## Test Data Management
+
+### **Database Test Data Cleanup**
+
+The test scripts create temporary test data in the database to validate triggers and functionality. This data is automatically cleaned up after tests complete, but you can also run cleanup manually if needed.
+
+#### **Automatic Cleanup**
+
+- **Trigger Tests**: `pnpm db:test:all-triggers` automatically cleans up test data after completion
+- **Integration Tests**: Some tests include cleanup in their `finally` blocks
+- **E2E Tests**: Use mock data and don't create persistent database records
+
+#### **Manual Cleanup Commands**
+
+```bash
+# Cleanup test data from development database
+pnpm db:cleanup:test-data
+
+# Cleanup test data from staging database
+pnpm db:cleanup:test-data:staging
+
+# Cleanup test data from production database (use with caution!)
+pnpm db:cleanup:test-data:prod
+```
+
+#### **What Gets Cleaned Up**
+
+The cleanup process removes all test data with these patterns:
+
+- **Users**: `testtrig_*`, `test_*`
+- **Teams**: `test_team_1`, `test_team_2`
+- **NBA Games**: `2024-ttg_*`, `test_*`
+- **Game Logs**: `test_*`, `testtrig_*`
+- **Comments**: `test_*`, `testtrig_*`
+- **Reactions**: `test_*`, `testtrig_*`
+- **Friendships**: `test_*`, `testtrig_*`
+- **Notifications**: Related to test users
+- **Game Ratings**: Related to test games
+
+#### **Safety Features**
+
+- **Production Warning**: 5-second delay with warnings before cleanup on production
+- **Environment Selection**: Specify environment with `--env=<environment>`
+- **Help Documentation**: Run `--help` for usage information
+
 ## Test Organization Principles
 
 ### 1. **Clear Test Boundaries**

@@ -188,6 +188,7 @@ type Game {
   date: DateTime!
   status: String!
   game_type: String!
+  season: String
   nba_game_id: String
   home_team_id: String!
   away_team_id: String!
@@ -249,6 +250,7 @@ enum GameStatusEnum {
   LIVE
   FINISHED
   CANCELLED
+  IN_PROGRESS
 }
 
 # Comment Types
@@ -411,6 +413,7 @@ input CreateGameInput {
   home_team_id: String!
   away_team_id: String!
   game_type: String!
+  season: String
   nba_game_id: ID
   status: String!
   home_team_score: Int

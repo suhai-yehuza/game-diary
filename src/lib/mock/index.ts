@@ -1,4 +1,6 @@
 // Centralized mock data exports and provider
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
+
 export * from './liveGamesMock';
 export * from './nbaGamesMock';
 export * from './nbaGameStatisticsMock';
@@ -35,9 +37,7 @@ export class MockDataProvider {
   }
 
   isMockModeEnabled(): boolean {
-    return (
-      this.mockMode || process.env.E2E_MOCK_MODE === 'true' || process.env.API_MOCK_MODE === 'true'
-    );
+    return this.mockMode || isMockModeEnabled();
   }
 
   // Get all available mock data

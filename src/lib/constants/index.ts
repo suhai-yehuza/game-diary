@@ -25,9 +25,6 @@ export const REACTION_EMOJIS = {
   BASKETBALL: '🏀',
   SOCCER: '⚽',
   FOOTBALL: '🏈',
-  BASEBALL: '⚾',
-  TENNIS: '🎾',
-  GOLF: '⛳',
 } as const;
 
 // Enums as Constant Objects
@@ -82,6 +79,24 @@ export const GAME_STATUS_VALUES = {
   FINISHED: 'FINISHED',
   LIVE: 'LIVE',
   SCHEDULED: 'SCHEDULED',
+  CANCELLED: 'CANCELLED',
+  IN_PROGRESS: 'IN_PROGRESS',
+} as const;
+
+export const GAME_STAGE_VALUES = {
+  REGULAR_SEASON: 1,
+  PLAYOFFS: 2,
+  FINALS: 3,
+  ALL_STAR: 4,
+  PRE_SEASON: 5,
+} as const;
+
+export const GAME_STAGE_LABELS = {
+  [GAME_STAGE_VALUES.REGULAR_SEASON]: 'Regular Season',
+  [GAME_STAGE_VALUES.PLAYOFFS]: 'Playoffs',
+  [GAME_STAGE_VALUES.FINALS]: 'Finals',
+  [GAME_STAGE_VALUES.ALL_STAR]: 'All-Star Game',
+  [GAME_STAGE_VALUES.PRE_SEASON]: 'Pre-Season',
 } as const;
 
 export const RESOURCES = {
@@ -103,23 +118,137 @@ export const TARGET_TYPES = {
   COMMENT: 'COMMENT',
 } as const;
 
-// Cache Configuration
-export const CACHE_TTL = {
-  USER: 3600, // 1 hour
-  GAME: 3600, // 1 hour
-  TEAM: 3600, // 1 hour
-  PLAYER: 3600, // 1 hour
-  STANDINGS: 3600, // 1 hour
-  USER_GAME_LOGS: 3600, // 1 hour
-  COMMENTS: 3600, // 1 hour
-  REACTIONS: 3600, // 1 hour
-  FRIEND_REQUESTS: 3600, // 1 hour
-  DEFAULT: 3600, // 1 hour default
-  SHORT: 60, // 1 minute
-  MEDIUM: 300, // 5 minutes
-  LONG: 3600, // 1 hour
-  VERY_LONG: 86400, // 24 hours
+// ========================================
+// API CONFIGURATION
+// ========================================
+
+// API Limits & Pagination
+export const API_LIMITS = {
+  // Default pagination limits
+  DEFAULT_PAGE_SIZE: 20,
+  MAX_PAGE_SIZE: 100,
+
+  // Sports data limits
+  GAMES: {
+    DEFAULT: 100,
+    LARGE: 25000, // For getting total games count
+    MAX: 100000,
+  },
+
+  PLAYERS: {
+    DEFAULT: 100,
+    LARGE: 25000, // For getting total players count
+    MAX: 100000,
+  },
+
+  TEAMS: {
+    DEFAULT: 100,
+    LARGE: 500,
+    MAX: 1000,
+  },
+
+  GAME_LOGS: {
+    DEFAULT: 100,
+    LARGE: 25000,
+    MAX: 1000000,
+  },
+
+  USERS: {
+    DEFAULT: 100,
+    LARGE: 25000,
+    MAX: 1000000,
+  },
+
+  SEARCH: {
+    DEFAULT: 100,
+    LARGE: 1000,
+    MAX: 100000,
+  },
 } as const;
+
+// API Endpoints
+export const API_ENDPOINTS = {
+  // External API endpoints
+  EXTERNAL: {
+    NBA_GAMES: 'https://v2.nba.api-sports.io/games',
+    NBA_PLAYERS: 'https://v2.nba.api-sports.io/players',
+    NBA_TEAMS: 'https://v2.nba.api-sports.io/teams',
+    NBA_LIVE_GAMES: 'https://v2.nba.api-sports.io/games?live=all',
+  },
+
+  // Internal API endpoints
+  INTERNAL: {
+    GRAPHQL: '/api/graphql',
+    PROXY: '/api/proxy',
+    MOCK_SERVER: '/api/mock-server',
+    PLAYERS: '/api/players',
+    GAMES: '/api/games',
+    TEAMS: '/api/teams',
+    GAME_LOGS: '/api/game-logs',
+    USERS: '/api/users',
+    SEARCH: '/api/search',
+  },
+
+  // NBA API endpoints (from external API types)
+  NBA: {
+    SEASONS: '/seasons',
+    LEAGUES: '/leagues',
+    GAMES: '/games',
+    GAME_STATISTICS: '/games/statistics',
+    TEAMS: '/teams',
+    TEAM_STATISTICS: '/teams/statistics',
+    PLAYERS: '/players',
+    PLAYER_STATISTICS: '/players/statistics',
+    STANDINGS: '/standings',
+  },
+} as const;
+
+// Request Configuration
+export const REQUEST_CONFIG = {
+  // Timeout values in milliseconds
+  TIMEOUTS: {
+    SHORT: 5000, // 5 seconds
+    MEDIUM: 10000, // 10 seconds
+    LONG: 30000, // 30 seconds
+    VERY_LONG: 60000, // 1 minute
+  },
+
+  // Retry configuration
+  RETRY: {
+    MAX_ATTEMPTS: 3,
+    DELAY: 1000, // 1 second
+    BACKOFF_MULTIPLIER: 2,
+  },
+
+  // Rate limiting
+  RATE_LIMIT: {
+    REQUESTS_PER_MINUTE: 60,
+    REQUESTS_PER_HOUR: 1000,
+  },
+} as const;
+
+// Season Configuration
+export const SEASON_CONFIG = {
+  // Current season
+  CURRENT: 2024,
+
+  // Season types
+  TYPES: {
+    REGULAR: 'regular',
+    PLAYOFF: 'playoff',
+    PRESEASON: 'preseason',
+    ALL: 'all',
+  },
+
+  // League types
+  LEAGUES: {
+    STANDARD: 'standard',
+    SUMMER: 'summer',
+    G_LEAGUE: 'g-league',
+  },
+} as const;
+
+// Cache configuration removed
 
 // Game-related Constants
 export const validDivisions = [
@@ -149,6 +278,7 @@ export const TABS = {
   LEAGUES: 'leagues',
   SEASONS: 'seasons',
   SEARCH: 'search',
+  DATABASE: 'database',
 } as const;
 
 // ============= Type Definitions =============
@@ -163,6 +293,7 @@ export type ITargetTypeValue = (typeof TARGET_TYPES)[keyof typeof TARGET_TYPES];
 export type IConferenceValue = (typeof CONFERENCES)[IConferenceType];
 export type IDivisionValue = (typeof DIVISIONS)[IDivisionType];
 export type IGameStatusType = keyof typeof GAME_STATUS_VALUES;
+export type IGameStageType = keyof typeof GAME_STAGE_VALUES;
 export type ISortDirectionValue = (typeof SORT_DIRECTION)[ISortDirectionType];
 export type IClassificationValue = (typeof CLASSIFICATION)[IClassificationType];
 export type IFriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
@@ -178,6 +309,15 @@ export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
 
 export type TabKey = keyof typeof TABS;
 export type TabValue = (typeof TABS)[TabKey];
+
+// ========================================
+// API TYPE DEFINITIONS
+// ========================================
+
+export type ApiLimitType = keyof typeof API_LIMITS;
+export type RequestTimeoutType = keyof typeof REQUEST_CONFIG.TIMEOUTS;
+export type SeasonType = keyof typeof SEASON_CONFIG.TYPES;
+export type LeagueType = keyof typeof SEASON_CONFIG.LEAGUES;
 
 // ============= Helper Functions =============
 
@@ -232,6 +372,7 @@ export const isValidWatchedSetting = (
 // Helper functions to generate enum arrays from constants for database schema usage
 export const getEnumValues = {
   gameStatus: () => Object.values(GAME_STATUS_VALUES) as [string, ...string[]],
+  gameStage: () => Object.values(GAME_STAGE_VALUES) as [number, ...number[]],
   friendshipStatus: () => Object.values(FRIENDSHIP_STATUS) as [string, ...string[]],
   watchedSetting: () => Object.values(WATCHED_SETTING) as [string, ...string[]],
   watchedScope: () => Object.values(WATCHED_SCOPE) as [string, ...string[]],
@@ -241,3 +382,56 @@ export const getEnumValues = {
   resources: () => Object.values(RESOURCES) as [string, ...string[]],
   sortDirection: () => Object.values(SORT_DIRECTION) as [string, ...string[]],
 } as const;
+
+// Helper function to get stage label
+export const getGameStageLabel = (stage: number): string => {
+  return GAME_STAGE_LABELS[stage as keyof typeof GAME_STAGE_LABELS] || `Stage ${stage}`;
+};
+
+// ========================================
+// API UTILITY FUNCTIONS
+// ========================================
+
+/**
+ * Get the appropriate limit for a given data type and use case
+ */
+export function getApiLimit(
+  dataType: keyof typeof API_LIMITS,
+  useCase: 'DEFAULT' | 'LARGE' | 'MAX' = 'DEFAULT'
+): number {
+  const limits = API_LIMITS[dataType];
+  if (typeof limits === 'object' && limits !== null) {
+    return limits[useCase];
+  }
+  return limits as number;
+}
+
+// Cache TTL function removed
+
+/**
+ * Get request timeout for a given duration
+ */
+export function getRequestTimeout(duration: keyof typeof REQUEST_CONFIG.TIMEOUTS): number {
+  return REQUEST_CONFIG.TIMEOUTS[duration];
+}
+
+/**
+ * Build API URL with parameters
+ */
+export function buildApiUrl(
+  endpoint: string,
+  params: Record<string, string | number | boolean> = {}
+): string {
+  const url = new URL(
+    endpoint,
+    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+  );
+
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.append(key, String(value));
+    }
+  });
+
+  return url.toString();
+}

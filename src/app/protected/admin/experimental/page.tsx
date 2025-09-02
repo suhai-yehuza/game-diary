@@ -1,7 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
 
+// Cache components removed
+import { DbRefreshButtonSimple } from '@/app/components/admin/DbRefreshButtonSimple';
 import {
   Card,
   CardContent,
@@ -35,6 +38,7 @@ import type {
   TabValue,
   TeamsSectionProps,
   PlayersSectionProps,
+  IDbRefreshProgress,
 } from '@/lib/types';
 import { TABS } from '@/lib/types';
 
@@ -49,6 +53,7 @@ function NavigationTabs(props: NavigationTabsProps) {
     TABS.PLAYERS as TabValue,
     TABS.STANDINGS as TabValue,
     TABS.SEARCH as TabValue,
+    TABS.DATABASE as TabValue,
   ];
   return (
     <div className="flex flex-wrap gap-2 border-b mb-6">
@@ -447,6 +452,60 @@ function AdminExperimentalContent() {
     setStandingsParams,
   } = useFormState(seasons);
 
+  // Database progress state for conditional rendering
+  const [databaseProgress, setDatabaseProgress] = useState<{
+    isRefreshing: boolean;
+    progress: IDbRefreshProgress;
+    status: 'idle' | 'success' | 'error';
+    message: string;
+    onTerminate: () => void;
+  } | null>(null);
+
+  // Real-time elapsed time state
+  const [elapsedTime, setElapsedTime] = useState(0);
+
+  // Cache progress state removed
+
+  // Memoized callback for database progress updates to prevent infinite re-renders
+  const handleDatabaseProgressChange = useCallback(
+    (progress: {
+      isRefreshing: boolean;
+      progress: IDbRefreshProgress;
+      status: 'idle' | 'success' | 'error';
+      message: string;
+      onTerminate: () => void;
+    }) => {
+      setDatabaseProgress(progress);
+    },
+    []
+  );
+
+  // Real-time elapsed time timer
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+
+    if (databaseProgress?.isRefreshing && databaseProgress.progress.startTime) {
+      // Update elapsed time every second
+      interval = setInterval(() => {
+        const startTime = new Date(databaseProgress.progress.startTime || new Date()).getTime();
+        const currentTime = Date.now();
+        const elapsed = Math.floor((currentTime - startTime) / 1000);
+        setElapsedTime(elapsed);
+      }, 1000);
+    } else {
+      // Reset elapsed time when not refreshing
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [databaseProgress?.isRefreshing, databaseProgress?.progress.startTime]);
+
+  // Cache progress change handler removed
+
   // Clear data when tab changes
   useEffect(() => {
     clearData();
@@ -620,8 +679,152 @@ function AdminExperimentalContent() {
         <SearchSection loading={loading} handleFetch={handleFetch} data={data} />
       )}
 
+      {selectedTab === TABS.DATABASE && (
+        <div className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Database Management</CardTitle>
+              <CardDescription>
+                Refresh the database with the latest data from external APIs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <DbRefreshButtonSimple onProgressChange={handleDatabaseProgressChange} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Cache tab removed */}
+
       {selectedTab !== TABS.SEARCH && (
-        <DataDisplay data={data} loading={loading} error={error} selectedTab={selectedTab} />
+        <>
+          {/* Show database progress when available */}
+          {selectedTab === TABS.DATABASE && databaseProgress?.isRefreshing && (
+            <div className="mb-6">
+              <Card>
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Database Refresh Progress</CardTitle>
+                      <CardDescription>
+                        Current status of database refresh operation
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Step {databaseProgress.progress.stepNumber} of{' '}
+                        {databaseProgress.progress.totalSteps || 5}
+                      </div>
+                      <div className="text-lg font-bold text-blue-600">
+                        {Math.round(databaseProgress.progress.progress || 0)}%
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Progress Bar */}
+                    <div className="w-full bg-gray-200 rounded-full h-3 dark:bg-gray-700">
+                      <div
+                        className="bg-blue-600 h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${databaseProgress.progress.progress || 0}%` }}
+                      />
+                    </div>
+
+                    {/* Current Operation Details */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {databaseProgress.progress.currentStep}
+                        </div>
+                        <button
+                          onClick={() => {
+                            if (databaseProgress?.onTerminate) {
+                              databaseProgress.onTerminate();
+                            }
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-200 bg-red-600 text-white hover:bg-red-700 focus:ring-red-500 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2"
+                          title="Terminate the running database refresh job"
+                        >
+                          <AlertCircle className="w-4 h-4" />
+                          Terminate Job
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400">
+                        {databaseProgress.progress.message}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {databaseProgress.progress.details}
+                      </div>
+                    </div>
+
+                    {/* Steps Checklist */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-gray-900 dark:text-white">Steps</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {['Leagues', 'Seasons', 'Teams', 'Games', 'Players'].map((step, index) => {
+                          const stepNumber = index + 1;
+                          const isCompleted = stepNumber < databaseProgress.progress.stepNumber;
+                          const isCurrent = stepNumber === databaseProgress.progress.stepNumber;
+                          const _isPending = stepNumber > databaseProgress.progress.stepNumber;
+
+                          return (
+                            <div key={step} className="flex items-center gap-3">
+                              {isCompleted ? (
+                                <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
+                                  <span className="text-white text-xs">✔</span>
+                                </div>
+                              ) : isCurrent ? (
+                                <div className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                                  <RefreshCw className="w-3 h-3 text-white animate-spin" />
+                                </div>
+                              ) : (
+                                <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                              )}
+                              <span
+                                className={`text-sm ${
+                                  isCompleted
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : isCurrent
+                                      ? 'text-blue-600 dark:text-blue-400'
+                                      : 'text-gray-400 dark:text-gray-500'
+                                }`}
+                              >
+                                {step}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Timing Information */}
+                    {databaseProgress.progress.startTime && (
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        Elapsed: {elapsedTime}s
+                      </div>
+                    )}
+
+                    {/* Status Message */}
+                    {databaseProgress.message && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded text-blue-800 dark:text-blue-200">
+                        {databaseProgress.message}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* Cache progress display removed */}
+
+          {/* Default data display for other tabs - hide when database refresh is active */}
+          {!(selectedTab === TABS.DATABASE && databaseProgress?.isRefreshing) && (
+            <DataDisplay data={data} loading={loading} error={error} selectedTab={selectedTab} />
+          )}
+        </>
       )}
     </div>
   );

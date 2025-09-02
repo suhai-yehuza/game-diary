@@ -164,6 +164,9 @@ export async function setupAllTriggersFromSql(
     logger.info('🔧 Creating triggers...');
     for (let i = 0; i < triggers.length; i++) {
       try {
+        logger.info(
+          `  🔧 Creating trigger ${i + 1}/${triggers.length}: ${triggers[i].substring(0, 100)}...`
+        );
         await db.execute(sql.raw(triggers[i]));
         logger.info(`  ✅ Created trigger ${i + 1}/${triggers.length}`);
       } catch (err) {
@@ -171,6 +174,8 @@ export async function setupAllTriggersFromSql(
           `  ❌ Failed to create trigger ${i + 1}:`,
           err instanceof Error ? err : new Error(String(err))
         );
+        // Log the full trigger SQL for debugging
+        logger.error(`  📄 Failed trigger SQL: ${triggers[i]}`);
         throw err;
       }
     }

@@ -178,7 +178,7 @@ export function AdminNav({
   if (
     typeof window !== 'undefined' &&
     window.location.hostname === 'localhost' &&
-    process.env.E2E_MOCK_MODE === 'true'
+    process.env.MOCK_MODE === 'true'
   ) {
     return <AdminNavE2E isActive={isActive} closeMenu={closeMenu} />;
   }

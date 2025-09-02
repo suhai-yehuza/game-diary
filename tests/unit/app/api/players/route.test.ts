@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GET } from '@/app/api/players/route';
-import { cache } from '@/lib/cache';
+// Cache system disabled
 import {
   getPlayers,
   getUniqueColleges,
@@ -11,13 +11,7 @@ import {
 } from '@/lib/db/services/players.service';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
-// Mock the cache
-vi.mock('@/lib/cache', () => ({
-  cache: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
-}));
+// Cache system disabled - no mocking needed
 
 // Mock the players service
 vi.mock('@/lib/db/services/players.service', () => ({
@@ -38,9 +32,7 @@ describe('GET /api/players', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Set up cache to return null (cache miss) by default
-    (cache.get as any).mockResolvedValue(null);
-    (cache.set as any).mockResolvedValue(undefined);
+    // Cache system disabled
   });
 
   it('should return players with default parameters', async () => {
@@ -88,7 +80,6 @@ describe('GET /api/players', () => {
     expect(data).toMatchObject({
       get: 'players',
       parameters: {
-        league: 'standard',
         season: '2024',
       },
       errors: [],

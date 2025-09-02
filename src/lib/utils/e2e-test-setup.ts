@@ -12,9 +12,10 @@ export function isCI(): boolean {
  */
 interface IExtendedWindow extends Window {
   __PLAYWRIGHT_TEST__?: boolean;
-  __E2E_MOCK_MODE__?: boolean;
-  __API_MOCK_MODE__?: boolean;
+  __MOCK_MODE__?: boolean;
 }
+
+import { isMockModeEnabled, setupMockModeEnvironment } from './mock-mode';
 
 /**
  * Check if the current environment is a test/CI environment
@@ -27,12 +28,8 @@ export function isTestOrCIEnvironment(): boolean {
     if (extendedWindow.__PLAYWRIGHT_TEST__ === true) {
       return true;
     }
-    // Check for E2E mock mode
-    if (extendedWindow.__E2E_MOCK_MODE__ === true) {
-      return true;
-    }
-    // Check for API mock mode
-    if (extendedWindow.__API_MOCK_MODE__ === true) {
+    // Check for mock mode (consolidated)
+    if (isMockModeEnabled()) {
       return true;
     }
   }
@@ -40,8 +37,7 @@ export function isTestOrCIEnvironment(): boolean {
   // Server-side environment checks
   return (
     process.env.NODE_ENV === 'test' ||
-    process.env.API_MOCK_MODE === 'true' ||
-    process.env.E2E_MOCK_MODE === 'true' ||
+    isMockModeEnabled() ||
     process.env.PLAYWRIGHT_TEST === 'true' ||
     isCI()
   );
@@ -55,13 +51,13 @@ export function setupE2ETestEnvironment(): void {
     const extendedWindow = window as IExtendedWindow;
     // Set test environment flags only when in test environment
     extendedWindow.__PLAYWRIGHT_TEST__ = true;
-    extendedWindow.__E2E_MOCK_MODE__ = true;
-    extendedWindow.__API_MOCK_MODE__ = true;
 
-    console.log('🔧 E2E Test Environment Setup Complete');
-    console.log('  __PLAYWRIGHT_TEST__:', extendedWindow.__PLAYWRIGHT_TEST__);
-    console.log('  __E2E_MOCK_MODE__:', extendedWindow.__E2E_MOCK_MODE__);
-    console.log('  __API_MOCK_MODE__:', extendedWindow.__API_MOCK_MODE__);
+    // Add CSS class to hide overlays during E2E tests
+    document.body.classList.add('playwright-test');
+    document.body.setAttribute('data-playwright-test', 'true');
+
+    // Set up mock mode environment (consolidated)
+    setupMockModeEnvironment();
   }
 }
 
@@ -71,11 +67,7 @@ export function setupE2ETestEnvironment(): void {
 export function isE2ETestEnvironment(): boolean {
   if (typeof window !== 'undefined') {
     const extendedWindow = window as IExtendedWindow;
-    return (
-      extendedWindow.__PLAYWRIGHT_TEST__ === true ||
-      extendedWindow.__E2E_MOCK_MODE__ === true ||
-      extendedWindow.__API_MOCK_MODE__ === true
-    );
+    return extendedWindow.__PLAYWRIGHT_TEST__ === true || isMockModeEnabled();
   }
   return false;
 }

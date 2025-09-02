@@ -42,7 +42,7 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
   try {
     // Check for authentication bypass in development/test environments
     const isAuthBypassEnabled =
-      process.env.API_MOCK_MODE === 'true' ||
+      process.env.MOCK_MODE === 'true' ||
       process.env.E2E_AUTH_BYPASS === 'true' ||
       process.env.PLAYWRIGHT_TEST === 'true' ||
       process.env.NODE_ENV === 'test';

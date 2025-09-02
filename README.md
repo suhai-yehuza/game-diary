@@ -82,12 +82,50 @@ You can also use the unified script directly with options:
 
 ## Available Scripts
 
+### Development
+
 - `pnpm dev` - Start development server (simple mode)
 - `pnpm dev:interactive` - Interactive mode with server attachment
 - `pnpm dev:logs` - Start server with persistent logging
 - `pnpm logs` - Follow logs of existing server
 - `pnpm kill:port` - Kill all processes on a port
 - `pnpm kill:3000` - Kill all processes on port 3000
+
+### Testing
+
+- `pnpm test:unit` - Run unit tests
+- `pnpm test:integration` - Run integration tests
+- `pnpm test:e2e` - Run end-to-end tests
+- `pnpm db:test:all-triggers` - Test database triggers
+- `pnpm db:cleanup:test-data` - Clean up test data from database
+
+### Database Management
+
+- `pnpm db:migrate:dev` - Run database migrations (development)
+- `pnpm db:studio` - Open Drizzle Studio for database inspection
+- `pnpm db:triggers` - Set up database triggers
+
+### Data Seeding
+
+- `pnpm run seed:user-data` - Seed user data (100 users, memory-optimized)
+- `pnpm run seed:user-data:medium` - Seed with 1000 users
+- `pnpm run seed:user-data:large` - Seed with 10000 users
+- `pnpm run seed:user-data:custom 500` - Seed with custom user count
+- `pnpm run seed:user-data:clear` - Clear all user data
+- `pnpm run seed:user-data:pareto` - Use Pareto distribution (80/20 rule)
+- `pnpm run seed:user-data:realistic` - Use realistic social media patterns
+- `pnpm run seed:user-data:uniform` - Use uniform distribution for testing
+- `pnpm run seed:user-data:normal` - Use normal distribution (bell curve)
+- `pnpm run seed:user-data:exponential` - Use exponential distribution
+- `pnpm run seed:user-data:poisson` - Use Poisson distribution for rare events
+- `pnpm run seed:user-data:high-engagement` - Use high engagement patterns
+- `pnpm run seed:user-data:low-engagement` - Use low engagement patterns
+- `pnpm run seed:user-data:performance` - Use performance testing patterns
+- `pnpm run seed:user-data:large-pareto` - Large dataset with Pareto distribution
+- `pnpm run seed:user-data:large-realistic` - Large dataset with realistic patterns
+- `./scripts/seed-user-data.sh` - Shell script wrapper with scenarios and distributions
+
+> 💡 **Memory Optimization**: The new seeding system handles large datasets without memory issues. See [User Data Seeding Guide](docs/USER_DATA_SEEDING.md) for details.
 
 ## Project Structure
 

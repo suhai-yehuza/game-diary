@@ -143,7 +143,9 @@ export interface IBaseInputProps {
 }
 
 // Specific input variants
-export interface IInputProps extends IBaseInputProps {
+export interface IInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, keyof IBaseInputProps>,
+    IBaseInputProps {
   onFocus?: () => void;
   onBlur?: () => void;
   autoComplete?: string;
@@ -623,7 +625,7 @@ export interface IMonitoringConfig {
 // UI COMPONENT TYPES
 // ========================================
 
-export interface ISelectProps {
+export interface ISelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   value?: string;
   onValueChange?: (value: string) => void;
   placeholder?: string;

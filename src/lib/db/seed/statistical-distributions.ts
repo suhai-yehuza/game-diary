@@ -520,6 +520,17 @@ export const DEFAULT_DISTRIBUTION_CONFIG: IStatisticalSeedingConfig = {
     parameters: { lambda: 0.5 },
   },
 
+  // Reaction-specific distributions
+  commentReactionProbability: 0.3, // 30% of comments get reactions by default
+  gameLogReactionProbability: 0.5, // 50% of game logs get reactions by default
+
+  // User engagement distributions
+  userGameLogProbability: 0.4, // 40% of users generate game logs by default (following 80/20 rule)
+  userFriendshipProbability: 0.6, // 60% of users form friendships by default
+
+  // Game engagement distributions
+  gameLogGameProbability: 0.3, // 30% of games get logged by default (following 80/20 rule)
+
   // Advanced settings
   enableRealisticPatterns: true,
   enableViralContent: true,
@@ -564,6 +575,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
     enablePowerUsers: false,
     enableTimeDecay: false,
+
+    // Pareto distribution probabilities
+    commentReactionProbability: 0.3,
+    gameLogReactionProbability: 0.5,
+    userGameLogProbability: 0.4,
+    userFriendshipProbability: 0.6,
+    gameLogGameProbability: 0.3,
   },
 
   // Pareto distribution (80/20 rule) for all data types
@@ -589,6 +607,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
     enablePowerUsers: false,
     enableTimeDecay: false,
+
+    // Pareto distribution probabilities
+    commentReactionProbability: 0.3,
+    gameLogReactionProbability: 0.5,
+    userGameLogProbability: 0.4,
+    userFriendshipProbability: 0.6,
+    gameLogGameProbability: 0.3,
   },
 
   // Normal distribution (bell curve) for all data types
@@ -626,6 +651,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
     enablePowerUsers: false,
     enableTimeDecay: false,
+
+    // Pareto distribution probabilities
+    commentReactionProbability: 0.3,
+    gameLogReactionProbability: 0.5,
+    userGameLogProbability: 0.4,
+    userFriendshipProbability: 0.6,
+    gameLogGameProbability: 0.3,
   },
 
   // Exponential distribution for all data types
@@ -651,6 +683,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
     enablePowerUsers: false,
     enableTimeDecay: false,
+
+    // Pareto distribution probabilities
+    commentReactionProbability: 0.3,
+    gameLogReactionProbability: 0.5,
+    userGameLogProbability: 0.4,
+    userFriendshipProbability: 0.6,
+    gameLogGameProbability: 0.3,
   },
 
   // Poisson distribution for all data types
@@ -676,6 +715,13 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
     enablePowerUsers: false,
     enableTimeDecay: false,
+
+    // Pareto distribution probabilities
+    commentReactionProbability: 0.3,
+    gameLogReactionProbability: 0.5,
+    userGameLogProbability: 0.4,
+    userFriendshipProbability: 0.6,
+    gameLogGameProbability: 0.3,
   },
 
   // High engagement patterns
@@ -693,6 +739,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
       type: 'pareto',
       parameters: { min: 10, max: 100, alpha: 1.0 },
     },
+    commentReactionProbability: 0.6, // 60% of comments get reactions in high engagement
+    gameLogReactionProbability: 0.8, // 80% of game logs get reactions in high engagement
+    userGameLogProbability: 0.7, // 70% of users generate game logs in high engagement
+    userFriendshipProbability: 0.85, // 85% of users form friendships in high engagement
+    gameLogGameProbability: 0.6, // 60% of games get logged in high engagement
     enableViralContent: true,
   },
 
@@ -711,6 +762,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
       type: 'poisson',
       parameters: { lambda: 2 },
     },
+    commentReactionProbability: 0.1, // 10% of comments get reactions in low engagement
+    gameLogReactionProbability: 0.2, // 20% of game logs get reactions in low engagement
+    userGameLogProbability: 0.15, // 15% of users generate game logs in low engagement
+    userFriendshipProbability: 0.25, // 25% of users form friendships in low engagement
+    gameLogGameProbability: 0.1, // 10% of games get logged in low engagement
     enableViralContent: false,
   },
 
@@ -730,6 +786,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
       type: 'poisson',
       parameters: { lambda: 10 },
     },
+    commentReactionProbability: 0.4, // 40% of comments get reactions in performance testing
+    gameLogReactionProbability: 0.6, // 60% of game logs get reactions in performance testing
+    userGameLogProbability: 0.5, // 50% of users generate game logs in performance testing
+    userFriendshipProbability: 0.7, // 70% of users form friendships in performance testing
+    gameLogGameProbability: 0.4, // 40% of games get logged in performance testing
     enableRealisticPatterns: false,
   },
 } as const;
