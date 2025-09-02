@@ -194,7 +194,28 @@ class CompleteDatabaseSetup {
       description: 'Populate reaction emojis table with default emojis',
       apply: async () => {
         try {
-          const emojis = ['👍', '👎', '❤️', '😄', '😢', '😡', '🎉', '🔥', '💯', '⭐'];
+          const emojis = [
+            '👍',
+            '👎',
+            '❤️',
+            '😂',
+            '😮',
+            '😢',
+            '😄',
+            '😠',
+            '🔥',
+            '👏',
+            '👀',
+            '🚀',
+            '💪',
+            '🐐',
+            '🎯',
+            '🏀',
+            '⚽',
+            '🏈',
+            '💯',
+            '⭐',
+          ];
 
           for (const emoji of emojis) {
             await this.db.execute(sql`

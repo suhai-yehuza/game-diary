@@ -734,13 +734,13 @@ describe('Database Operations Integration Tests', () => {
     test('should enforce foreign key constraints', async () => {
       const invalidUserId = 'non-existent-user-id';
       const gameId = `test-game-${Date.now()}`;
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
+      const homeTeamId = `home-${Date.now()}`;
+      const awayTeamId = `away-${Date.now()}`;
 
       // Create test teams first
       await db.execute(`
         INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES 
+        VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);
@@ -779,12 +779,12 @@ describe('Database Operations Integration Tests', () => {
       `);
 
       // Create test teams first
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
+      const homeTeamId = `home-${Date.now()}`;
+      const awayTeamId = `away-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES 
+        VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);
@@ -826,12 +826,12 @@ describe('Database Operations Integration Tests', () => {
       `);
 
       // Create test teams first
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
+      const homeTeamId = `home-${Date.now()}`;
+      const awayTeamId = `away-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES 
+        VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);
@@ -939,12 +939,12 @@ describe('Database Operations Integration Tests', () => {
 
     test.skip('should handle concurrent operations', async () => {
       // Create test teams first
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
+      const homeTeamId = `home-${Date.now()}`;
+      const awayTeamId = `away-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES 
+        VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);

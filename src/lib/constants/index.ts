@@ -25,6 +25,8 @@ export const REACTION_EMOJIS = {
   BASKETBALL: '🏀',
   SOCCER: '⚽',
   FOOTBALL: '🏈',
+  PERFECT: '💯',
+  STAR: '⭐',
 } as const;
 
 // Enums as Constant Objects
