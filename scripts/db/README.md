@@ -70,6 +70,11 @@ pnpm db:test:all-triggers:prod # Production
 pnpm db:migrate:dev           # Run migrations (development)
 pnpm db:migrate:prod          # Run migrations (production)
 pnpm db:triggers              # Setup triggers only
+
+# Truncate tables (with admin user preservation)
+pnpm db:truncate:internal     # Truncate internal tables (preserves users with isAdmin = true)
+pnpm db:truncate:external     # Truncate external tables
+pnpm db:truncate:all          # Truncate all tables
 ```
 
 ## 🔄 Workflow for New Database Setup
@@ -90,6 +95,41 @@ pnpm db:triggers              # Setup triggers only
 - **Verification**: Each fix is verified after application
 - **Error Handling**: Graceful failure with detailed logging
 - **Environment Aware**: Automatically detects and uses correct environment
+
+## 👥 Admin User Preservation
+
+When truncating internal tables, users with `isAdmin = true` are automatically preserved to maintain admin access:
+
+### Database Column Setup
+
+The `users` table has an `isAdmin` boolean column that defaults to `false`. Set this to `true` for any user accounts you want to preserve during cleanup operations.
+
+### How It Works
+
+- **Admin users**: Users with `isAdmin = true` are automatically preserved
+- **Regular users**: All users with `isAdmin = false` are deleted
+- **Automatic detection**: The system queries the database for admin users
+- **Logging**: Detailed logs show which admin users are being preserved
+
+### Setting Admin Users
+
+```sql
+-- Set a user as admin
+UPDATE users SET "isAdmin" = true WHERE username = 'your-username';
+
+-- Check admin users
+SELECT id, username, "isAdmin" FROM users WHERE "isAdmin" = true;
+```
+
+### Example Usage
+
+```bash
+# Truncate internal tables (admin users automatically preserved)
+pnpm db:truncate:internal
+
+# Truncate all tables (admin users automatically preserved)
+pnpm db:truncate:all
+```
 
 ## 🚨 Troubleshooting
 

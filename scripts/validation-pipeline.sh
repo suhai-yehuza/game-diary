@@ -460,6 +460,7 @@ get_task_command() {
         "size") echo "check:size" ;;
         "validate_dryness") echo "validate:dryness" ;;
         "validate_type_locations") echo "validate:type-locations" ;;
+        "emoji_sync") echo "validate:emoji-sync" ;;
 
         # Code generation
         "codegen") echo "codegen" ;;
@@ -873,7 +874,7 @@ run_size_check() {
 
 # Core code quality tasks (fastest)
 get_core_tasks() {
-    echo "git_validation format_check lint typecheck circular dead_code validate_dryness validate_type_locations"
+    echo "git_validation format_check lint typecheck circular dead_code validate_dryness validate_type_locations emoji_sync"
 }
 
 # Build tasks (medium speed)

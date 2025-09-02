@@ -127,6 +127,7 @@ export const userQueryResolvers = {
       email_address: safeDecrypt(user.email_address), // Decrypt for own user
       phone_number: safeDecrypt(user.phone_number), // Decrypt for own user
       image_url: user.image_url,
+      isAdmin: user.isAdmin ?? false,
       created_at: user.created_at,
     };
   },
@@ -152,6 +153,7 @@ export const userQueryResolvers = {
       email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
       phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
       image_url: user.image_url,
+      isAdmin: user.isAdmin ?? false,
       created_at: user.created_at,
     };
   },
@@ -175,6 +177,7 @@ export const userQueryResolvers = {
           email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
           phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
           image_url: user.image_url,
+          isAdmin: user.isAdmin ?? false,
           created_at: user.created_at,
         };
       }) ?? []
@@ -267,6 +270,7 @@ export const userQueryResolvers = {
           email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
           phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
           image_url: user.image_url,
+          isAdmin: user.isAdmin ?? false,
           created_at: user.created_at,
         },
       };

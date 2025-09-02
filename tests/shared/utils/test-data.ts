@@ -7,6 +7,7 @@ export interface ITestUser {
   username: string;
   first_name?: string;
   last_name?: string;
+  isAdmin?: boolean;
   created_at: string;
   updated_at: string;
   testId?: string;
@@ -44,6 +45,7 @@ export const createMockUser = (overrides: Partial<ITestUser> = {}): ITestUser =>
   username: 'testuser',
   first_name: 'Test',
   last_name: 'User',
+  isAdmin: false,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
   ...overrides,
@@ -82,9 +84,9 @@ export const createMockApiResponse = <T = any>(data: T, status = 200) => ({
 
 // Common test data sets
 export const mockUsers: ITestUser[] = [
-  createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1' }),
-  createMockUser({ id: 'user-2', email: 'user2@example.com', username: 'user2' }),
-  createMockUser({ id: 'user-3', email: 'user3@example.com', username: 'user3' }),
+  createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1', isAdmin: true }),
+  createMockUser({ id: 'user-2', email: 'user2@example.com', username: 'user2', isAdmin: false }),
+  createMockUser({ id: 'user-3', email: 'user3@example.com', username: 'user3', isAdmin: false }),
 ];
 
 export const mockGameLogs: ITestGameLog[] = [

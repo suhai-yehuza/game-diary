@@ -11,22 +11,52 @@ export const mockApiResponses = {
     list: {
       status: 200,
       data: [
-        createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1' }),
-        createMockUser({ id: 'user-2', email: 'user2@example.com', username: 'user2' }),
-        createMockUser({ id: 'user-3', email: 'user3@example.com', username: 'user3' }),
+        createMockUser({
+          id: 'user-1',
+          email: 'user1@example.com',
+          username: 'user1',
+          isAdmin: true,
+        }),
+        createMockUser({
+          id: 'user-2',
+          email: 'user2@example.com',
+          username: 'user2',
+          isAdmin: false,
+        }),
+        createMockUser({
+          id: 'user-3',
+          email: 'user3@example.com',
+          username: 'user3',
+          isAdmin: false,
+        }),
       ],
     },
     get: {
       status: 200,
-      data: createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1' }),
+      data: createMockUser({
+        id: 'user-1',
+        email: 'user1@example.com',
+        username: 'user1',
+        isAdmin: true,
+      }),
     },
     create: {
       status: 201,
-      data: createMockUser({ id: 'new-user', email: 'new@example.com', username: 'newuser' }),
+      data: createMockUser({
+        id: 'new-user',
+        email: 'new@example.com',
+        username: 'newuser',
+        isAdmin: false,
+      }),
     },
     update: {
       status: 200,
-      data: createMockUser({ id: 'user-1', email: 'updated@example.com', username: 'updateduser' }),
+      data: createMockUser({
+        id: 'user-1',
+        email: 'updated@example.com',
+        username: 'updateduser',
+        isAdmin: true,
+      }),
     },
     delete: {
       status: 204,
@@ -238,8 +268,18 @@ export const mockApiResponses = {
       data: {
         data: {
           users: [
-            createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1' }),
-            createMockUser({ id: 'user-2', email: 'user2@example.com', username: 'user2' }),
+            createMockUser({
+              id: 'user-1',
+              email: 'user1@example.com',
+              username: 'user1',
+              isAdmin: true,
+            }),
+            createMockUser({
+              id: 'user-2',
+              email: 'user2@example.com',
+              username: 'user2',
+              isAdmin: false,
+            }),
           ],
         },
       },
@@ -248,7 +288,12 @@ export const mockApiResponses = {
       status: 200,
       data: {
         data: {
-          user: createMockUser({ id: 'user-1', email: 'user1@example.com', username: 'user1' }),
+          user: createMockUser({
+            id: 'user-1',
+            email: 'user1@example.com',
+            username: 'user1',
+            isAdmin: true,
+          }),
         },
       },
     },

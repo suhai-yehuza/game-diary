@@ -147,6 +147,8 @@ describe('User GraphQL Resolvers', () => {
       email_address: email ? createEncryptedField(email) : null,
       phone_number: phone ? createEncryptedField(phone) : null,
       image_url: 'https://example.com/avatar.jpg',
+      isAdmin: false,
+      created_at: new Date('2023-01-01'),
     });
 
     describe('me resolver', () => {
@@ -164,6 +166,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: 'test@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
       });
 
@@ -193,6 +197,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: 'test@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
       });
 
@@ -210,6 +216,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: null,
           phone_number: null,
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
       });
 
@@ -243,6 +251,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: 'own@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
 
         // Other user should have null sensitive data
@@ -254,6 +264,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: null,
           phone_number: null,
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
       });
 
@@ -289,6 +301,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: 'own@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
 
         // Other user should have null sensitive data
@@ -300,6 +314,8 @@ describe('User GraphQL Resolvers', () => {
           email_address: null,
           phone_number: null,
           image_url: 'https://example.com/avatar.jpg',
+          isAdmin: false,
+          created_at: new Date('2023-01-01'),
         });
       });
     });

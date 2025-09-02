@@ -47,7 +47,21 @@ else
     print_warning "tsx not found, skipping branch name validation"
 fi
 
-# 2. Run the full validation pipeline (includes git validation)
+# 2. Validate emoji sync (fast check)
+print_status "Validating reaction emoji synchronization..."
+if command -v tsx >/dev/null 2>&1; then
+    if ! tsx scripts/validate-reaction-emoji-sync.ts; then
+        print_error "Reaction emoji synchronization validation failed"
+        print_error "Please ensure REACTION_EMOJIS constant, database migration, and setup script are in sync"
+        print_error "Run 'pnpm validate:emoji-sync' for details"
+        exit 1
+    fi
+    print_success "Emoji synchronization validation passed"
+else
+    print_warning "tsx not found, skipping emoji sync validation"
+fi
+
+# 3. Run the full validation pipeline (includes git validation)
 print_status "Running validation pipeline..."
 if ! ./scripts/validation-pipeline.sh precommit; then
     print_error "Pre-commit validation failed"

@@ -48,9 +48,9 @@ function generateSeedingConfig(
   reactionsMultiplier = 1,
   friendshipsMultiplier = 1
 ) {
-  const baseGameLogs = { min: 0, max: 10 };
-  const baseComments = { min: 0, max: 10 };
-  const baseFriendships = { min: 2, max: 8 };
+  const baseGameLogs = { min: 0, max: 20 }; // Min 0 for Pareto distribution (some users have 0 game logs)
+  const baseComments = { min: 0, max: 12 }; // Min 0 for Pareto distribution (some game logs have 0 comments)
+  const baseFriendships = { min: 0, max: 12 }; // Min 0 for Pareto distribution (some users have 0 friendships)
 
   return {
     userCount,
@@ -71,10 +71,10 @@ function generateSeedingConfig(
       max: Math.floor(baseComments.max * commentsMultiplier * reactionsMultiplier),
     },
     reactionsPerComment: {
-      min: Math.max(1, Math.floor(baseComments.min * commentsMultiplier)),
-      max: Math.max(2, Math.floor(baseComments.max * commentsMultiplier)),
+      min: Math.max(0, Math.floor(baseComments.min * commentsMultiplier)), // Min 0 for Pareto distribution
+      max: Math.max(4, Math.floor(baseComments.max * commentsMultiplier)), // Increased from 2
     },
-    childCommentChance: 0.3, // 30% chance of child comments
+    childCommentChance: 0.45, // Increased from 0.3 (45% chance of child comments)
   };
 }
 
@@ -94,11 +94,11 @@ const SEEDING_SCENARIOS = {
   },
   'PARETO-DEMO': {
     description: 'Demonstrate Pareto distribution with many game logs per user',
-    ...generateSeedingConfig(50, 20, 2, 3, 1), // 50 users, 20x more game logs per user
+    ...generateSeedingConfig(50, 25, 3, 4, 1.5), // 50 users, 25x more game logs, 3x comments, 4x reactions, 1.5x friendships
   },
   CUSTOM: {
     description: 'Custom dataset with specified parameters',
-    ...generateSeedingConfig(0, 1.5, 1, 1.5, 1), // userCount will be overridden by command line
+    ...generateSeedingConfig(0, 2.0, 1.5, 2.0, 1.5), // userCount will be overridden by command line, higher multipliers
   },
 } as const;
 
