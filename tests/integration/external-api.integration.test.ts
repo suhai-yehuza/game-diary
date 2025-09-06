@@ -315,7 +315,7 @@ describe('External API Integration Tests', () => {
           },
           body: JSON.stringify({
             action: 'invalidate',
-            table: 'nba_games',
+            table: 'basketball_games',
           }),
         });
 

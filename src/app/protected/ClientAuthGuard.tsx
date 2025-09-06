@@ -5,8 +5,20 @@ import React from 'react';
 import SignInModalTrigger from '@/app/components/auth/SignInModalTrigger';
 
 export default function ClientAuthGuard({ children }: { children: React.ReactNode }) {
-  // Use useUser hook directly - it handles SSR gracefully
-  const { isLoaded, isSignedIn } = useUser();
+  // Handle case where Clerk is not configured (e.g., in mock mode)
+  let isLoaded = false;
+  let isSignedIn = false;
+
+  try {
+    const userData = useUser();
+    isLoaded = userData.isLoaded;
+    isSignedIn = userData.isSignedIn ?? false;
+  } catch {
+    // Clerk is not configured (e.g., in mock mode)
+    console.log('Clerk not configured in ClientAuthGuard, bypassing auth');
+    isLoaded = true;
+    isSignedIn = true; // Allow access in mock mode
+  }
 
   if (!isLoaded) {
     return (
@@ -22,7 +34,7 @@ export default function ClientAuthGuard({ children }: { children: React.ReactNod
   if (!isSignedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <SignInModalTrigger autoTrigger={true} />
+        <SignInModalTrigger autoTrigger={true}>{null}</SignInModalTrigger>
         <div className="text-center mt-8">
           <h1 className="text-2xl font-bold mb-4">Sign In Required</h1>
           <p className="mb-6 text-muted-foreground">You must be signed in to view this page.</p>

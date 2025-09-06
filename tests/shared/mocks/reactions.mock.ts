@@ -1,35 +1,35 @@
 import { REACTION_EMOJIS } from '@/lib/constants';
-import type { IReaction, IGameLog, IGameResponse, IGamesApiResponse } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { IReaction, IGameLog, IGameResponse, IGamesApiResponse } from '@/types';
+import { ParentType } from '@/types';
 
 // Mock user data
 export const MOCK_USERS = {
   user1: {
-    id: 'user-1',
-    username: 'testuser1',
+    id: 'unit-test-user-1',
+    username: 'unit-test-user-1',
     first_name: 'Test',
     last_name: 'User1',
-    email_address: 'test1@example.com',
+    email_address: 'unit-test-user-1@example.com',
     phone_number: null,
     image_url: 'https://example.com/avatar1.jpg',
     isAdmin: true,
   },
   user2: {
-    id: 'user-2',
-    username: 'testuser2',
+    id: 'unit-test-user-2',
+    username: 'unit-test-user-2',
     first_name: 'Test',
     last_name: 'User2',
-    email_address: 'test2@example.com',
+    email_address: 'unit-test-user-2@example.com',
     phone_number: null,
     image_url: 'https://example.com/avatar2.jpg',
     isAdmin: false,
   },
   user3: {
-    id: 'user-3',
-    username: 'testuser3',
+    id: 'unit-test-user-3',
+    username: 'unit-test-user-3',
     first_name: 'Test',
     last_name: 'User3',
-    email_address: 'test3@example.com',
+    email_address: 'unit-test-user-3@example.com',
     phone_number: null,
     image_url: undefined,
     isAdmin: false,
@@ -62,12 +62,28 @@ export const MOCK_TEAMS = {
 export const MOCK_GAME = {
   id: 'game-123',
   date: new Date().toISOString(),
-  home_team_id: MOCK_TEAMS.home.id,
-  away_team_id: MOCK_TEAMS.away.id,
   game_type: 'REGULAR',
   status: 'FINISHED',
-  home_team_score: 110,
-  away_team_score: 105,
+  teams: {
+    home: MOCK_TEAMS.home,
+    away: MOCK_TEAMS.away,
+  },
+  scores: {
+    home: {
+      points: 110,
+      win: 1,
+      loss: 0,
+      series: { win: 0, loss: 0 },
+      linescore: [110],
+    },
+    away: {
+      points: 105,
+      win: 0,
+      loss: 1,
+      series: { win: 0, loss: 0 },
+      linescore: [105],
+    },
+  },
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 

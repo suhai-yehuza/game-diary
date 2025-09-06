@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: { params: Promise<{ sport: st
 
   return {
     title: config.name,
-    description: config.description,
+    description: config.fullName,
   };
 }
 
@@ -29,7 +29,7 @@ export default async function SportPage({ params }: { params: Promise<{ sport: s
   if (!config) return notFound();
 
   return (
-    <SimpleSportsPage title={config.name} description={config.description}>
+    <SimpleSportsPage title={config.name} description={config.fullName}>
       <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
         <p>Welcome to the {config.fullName}</p>
       </div>

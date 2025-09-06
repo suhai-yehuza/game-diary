@@ -1,39 +1,33 @@
 'use client';
 
-import { useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { X, Star, Search, Calendar, MapPin, ChevronDown, ChevronRight } from 'lucide-react';
+import { X, Search, Calendar, MapPin, Star, ChevronDown, ChevronRight } from 'lucide-react';
+import { useRouter as _useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { useDebounce } from 'use-debounce';
 
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
+import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
-import {
-  CLASSIFICATION,
-  WATCHED_SETTING,
-  WATCHED_SCOPE,
-  createGameLogSchema,
-  updateGameLogSchema,
-} from '@/lib/types';
-import type {
-  IGameLog,
-  CreateGameLogFormData,
-  UpdateGameLogFormData,
-  ICreateGameLogResponse,
-  IUpdateGameLogResponse,
-  IGameLogModalProps,
-  IGameLogSearchResult,
-  IGameResponse,
-} from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import type {
+  IGameLogModalProps,
+  IGameLogSearchResult,
+  Game,
+  ICreateGameLogFormData,
+  IUpdateGameLogFormData,
+  CreateGameLogResponse,
+  UpdateGameLogResponse,
+} from '@/types';
+import { createGameLogSchema, updateGameLogSchema, ErrorCategory, ErrorSeverity } from '@/types';
 
 // Type predicate for linter and type safety
-function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
+function isCreateGameLogFormData(data: unknown): data is ICreateGameLogFormData {
   if (!data || typeof data !== 'object') return false;
   const obj = data as Record<string, unknown>;
   return (
@@ -41,6 +35,15 @@ function isCreateGameLogFormData(data: unknown): data is CreateGameLogFormData {
     typeof obj.rating_for_game === 'number' &&
     typeof obj.classification === 'string'
   );
+}
+
+// Helper function to safely extract date from various game date formats
+function getGameDate(date: string | { start?: string } | unknown): string {
+  if (typeof date === 'string') return date;
+  if (date && typeof date === 'object' && 'start' in date && typeof date.start === 'string')
+    return date.start;
+  // For any other unknown type, return empty string instead of calling String()
+  return '';
 }
 
 const LATEST_SEASON = getLatestNbaSeason();
@@ -63,11 +66,18 @@ export function GameLogModal({
   const [selectedGameId, setSelectedGameId] = useState('');
   const [selectedGameName, setSelectedGameName] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm] = useDebounce(searchTerm, 300);
+  // Use a simple debounce with setTimeout instead of the problematic useDebounce hook
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(searchTerm);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [searchResults, setSearchResults] = useState<IGameLogSearchResult[]>([]);
-  const [allGames, setAllGames] = useState<IGameResponse[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
-  const [gamesLoading, setGamesLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState<'latest' | number | 'all'>('latest');
@@ -106,9 +116,9 @@ export function GameLogModal({
     formState: { errors, isSubmitting, isValid },
     reset,
     setValue,
-  } = useForm<CreateGameLogFormData | UpdateGameLogFormData>({
+  } = useForm<ICreateGameLogFormData | IUpdateGameLogFormData>({
     resolver: zodResolver(schema),
-    defaultValues: defaultValues as CreateGameLogFormData & UpdateGameLogFormData,
+    defaultValues: defaultValues as ICreateGameLogFormData & IUpdateGameLogFormData,
     mode: mode === 'create' ? 'onChange' : 'onBlur',
   });
 
@@ -120,7 +130,7 @@ export function GameLogModal({
       reset({
         rating_for_game: gameLog.rating_for_game,
         notes: gameLog.notes ?? '',
-        classification: gameLog.classification as keyof typeof CLASSIFICATION,
+        classification: gameLog.classification,
         watched_setting: gameLog.watched_setting ?? WATCHED_SETTING.TV,
         watched_scope: gameLog.watched_scope ?? WATCHED_SCOPE.FULL_GAME,
         watched_date: gameLog.watched_date
@@ -147,151 +157,354 @@ export function GameLogModal({
     }
   }, [mode, isOpen, preSelectedGame, setValue]);
 
-  // Load all games for the selected scope
-  const loadAllGames = useCallback(async (season: number | 'all' | 'latest') => {
-    setGamesLoading(true);
+  // Search games using API (like the original working GameSearch.tsx)
+  const searchGames = useCallback(async (term: string, season: number | 'latest' | 'all') => {
+    console.log(`🎬 searchGames called with term="${term}", season=${season}`);
+    if (!term?.trim()) {
+      console.log(`🎬 searchGames: term is empty, clearing results`);
+      setSearchResults([]);
+      return;
+    }
+
+    // Require minimum 2 characters for search
+    if (term.trim().length < 2) {
+      console.log(`🎬 searchGames: term "${term}" is too short (min 2 chars), clearing results`);
+      setSearchResults([]);
+      return;
+    }
+
+    setSearchLoading(true);
     setSearchError(null);
 
     try {
-      let games: IGameResponse[] = [];
-      let effectiveSeason = season;
-      if (season === 'latest') {
-        effectiveSeason = LATEST_SEASON;
+      // Determine the season to search - convert to proper season format
+      // Database stores seasons as just the year (e.g., "2024"), not "2024-2025"
+      const searchSeason =
+        season === 'latest'
+          ? LATEST_SEASON.toString()
+          : season === 'all'
+            ? 'all'
+            : typeof season === 'number'
+              ? season.toString()
+              : season;
+
+      console.log(`🔍 Search season determined: "${searchSeason}" (from input: ${season})`);
+
+      // Search for games in the selected season using our internal database
+      const timestamp = Date.now();
+      console.log(
+        `🔍 Making API call to: /api/games?season=${searchSeason}&limit=50000&bypass-cache=true&t=${timestamp}`
+      );
+      const response = await fetch(
+        `/api/games?season=${searchSeason}&limit=50000&bypass-cache=true&t=${timestamp}`
+      );
+
+      console.log(`📡 API Response status: ${response.status} ${response.statusText}`);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error(`❌ API Error: ${response.status} ${response.statusText}`, errorText);
+        throw new Error(`Failed to fetch games: ${response.status} ${response.statusText}`);
       }
 
-      if (effectiveSeason === 'all') {
-        // Fetch games for all seasons in parallel
-        const allGamesPromises = SEASONS.map(async s => {
-          const response = await fetch(`/api/proxy/games?season=${s}&league=standard`);
-          if (!response.ok) return [];
-          const data = (await response.json()) as {
-            errors?: string[];
-            response?: IGameResponse[];
-          };
-          return data.response ?? [];
+      const data = (await response.json()) as { errors?: string[]; response?: Game[] };
+      console.log(`📦 API Response data:`, data);
+
+      if (data.errors && data.errors.length > 0) {
+        throw new Error(data.errors[0]);
+      }
+
+      const games: Game[] = data.response ?? [];
+      console.log(`📊 Internal API returned ${games.length} games for season ${searchSeason}`);
+      console.log(`🔍 Search for "${term}" in ${games.length} games`);
+
+      // Debug: Show the first few games to see what we're actually getting
+      console.log(
+        `🎮 First 3 games from API:`,
+        games.slice(0, 3).map(g => ({
+          id: g.id,
+          homeTeam: g.teams.home.name,
+          awayTeam: g.teams.visitors.name,
+          arena: g.arena?.name,
+        }))
+      );
+
+      // Debug: Check if there are any Lakers games in the entire games array
+      const lakersGames = games.filter(
+        g =>
+          g.teams.home.name.toLowerCase().includes('laker') ||
+          g.teams.visitors.name.toLowerCase().includes('laker')
+      );
+      console.log(
+        `🏀 Lakers games in API response: ${lakersGames.length}`,
+        lakersGames.slice(0, 3).map(g => `${g.teams.visitors.name} @ ${g.teams.home.name}`)
+      );
+
+      // Debug: Show some sample team data and check for "lake" matches
+      if (games.length > 0) {
+        const sampleGame = games[0];
+        console.log('Sample game data:', {
+          homeTeam: {
+            name: sampleGame.teams.home.name,
+            nickname: sampleGame.teams.home.nickname,
+            code: sampleGame.teams.home.code,
+          },
+          awayTeam: {
+            name: sampleGame.teams.visitors.name,
+            nickname: sampleGame.teams.visitors.nickname,
+            code: sampleGame.teams.visitors.code,
+          },
+          arena: {
+            name: sampleGame.arena?.name,
+            city: sampleGame.arena?.city,
+          },
         });
 
-        const allGamesResults = await Promise.all(allGamesPromises);
-        games = allGamesResults.flat();
-      } else {
-        const response = await fetch(`/api/proxy/games?season=${effectiveSeason}&league=standard`);
-        if (!response.ok) throw new Error('Failed to fetch games');
-        const data = (await response.json()) as { errors?: string[]; response?: IGameResponse[] };
-        games = data.response ?? [];
+        // Check if there are any teams with "lake" in their data
+        const teamsWithLake = new Set<string>();
+        games.forEach(game => {
+          const homeTeam = game.teams.home;
+          const awayTeam = game.teams.visitors;
+
+          if (
+            homeTeam.name.toLowerCase().includes('lake') ||
+            homeTeam.nickname.toLowerCase().includes('lake') ||
+            homeTeam.code.toLowerCase().includes('lake')
+          ) {
+            teamsWithLake.add(`Home: ${homeTeam.name} (${homeTeam.nickname}) [${homeTeam.code}]`);
+          }
+
+          if (
+            awayTeam.name.toLowerCase().includes('lake') ||
+            awayTeam.nickname.toLowerCase().includes('lake') ||
+            awayTeam.code.toLowerCase().includes('lake')
+          ) {
+            teamsWithLake.add(`Away: ${awayTeam.name} (${awayTeam.nickname}) [${awayTeam.code}]`);
+          }
+        });
+
+        console.log('Teams containing "lake":', Array.from(teamsWithLake));
+
+        // Also check for "laker" (Lakers)
+        const teamsWithLaker = new Set<string>();
+        games.forEach(game => {
+          const homeTeam = game.teams.home;
+          const awayTeam = game.teams.visitors;
+
+          if (
+            homeTeam.name.toLowerCase().includes('laker') ||
+            homeTeam.nickname.toLowerCase().includes('laker') ||
+            homeTeam.code.toLowerCase().includes('laker')
+          ) {
+            teamsWithLaker.add(`Home: ${homeTeam.name} (${homeTeam.nickname}) [${homeTeam.code}]`);
+          }
+
+          if (
+            awayTeam.name.toLowerCase().includes('laker') ||
+            awayTeam.nickname.toLowerCase().includes('laker') ||
+            awayTeam.code.toLowerCase().includes('laker')
+          ) {
+            teamsWithLaker.add(`Away: ${awayTeam.name} (${awayTeam.nickname}) [${awayTeam.code}]`);
+          }
+        });
+
+        console.log('Teams containing "laker":', Array.from(teamsWithLaker));
+
+        // Show all unique team names to see what's available
+        const allTeams = new Set<string>();
+        games.forEach(game => {
+          allTeams.add(
+            `${game.teams.home.name} (${game.teams.home.nickname}) [${game.teams.home.code}]`
+          );
+          allTeams.add(
+            `${game.teams.visitors.name} (${game.teams.visitors.nickname}) [${game.teams.visitors.code}]`
+          );
+        });
+        console.log('All available teams:', Array.from(allTeams).sort());
       }
 
-      // Sort games by date (most recent first), handle null dates
-      const sortedGames = games.sort((a, b) => {
-        const dateA = a.date?.start ? new Date(a.date.start).getTime() : 0;
-        const dateB = b.date?.start ? new Date(b.date.start).getTime() : 0;
-        return dateB - dateA;
+      // Filter games based on search term (team names, nicknames, codes, arena, etc.)
+      const filteredGames = games.filter(game => {
+        const searchLower = term.toLowerCase();
+
+        // Check home team fields
+        const homeTeamName = game.teams.home.name.toLowerCase();
+        const homeTeamNickname = game.teams.home.nickname.toLowerCase();
+        const homeTeamCode = game.teams.home.code.toLowerCase();
+
+        // Check away team fields
+        const awayTeamName = game.teams.visitors.name.toLowerCase();
+        const awayTeamNickname = game.teams.visitors.nickname.toLowerCase();
+        const awayTeamCode = game.teams.visitors.code.toLowerCase();
+
+        // Check arena fields
+        const arenaName = game.arena?.name?.toLowerCase() ?? '';
+        const arenaCity = game.arena?.city?.toLowerCase() ?? '';
+
+        // Check game date
+        const gameDate = new Date(getGameDate(game.date)).toLocaleDateString().toLowerCase();
+
+        const matches =
+          // Home team matches
+          homeTeamName.includes(searchLower) ||
+          homeTeamNickname.includes(searchLower) ||
+          homeTeamCode.includes(searchLower) ||
+          // Away team matches
+          awayTeamName.includes(searchLower) ||
+          awayTeamNickname.includes(searchLower) ||
+          awayTeamCode.includes(searchLower) ||
+          // Arena matches
+          arenaName.includes(searchLower) ||
+          arenaCity.includes(searchLower) ||
+          // Date matches
+          gameDate.includes(searchLower);
+
+        return matches;
       });
 
-      setAllGames(sortedGames);
+      console.log(`✅ Found ${filteredGames.length} matching games`);
+      console.log(
+        `🔍 First 3 filtered games:`,
+        filteredGames.slice(0, 3).map(g => `${g.teams.visitors.name} @ ${g.teams.home.name}`)
+      );
+
+      // Sort by search relevance first, then by date
+      const sortedGames = filteredGames
+        .sort((a, b) => {
+          // Calculate search relevance score for each game
+          const getRelevanceScore = (game: Game) => {
+            const searchLower = term.toLowerCase();
+            let score = 0;
+
+            // Exact team name match gets highest score
+            if (
+              game.teams.home.name.toLowerCase().includes(searchLower) ||
+              game.teams.visitors.name.toLowerCase().includes(searchLower)
+            ) {
+              score += 100;
+            }
+
+            // Team nickname match gets high score
+            if (
+              game.teams.home.nickname.toLowerCase().includes(searchLower) ||
+              game.teams.visitors.nickname.toLowerCase().includes(searchLower)
+            ) {
+              score += 80;
+            }
+
+            // Team code match gets medium score
+            if (
+              game.teams.home.code.toLowerCase().includes(searchLower) ||
+              game.teams.visitors.code.toLowerCase().includes(searchLower)
+            ) {
+              score += 60;
+            }
+
+            // Arena name match gets lower score
+            if (game.arena?.name?.toLowerCase().includes(searchLower)) {
+              score += 40;
+            }
+
+            // Arena city match gets lower score
+            if (game.arena?.city?.toLowerCase().includes(searchLower)) {
+              score += 20;
+            }
+
+            return score;
+          };
+
+          const scoreA = getRelevanceScore(a);
+          const scoreB = getRelevanceScore(b);
+
+          // Sort by relevance score first (highest first)
+          if (scoreA !== scoreB) {
+            return scoreB - scoreA;
+          }
+
+          // If relevance scores are equal, sort by date (most recent first)
+          const bDate = getGameDate(b.date);
+          const aDate = getGameDate(a.date);
+          return new Date(bDate).getTime() - new Date(aDate).getTime();
+        })
+        .slice(0, 100); // Increased limit to 100 results
+
+      console.log(
+        `📊 First 3 sorted games:`,
+        sortedGames.slice(0, 3).map(g => `${g.teams.visitors.name} @ ${g.teams.home.name}`)
+      );
+
+      const searchResults: IGameLogSearchResult[] = sortedGames.map(game => ({
+        id: game.id,
+        name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
+        date: new Date(getGameDate(game.date)).toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+        }),
+        homeTeam: game.teams.home.name,
+        awayTeam: game.teams.visitors.name,
+        arena: game.arena?.name ?? 'Unknown Arena',
+        season: game.season ? parseInt(game.season) : 2024,
+        status: game.status?.long ?? game.status?.short ?? 'Unknown',
+      }));
+
+      console.log(`🎯 About to setSearchResults with ${searchResults.length} results`);
+      console.log(
+        `🎯 searchResults content:`,
+        searchResults.slice(0, 3).map(r => r.name)
+      );
+
+      setSearchResults(searchResults);
+
+      // Add a small delay to see if state update is working
+      setTimeout(() => {
+        console.log(
+          `🎯 State update completed - searchResults should now have ${searchResults.length} results`
+        );
+      }, 100);
     } catch (err) {
-      errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
-        component: 'GameLogModal',
-        action: 'Load all games',
-      });
-      setSearchError(err instanceof Error ? err.message : 'An error occurred');
-      setAllGames([]);
+      console.error(`❌ Search error:`, err);
+      setSearchError(err instanceof Error ? err.message : 'Search failed');
+      setSearchResults([]);
     } finally {
-      setGamesLoading(false);
+      setSearchLoading(false);
     }
   }, []);
 
-  // Filter games based on search term (local filtering)
-  const filterGames = useCallback(
-    (term: string) => {
-      if (!term.trim()) {
-        setSearchResults([]);
-        return;
-      }
+  // No need to load all games upfront - we search via API when needed
 
-      setSearchLoading(true);
-
-      try {
-        const filteredGames = allGames.filter(game => {
-          // Skip invalid games
-          if (!game || typeof game !== 'object') return false;
-
-          const searchLower = term.toLowerCase();
-
-          // Add null checks for team names
-          const homeTeam = game.teams?.home?.name?.toLowerCase() ?? '';
-          const awayTeam = game.teams?.visitors?.name?.toLowerCase() ?? '';
-          const arena = game.arena?.name?.toLowerCase() ?? '';
-
-          // Add null check for date
-          const gameDate = game.date?.start
-            ? new Date(game.date.start).toLocaleDateString().toLowerCase()
-            : '';
-
-          return (
-            homeTeam.includes(searchLower) ||
-            awayTeam.includes(searchLower) ||
-            arena.includes(searchLower) ||
-            gameDate.includes(searchLower)
-          );
-        });
-
-        // Convert to search results format (no limit on results)
-        const searchResults: IGameLogSearchResult[] = filteredGames.map(game => ({
-          id: game.id,
-          name: `${game.teams?.visitors?.name ?? 'Unknown Team'} @ ${game.teams?.home?.name ?? 'Unknown Team'}`,
-          date: game.date?.start
-            ? new Date(game.date.start).toLocaleDateString('en-US', {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-              })
-            : 'Unknown Date',
-          homeTeam: game.teams?.home?.name ?? 'Unknown Team',
-          awayTeam: game.teams?.visitors?.name ?? 'Unknown Team',
-          arena: game.arena?.name ?? 'Unknown Arena',
-          season: game.season ?? 0,
-          status: game.status?.long ?? game.status?.short ?? 'Unknown',
-        }));
-
-        setSearchResults(searchResults);
-      } catch (err) {
-        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
-          component: 'GameLogModal',
-          action: 'Filter games',
-        });
-        setSearchError(err instanceof Error ? err.message : 'An error occurred');
-        setSearchResults([]);
-      } finally {
-        setSearchLoading(false);
-      }
-    },
-    [allGames]
-  );
-
-  // Load all games when season changes
+  // Search games when search term changes
   useEffect(() => {
+    console.log(
+      `🚀 useEffect triggered: debouncedSearchTerm="${debouncedSearchTerm}", selectedSeason=${selectedSeason}, mode=${mode}`
+    );
+    console.log(
+      `🚀 useEffect dependencies: debouncedSearchTerm="${debouncedSearchTerm}", selectedSeason=${selectedSeason}, mode=${mode}`
+    );
     if (mode === 'create') {
-      void loadAllGames(selectedSeason);
+      console.log(
+        `🚀 Calling searchGames with term="${debouncedSearchTerm}" and season=${selectedSeason}`
+      );
+      void searchGames(debouncedSearchTerm, selectedSeason);
     }
-  }, [selectedSeason, loadAllGames, mode]);
-
-  // Filter games when search term changes
-  useEffect(() => {
-    if (mode === 'create') {
-      filterGames(debouncedSearchTerm);
-    }
-  }, [debouncedSearchTerm, filterGames, mode]);
+  }, [debouncedSearchTerm, selectedSeason, mode, searchGames]);
 
   // Mutations
-  const [createGameLog, { loading: createLoading }] = useMutation<ICreateGameLogResponse>(
-    CREATE_GAME_LOG,
-    {
-      onCompleted: data => {
-        const created = data?.createGameLog?.gameLog;
+  const [createGameLog, { loading: createLoading, error: _createError }] =
+    useOptimizedMutation<CreateGameLogResponse>(CREATE_GAME_LOG, {
+      context: {
+        component: 'GameLogModal',
+        action: 'Create game log',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date(),
+      },
+      onCompleted: (data: { gameLog?: unknown }) => {
+        const created = data?.gameLog;
         if (created) {
           toast.success('Game log created!');
-          onSuccess();
+          onSuccess?.(created);
           onClose();
           reset();
           setRating(3);
@@ -301,9 +514,9 @@ export function GameLogModal({
           setSelectedGameName('');
           setSearchTerm('');
           setSearchResults([]);
-          setAllGames([]);
         } else {
-          const errorObj = data?.createGameLog?.errors?.[0] as { message?: string } | undefined;
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const errorObj = (data as any)?.errors?.[0];
           const errorMsg = errorObj?.message ?? 'Game log creation failed';
           toast.error(errorMsg);
         }
@@ -312,22 +525,26 @@ export function GameLogModal({
         toast.error('Failed to create game log.');
         onClose();
       },
-    }
-  );
+    });
 
-  const [updateGameLog, { loading: updateLoading }] = useMutation<IUpdateGameLogResponse>(
-    UPDATE_GAME_LOG,
-    {
-      onCompleted: (data: { updateGameLog: { gameLog: IGameLog; errors: unknown[] } }) => {
+  const [updateGameLog, { loading: updateLoading, error: _updateError }] =
+    useOptimizedMutation<UpdateGameLogResponse>(UPDATE_GAME_LOG, {
+      context: {
+        component: 'GameLogModal',
+        action: 'Update game log',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date(),
+      },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onCompleted: (data: any) => {
         if (data?.updateGameLog?.gameLog) {
           toast.success('Game log updated!');
-          if (onSuccess) {
-            onSuccess();
-          }
+          onSuccess?.(data.updateGameLog.gameLog);
           onClose();
         } else {
           // Show detailed error message from backend
-          const errors = data?.updateGameLog?.errors as Array<{ message?: string }>;
+          const errors = data?.updateGameLog?.errors;
           if (errors && errors.length > 0) {
             const errorMessage = errors[0]?.message ?? 'Failed to update game log';
             toast.error(errorMessage);
@@ -336,12 +553,13 @@ export function GameLogModal({
           }
         }
       },
-      onError: (error: Error) => {
-        toast.error(`Failed to update game log: ${error.message}`);
+      onError: (error: unknown) => {
+        toast.error(
+          `Failed to update game log: ${error instanceof Error ? error.message : String(error)}`
+        );
         onClose();
       },
-    }
-  );
+    });
 
   const handleAddTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
@@ -388,7 +606,7 @@ export function GameLogModal({
         await createGameLog({ variables: { input } });
       } else {
         // Edit mode
-        const updateData = data as UpdateGameLogFormData;
+        const updateData = data as IUpdateGameLogFormData;
         const input = {
           rating_for_game: updateData.rating_for_game,
           notes: updateData.notes,
@@ -432,12 +650,14 @@ export function GameLogModal({
     const value = e.target.value;
     setSearchTerm(value);
     setShowSearchResults(true);
+    console.log('Search input changed:', value, 'showSearchResults set to true');
 
     if (!value.trim()) {
       setSelectedGameId('');
       setSelectedGameName('');
       setValue('gameId', '');
       setSearchResults([]);
+      console.log('Search term cleared, clearing search results');
     }
   };
 
@@ -551,10 +771,10 @@ export function GameLogModal({
                         value={searchTerm}
                         onChange={handleSearchInputChange}
                         onFocus={() => setShowSearchResults(true)}
-                        disabled={gamesLoading}
+                        disabled={searchLoading}
                         className="w-full pl-8 pr-2 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-100 dark:text-neutral-900 disabled:opacity-50 disabled:cursor-not-allowed"
                         placeholder={
-                          gamesLoading
+                          searchLoading
                             ? 'Loading games...'
                             : 'Search by team name, arena, or date...'
                         }
@@ -570,11 +790,11 @@ export function GameLogModal({
                           if (val === 'all' || val === 'latest') setSelectedSeason(val);
                           else setSelectedSeason(Number(val));
                         }}
-                        disabled={gamesLoading}
+                        disabled={searchLoading}
                         className="w-full px-2 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <option value="latest">
-                          {gamesLoading
+                          {searchLoading
                             ? 'Loading...'
                             : `${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
                         </option>
@@ -589,14 +809,15 @@ export function GameLogModal({
 
                     {/* Search Results Dropdown */}
                     {showSearchResults && (
-                      <div className="absolute z-10 w-full mt-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {gamesLoading && (
+                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                        {/* Debug: Current searchResults state */}
+                        {searchLoading && (
                           <div className="p-3 text-center text-neutral-600 dark:text-neutral-400 text-sm">
                             <p>Loading games for selected season...</p>
                           </div>
                         )}
 
-                        {searchLoading && !gamesLoading && (
+                        {searchLoading && (
                           <div className="p-3 text-center text-neutral-600 dark:text-neutral-400 text-sm">
                             <p>Searching for games...</p>
                           </div>
@@ -608,7 +829,7 @@ export function GameLogModal({
                           </div>
                         )}
 
-                        {!gamesLoading &&
+                        {!searchLoading &&
                           !searchLoading &&
                           !searchError &&
                           searchResults.length === 0 &&
@@ -619,11 +840,12 @@ export function GameLogModal({
                             </div>
                           )}
 
-                        {!gamesLoading &&
+                        {!searchLoading &&
                           !searchLoading &&
                           !searchError &&
                           searchResults.length > 0 && (
                             <div className="py-1">
+                              {/* Debug: Rendering search results */}
                               {searchResults.map(game => (
                                 <div
                                   key={game.id}
@@ -654,7 +876,7 @@ export function GameLogModal({
                             </div>
                           )}
 
-                        {!gamesLoading && !searchLoading && !searchError && !searchTerm.trim() && (
+                        {!searchLoading && !searchLoading && !searchError && !searchTerm.trim() && (
                           <div className="p-3 text-center text-neutral-600 text-sm">
                             <p>Start typing to search for games...</p>
                             <p className="text-xs mt-1">Search by team name, arena, or date</p>

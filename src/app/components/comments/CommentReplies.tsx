@@ -6,7 +6,7 @@ import { NestedComment } from '@/app/components/comments/NestedComment';
 import { Button } from '@/app/components/ui/button';
 import { useCommentReplies } from '@/hooks/use-comments';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { ICommentRepliesProps } from '@/lib/types';
+import type { ICommentRepliesProps } from '@/types';
 
 export function CommentReplies({
   commentId,
@@ -20,7 +20,7 @@ export function CommentReplies({
     loading,
     commentsHasNextPage: hasNextPage,
     loadMoreComments,
-  } = useCommentReplies(commentId, 2);
+  } = useCommentReplies(commentId || '', 2);
 
   const handleLoadMore = () => {
     void loadMoreComments();

@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { describe, it, expect, vi } from 'vitest';
 
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
-import type { ITeamSearchResultProps } from '@/lib/types';
+import type { ITeamSearchResultProps } from '@/types';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

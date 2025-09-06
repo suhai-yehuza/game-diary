@@ -2,7 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
-import type { IPlayerSearchResultProps, ISearchResult } from '@/lib/types';
+import type { IPlayerSearchResultProps, ISearchResult } from '@/types';
 
 // Mock Next.js router
 const mockPush = vi.fn();

@@ -3,7 +3,7 @@
 import { CheckCircle, Loader2, Database, AlertCircle, RefreshCw } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import type { IDbRefreshProgress, IDbRefreshProgressTrackerProps } from '@/lib/types';
+import type { IDbRefreshProgress, IDbRefreshProgressTrackerProps } from '@/types';
 
 export function DbRefreshProgressTracker({
   isVisible,
@@ -178,7 +178,10 @@ export function DbRefreshProgressTracker({
         <div className="mb-4">
           <h4 className="font-medium text-white mb-2">Timing</h4>
           <div className="text-gray-300 text-sm">
-            <div>Elapsed: {formatDuration(progress.startTime)}</div>
+            <div>
+              Elapsed:{' '}
+              {formatDuration(progress.startTime ? new Date(progress.startTime) : undefined)}
+            </div>
             {progress.estimatedTimeRemaining && (
               <div>Estimated remaining: {progress.estimatedTimeRemaining}</div>
             )}
@@ -198,9 +201,9 @@ export function DbRefreshProgressTracker({
             { name: 'Players', step: 5 },
           ].map(step => (
             <div key={step.step} className="flex items-center gap-2">
-              {progress.stepNumber > step.step ? (
+              {(progress.stepNumber || 0) > step.step ? (
                 <CheckCircle className="w-4 h-4 text-green-500" />
-              ) : progress.stepNumber === step.step ? (
+              ) : (progress.stepNumber || 0) === step.step ? (
                 progress.status === 'completed' ? (
                   <CheckCircle className="w-4 h-4 text-green-500" />
                 ) : (
@@ -210,7 +213,7 @@ export function DbRefreshProgressTracker({
                 <div className="w-4 h-4 bg-gray-500 rounded-full" />
               )}
               <span
-                className={`text-sm ${progress.stepNumber >= step.step ? 'text-white' : 'text-gray-500'}`}
+                className={`text-sm ${(progress.stepNumber || 0) >= step.step ? 'text-white' : 'text-gray-500'}`}
               >
                 {step.name}
               </span>

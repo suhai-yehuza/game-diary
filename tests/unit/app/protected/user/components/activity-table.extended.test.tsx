@@ -4,7 +4,7 @@ import React from 'react';
 import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
 
 vi.mock('@clerk/nextjs', () => ({
-  useUser: () => ({ user: null }),
+  useUser: () => ({ user: null, isLoaded: true }),
 }));
 
 describe('ActivityTable', () => {

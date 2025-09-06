@@ -11,6 +11,21 @@ import { errorHandlers } from '@/lib/utils/error-handler';
 
 import { parseScriptArgs } from '../utils/script-utils';
 
+// 🚨 PRODUCTION DATABASE PROTECTION
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.CI !== 'true' &&
+  process.env.ALLOW_ACCESS_TO_PRODUCTION_DB !== 'true'
+) {
+  logger.error(
+    '🚨 PRODUCTION DATABASE ACCESS BLOCKED: Database connection tests cannot run against production database'
+  );
+  logger.error(
+    '   If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable'
+  );
+  process.exit(1);
+}
+
 // Check if we're in CI and handle missing DATABASE_URL gracefully
 if (isCI() && !process.env.DATABASE_URL) {
   logger.warn('⚠️ DATABASE_URL not found in CI environment. Skipping database tests.');

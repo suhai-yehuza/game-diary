@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { ulid } from 'ulid';
 import { uuidv7 } from 'uuidv7';
 
-import type { IdGeneratorType } from '@src/lib/types';
+import type { IdGeneratorType } from '@/types';
 
 /**
  * ID Generator Utility

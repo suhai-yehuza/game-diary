@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/nextjs';
 import { useCallback, useEffect, useState } from 'react';
 
-import type { IAuthState } from '@/lib/types';
+import type { IAuthState, IUser } from '@/types';
 
 /**
  * Enhanced authentication hook that provides more reliable auth state
@@ -46,7 +46,10 @@ export function useAuthState(): IAuthState {
   return {
     isLoaded,
     isSignedIn: isSignedIn || (isLoaded && !!user), // More permissive check
-    user,
+    user: user as IUser | null,
+    session: null,
+    organization: null,
+    organizationMembership: null,
     isAuthStable,
     authError,
     retryAuth,

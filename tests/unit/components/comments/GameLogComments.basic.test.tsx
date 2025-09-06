@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GameLogComments } from '@/app/components/comments/GameLogComments';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 // Mock error handlers
 vi.mock('@/lib/utils/error-handler', () => ({

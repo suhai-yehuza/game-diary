@@ -1,6 +1,6 @@
-import type { ISlackMessage } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+import type { ISlackMessage } from '@/types';
 
 export class AlertingService {
   private static instance: AlertingService;
@@ -101,7 +101,7 @@ export class AlertingService {
           : []),
         {
           type: 'context',
-          elements: [
+          fields: [
             {
               type: 'mrkdwn',
               text: '🔍 <https://your-app.com/admin/audit-logs|View in Admin Panel>',

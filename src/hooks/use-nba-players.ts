@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-import type { IPlayersApiResponse, IPlayerResponse, IUseNBAPlayersOptions } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
+import type { IPlayersApiResponse, IPlayerResponse, IUseNBAPlayersOptions } from '@/types';
 
 function isPlayersApiResponse(data: unknown): data is IPlayersApiResponse {
   return (
@@ -44,7 +44,7 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
         if (typeof data === 'object' && data !== null && 'data' in data) {
           const mockData = (data as { data: unknown }).data;
           if (isPlayersApiResponse(mockData)) {
-            setPlayers(mockData.response || []);
+            setPlayers((mockData.response || []) as IPlayerResponse[]);
           } else {
             setPlayers([]);
           }
@@ -52,15 +52,21 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
         return;
       }
 
-      // Cache logic removed - fetch directly from database API
-      console.log('👥 Fetching players from database API...');
+      // Fetch all players once with a single cache key for client-side filtering
+      console.log('👥 Fetching all players from database API with single cache key...');
       const params = new URLSearchParams({
-        limit: '200', // Get more players by default
+        limit: '5000', // Get all players for client-side filtering
+        sortBy: 'name',
+        sortDirection: 'asc',
+        ...(forceRealData && { 'bypass-cache': 'true' }), // Only bypass cache if explicitly requested
       });
       if (teamId) {
         params.append('team', teamId);
       }
       const endpoint = `/api/players?${params.toString()}`;
+
+      console.log('🔗 Calling API endpoint:', endpoint);
+      console.log('📋 Request parameters:', Object.fromEntries(params.entries()));
 
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -71,12 +77,9 @@ export function useNBAPlayers(options: IUseNBAPlayersOptions = {}) {
 
       // Handle database API response
       if (isPlayersApiResponse(data)) {
-        // Filter for active standard league players
-        const activePlayers = (data.response || []).filter(
-          player => player.leagues?.standard?.active !== false
-        );
-        console.log(`✅ Loaded ${activePlayers.length} players from database`);
-        setPlayers(activePlayers);
+        const allPlayers = data.response || [];
+        console.log(`✅ Loaded players from database (total available: ${allPlayers.length})`);
+        setPlayers(allPlayers as IPlayerResponse[]);
       } else {
         setPlayers([]);
       }

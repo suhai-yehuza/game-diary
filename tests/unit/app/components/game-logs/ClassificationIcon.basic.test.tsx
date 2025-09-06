@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect } from 'vitest';
 
 import { ClassificationIcon } from '@/app/components/game-logs/ClassificationIcon';
-import { CLASSIFICATION } from '@/lib/types';
+import { CLASSIFICATION } from '@/types';
 
 describe('ClassificationIcon', () => {
   it('renders eye icon for public classification', () => {

@@ -1,28 +1,54 @@
-import type { IGameLog } from '@/lib/types';
+import type { IGameLog } from '@/types';
 
 // Helper function to get team display from game data
 export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): string => {
-  if (!game || typeof game !== 'object' || !('home_team' in game && 'away_team' in game)) {
+  if (!game || typeof game !== 'object') {
     return 'Unknown Teams';
   }
 
-  const { home_team, away_team, date } = game as {
-    home_team: { code?: string; nickname?: string; name: string };
-    away_team: { code?: string; nickname?: string; name: string };
-    date?: string | Date;
-  };
-  const homeTeamCode = home_team.code ?? home_team.nickname ?? home_team.name;
-  const awayTeamCode = away_team.code ?? away_team.nickname ?? away_team.name;
+  // Handle both data formats: home_team/away_team and teams.home/teams.away
+  let homeTeam, awayTeam, gameDate;
+  if ('home_team' in game && 'away_team' in game) {
+    const gameData = game as {
+      home_team?: { code?: string; nickname?: string; name?: string } | null;
+      away_team?: { code?: string; nickname?: string; name?: string } | null;
+      date?: string | Date;
+    };
+    homeTeam = gameData.home_team;
+    awayTeam = gameData.away_team;
+    gameDate = gameData.date;
+  } else if ('teams' in game) {
+    const gameData = game as {
+      teams?: {
+        home?: { code?: string; nickname?: string; name?: string } | null;
+        away?: { code?: string; nickname?: string; name?: string } | null;
+      } | null;
+      date?: string | Date;
+    };
+    homeTeam = gameData.teams?.home;
+    awayTeam = gameData.teams?.away;
+    gameDate = gameData.date;
+  } else {
+    return 'Unknown Teams';
+  }
+
+  // Check if teams are valid objects
+  if (!homeTeam || !awayTeam || typeof homeTeam !== 'object' || typeof awayTeam !== 'object') {
+    return 'Unknown Teams';
+  }
+
+  const homeTeamCode = homeTeam.code ?? homeTeam.nickname ?? homeTeam.name ?? 'Unknown';
+  const awayTeamCode = awayTeam.code ?? awayTeam.nickname ?? awayTeam.name ?? 'Unknown';
 
   // Format the date if available and includeDate is true
   let dateString = '';
-  if (includeDate && date) {
-    const gameDate = new Date(date);
-    if (!isNaN(gameDate.getTime())) {
-      dateString = ` on ${gameDate.toLocaleDateString('en-US', {
+  if (includeDate && gameDate) {
+    const parsedDate = new Date(gameDate);
+    if (!isNaN(parsedDate.getTime())) {
+      dateString = ` on ${parsedDate.toLocaleDateString('en-US', {
         weekday: 'short',
         month: 'short',
-        day: 'numeric',
+        day: '2-digit',
         year: 'numeric',
       })}`;
     }
@@ -103,16 +129,16 @@ export const filterAndSortGameLogs = (
           bValue = b.watched_scope ?? '';
           break;
         case 'game_id':
-          aValue = a.game_id;
-          bValue = b.game_id;
+          aValue = a.game_id ?? '';
+          bValue = b.game_id ?? '';
           break;
         case 'team':
-          aValue = a.game?.home_team?.name ?? '';
-          bValue = b.game?.home_team?.name ?? '';
+          aValue = (a.game as { home_team?: { name?: string } })?.home_team?.name ?? '';
+          bValue = (b.game as { home_team?: { name?: string } })?.home_team?.name ?? '';
           break;
         case 'owner':
-          aValue = a.user?.username ?? '';
-          bValue = b.user?.username ?? '';
+          aValue = (a.user as { username?: string })?.username ?? '';
+          bValue = (b.user as { username?: string })?.username ?? '';
           break;
         case 'tags':
           aValue = a.tags?.join(', ') ?? '';

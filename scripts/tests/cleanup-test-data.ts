@@ -37,14 +37,31 @@ Examples:
   }
 }
 
-// Safety check for production
+// 🚨 ENHANCED PRODUCTION SAFETY CHECK
 if (environment === 'production') {
-  logger.warn('⚠️  WARNING: You are about to run cleanup on PRODUCTION database!');
-  logger.warn('   This will delete test data. Are you sure? (y/N)');
-  logger.warn('   Proceeding with cleanup in 5 seconds...');
+  // Check for explicit permission
+  if (process.env.ALLOW_ACCESS_TO_PRODUCTION_DB !== 'true') {
+    logger.error(
+      '🚨 PRODUCTION DATABASE ACCESS BLOCKED: Cleanup cannot run against production database'
+    );
+    logger.error(
+      '   If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable'
+    );
+    process.exit(1);
+  }
 
-  // Give user time to cancel
-  await new Promise(resolve => setTimeout(resolve, 5000));
+  logger.warn('🚨 CRITICAL WARNING: You are about to run cleanup on PRODUCTION database!');
+  logger.warn('   This will permanently delete test data from production.');
+  logger.warn(
+    '   Database URL:',
+    process.env.DATABASE_URL?.replace(/\/\/.*@/, '//***:***@') || 'Not set'
+  );
+  logger.warn('   Environment:', process.env.NODE_ENV || 'Not set');
+  logger.warn('   Proceeding with cleanup in 10 seconds...');
+  logger.warn('   Press Ctrl+C to cancel immediately!');
+
+  // Give user more time to cancel for production
+  await new Promise(resolve => setTimeout(resolve, 10000));
 }
 
 // Run cleanup

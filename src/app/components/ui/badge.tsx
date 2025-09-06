@@ -1,7 +1,7 @@
 import * as React from 'react';
 
-import type { IBadgeProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import type { IBadgeProps } from '@/types';
 
 const Badge = React.forwardRef<HTMLSpanElement, IBadgeProps>(
   ({ className, variant = 'default', children, ...props }, ref) => {

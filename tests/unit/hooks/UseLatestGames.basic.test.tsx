@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { useLatestGames } from '@/hooks/use-latest-games';
-import type { IGameResponse, IGamesApiResponse } from '@/lib/types';
+import type { IGameResponse, IGamesApiResponse } from '@/types';
 
 // Mock fetch globally
 const mockFetch = vi.fn();
@@ -10,7 +10,7 @@ global.fetch = mockFetch;
 
 // Mock environment variables
 vi.mock('@/lib/utils/nba-season', () => ({
-  getLatestNbaSeason: vi.fn(() => '2024'),
+  getRecentNbaSeasons: vi.fn(() => ['2024']),
 }));
 
 // Mock Redis service to avoid complex internal fetch calls
@@ -147,7 +147,7 @@ describe('useLatestGames', () => {
       expect(result.current).toHaveProperty('loading');
       expect(result.current).toHaveProperty('error');
       expect(result.current).toHaveProperty('refetch');
-      expect(result.current).toHaveProperty('season');
+      expect(result.current).toHaveProperty('cacheStatus');
     });
 
     it('should have correct default values', async () => {
@@ -164,7 +164,7 @@ describe('useLatestGames', () => {
 
       expect(result.current.latestGames).toEqual([]);
       expect(result.current.error).toBeNull();
-      expect(result.current.season).toBe('2024');
+      expect(result.current.cacheStatus).toBe('none');
     });
   });
 
@@ -342,7 +342,7 @@ describe('useLatestGames', () => {
       });
 
       // The hook now calls multiple endpoints in sequence: cache check, init, then fallback
-      expect(mockFetch).toHaveBeenCalledWith('/api/games?season=2024');
+      expect(mockFetch).toHaveBeenCalledWith('/api/games?season=all&limit=20');
     });
 
     it('should use mock data in test environment', async () => {

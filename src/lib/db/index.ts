@@ -1,10 +1,10 @@
 import { neon } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import type { Database, IDatabaseConfig } from '@/lib/types';
 import { isCI } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+import type { Database, IDatabaseConfig } from '@/types';
 import * as schema from '@src/lib/db/schema';
 
 // Database connection pool configuration
@@ -123,6 +123,18 @@ export { dbManager };
 export function createDatabaseClient(options?: { env?: string }) {
   const env = options?.env ?? 'development';
 
+  // 🚨 PRODUCTION DATABASE PROTECTION
+  if (
+    env === 'production' &&
+    process.env.CI !== 'true' &&
+    process.env.ALLOW_ACCESS_TO_PRODUCTION_DB !== 'true'
+  ) {
+    throw new Error(
+      '🚨 PRODUCTION DATABASE ACCESS BLOCKED: Tests cannot run against production database. ' +
+        'If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable.'
+    );
+  }
+
   // Try to get DATABASE_URL from environment variables
   let databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 
@@ -142,6 +154,16 @@ export function createDatabaseClient(options?: { env?: string }) {
 
   if (!databaseUrl) {
     throw new Error(`DATABASE_URL environment variable is required for ${env} environment`);
+  }
+
+  // 🚨 ADDITIONAL PRODUCTION URL VALIDATION
+  if (
+    (env === 'production' && databaseUrl.includes('localhost')) ||
+    databaseUrl.includes('127.0.0.1')
+  ) {
+    throw new Error(
+      '🚨 PRODUCTION DATABASE PROTECTION: Production environment cannot use localhost database URLs'
+    );
   }
 
   const sql = neon(databaseUrl);

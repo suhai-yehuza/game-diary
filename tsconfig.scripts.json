@@ -12,10 +12,11 @@
       "@lib/*": ["./lib/*"],
       "@app/*": ["./src/app/*"],
       "@scripts/*": ["./scripts/*"],
-      "@tests/*": ["./tests/*"]
+      "@tests/*": ["./tests/*"],
+      "@types/*": ["./types/*"]
     },
     "types": ["node"]
   },
-  "include": ["scripts/**/*.ts", "src/lib/types/**/*.ts", "lib/**/*.ts"],
+  "include": ["scripts/**/*.ts", "types/**/*.ts", "lib/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/**/*.test.ts", "src/**/*.test.tsx"]
 }

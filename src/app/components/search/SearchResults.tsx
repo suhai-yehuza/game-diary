@@ -11,10 +11,10 @@ import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { TAILWIND_CLASSES } from '@/lib/constants/colors';
-import type { ISearchResultsProps, ResultType } from '@/lib/types';
+import type { ISearchResultsProps, IResultType } from '@/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
-  const [activeFilter, setActiveFilter] = useState<ResultType>('all');
+  const [activeFilter, setActiveFilter] = useState<IResultType>('all');
   const [sortBy, setSortBy] = useState<'relevance' | 'date' | 'name'>('relevance');
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [searchStartTime] = useState(Date.now());
@@ -22,31 +22,25 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
 
   // Helper function to get count for each filter type
   const getFilterCount = useCallback(
-    (filter: ResultType): number => {
+    (filter: IResultType): number => {
       switch (filter) {
         case 'all':
-          return (
-            (results.data.totalUsers || 0) +
-            (results.data.totalGames || 0) +
-            (results.data.totalGameLogs || 0) +
-            (results.data.totalTeams || 0) +
-            (results.data.totalPlayers || 0)
-          );
+          return results.total || 0;
         case 'users':
-          return results.data.totalUsers || 0;
+          return results.results?.filter(r => r.type === 'user').length || 0;
         case 'games':
-          return results.data.totalGames || 0;
+          return results.results?.filter(r => r.type === 'game').length || 0;
         case 'gameLogs':
-          return results.data.totalGameLogs || 0;
+          return results.results?.filter(r => r.type === 'gameLog').length || 0;
         case 'teams':
-          return results.data.totalTeams || 0;
+          return results.results?.filter(r => r.type === 'team').length || 0;
         case 'players':
-          return results.data.totalPlayers || 0;
+          return results.results?.filter(r => r.type === 'player').length || 0;
         default:
           return 0;
       }
     },
-    [results.data]
+    [results.results, results.total]
   );
 
   // Enhanced search insights
@@ -55,19 +49,19 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
     const mostRelevant =
       total > 0
         ? (Object.entries({
-            users: results.data.totalUsers || 0,
-            games: results.data.totalGames || 0,
-            gameLogs: results.data.totalGameLogs || 0,
-            teams: results.data.totalTeams || 0,
-            players: results.data.totalPlayers || 0,
-          }).sort(([, a], [, b]) => b - a)[0][0] as ResultType)
+            users: results.results?.filter(r => r.type === 'user').length || 0,
+            games: results.results?.filter(r => r.type === 'game').length || 0,
+            gameLogs: results.results?.filter(r => r.type === 'gameLog').length || 0,
+            teams: results.results?.filter(r => r.type === 'team').length || 0,
+            players: results.results?.filter(r => r.type === 'player').length || 0,
+          }).sort(([, a], [, b]) => b - a)[0][0] as IResultType)
         : null;
 
     return { total, mostRelevant };
-  }, [results.data, getFilterCount]);
+  }, [results.results, getFilterCount]);
 
   const handleFilterChange = useCallback(
-    (filter: ResultType) => {
+    (filter: IResultType) => {
       setActiveFilter(filter);
       trackSearchInteraction('filter_change', { filter, query });
     },
@@ -275,9 +269,11 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                     Users ({formatNumberShort(getFilterCount('users'))})
                   </h2>
                   <div className="space-y-3">
-                    {results.data.users?.map(user => (
-                      <UserSearchResult key={user.id} user={user} />
-                    ))}
+                    {results.results
+                      ?.filter(r => r.type === 'user')
+                      .map(user => (
+                        <UserSearchResult key={user.id} user={user} />
+                      ))}
                   </div>
                 </div>
               )}
@@ -290,9 +286,11 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                     Games ({formatNumberShort(getFilterCount('games'))})
                   </h2>
                   <div className="space-y-3">
-                    {results.data.games?.map(game => (
-                      <GameSearchResult key={game.id} game={game} />
-                    ))}
+                    {results.results
+                      ?.filter(r => r.type === 'game')
+                      .map(game => (
+                        <GameSearchResult key={game.id} game={game} />
+                      ))}
                   </div>
                 </div>
               )}
@@ -305,9 +303,11 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                     Game Logs ({formatNumberShort(getFilterCount('gameLogs'))})
                   </h2>
                   <div className="space-y-3">
-                    {results.data.gameLogs?.map(gameLog => (
-                      <GameLogSearchResult key={gameLog.id} gameLog={gameLog} />
-                    ))}
+                    {results.results
+                      ?.filter(r => r.type === 'gameLog')
+                      .map(gameLog => (
+                        <GameLogSearchResult key={gameLog.id} gameLog={gameLog} />
+                      ))}
                   </div>
                 </div>
               )}
@@ -320,9 +320,11 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                     Teams ({formatNumberShort(getFilterCount('teams'))})
                   </h2>
                   <div className="space-y-3">
-                    {results.data.teams?.map(team => (
-                      <TeamSearchResult key={team.id} team={team} />
-                    ))}
+                    {results.results
+                      ?.filter(r => r.type === 'team')
+                      .map(team => (
+                        <TeamSearchResult key={team.id} team={team} />
+                      ))}
                   </div>
                 </div>
               )}
@@ -335,9 +337,12 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                     Players ({formatNumberShort(getFilterCount('players'))})
                   </h2>
                   <div className="space-y-3">
-                    {results.data.players?.map(player => (
-                      <PlayerSearchResult key={player.id} player={player} />
-                    ))}
+                    {results.results
+                      ?.filter(r => r.type === 'player')
+                      .map(player => (
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        <PlayerSearchResult key={player.id} player={player as any} />
+                      ))}
                   </div>
                 </div>
               )}

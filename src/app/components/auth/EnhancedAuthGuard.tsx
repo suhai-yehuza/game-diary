@@ -6,9 +6,7 @@ import React from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useAuthState } from '@/lib/hooks/useAuthState';
-import type { IEnhancedAuthGuardProps } from '@/lib/types';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { IEnhancedAuthGuardProps } from '@/types';
 
 export default function EnhancedAuthGuard({
   children,

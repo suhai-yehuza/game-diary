@@ -17,7 +17,7 @@ function isEncrypted(value: string | null): boolean {
       parsed &&
       typeof parsed === 'object' &&
       'iv' in parsed &&
-      'content' in parsed &&
+      'encrypted' in parsed &&
       'tag' in parsed
     );
   } catch {

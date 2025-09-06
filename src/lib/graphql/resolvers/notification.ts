@@ -3,8 +3,8 @@ import { eq, and, desc, asc, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { notifications } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { GraphQLContext } from '@/types';
 
 // Notification Query Resolvers
 export const notificationQueryResolvers = {

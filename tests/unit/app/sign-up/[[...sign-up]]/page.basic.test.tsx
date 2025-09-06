@@ -15,6 +15,13 @@ vi.mock('@clerk/nextjs', () => ({
   SignUp: ({ children }: any) => <div data-testid="clerk-signup">{children}</div>,
 }));
 
+// Mock ClerkProviderWrapper
+vi.mock('@/app/components/providers/ClerkProvider', () => ({
+  ClerkProviderWrapper: ({ children }: any) => (
+    <div data-testid="clerk-provider-wrapper">{children}</div>
+  ),
+}));
+
 // Mock next/navigation
 const mockPush = vi.fn();
 vi.mock('next/navigation', () => ({

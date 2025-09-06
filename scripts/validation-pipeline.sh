@@ -1002,6 +1002,22 @@ run_staging_validation() {
 run_production_validation() {
     log "Running production validation (staging + critical E2E)..."
 
+    # 🚨 PRODUCTION DATABASE PROTECTION
+    if [[ "$ALLOW_ACCESS_TO_PRODUCTION_DB" != "true" ]]; then
+      log_error "🚨 PRODUCTION DATABASE ACCESS BLOCKED: Production validation cannot run without explicit permission"
+      log_error "   If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable"
+      exit 1
+    fi
+
+    log_warn "🚨 CRITICAL WARNING: Running production validation with database access!"
+    log_warn "   This may interact with production databases."
+    log_warn "   Environment: $NODE_ENV"
+    log_warn "   Database URL: ${DATABASE_URL:0:20}***"
+    log_warn "   Proceeding in 5 seconds... Press Ctrl+C to cancel!"
+
+    # Give user time to cancel
+    sleep 5
+
     log_info "Setting production environment..."
     export NODE_ENV=production
 
@@ -1375,6 +1391,14 @@ run_e2e_test_suite() {
 # =============================================================================
 # MAIN SCRIPT LOGIC
 # =============================================================================
+
+# 🚨 PRODUCTION DATABASE PROTECTION CHECK
+if [[ "$SUBCOMMAND" == "production" && "$ALLOW_ACCESS_TO_PRODUCTION_DB" != "true" ]]; then
+    log_error "🚨 PRODUCTION DATABASE ACCESS BLOCKED: Production validation requires explicit permission"
+    log_error "   If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable"
+    log_error "   Example: ALLOW_ACCESS_TO_PRODUCTION_DB=true $0 production --fast"
+    exit 1
+fi
 
 case "$SUBCOMMAND" in
     "precommit")

@@ -15,7 +15,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Ca
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { GAME_STATUS_VALUES } from '@/lib/constants';
-import type { IGameFiltersProps } from '@/lib/types';
+import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import type { IGameFiltersProps } from '@/types';
+
+const LATEST_SEASON = getLatestNbaSeason();
+const SEASONS = getRecentNbaSeasons(10);
 
 export function GameFilters({
   filters,
@@ -118,9 +122,9 @@ export function GameFilters({
             }}
           >
             <option value="all">All Seasons</option>
-            {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map(season => (
-              <option key={season} value={season.toString()}>
-                {season}-{season + 1}
+            {SEASONS.map(season => (
+              <option key={season} value={season}>
+                {season}-{season + 1} Season {season === LATEST_SEASON ? '(Latest)' : ''}
               </option>
             ))}
           </select>

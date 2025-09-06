@@ -4,7 +4,7 @@ import { SignInButton, useClerk } from '@clerk/nextjs';
 import { useRouter } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-import type { ISignInModalTriggerProps } from '@/lib/types';
+import type { ISignInModalTriggerProps } from '@/types';
 
 export default function SignInModalTrigger({ autoTrigger = false }: ISignInModalTriggerProps) {
   const triggerRef = useRef<HTMLDivElement>(null);

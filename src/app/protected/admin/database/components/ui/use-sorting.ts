@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 
-import type { ISortConfig, IUseSortingReturn, SortDirection } from '@/lib/types';
+import type { ISortConfig, IUseSortingReturn, ISortDirection } from '@/types';
 
 export function useSorting(initialSortKey: string | null = null): IUseSortingReturn {
   const [sortConfig, setSortConfig] = useState<ISortConfig>({
@@ -8,7 +8,7 @@ export function useSorting(initialSortKey: string | null = null): IUseSortingRet
     direction: initialSortKey ? 'asc' : null,
   });
 
-  const handleSort = useCallback((key: string, direction: SortDirection) => {
+  const handleSort = useCallback((key: string, direction: ISortDirection) => {
     setSortConfig({ key: direction ? key : null, direction });
   }, []);
 

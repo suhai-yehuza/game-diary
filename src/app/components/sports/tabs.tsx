@@ -2,9 +2,7 @@
 
 import { useState } from 'react';
 
-import type { ISportsTabsProps } from '@/lib/types';
-
-// Interfaces moved to src/lib/types/components.types.ts
+import type { ISportsTabsProps } from '@/types';
 
 export function Tabs({
   tabs,

@@ -480,10 +480,32 @@ a.group.block p.nba-card-description.mb-3 {
 .game-card-enhanced {
   background-color: rgb(255, 255, 255) !important; /* Pure white background for maximum contrast */
   border: 1px solid rgb(203, 213, 225) !important; /* Slightly darker border for definition */
+  height: 100% !important; /* Ensure all cards have the same height */
+  display: flex !important; /* Use flexbox for consistent layout */
+  flex-direction: column !important; /* Stack content vertically */
 }
 .dark .game-card-enhanced {
   background-color: rgb(31, 41, 55) !important; /* Dark gray background in dark theme */
   border: 1px solid rgb(55, 65, 81) !important; /* Dark border for dark theme */
+}
+
+/* Ensure game card content fills the available height */
+.game-card-enhanced .p-3,
+.game-card-enhanced .p-4,
+.game-card-enhanced .p-6 {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Game card grid container - ensure items have equal heights */
+.grid:has(.game-card-enhanced) {
+  align-items: stretch !important;
+}
+
+.grid:has(.game-card-enhanced) > * {
+  height: auto !important;
+  display: flex !important;
 }
 
 /* Game card date, time, and venue text */
@@ -602,135 +624,56 @@ a.group.block p.nba-card-description.mb-3 {
 .team-card-enhanced {
   background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
   border: 1px solid rgb(209, 213, 219) !important; /* Darker border for better definition */
+  height: 100% !important; /* Ensure all cards have the same height */
+  display: flex !important; /* Use flexbox for consistent layout */
+  flex-direction: column !important; /* Stack content vertically */
 }
 .dark .team-card-enhanced {
   background-color: rgb(31, 41, 55) !important; /* Same dark gray background as game cards */
   border: 1px solid rgb(55, 65, 81) !important; /* Same border as game cards */
 }
 
-/* Team card text elements with high specificity */
-.team-card-enhanced .text-gray-900 {
-  color: rgb(17, 24, 39) !important; /* Darker text for maximum contrast in light theme */
-}
-.dark .team-card-enhanced .text-gray-900 {
-  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
-}
-
-/* Team card enhanced button styling */
-.team-card-enhanced button {
-  font-weight: 500 !important;
-  transition: all 0.2s ease-in-out !important;
-}
-
-.team-card-enhanced button:hover {
-  transform: translateY(-1px) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
-}
-
-/* Specific styling for team card buttons */
-.team-card-button {
-  color: white !important;
-  font-weight: 500 !important;
-  border: 1px solid !important;
-}
-
-.team-card-enhanced .team-card-button {
-  color: white !important;
-}
-
-.dark .team-card-enhanced .team-card-button {
-  color: white !important;
-}
-
-.team-card-enhanced .text-gray-700 {
-  color: rgb(55, 65, 81) !important; /* Darker gray for better contrast */
-}
-.dark .team-card-enhanced .text-gray-700 {
-  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
-}
-
-.team-card-enhanced .text-gray-600 {
-  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
-}
-.dark .team-card-enhanced .text-gray-600 {
-  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
-}
-
-.team-card-enhanced .text-gray-500 {
-  color: rgb(107, 114, 128) !important; /* Darker gray for better contrast */
-}
-.dark .team-card-enhanced .text-gray-500 {
-  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
-}
-
-.team-card-enhanced .text-gray-400 {
-  color: rgb(156, 163, 175) !important; /* Darker gray for better contrast */
-}
-.dark .team-card-enhanced .text-gray-400 {
-  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
-}
-
-.team-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
-}
-.dark .team-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
+/* Ensure team card content fills the available height */
+.team-card-enhanced .p-4,
+.team-card-enhanced .p-6 {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* === Player Cards - Enhanced to match game cards === */
 .player-card-enhanced {
-  background-color: rgb(248, 250, 252) !important; /* Standardized dark gray off-white background */
-  border: 1px solid rgb(156, 163, 175) !important; /* Darker border for better definition */
-  box-shadow:
-    0 1px 3px 0 rgba(0, 0, 0, 0.1),
-    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important; /* Subtle shadow for depth */
+  background-color: rgb(255, 255, 255) !important; /* Pure white background for maximum contrast */
+  border: 1px solid rgb(203, 213, 225) !important; /* Slightly darker border for definition */
+  height: 100% !important; /* Ensure all cards have the same height */
+  display: flex !important; /* Use flexbox for consistent layout */
+  flex-direction: column !important; /* Stack content vertically */
 }
 .dark .player-card-enhanced {
-  background-color: rgb(31, 41, 55) !important; /* Same dark gray background as game cards */
-  border: 1px solid rgb(55, 65, 81) !important; /* Same border as game cards */
+  background-color: rgb(31, 41, 55) !important; /* Dark gray background in dark theme */
+  border: 1px solid rgb(55, 65, 81) !important; /* Dark border for dark theme */
 }
 
-/* Player card text elements with high specificity for maximum contrast */
-.player-card-enhanced .text-gray-900 {
-  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
-}
-.dark .player-card-enhanced .text-gray-900 {
-  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
-}
-
-.player-card-enhanced .text-gray-700 {
-  color: rgb(31, 41, 55) !important; /* Much darker gray for better contrast */
-}
-.dark .player-card-enhanced .text-gray-700 {
-  color: rgb(229, 231, 235) !important; /* Light gray for dark theme */
+/* Ensure player card content fills the available height */
+.player-card-enhanced .p-4,
+.player-card-enhanced .p-6 {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.player-card-enhanced .text-gray-600 {
-  color: rgb(55, 65, 81) !important; /* Much darker gray for better contrast */
-}
-.dark .player-card-enhanced .text-gray-600 {
-  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
-}
-
-.player-card-enhanced .text-gray-500 {
-  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
-}
-.dark .player-card-enhanced .text-gray-500 {
-  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+/* Game card grid container - ensure items have equal heights */
+.grid:has(.game-card-enhanced),
+.grid:has(.team-card-enhanced),
+.grid:has(.player-card-enhanced) {
+  align-items: stretch !important;
 }
 
-.player-card-enhanced .text-gray-400 {
-  color: rgb(107, 114, 128) !important; /* Much darker gray for better contrast */
-}
-.dark .player-card-enhanced .text-gray-400 {
-  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
-}
-
-.player-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
-}
-.dark .player-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
+.grid:has(.game-card-enhanced) > *,
+.grid:has(.team-card-enhanced) > *,
+.grid:has(.player-card-enhanced) > * {
+  height: auto !important;
+  display: flex !important;
 }
 
 /* === Team Filters - Enhanced contrast with team cards === */
@@ -2285,3 +2228,125 @@ footer a:hover {
 .dark .all-sports-welcome-text {
   color: rgb(255, 255, 255) !important; /* Pure white for dark mode */
 }
+
+/* Ensure player card content fills the available height */
+.player-card-enhanced .p-4,
+.player-card-enhanced .p-6 {
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Team card text elements with high specificity */
+.team-card-enhanced .text-gray-900 {
+  color: rgb(17, 24, 39) !important; /* Darker text for maximum contrast in light theme */
+}
+.dark .team-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
+}
+
+/* Team card enhanced button styling */
+.team-card-enhanced button {
+  font-weight: 500 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+.team-card-enhanced button:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Specific styling for team card buttons */
+.team-card-button {
+  color: white !important;
+  font-weight: 500 !important;
+  border: 1px solid !important;
+}
+
+.team-card-enhanced .team-card-button {
+  color: white !important;
+}
+
+.dark .team-card-enhanced .team-card-button {
+  color: white !important;
+}
+
+.team-card-enhanced .text-gray-700 {
+  color: rgb(55, 65, 81) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-700 {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
+}
+
+.team-card-enhanced .text-gray-600 {
+  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-600 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
+
+.team-card-enhanced .text-gray-500 {
+  color: rgb(107, 114, 128) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
+
+.team-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Darker gray for better contrast */
+}
+.dark .team-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
+
+.team-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
+.dark .team-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Player card text elements with high specificity for maximum contrast */
+.player-card-enhanced .text-gray-900 {
+  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
+}
+.dark .player-card-enhanced .text-gray-900 {
+  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
+}
+
+.player-card-enhanced .text-gray-700 {
+  color: rgb(31, 41, 55) !important; /* Much darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-700 {
+  color: rgb(229, 231, 235) !important; /* Light gray for dark theme */
+}
+
+.player-card-enhanced .text-gray-600 {
+  color: rgb(55, 65, 81) !important; /* Much darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-600 {
+  color: rgb(209, 213, 219) !important; /* Light gray for dark theme */
+}
+
+.player-card-enhanced .text-gray-500 {
+  color: rgb(75, 85, 99) !important; /* Darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-500 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
+
+.player-card-enhanced .text-gray-400 {
+  color: rgb(107, 114, 128) !important; /* Much darker gray for better contrast */
+}
+.dark .player-card-enhanced .text-gray-400 {
+  color: rgb(156, 163, 175) !important; /* Medium gray for dark theme */
+}
+
+.player-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
+.dark .player-card-enhanced .text-white {
+  color: rgb(255, 255, 255) !important;
+}
+
+/* Game card grid container - ensure items have equal heights */

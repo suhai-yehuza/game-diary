@@ -4,6 +4,14 @@
  * to avoid circular dependencies with the types system.
  */
 
+// Type definitions moved here to avoid circular dependencies
+export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
+export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
+export type IGraphQLReactionEmojiType = IReactionEmojiValue;
+export type IFriendshipStatusType = (typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS];
+export type IWatchedSettingType = (typeof WATCHED_SETTING)[keyof typeof WATCHED_SETTING];
+export type ITargetType = (typeof TARGET_TYPES)[keyof typeof TARGET_TYPES];
+
 // ============= Constants =============
 
 // Reaction emoji source of truth - keep database migrations and setup scripts in sync with this
@@ -119,6 +127,11 @@ export const SORT_DIRECTION = {
 export const TARGET_TYPES = {
   GAME_LOG: 'GAME_LOG',
   COMMENT: 'COMMENT',
+  BASKETBALL_GAME: 'BASKETBALL_GAME',
+  BASKETBALL_PLAYER: 'BASKETBALL_PLAYER',
+  BASKETBALL_TEAM: 'BASKETBALL_TEAM',
+  PUBLIC_COMMENT: 'PUBLIC_COMMENT',
+  PUBLIC_REACTION: 'PUBLIC_REACTION',
 } as const;
 
 // ========================================
@@ -134,14 +147,14 @@ export const API_LIMITS = {
   // Sports data limits
   GAMES: {
     DEFAULT: 100,
-    LARGE: 25000, // For getting total games count
+    LARGE: 20000, // For getting total games count
     MAX: 100000,
   },
 
   PLAYERS: {
     DEFAULT: 100,
-    LARGE: 25000, // For getting total players count
-    MAX: 100000,
+    LARGE: 5000, // For getting total players count
+    MAX: 250000,
   },
 
   TEAMS: {
@@ -164,8 +177,8 @@ export const API_LIMITS = {
 
   SEARCH: {
     DEFAULT: 100,
-    LARGE: 1000,
-    MAX: 100000,
+    LARGE: 10000,
+    MAX: 1000000,
   },
 } as const;
 
@@ -282,45 +295,12 @@ export const TABS = {
   SEASONS: 'seasons',
   SEARCH: 'search',
   DATABASE: 'database',
+  CACHE: 'cache',
 } as const;
 
 // ============= Type Definitions =============
-
-// Status and Settings Types
-export type IClassificationType = keyof typeof CLASSIFICATION;
-export type IConferenceType = keyof typeof CONFERENCES;
-export type IDivisionType = keyof typeof DIVISIONS;
-export type IResourceType = keyof typeof RESOURCES;
-export type ISortDirectionType = keyof typeof SORT_DIRECTION;
-export type ITargetTypeValue = (typeof TARGET_TYPES)[keyof typeof TARGET_TYPES];
-export type IConferenceValue = (typeof CONFERENCES)[IConferenceType];
-export type IDivisionValue = (typeof DIVISIONS)[IDivisionType];
-export type IGameStatusType = keyof typeof GAME_STATUS_VALUES;
-export type IGameStageType = keyof typeof GAME_STAGE_VALUES;
-export type ISortDirectionValue = (typeof SORT_DIRECTION)[ISortDirectionType];
-export type IClassificationValue = (typeof CLASSIFICATION)[IClassificationType];
-export type IFriendshipStatusType = keyof typeof FRIENDSHIP_STATUS;
-export type IResourceValue = (typeof RESOURCES)[IResourceType];
-export type IWatchedSettingType = keyof typeof WATCHED_SETTING;
-export type IWatchedScopeType = keyof typeof WATCHED_SCOPE;
-
-// Type for the keys of REACTION_EMOJIS
-export type IReactionEmojiKey = keyof typeof REACTION_EMOJIS;
-
-// Type for the values of REACTION_EMOJIS
-export type IReactionEmojiValue = (typeof REACTION_EMOJIS)[IReactionEmojiKey];
-
-export type TabKey = keyof typeof TABS;
-export type TabValue = (typeof TABS)[TabKey];
-
-// ========================================
-// API TYPE DEFINITIONS
-// ========================================
-
-export type ApiLimitType = keyof typeof API_LIMITS;
-export type RequestTimeoutType = keyof typeof REQUEST_CONFIG.TIMEOUTS;
-export type SeasonType = keyof typeof SEASON_CONFIG.TYPES;
-export type LeagueType = keyof typeof SEASON_CONFIG.LEAGUES;
+// Type definitions have been moved to types/core.types.ts
+// Import them from @/types instead
 
 // ============= Helper Functions =============
 
@@ -348,28 +328,33 @@ export const getEmojiKey = (value: IReactionEmojiValue): IReactionEmojiKey => {
   return entry[0] as IReactionEmojiKey;
 };
 
-// Type for GraphQL enum values
-export type IGraphQLReactionEmojiType = IReactionEmojiKey;
-
 // Type guard for GraphQL enum values
 export const isGraphQLReactionEmojiType = (value: string): value is IGraphQLReactionEmojiType => {
   return isReactionEmojiKey(value);
 };
 
+// ========================================
+// SPORTS CONFIGURATION
+// ========================================
+
+// Re-export sports configuration from colors
+export { SPORTS_CONFIG, SPORTS_COLORS } from './colors';
+// SportKey is now exported from @/types
+
 export const isValidReactionEmoji = (emoji: string): emoji is IReactionEmojiValue => {
   return isReactionEmojiValue(emoji);
 };
 
-export const isValidFriendshipStatus = (
-  status: string
-): status is (typeof FRIENDSHIP_STATUS)[IFriendshipStatusType] => {
-  return status in FRIENDSHIP_STATUS;
+export const isValidTargetType = (targetType: string): targetType is ITargetType => {
+  return Object.values(TARGET_TYPES).includes(targetType as ITargetType);
 };
 
-export const isValidWatchedSetting = (
-  setting: string
-): setting is (typeof WATCHED_SETTING)[IWatchedSettingType] => {
-  return setting in WATCHED_SETTING;
+export const isValidFriendshipStatus = (status: string): status is IFriendshipStatusType => {
+  return Object.values(FRIENDSHIP_STATUS).includes(status as IFriendshipStatusType);
+};
+
+export const isValidWatchedSetting = (setting: string): setting is IWatchedSettingType => {
+  return Object.values(WATCHED_SETTING).includes(setting as IWatchedSettingType);
 };
 
 // Helper functions to generate enum arrays from constants for database schema usage

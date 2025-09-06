@@ -10,21 +10,22 @@ import {
   CardTitle,
 } from '@/app/components/ui/Card';
 import type {
-  ButtonProps,
-  InputProps,
-  LabelProps,
-  SelectProps,
-  GamesFormProps,
-  GameStatsFormProps,
-  TeamsFormProps,
-  TeamStatsFormProps,
-  PlayersFormProps,
-  PlayerStatsFormProps,
-  StandingsFormProps,
-  DataDisplayProps,
+  IButtonProps,
+  IInputProps,
+  ILabelProps,
+  ISelectProps,
+  IGamesFormProps,
+  IGameStatsFormProps,
+  ITeamsFormProps,
+  ITeamStatsFormProps,
+  IPlayersFormProps,
+  IPlayerStatsFormProps,
+  IStandingsFormProps,
+  IDataDisplayProps,
   IDynamicFormProps as DynamicFormProps,
   IFieldConfig as FieldConfig,
-} from '@/lib/types';
+  IFieldConfig,
+} from '@/types';
 
 // --- DynamicForm abstraction ---
 export const DynamicForm = ({
@@ -88,7 +89,7 @@ export const DynamicForm = ({
   );
 };
 
-export const Button = (props: ButtonProps) => {
+export const Button = (props: IButtonProps) => {
   const {
     children,
     variant = 'default',
@@ -114,7 +115,7 @@ export const Button = (props: ButtonProps) => {
   );
 };
 
-export const Input = (props: InputProps) => {
+export const Input = (props: IInputProps) => {
   const {
     id,
     type = 'text',
@@ -140,7 +141,7 @@ export const Input = (props: InputProps) => {
   );
 };
 
-export const Select = (props: SelectProps) => {
+export const Select = (props: ISelectProps) => {
   const { id, value, onChange, required = false, className = '', options = [], ...rest } = props;
 
   return (
@@ -161,7 +162,7 @@ export const Select = (props: SelectProps) => {
   );
 };
 
-export const Label = (props: LabelProps) => {
+export const Label = (props: ILabelProps) => {
   const { children, htmlFor, className = '', required = false, ...rest } = props;
 
   return (
@@ -202,7 +203,7 @@ const DIVISION_OPTIONS = [
   { value: 'southwest', label: 'Southwest' },
 ];
 
-export const GamesForm = (props: GamesFormProps) => {
+export const GamesForm = (props: IGamesFormProps) => {
   const { gameParams, setGameParams, loading, onSubmit, seasons, teams } = props;
 
   // Filter out the selected team from h2h options to prevent duplicate selection
@@ -210,6 +211,7 @@ export const GamesForm = (props: GamesFormProps) => {
 
   const fields = [
     {
+      name: 'gameId',
       label: 'Game ID',
       id: 'game-id',
       type: 'number',
@@ -219,6 +221,7 @@ export const GamesForm = (props: GamesFormProps) => {
         setGameParams({ ...gameParams, id: e.target.value }),
     },
     {
+      name: 'date',
       label: 'Date',
       id: 'game-date',
       type: 'date',
@@ -227,6 +230,7 @@ export const GamesForm = (props: GamesFormProps) => {
         setGameParams({ ...gameParams, date: e.target.value }),
     },
     {
+      name: 'season',
       label: 'Season',
       id: 'game-season',
       type: 'select',
@@ -236,6 +240,7 @@ export const GamesForm = (props: GamesFormProps) => {
       options: seasons,
     },
     {
+      name: 'league',
       label: 'League',
       id: 'game-league',
       type: 'select',
@@ -245,6 +250,7 @@ export const GamesForm = (props: GamesFormProps) => {
       options: LEAGUE_OPTIONS,
     },
     {
+      name: 'team',
       label: 'Team',
       id: 'game-team',
       type: 'select',
@@ -254,6 +260,7 @@ export const GamesForm = (props: GamesFormProps) => {
       options: teams,
     },
     {
+      name: 'h2h',
       label: 'Head-to-Head Team',
       id: 'game-h2h',
       type: 'select',
@@ -265,7 +272,7 @@ export const GamesForm = (props: GamesFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Games Query Parameters"
@@ -275,10 +282,11 @@ export const GamesForm = (props: GamesFormProps) => {
   );
 };
 
-export const GameStatsForm = (props: GameStatsFormProps) => {
+export const GameStatsForm = (props: IGameStatsFormProps) => {
   const { gameStatsId, setGameStatsId, loading, onSubmit } = props;
   const fields = [
     {
+      name: 'gameStatsId',
       label: 'Game ID',
       id: 'game-stats-id',
       type: 'number',
@@ -291,7 +299,7 @@ export const GameStatsForm = (props: GameStatsFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Game Statistics Query"
@@ -300,7 +308,7 @@ export const GameStatsForm = (props: GameStatsFormProps) => {
   );
 };
 
-export const TeamsForm = (props: TeamsFormProps) => {
+export const TeamsForm = (props: ITeamsFormProps) => {
   const { teamParams, setTeamParams, loading, onSubmit, seasons, teams } = props;
   const fields = [
     {
@@ -351,7 +359,7 @@ export const TeamsForm = (props: TeamsFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Teams Query Parameters"
@@ -361,7 +369,7 @@ export const TeamsForm = (props: TeamsFormProps) => {
   );
 };
 
-export const TeamStatsForm = (props: TeamStatsFormProps) => {
+export const TeamStatsForm = (props: ITeamStatsFormProps) => {
   const { teamStatsParams, setTeamStatsParams, loading, onSubmit, seasons, teams } = props;
   const fields = [
     {
@@ -413,7 +421,7 @@ export const TeamStatsForm = (props: TeamStatsFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Team Statistics Query Parameters"
@@ -423,7 +431,7 @@ export const TeamStatsForm = (props: TeamStatsFormProps) => {
   );
 };
 
-export const PlayersForm = (props: PlayersFormProps) => {
+export const PlayersForm = (props: IPlayersFormProps) => {
   const { playerParams, setPlayerParams, loading, onSubmit, seasons, teams } = props;
   const fields = [
     {
@@ -483,7 +491,7 @@ export const PlayersForm = (props: PlayersFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Players Query Parameters"
@@ -493,7 +501,7 @@ export const PlayersForm = (props: PlayersFormProps) => {
   );
 };
 
-export const PlayerStatsForm = (props: PlayerStatsFormProps) => {
+export const PlayerStatsForm = (props: IPlayerStatsFormProps) => {
   const { playerStatsParams, setPlayerStatsParams, loading, onSubmit, seasons, teams } = props;
   const fields = [
     {
@@ -554,7 +562,7 @@ export const PlayerStatsForm = (props: PlayerStatsFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Player Statistics Query Parameters"
@@ -564,7 +572,7 @@ export const PlayerStatsForm = (props: PlayerStatsFormProps) => {
   );
 };
 
-export const StandingsForm = (props: StandingsFormProps) => {
+export const StandingsForm = (props: IStandingsFormProps) => {
   const { standingsParams, setStandingsParams, loading, onSubmit, seasons } = props;
   const fields = [
     {
@@ -608,7 +616,7 @@ export const StandingsForm = (props: StandingsFormProps) => {
   ];
   return (
     <DynamicForm
-      fields={fields}
+      fields={fields as IFieldConfig[]}
       onSubmit={e => void onSubmit(e)}
       loading={loading}
       title="Standings Query Parameters"
@@ -618,7 +626,7 @@ export const StandingsForm = (props: StandingsFormProps) => {
   );
 };
 
-export const DataDisplay = (props: DataDisplayProps) => {
+export const DataDisplay = (props: IDataDisplayProps) => {
   const { data, loading, error, selectedTab } = props;
 
   if (loading) {

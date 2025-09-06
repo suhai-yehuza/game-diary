@@ -7,8 +7,8 @@ import { useState, useEffect } from 'react';
 import { Textarea } from '@/app/components/ui';
 import { Button } from '@/app/components/ui/button';
 import { useCreateComment, useUpdateComment } from '@/hooks/use-comments';
-import type { ICommentFormProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IComment, ICommentFormProps, ParentType } from '@/types';
 
 export function CommentForm({
   parentId,
@@ -46,20 +46,23 @@ export function CommentForm({
     try {
       if (initialContent && commentId) {
         // Update existing comment
-        const result = await updateComment(commentId, { content: content.trim() });
-        if (result?.comment) {
-          onSuccess?.(result.comment);
+        const result = await updateComment({ id: commentId, content: content.trim() });
+        if (result?.data?.updateComment?.comment) {
+          onSuccess?.(result.data.updateComment.comment as IComment);
           setContent('');
         }
       } else {
         // Create new comment
+        if (!parentId || !parentType) {
+          throw new Error('Parent ID and type are required to create a comment');
+        }
         const result = await createComment({
-          content: content.trim(),
           parentId,
-          parentType,
+          parentType: parentType as ParentType,
+          content: content.trim(),
         });
-        if (result?.comment) {
-          onSuccess?.(result.comment);
+        if (result?.data?.createComment?.comment) {
+          onSuccess?.(result.data.createComment.comment as IComment);
           setContent('');
         }
       }

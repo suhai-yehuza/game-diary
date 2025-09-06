@@ -2,11 +2,10 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { ContentPreviewBanner } from '@/app/components/landing/ContentPreviewBanner';
-import type { IGameLog, IGameResponse } from '@/lib/types';
+import type { IGameLog, IGameResponse } from '@/types';
 
 // Mock the hooks
-vi.mock('@/hooks/use-latest-games');
-vi.mock('@/hooks/use-top-game-logs');
+vi.mock('@/hooks/use-landing-page-data');
 
 // Mock Next.js components
 vi.mock('next/image', () => ({
@@ -71,12 +70,40 @@ const createMockGameLog = (
   game: {
     id: 'game123',
     date: new Date().toISOString(),
-    home_team_id: 'team1',
-    away_team_id: 'team2',
     game_type: 'REGULAR',
     status: 'FINISHED',
-    home_team_score: 100,
-    away_team_score: 95,
+    teams: {
+      home: {
+        id: 'team1',
+        name: 'Home Team',
+        nickname: 'Home',
+        code: 'HOME',
+        logo: 'https://example.com/home-logo.png',
+      },
+      away: {
+        id: 'team2',
+        name: 'Away Team',
+        nickname: 'Away',
+        code: 'AWAY',
+        logo: 'https://example.com/away-logo.png',
+      },
+    },
+    scores: {
+      home: {
+        points: 100,
+        win: 1,
+        loss: 0,
+        series: { win: 0, loss: 0 },
+        linescore: [100],
+      },
+      away: {
+        points: 95,
+        win: 0,
+        loss: 1,
+        series: { win: 0, loss: 0 },
+        linescore: [95],
+      },
+    },
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
 
@@ -170,43 +197,56 @@ const createMockGame = (id: number, date: string, status: string): IGameResponse
 });
 
 describe('ContentPreviewBanner', () => {
-  let mockUseTopGameLogs: any;
-  let mockUseLatestGames: any;
+  let mockUseLandingPageData: any;
 
   beforeEach(async () => {
-    const topGameLogsModule = await import('@/hooks/use-top-game-logs');
-    const latestGamesModule = await import('@/hooks/use-latest-games');
-    mockUseTopGameLogs = vi.mocked(topGameLogsModule.useTopGameLogs);
-    mockUseLatestGames = vi.mocked(latestGamesModule.useLatestGames);
+    const landingPageDataModule = await import('@/hooks/use-landing-page-data');
+    mockUseLandingPageData = vi.mocked(landingPageDataModule.useLandingPageData);
   });
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Default mock implementations
-    mockUseTopGameLogs.mockReturnValue({
-      topGameLogs: [],
+    // Default mock implementation
+    mockUseLandingPageData.mockReturnValue({
+      data: {
+        trendingContent: {
+          topGameLogs: [],
+          mostActiveGameLog: null,
+        },
+        latestResults: {
+          latestGames: [],
+          latestFinishedGame: null,
+        },
+        recentGames: {
+          finishedGames: [],
+          currentGame: null,
+        },
+        popularGames: {
+          topRated: [],
+          mostRated: [],
+          mostPopular: [],
+        },
+        timestamp: new Date().toISOString(),
+        source: 'database',
+      },
       loading: false,
       error: null,
-      refetch: vi.fn(),
-    });
-
-    mockUseLatestGames.mockReturnValue({
-      latestGames: [],
-      loading: false,
-      error: null,
-      refetch: vi.fn(),
-      season: '2024',
+      refresh: vi.fn(),
+      lastUpdated: new Date().toISOString(),
+      source: 'database',
     });
   });
 
   describe('Loading state', () => {
-    it('should show loading skeleton when game logs are loading', () => {
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [],
+    it('should show loading skeleton when data is loading', () => {
+      mockUseLandingPageData.mockReturnValue({
+        data: null,
         loading: true,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: null,
+        source: null,
       });
 
       render(<ContentPreviewBanner />);
@@ -220,34 +260,38 @@ describe('ContentPreviewBanner', () => {
       const skeletonElements = document.querySelectorAll('.animate-pulse');
       expect(skeletonElements.length).toBeGreaterThan(0);
     });
-
-    it('should show loading skeleton when games are loading', () => {
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [],
-        loading: true,
-        error: null,
-        refetch: vi.fn(),
-        season: '2024',
-      });
-
-      render(<ContentPreviewBanner />);
-
-      expect(screen.getByText("See What's Happening")).toBeInTheDocument();
-
-      // Should show loading skeleton
-      const skeletonElements = document.querySelectorAll('.animate-pulse');
-      expect(skeletonElements.length).toBeGreaterThan(0);
-    });
   });
 
   describe('Content display', () => {
     it('should display trending content section', () => {
       const mockGameLog = createMockGameLog('1', 15, 25, 4);
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -262,12 +306,33 @@ describe('ContentPreviewBanner', () => {
 
     it('should display latest results section', () => {
       const mockGame = createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT');
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -285,11 +350,33 @@ describe('ContentPreviewBanner', () => {
       const gameLog2 = createMockGameLog('2', 20, 15, 4); // Activity: 35 (most active)
       const gameLog3 = createMockGameLog('3', 8, 8, 5); // Activity: 16
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [gameLog1, gameLog2, gameLog3],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [gameLog1, gameLog2, gameLog3],
+            mostActiveGameLog: gameLog2, // The service should return the most active one
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -304,12 +391,33 @@ describe('ContentPreviewBanner', () => {
       const game2 = createMockGame(2, '2024-12-23T19:30:00.000Z', 'FT'); // Newer
       const game3 = createMockGame(3, '2024-12-22T19:30:00.000Z', 'Q3'); // Live game
 
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [game1, game2, game3],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [game1, game2, game3],
+            latestFinishedGame: game2, // The service should return the latest finished game
+          },
+          recentGames: {
+            finishedGames: [game2, game1], // Only finished games
+            currentGame: game2,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -322,11 +430,33 @@ describe('ContentPreviewBanner', () => {
 
   describe('Empty states', () => {
     it('should show empty state when no trending content', () => {
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -335,12 +465,33 @@ describe('ContentPreviewBanner', () => {
     });
 
     it('should show empty state when no recent games', () => {
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -350,12 +501,33 @@ describe('ContentPreviewBanner', () => {
 
     it('should show empty state when no finished games', () => {
       const liveGame = createMockGame(1, '2024-12-23T19:30:00.000Z', 'Q3');
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [liveGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [], // Empty array - no games at all
+            latestFinishedGame: null, // No finished games
+          },
+          recentGames: {
+            finishedGames: [], // No finished games
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -367,11 +539,33 @@ describe('ContentPreviewBanner', () => {
   describe('Navigation links', () => {
     it('should have correct link to user dashboard', () => {
       const mockGameLog = createMockGameLog('1', 15, 25, 4);
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -382,12 +576,33 @@ describe('ContentPreviewBanner', () => {
 
     it('should have correct link to sports page', () => {
       const mockGame = createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT');
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -400,11 +615,33 @@ describe('ContentPreviewBanner', () => {
   describe('User avatar display', () => {
     it('should display user avatar when available', () => {
       const mockGameLog = createMockGameLog('1', 15, 25, 4);
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -422,11 +659,33 @@ describe('ContentPreviewBanner', () => {
         },
       };
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -439,12 +698,33 @@ describe('ContentPreviewBanner', () => {
   describe('Team logo display', () => {
     it('should display team logos when available', () => {
       const mockGame = createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT');
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -471,12 +751,33 @@ describe('ContentPreviewBanner', () => {
         },
       };
 
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -497,11 +798,33 @@ describe('ContentPreviewBanner', () => {
         created_at: recentDate.toISOString(),
       };
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [],
+            latestFinishedGame: null,
+          },
+          recentGames: {
+            finishedGames: [],
+            currentGame: null,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -517,12 +840,33 @@ describe('ContentPreviewBanner', () => {
         ...createMockGame(1, gameDate.toISOString(), 'FT'),
       };
 
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [],
+            mostActiveGameLog: null,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);
@@ -532,30 +876,19 @@ describe('ContentPreviewBanner', () => {
   });
 
   describe('Error handling', () => {
-    it('should handle game logs error gracefully', () => {
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [],
+    it('should handle data loading error gracefully', () => {
+      mockUseLandingPageData.mockReturnValue({
+        data: null,
         loading: false,
-        error: 'Failed to load game logs',
-        refetch: vi.fn(),
+        error: 'Failed to load landing page data',
+        refresh: vi.fn(),
+        lastUpdated: null,
+        source: null,
       });
 
       render(<ContentPreviewBanner />);
 
       expect(screen.getByText('No trending content yet')).toBeInTheDocument();
-    });
-
-    it('should handle games error gracefully', () => {
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [],
-        loading: false,
-        error: 'Failed to load games',
-        refetch: vi.fn(),
-        season: '2024',
-      });
-
-      render(<ContentPreviewBanner />);
-
       expect(screen.getByText('No recent games available')).toBeInTheDocument();
     });
   });
@@ -575,19 +908,33 @@ describe('ContentPreviewBanner', () => {
       const mockGameLog = createMockGameLog('1', 15, 25, 4);
       const mockGame = createMockGame(1, '2024-12-23T19:30:00.000Z', 'FT');
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: [mockGameLog],
+      mockUseLandingPageData.mockReturnValue({
+        data: {
+          trendingContent: {
+            topGameLogs: [mockGameLog],
+            mostActiveGameLog: mockGameLog,
+          },
+          latestResults: {
+            latestGames: [mockGame],
+            latestFinishedGame: mockGame,
+          },
+          recentGames: {
+            finishedGames: [mockGame],
+            currentGame: mockGame,
+          },
+          popularGames: {
+            topRated: [],
+            mostRated: [],
+            mostPopular: [],
+          },
+          timestamp: new Date().toISOString(),
+          source: 'database',
+        },
         loading: false,
         error: null,
-        refetch: vi.fn(),
-      });
-
-      mockUseLatestGames.mockReturnValue({
-        latestGames: [mockGame],
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-        season: '2024',
+        refresh: vi.fn(),
+        lastUpdated: new Date().toISOString(),
+        source: 'database',
       });
 
       render(<ContentPreviewBanner />);

@@ -7,7 +7,16 @@ import { useDebounce } from 'use-debounce';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IGameSearchProps, IGameLogSearchResult, IGameResponse } from '@/lib/types';
+import type { IGameSearchProps, IGameLogSearchResult, Game } from '@/types';
+
+// Helper function to safely extract date from various game date formats
+function getGameDate(date: string | { start?: string } | unknown): string {
+  if (typeof date === 'string') return date;
+  if (date && typeof date === 'object' && 'start' in date && typeof date.start === 'string')
+    return date.start;
+  // For any other unknown type, return empty string instead of calling String()
+  return '';
+}
 
 export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,49 +46,75 @@ export function GameSearch({ onGameSelect, onClose }: IGameSearchProps) {
         throw new Error('Failed to fetch games');
       }
 
-      const data = (await response.json()) as { errors?: string[]; response?: IGameResponse[] };
+      const data = (await response.json()) as { errors?: string[]; response?: Game[] };
 
       if (data.errors && data.errors.length > 0) {
         throw new Error(data.errors[0]);
       }
 
-      const games: IGameResponse[] = data.response ?? [];
+      const games: Game[] = data.response ?? [];
 
-      // Filter games based on search term (team names, arena, etc.)
+      // Filter games based on search term (team names, nicknames, codes, arena, etc.)
       const filteredGames = games.filter(game => {
         const searchLower = term.toLowerCase();
-        const homeTeam = game.teams.home.name.toLowerCase();
-        const awayTeam = game.teams.visitors.name.toLowerCase();
-        const arena = game.arena?.name?.toLowerCase() ?? '';
-        const gameDate = new Date(game.date.start).toLocaleDateString().toLowerCase();
+
+        // Check home team fields
+        const homeTeamName = game.teams.home.name.toLowerCase();
+        const homeTeamNickname = game.teams.home.nickname.toLowerCase();
+        const homeTeamCode = game.teams.home.code.toLowerCase();
+
+        // Check away team fields
+        const awayTeamName = game.teams.visitors.name.toLowerCase();
+        const awayTeamNickname = game.teams.visitors.nickname.toLowerCase();
+        const awayTeamCode = game.teams.visitors.code.toLowerCase();
+
+        // Check arena fields
+        const arenaName = game.arena?.name?.toLowerCase() ?? '';
+        const arenaCity = game.arena?.city?.toLowerCase() ?? '';
+
+        // Check game date
+        const gameDate = new Date(getGameDate(game.date)).toLocaleDateString().toLowerCase();
 
         return (
-          homeTeam.includes(searchLower) ||
-          awayTeam.includes(searchLower) ||
-          arena.includes(searchLower) ||
+          // Home team matches
+          homeTeamName.includes(searchLower) ||
+          homeTeamNickname.includes(searchLower) ||
+          homeTeamCode.includes(searchLower) ||
+          // Away team matches
+          awayTeamName.includes(searchLower) ||
+          awayTeamNickname.includes(searchLower) ||
+          awayTeamCode.includes(searchLower) ||
+          // Arena matches
+          arenaName.includes(searchLower) ||
+          arenaCity.includes(searchLower) ||
+          // Date matches
           gameDate.includes(searchLower)
         );
       });
 
       // Sort by date (most recent first) and limit results for performance
       const sortedGames = filteredGames
-        .sort((a, b) => new Date(b.date.start).getTime() - new Date(a.date.start).getTime())
+        .sort((a, b) => {
+          const bDate = getGameDate(b.date);
+          const aDate = getGameDate(a.date);
+          return new Date(bDate).getTime() - new Date(aDate).getTime();
+        })
         .slice(0, API_CONFIG.pagination.DEFAULT_PAGE_SIZE * 2.5); // Use config-based limit for better search results
 
       const searchResults: IGameLogSearchResult[] = sortedGames.map(game => ({
         id: game.id,
-        name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
-        date: new Date(game.date.start).toLocaleDateString('en-US', {
+        name: `${game.teams?.visitors?.name || game.away_team} @ ${game.teams?.home?.name || game.home_team}`,
+        date: new Date(getGameDate(game.date)).toLocaleDateString('en-US', {
           weekday: 'short',
           year: 'numeric',
           month: 'short',
           day: 'numeric',
         }),
-        homeTeam: game.teams.home.name,
-        awayTeam: game.teams.visitors.name,
+        homeTeam: game.teams?.home?.name || game.home_team,
+        awayTeam: game.teams?.visitors?.name || game.away_team,
         arena: game.arena?.name ?? 'Unknown Arena',
-        season: game.season,
-        status: game.status?.long ?? game.status?.short ?? 'Unknown',
+        season: game.season ? parseInt(game.season) : 2024,
+        status: typeof game.status === 'string' ? game.status : game.status?.short || 'Unknown',
       }));
 
       setResults(searchResults);

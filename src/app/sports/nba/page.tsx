@@ -1,14 +1,15 @@
 'use client';
 
-import { ArrowRight, Calendar, Users, Trophy, RefreshCw, Newspaper } from 'lucide-react';
+import { ArrowRight, Calendar, Trophy, RefreshCw, Newspaper, Users } from 'lucide-react';
 import Link from 'next/link';
-import { useState, useEffect, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { NBANews } from '@/app/components/sports/nba-news';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
+import { useNBAHubCounts } from '@/hooks/use-nba-hub-counts';
 import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { API_LIMITS } from '@/lib/constants';
@@ -28,15 +29,19 @@ const NavigationCardSkeleton = () => (
 );
 
 export default function NBAPage() {
-  // State for total counts
-  const [totalGames, setTotalGames] = useState<number>(0);
-  const [totalTeams, setTotalTeams] = useState<number>(0);
-  const [totalPlayers, setTotalPlayers] = useState<number>(0);
-  const [countsLoading, setCountsLoading] = useState(true);
+  // Use the new NBA Hub counts hook with caching
+  const {
+    counts: totalCounts,
+    loading: countsLoading,
+    error: _countsError,
+    refresh: refreshCounts,
+    lastUpdated: _countsLastUpdated,
+    source: countsSource,
+  } = useNBAHubCounts();
 
   // Fetch data for navigation cards
   const {
-    latestGames,
+    latestGames: _latestGames,
     loading: gamesLoading,
     error: gamesError,
   } = useLatestGames({
@@ -45,7 +50,7 @@ export default function NBAPage() {
   });
 
   const {
-    teams,
+    teams: _teams,
     loading: teamsLoading,
     error: teamsError,
   } = useNBATeams({
@@ -53,7 +58,7 @@ export default function NBAPage() {
   });
 
   const {
-    players,
+    players: _players,
     loading: playersLoading,
     error: playersError,
   } = useNBAPlayers({
@@ -63,86 +68,88 @@ export default function NBAPage() {
   // Fetch live games data
   const { games: liveGames, loading: liveGamesLoading } = useLiveGames();
 
-  // Fetch total counts from database
-  const fetchTotalCounts = useCallback(async () => {
-    try {
-      // Get counts directly from database
-      const response = await fetch('/api/nba-hub/counts');
-      const data = await response.json();
+  // Handle refresh button click
+  const handleRefresh = useCallback(async () => {
+    console.log('🔄 Manual refresh requested for NBA Hub counts');
+    await refreshCounts?.();
+  }, [refreshCounts]);
 
-      if (data.success) {
-        setTotalGames(data.counts.games);
-        setTotalTeams(data.counts.teams);
-        setTotalPlayers(data.counts.players);
+  // Define loading states before using them in useEffect
+  const isLoading = gamesLoading || teamsLoading || playersLoading;
+  const countsAreLoading = countsLoading;
 
-        console.log(
-          `📊 NBA Hub counts from database: ${data.counts.games} games, ${data.counts.teams} teams, ${data.counts.players} players`
-        );
-
-        setCountsLoading(false);
-      } else {
-        // Fallback to using the length of fetched data
-        setTotalGames(latestGames.length);
-        setTotalTeams(teams.length);
-        setTotalPlayers(players.length);
-        setCountsLoading(false);
-        console.log('📊 NBA Hub using fallback counts from fetched data');
-      }
-    } catch (error) {
-      console.error('Error fetching database counts:', error);
-      // Fallback to using the length of fetched data
-      setTotalGames(latestGames.length);
-      setTotalTeams(teams.length);
-      setTotalPlayers(players.length);
-      setCountsLoading(false);
-    }
-  }, [latestGames.length, teams.length, players.length]);
-
+  // Log cache performance
   useEffect(() => {
-    // Fetch immediately on page load
-    void fetchTotalCounts();
-  }, [fetchTotalCounts]); // Now depends on fetchTotalCounts
+    if (totalCounts && countsSource) {
+      console.log(`📊 NBA Hub counts loaded from ${countsSource}:`, totalCounts);
+      if (countsSource === 'cache') {
+        console.log('⚡ Cache hit - fast response!');
+      } else {
+        console.log('🐌 Cache miss - database query executed');
+      }
+    }
+  }, [totalCounts, countsSource]);
+
+  // Debug loading states
+  useEffect(() => {
+    console.log('🔍 Loading states:', {
+      countsLoading,
+      gamesLoading,
+      teamsLoading,
+      playersLoading,
+      isLoading,
+      countsAreLoading,
+      hasCounts: !!totalCounts,
+    });
+  }, [
+    countsLoading,
+    gamesLoading,
+    teamsLoading,
+    playersLoading,
+    isLoading,
+    countsAreLoading,
+    totalCounts,
+  ]);
 
   const navigationCards = [
     {
+      icon: Calendar,
       title: 'Games',
       description: 'Browse and filter NBA games',
+      count: totalCounts?.totalGames || 0,
       href: '/sports/nba/games',
-      icon: Calendar,
       color: TAILWIND_CLASSES.sports.nba,
-      count: countsLoading ? latestGames.length : totalGames,
       formattedCount: countsLoading
-        ? `${latestGames.length} games`
-        : `${formatNumberShort(totalGames)} games`,
-      loading: gamesLoading || countsLoading,
+        ? 'Loading...'
+        : `${formatNumberShort(totalCounts?.totalGames || 0)} games`,
+      loading: countsLoading,
     },
     {
+      icon: Trophy,
       title: 'Teams',
       description: 'Explore all NBA teams',
+      count: totalCounts?.totalTeams || 0,
       href: '/sports/nba/teams',
-      icon: Trophy,
       color: TAILWIND_CLASSES.sports.nfl, // Using NFL blue for Teams
-      count: countsLoading ? teams.length : totalTeams,
-      formattedCount: countsLoading
-        ? `${teams.length} teams`
-        : `${formatNumberShort(totalTeams)} teams`,
-      loading: teamsLoading || countsLoading,
+      formattedCount: countsAreLoading
+        ? 'Loading...'
+        : `${formatNumberShort(totalCounts?.totalTeams || 0)} teams`,
+      loading: countsAreLoading,
     },
     {
+      icon: Users,
       title: 'Players',
       description: 'Discover NBA players',
+      count: totalCounts?.totalPlayers || 0,
       href: '/sports/nba/players',
-      icon: Users,
       color: TAILWIND_CLASSES.sports.mls, // Using MLS green for Players
-      count: countsLoading ? players.length : totalPlayers,
-      formattedCount: countsLoading
-        ? `${players.length} players`
-        : `${formatNumberShort(totalPlayers)} players`,
-      loading: playersLoading || countsLoading,
+      formattedCount: countsAreLoading
+        ? 'Loading...'
+        : `${formatNumberShort(totalCounts?.totalPlayers || 0)} players`,
+      loading: countsAreLoading,
     },
   ];
 
-  const isLoading = gamesLoading || teamsLoading || playersLoading;
   const hasErrors = gamesError || teamsError || playersError;
 
   // Check if there are active live games
@@ -160,10 +167,7 @@ export default function NBAPage() {
 
             {/* Refresh Counts Button */}
             <button
-              onClick={() => {
-                setCountsLoading(true);
-                void fetchTotalCounts();
-              }}
+              onClick={() => void handleRefresh()}
               disabled={countsLoading}
               className="inline-flex items-center gap-2 px-3 py-2 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
               title="Refresh database counts"
@@ -183,7 +187,9 @@ export default function NBAPage() {
             }`}
             {...(!hasLiveGames &&
               isLiveGamesReady && {
-                onClick: e => e.preventDefault(),
+                onClick: (e: React.MouseEvent) => {
+                  e.preventDefault();
+                },
                 'aria-disabled': true,
               })}
           >
@@ -215,8 +221,8 @@ export default function NBAPage() {
 
       {/* Navigation Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
-        {isLoading ? (
-          // Show skeleton loading for navigation cards
+        {countsAreLoading ? (
+          // Show skeleton loading for navigation cards - only when counts are loading
           <>
             <NavigationCardSkeleton />
             <NavigationCardSkeleton />
@@ -277,7 +283,7 @@ export default function NBAPage() {
           </h2>
         </div>
 
-        <NBANews limit={6} />
+        <NBANews news={[]} limit={6} />
       </section>
     </SportsPageLayout>
   );

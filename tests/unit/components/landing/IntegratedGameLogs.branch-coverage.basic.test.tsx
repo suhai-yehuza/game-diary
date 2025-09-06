@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock the hooks
-vi.mock('@/hooks/use-top-game-logs', () => ({
-  useTopGameLogs: vi.fn(),
+vi.mock('@/hooks/use-landing-page-data', () => ({
+  useLandingPageData: vi.fn(),
 }));
 
 // Mock Next.js components
@@ -42,9 +42,29 @@ vi.mock('lucide-react', () => ({
 }));
 
 import { IntegratedGameLogs } from '@/app/components/landing/IntegratedGameLogs';
-import { useTopGameLogs } from '@/hooks/use-top-game-logs';
+import { useLandingPageData } from '@/hooks/use-landing-page-data';
 
-const mockUseTopGameLogs = vi.mocked(useTopGameLogs);
+const mockUseLandingPageData = vi.mocked(useLandingPageData);
+
+// Helper function to create mock landing page data
+const createMockLandingPageData = (topGameLogs: any[]) => ({
+  data: {
+    trendingContent: {
+      topGameLogs,
+      mostActiveGameLog: null,
+    },
+    latestResults: { latestGames: [], latestFinishedGame: null },
+    recentGames: { finishedGames: [], currentGame: null },
+    popularGames: { topRated: [], mostRated: [], mostPopular: [] },
+    timestamp: '2023-01-01T00:00:00Z',
+    source: 'cache' as const,
+  },
+  loading: false,
+  error: null,
+  refresh: vi.fn(),
+  lastUpdated: '2023-01-01T00:00:00Z',
+  source: 'cache',
+});
 
 describe('IntegratedGameLogs Branch Coverage', () => {
   beforeEach(() => {
@@ -56,25 +76,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const singleGameLog = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: singleGameLog,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(singleGameLog));
 
       render(<IntegratedGameLogs />);
 
@@ -87,44 +101,37 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const multipleGameLogs = [
         {
           id: '1',
-          user: { username: 'user1', image_url: null },
+          user: { username: 'user1', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
         {
           id: '2',
-          user: { username: 'user2', image_url: null },
+          user: { username: 'user2', image_url: undefined },
           game: {
-            home_team: { name: 'Team A', logo: null },
-            away_team: { name: 'Team B', logo: null },
+            home_team: { name: 'Team A' },
+            away_team: { name: 'Team B' },
           },
           rating_for_game: 3,
-          watched_setting: 'PARTIALLY_WATCHED',
           totalCommentCount: 2,
           totalReactionCount: 1,
           created_at: '2023-01-02T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: multipleGameLogs,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(multipleGameLogs));
 
       render(<IntegratedGameLogs />);
 
-      // Should show navigation controls for multiple game logs
-      expect(screen.getByTestId('chevron-left')).toBeInTheDocument();
-      expect(screen.getByTestId('chevron-right')).toBeInTheDocument();
+      // Should show multiple game logs (no navigation controls in IntegratedGameLogs)
+      expect(screen.getByText('user1')).toBeInTheDocument();
+      expect(screen.getByText('user2')).toBeInTheDocument();
     });
 
     it('handles user with image_url', () => {
@@ -133,23 +140,17 @@ describe('IntegratedGameLogs Branch Coverage', () => {
           id: '1',
           user: { username: 'testuser', image_url: 'https://example.com/avatar.jpg' },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogWithImage,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogWithImage));
 
       render(<IntegratedGameLogs />);
 
@@ -162,25 +163,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogWithoutImage = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogWithoutImage,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogWithoutImage));
 
       render(<IntegratedGameLogs />);
 
@@ -195,23 +190,17 @@ describe('IntegratedGameLogs Branch Coverage', () => {
           id: '1',
           user: null,
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: anonymousGameLog,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(anonymousGameLog));
 
       render(<IntegratedGameLogs />);
 
@@ -222,25 +211,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogWithTeamLogo = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
             home_team: { name: 'Home Team', logo: 'https://example.com/logo.png' },
-            away_team: { name: 'Away Team', logo: null },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogWithTeamLogo,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogWithTeamLogo));
 
       render(<IntegratedGameLogs />);
 
@@ -252,25 +235,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogWithoutTeamLogo = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogWithoutTeamLogo,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogWithoutTeamLogo));
 
       render(<IntegratedGameLogs />);
 
@@ -283,25 +260,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const highActivityGameLog = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 30,
           totalReactionCount: 25,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: highActivityGameLog,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(highActivityGameLog));
 
       render(<IntegratedGameLogs />);
 
@@ -313,25 +284,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const mediumActivityGameLog = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 15,
           totalReactionCount: 8,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: mediumActivityGameLog,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(mediumActivityGameLog));
 
       render(<IntegratedGameLogs />);
 
@@ -343,25 +308,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const lowActivityGameLog = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 3,
           totalReactionCount: 2,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: lowActivityGameLog,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(lowActivityGameLog));
 
       render(<IntegratedGameLogs />);
 
@@ -372,52 +331,41 @@ describe('IntegratedGameLogs Branch Coverage', () => {
     it('handles more than 5 game logs (shows +more indicator)', () => {
       const manyGameLogs = Array.from({ length: 7 }, (_, i) => ({
         id: `${i + 1}`,
-        user: { username: `user${i + 1}`, image_url: null },
+        user: { username: `user${i + 1}`, image_url: undefined },
         game: {
-          home_team: { name: `Home Team ${i + 1}`, logo: null },
-          away_team: { name: `Away Team ${i + 1}`, logo: null },
+          home_team: { name: `Home Team ${i + 1}` },
+          away_team: { name: `Away Team ${i + 1}` },
         },
         rating_for_game: 4,
-        watched_setting: 'WATCHED',
         totalCommentCount: 5,
         totalReactionCount: 3,
         created_at: '2023-01-01T00:00:00Z',
       }));
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: manyGameLogs,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(manyGameLogs));
 
       render(<IntegratedGameLogs />);
 
-      // Should show +more indicator
-      expect(screen.getByText('+2 more')).toBeInTheDocument();
+      // Should show all game logs in scrollable container (no +more indicator in IntegratedGameLogs)
+      expect(screen.getByText('user1')).toBeInTheDocument();
+      expect(screen.getByText('user2')).toBeInTheDocument();
     });
 
     it('handles exactly 5 game logs (no +more indicator)', () => {
       const fiveGameLogs = Array.from({ length: 5 }, (_, i) => ({
         id: `${i + 1}`,
-        user: { username: `user${i + 1}`, image_url: null },
+        user: { username: `user${i + 1}`, image_url: undefined },
         game: {
-          home_team: { name: `Home Team ${i + 1}`, logo: null },
-          away_team: { name: `Away Team ${i + 1}`, logo: null },
+          home_team: { name: `Home Team ${i + 1}` },
+          away_team: { name: `Away Team ${i + 1}` },
         },
         rating_for_game: 4,
-        watched_setting: 'WATCHED',
         totalCommentCount: 5,
         totalReactionCount: 3,
         created_at: '2023-01-01T00:00:00Z',
       }));
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: fiveGameLogs,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(fiveGameLogs));
 
       render(<IntegratedGameLogs />);
 
@@ -429,25 +377,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogWithNullCounts = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: null,
           totalReactionCount: null,
           created_at: '2023-01-01T00:00:00Z',
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogWithNullCounts,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogWithNullCounts));
 
       render(<IntegratedGameLogs />);
 
@@ -463,25 +405,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogToday = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: today,
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogToday,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogToday));
 
       render(<IntegratedGameLogs />);
 
@@ -493,25 +429,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogYesterday = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: yesterday,
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogYesterday,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogYesterday));
 
       render(<IntegratedGameLogs />);
 
@@ -523,25 +453,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogRecent = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: recentDate,
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogRecent,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogRecent));
 
       render(<IntegratedGameLogs />);
 
@@ -553,25 +477,19 @@ describe('IntegratedGameLogs Branch Coverage', () => {
       const gameLogOld = [
         {
           id: '1',
-          user: { username: 'testuser', image_url: null },
+          user: { username: 'testuser', image_url: undefined },
           game: {
-            home_team: { name: 'Home Team', logo: null },
-            away_team: { name: 'Away Team', logo: null },
+            home_team: { name: 'Home Team' },
+            away_team: { name: 'Away Team' },
           },
           rating_for_game: 4,
-          watched_setting: 'WATCHED',
           totalCommentCount: 5,
           totalReactionCount: 3,
           created_at: oldDate,
         },
       ];
 
-      mockUseTopGameLogs.mockReturnValue({
-        topGameLogs: gameLogOld,
-        loading: false,
-        error: null,
-        refetch: vi.fn(),
-      });
+      mockUseLandingPageData.mockReturnValue(createMockLandingPageData(gameLogOld));
 
       render(<IntegratedGameLogs />);
 

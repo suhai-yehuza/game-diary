@@ -22,8 +22,8 @@ export default [
       'coverage/**',
       '.nyc_output/**',
       'public/**',
-      'src/lib/types/generated/**',
-      'src/lib/types/**',
+      'types/generated/**',
+      'types/**',
       'lib/**',
       'scripts/**',
       '*.config.js',
@@ -38,6 +38,9 @@ export default [
       'playwright-report/**',
       'vitest.setup.ts',
       '.eslintrc.js',
+      'tests/**/*',
+      '**/*.test.{ts,tsx}',
+      '**/*.spec.{ts,tsx}',
     ],
   },
   eslint.configs.recommended,
@@ -250,26 +253,10 @@ export default [
       'custom-rules/no-duplicate-main': 'error',
     },
   },
-  // Test files configuration - less strict TypeScript rules for mocking
-  {
-    files: ['tests/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-return': 'off',
-      '@typescript-eslint/require-await': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'off',
-      '@typescript-eslint/no-empty-function': 'off',
-      '@typescript-eslint/prefer-nullish-coalescing': 'off',
-      '@next/next/no-img-element': 'off',
-      'react/no-array-index-key': 'off',
-      'import/no-unresolved': 'off',
-    },
-  },
+
   {
     files: ['src/**/*.tsx'],
+    ignores: ['tests/**/*', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
     rules: {
       // removed filenames rules
     },

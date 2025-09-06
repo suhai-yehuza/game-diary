@@ -3,9 +3,7 @@
 import { Search } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
-import type { ISportsEmptyStateProps } from '@/lib/types';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { ISportsEmptyStateProps } from '@/types';
 
 export function EmptyState({ hasActiveFilters, onClearFilters }: ISportsEmptyStateProps) {
   return (

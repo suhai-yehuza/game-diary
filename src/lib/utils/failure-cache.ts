@@ -1,4 +1,4 @@
-type FailureRecord = { lastFailedAt: number; error?: string };
+import type { FailureRecord } from '@/types';
 
 export class FailureCache {
   private readonly failures = new Map<string, FailureRecord>();

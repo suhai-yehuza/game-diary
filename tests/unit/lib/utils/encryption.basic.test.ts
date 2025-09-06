@@ -8,7 +8,7 @@ vi.mock('@/lib/utils/env-loader', () => ({
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 
-import type { IEncryptedField } from '@/lib/types';
+import type { IEncryptedField } from '@/types';
 import {
   encryptField,
   decryptField,
@@ -40,10 +40,10 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('content');
+      expect(encrypted).toHaveProperty('encrypted');
       expect(encrypted).toHaveProperty('tag');
       expect(typeof encrypted.iv).toBe('string');
-      expect(typeof encrypted.content).toBe('string');
+      expect(typeof encrypted.encrypted).toBe('string');
       expect(typeof encrypted.tag).toBe('string');
     });
 
@@ -53,7 +53,7 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext, keyOverride);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('content');
+      expect(encrypted).toHaveProperty('encrypted');
       expect(encrypted).toHaveProperty('tag');
     });
 
@@ -66,7 +66,7 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext, keyOverride);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('content');
+      expect(encrypted).toHaveProperty('encrypted');
       expect(encrypted).toHaveProperty('tag');
     });
 
@@ -250,7 +250,7 @@ describe('encryption utils', () => {
     it('returns true for encrypted field', () => {
       const encrypted: IEncryptedField = {
         iv: 'test-iv',
-        content: 'test-content',
+        encrypted: 'test-content',
         tag: 'test-tag',
       };
       const serialized = JSON.stringify(encrypted);

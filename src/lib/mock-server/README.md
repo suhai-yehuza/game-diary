@@ -89,7 +89,7 @@ POST /api/mock-server?action=database
 ```
 
 Available operations: `SELECT`, `INSERT`, `UPDATE`, `DELETE`
-Available tables: `users`, `game_logs`, `friendships`, `comments`, `reactions`, `notifications`, `nba_games`, `teams`, `nba_players`
+Available tables: `users`, `game_logs`, `friendships`, `comments`, `reactions`, `notifications`, `basketball_games`, `teams`, `basketball_players`
 
 ### Server Statistics
 

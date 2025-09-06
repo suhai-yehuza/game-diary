@@ -1,536 +1,154 @@
-import { sql } from 'drizzle-orm';
+import { eq, and, sql, desc, count, isNull, inArray, type SQL } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
+import { game_logs, users, comments, reactions, friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import { FRIENDSHIP_STATUS, CLASSIFICATION } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types';
-import { errorHandlers } from '@/lib/utils/error-handler';
+import type { GraphQLContext } from '@/types';
 
-// Optimized Game Log Query Resolvers
+// Optimized Game Log Resolvers using Drizzle ORM
 export const optimizedGameLogQueryResolvers = {
-  // Optimized game logs query with single JOIN query
-  gameLogs: async (
-    _parent: unknown,
+  // Optimized gameLogs query with better performance
+  async gameLogs(
+    parent: unknown,
     args: {
-      filters?: {
-        userId?: string;
-        gameId?: string;
-        dateRange?: { start: Date; end?: Date };
-        classification?: string;
-        search?: string;
-        searchText?: string;
-        minRating?: number;
-        maxRating?: number;
-        watchedSetting?: string;
-        watchedLocation?: string;
-        tags?: string[];
-        hasNotes?: boolean;
-        watchedDateRange?: { start: Date; end?: Date };
-        sortBy?: string;
-        sortDirection?: string;
-      };
-      pagination?: {
-        first?: number;
-        after?: string;
-        last?: number;
-        before?: string;
-      };
+      filters?: { userId?: string; classification?: string; gameId?: string; hasNotes?: boolean };
+      pagination?: { first?: number; after?: string };
     },
     context: GraphQLContext
-  ) => {
+  ) {
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
     }
 
     const { filters, pagination } = args;
-    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE;
+    const limit = Math.min(pagination?.first ?? 20, 100);
 
-    // Build WHERE conditions
-    const whereConditions = ['gl.deleted_at IS NULL'];
+    // Build WHERE conditions using Drizzle ORM
+    const whereConditions = [isNull(game_logs.deleted_at)];
 
     if (filters?.userId) {
-      whereConditions.push(`gl.user_id = '${filters.userId}'`);
-    }
-
-    if (filters?.gameId) {
-      whereConditions.push(`gl.game_id = '${filters.gameId}'`);
+      whereConditions.push(eq(game_logs.user_id, filters.userId));
     }
 
     if (filters?.classification) {
-      whereConditions.push(`gl.classification = '${filters.classification}'`);
+      whereConditions.push(eq(game_logs.classification, filters.classification));
     }
 
-    if (filters?.minRating) {
-      whereConditions.push(`gl.rating_for_game >= ${filters.minRating}`);
-    }
-
-    if (filters?.maxRating) {
-      whereConditions.push(`gl.rating_for_game <= ${filters.maxRating}`);
-    }
-
-    if (filters?.watchedSetting) {
-      whereConditions.push(`gl.watched_setting = '${filters.watchedSetting}'`);
+    if (filters?.gameId) {
+      whereConditions.push(eq(game_logs.game_id, filters.gameId));
     }
 
     if (filters?.hasNotes) {
-      whereConditions.push(`gl.notes IS NOT NULL AND gl.notes != ''`);
+      whereConditions.push(sql`${game_logs.notes} IS NOT NULL AND ${game_logs.notes} != ''`);
     }
 
-    // Add cursor condition for pagination
     if (pagination?.after) {
-      whereConditions.push(
-        `gl.created_at < (SELECT created_at FROM game_logs WHERE id = '${pagination.after}')`
-      );
+      // Get the created_at timestamp of the cursor record
+      const cursorRecord = await db()?.query.game_logs.findFirst({
+        where: eq(game_logs.id, pagination.after),
+        columns: { created_at: true },
+      });
+
+      if (cursorRecord?.created_at) {
+        whereConditions.push(sql`${game_logs.created_at} < ${cursorRecord.created_at}`);
+      }
     }
 
-    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+    const whereClause = and(...whereConditions);
 
-    // Get total count first
-    const countQuery = `
-      SELECT COUNT(*) as total_count
-      FROM game_logs gl
-      ${whereClause}
-    `;
-
-    const totalCountResult = await db()?.execute(sql.raw(countQuery));
-    const totalCount = parseInt(
-      (totalCountResult?.rows?.[0] as { total_count?: string })?.total_count || '0'
-    );
-
-    // Main optimized query with JOINs
-    const mainQuery = `
-      SELECT
-        gl.id,
-        gl.user_id,
-        gl.game_id,
-        gl.rating_for_game,
-        gl.notes,
-        gl.tags,
-        gl.watched_date,
-        gl.watched_setting,
-        gl.watched_location,
-        gl.watched_scope,
-        gl.classification,
-        gl.created_at,
-        gl.updated_at,
-        gl.deleted_at,
-
-        -- User data
-        u.id as user_id_full,
-        u.username,
-        u.first_name,
-        u.last_name,
-        u.image_url,
-
-        -- Game data
-        g.id as game_id_full,
-        g.date as game_date,
-        g.status as game_status,
-        g.game_type,
-        g.nba_game_id,
-        g.home_team_id,
-        g.away_team_id,
-        g.home_team_score,
-        g.away_team_score,
-        g.average_rating,
-        g.total_ratings,
-        g.created_at as game_created_at,
-        g.updated_at as game_updated_at,
-
-        -- Home team data
-        ht.id as ht_id,
-        ht.name as ht_name,
-        ht.nickname as ht_nickname,
-        ht.code as ht_code,
-        ht.city as ht_city,
-        ht.logo as ht_logo,
-        ht.all_star as ht_all_star,
-        ht.nba_franchise as ht_nba_franchise,
-        ht.conference as ht_conference,
-        ht.created_at as ht_created_at,
-        ht.updated_at as ht_updated_at,
-
-        -- Away team data
-        at.id as at_id,
-        at.name as at_name,
-        at.nickname as at_nickname,
-        at.code as at_code,
-        at.city as at_city,
-        at.logo as at_logo,
-        at.all_star as at_all_star,
-        at.nba_franchise as at_nba_franchise,
-        at.conference as at_conference,
-        at.created_at as at_created_at,
-        at.updated_at as at_updated_at
-      FROM game_logs gl
-      LEFT JOIN users u ON gl.user_id = u.id
-      LEFT JOIN nba_games g ON gl.game_id = g.id
-      LEFT JOIN teams ht ON g.home_team_id = ht.id
-      LEFT JOIN teams at ON g.away_team_id = at.id
-      ${whereClause}
-      ORDER BY gl.created_at DESC
-      LIMIT ${limit + 1}
-    `;
-
-    const startTime = Date.now();
-    const result = await db()?.execute(sql.raw(mainQuery));
-    const queryDuration = Date.now() - startTime;
-
-    // Log slow queries
-    if (queryDuration > 1000) {
-      console.warn(`Slow game logs query detected: ${queryDuration}ms`);
+    if (!whereClause) {
+      throw new Error('Invalid where clause');
     }
 
-    const rows = result?.rows || [];
-    const hasNextPage = rows.length > limit;
-    const paginatedRows = hasNextPage ? rows.slice(0, limit) : rows;
+    // Use the most efficient query based on limit
+    if (limit <= 10) {
+      return executeUltraFastQuery(whereClause, limit);
+    } else if (limit <= 50) {
+      return executeOptimizedQuery(whereClause, limit);
+    } else {
+      return executeMinimalQuery(whereClause, limit);
+    }
+  },
 
-    // Transform the flat result into the expected GraphQL structure
-    const edges = paginatedRows.map(row => ({
-      cursor: row.id,
-      node: {
-        id: row.id,
-        game_id: row.game_id,
-        rating_for_game: row.rating_for_game,
-        notes: row.notes,
-        tags: row.tags || [],
-        watched_date: row.watched_date ? new Date(row.watched_date as string) : undefined,
-        watched_setting: row.watched_setting,
-        watched_location: row.watched_location,
-        watched_scope: row.watched_scope,
-        classification: row.classification,
-        created_at: row.created_at ? new Date(row.created_at as string) : undefined,
-        updated_at: row.updated_at ? new Date(row.updated_at as string) : undefined,
-        deleted_at: row.deleted_at ? new Date(row.deleted_at as string) : undefined,
+  // Optimized gameLog query for single item
+  async gameLog(parent: unknown, args: { id: string }, context: GraphQLContext) {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const { id } = args;
+
+    const gameLog = await db()?.query.game_logs.findFirst({
+      where: and(eq(game_logs.id, id), isNull(game_logs.deleted_at)),
+      with: {
         user: {
-          id: row.user_id_full || '',
-          username: row.username || '',
-          first_name: row.first_name || '',
-          last_name: row.last_name || '',
-          email_address: null,
-          phone_number: null,
-          image_url: row.image_url || null,
+          columns: {
+            username: true,
+            first_name: true,
+            last_name: true,
+            image_url: true,
+          },
         },
-        game: row.game_id_full
-          ? {
-              id: row.game_id_full,
-              date: row.game_date ? new Date(row.game_date as string) : undefined,
-              status: row.game_status,
-              game_type: row.game_type,
-              nba_game_id: row.nba_game_id,
-              home_team_id: row.home_team_id,
-              away_team_id: row.away_team_id,
-              home_team: row.ht_id
-                ? {
-                    id: row.ht_id,
-                    name: row.ht_name,
-                    nickname: row.ht_nickname,
-                    code: row.ht_code,
-                    city: row.ht_city,
-                    logo: row.ht_logo,
-                    all_star: row.ht_all_star,
-                    nba_franchise: row.ht_nba_franchise,
-                    conference: row.ht_conference,
-                    created_at: row.ht_created_at
-                      ? new Date(row.ht_created_at as string)
-                      : undefined,
-                    updated_at: row.ht_updated_at
-                      ? new Date(row.ht_updated_at as string)
-                      : undefined,
-                  }
-                : null,
-              away_team: row.at_id
-                ? {
-                    id: row.at_id,
-                    name: row.at_name,
-                    nickname: row.at_nickname,
-                    code: row.at_code,
-                    city: row.at_city,
-                    logo: row.at_logo,
-                    all_star: row.at_all_star,
-                    nba_franchise: row.at_nba_franchise,
-                    conference: row.at_conference,
-                    created_at: row.at_created_at
-                      ? new Date(row.at_created_at as string)
-                      : undefined,
-                    updated_at: row.at_updated_at
-                      ? new Date(row.at_updated_at as string)
-                      : undefined,
-                  }
-                : null,
-              home_team_score: row.home_team_score,
-              away_team_score: row.away_team_score,
-              average_rating: row.average_rating ? Number(row.average_rating) : undefined,
-              total_ratings: row.total_ratings,
-              created_at: row.game_created_at ? new Date(row.game_created_at as string) : undefined,
-              updated_at: row.game_updated_at ? new Date(row.game_updated_at as string) : undefined,
-            }
-          : null,
-        totalCommentCount: 0, // Will be fetched separately if needed
-        totalReactionCount: 0, // Will be fetched separately if needed
       },
-    }));
+    });
+
+    if (!gameLog) {
+      return null;
+    }
+
+    // Check access permissions
+    const canAccess =
+      gameLog.classification === 'PUBLIC' ||
+      (gameLog.classification === 'PROTECTED' && context.userId === gameLog.user_id) ||
+      (gameLog.classification === 'PRIVATE' && context.userId === gameLog.user_id);
+
+    if (!canAccess) {
+      throw new Error('Access denied');
+    }
 
     return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!pagination?.after,
-        startCursor: edges[0]?.cursor || null,
-        endCursor: edges[edges.length - 1]?.cursor || null,
+      id: gameLog.id,
+      game_id: gameLog.game_id,
+      rating_for_game: gameLog.rating_for_game,
+      notes: gameLog.notes,
+      tags: gameLog.tags || [],
+      watched_date: gameLog.watched_date ? new Date(gameLog.watched_date) : undefined,
+      watched_setting: gameLog.watched_setting,
+      watched_location: gameLog.watched_location,
+      watched_scope: gameLog.watched_scope,
+      classification: gameLog.classification,
+      created_at: gameLog.created_at ? new Date(gameLog.created_at) : new Date(),
+      updated_at: gameLog.updated_at ? new Date(gameLog.updated_at) : new Date(),
+      user: {
+        id: gameLog.user_id,
+        username: gameLog.user?.username || 'Unknown User',
+        first_name: gameLog.user?.first_name || 'Unknown',
+        last_name: gameLog.user?.last_name || 'User',
+        image_url: gameLog.user?.image_url,
       },
-      totalCount,
     };
   },
 
-  // Optimized friends game logs query
-  friendsGameLogs: async (
-    _parent: unknown,
-    args: {
-      pagination?: {
-        first?: number;
-        after?: string;
-        last?: number;
-        before?: string;
-      };
-    },
+  // Friends game logs query
+  async friendsGameLogs(
+    parent: unknown,
+    args: { pagination?: { first?: number; after?: string } },
     context: GraphQLContext
-  ) => {
+  ) {
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
     }
 
     const { pagination } = args;
-    const limit = pagination?.first ?? API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE;
+    const limit = Math.min(pagination?.first ?? 20, 100);
 
-    try {
-      // Single query to get friends' game logs with all related data
-      const friendsGameLogsQuery = `
-        SELECT
-          gl.id,
-          gl.user_id,
-          gl.game_id,
-          gl.rating_for_game,
-          gl.notes,
-          gl.tags,
-          gl.watched_date,
-          gl.watched_setting,
-          gl.watched_location,
-          gl.watched_scope,
-          gl.classification,
-          gl.created_at,
-          gl.updated_at,
-          gl.deleted_at,
+    // Get user's friends
+    const userFriendships = await db()?.query.friendships.findMany({
+      where: and(eq(friendships.user_id, context.user.id), eq(friendships.status, 'ACCEPTED')),
+      columns: { friend_id: true },
+    });
 
-          -- User data
-          u.id as user_id_full,
-          u.username,
-          u.first_name,
-          u.last_name,
-          u.image_url,
-
-          -- Game data
-          g.id as game_id_full,
-          g.date as game_date,
-          g.status as game_status,
-          g.game_type,
-          g.nba_game_id,
-          g.home_team_id,
-          g.away_team_id,
-          g.home_team_score,
-          g.away_team_score,
-          g.average_rating,
-          g.total_ratings,
-          g.created_at as game_created_at,
-          g.updated_at as game_updated_at,
-
-          -- Home team data
-          ht.id as ht_id,
-          ht.name as ht_name,
-          ht.nickname as ht_nickname,
-          ht.code as ht_code,
-          ht.city as ht_city,
-          ht.logo as ht_logo,
-          ht.all_star as ht_all_star,
-          ht.nba_franchise as ht_nba_franchise,
-          ht.conference as ht_conference,
-          ht.created_at as ht_created_at,
-          ht.updated_at as ht_updated_at,
-
-          -- Away team data
-          at.id as at_id,
-          at.name as at_name,
-          at.nickname as at_nickname,
-          at.code as at_code,
-          at.city as at_city,
-          at.logo as at_logo,
-          at.all_star as at_all_star,
-          at.nba_franchise as at_nba_franchise,
-          at.conference as at_conference,
-          at.created_at as at_created_at,
-          at.updated_at as at_updated_at
-        FROM game_logs gl
-        LEFT JOIN users u ON gl.user_id = u.id
-        LEFT JOIN nba_games g ON gl.game_id = g.id
-        LEFT JOIN teams ht ON g.home_team_id = ht.id
-        LEFT JOIN teams at ON g.away_team_id = at.id
-        WHERE gl.deleted_at IS NULL
-          AND gl.classification = '${CLASSIFICATION.PROTECTED}'
-          AND gl.user_id IN (
-            SELECT DISTINCT
-              CASE
-                WHEN f.user_id = '${context.user.id}' THEN f.friend_id
-                WHEN f.friend_id = '${context.user.id}' THEN f.user_id
-              END
-            FROM friendships f
-            WHERE f.status = '${FRIENDSHIP_STATUS.ACCEPTED}'
-              AND (f.user_id = '${context.user.id}' OR f.friend_id = '${context.user.id}')
-          )
-          ${pagination?.after ? `AND gl.created_at < (SELECT created_at FROM game_logs WHERE id = '${pagination.after}')` : ''}
-        ORDER BY gl.created_at DESC
-        LIMIT ${limit + 1}
-      `;
-
-      const startTime = Date.now();
-      const result = await db()?.execute(sql.raw(friendsGameLogsQuery));
-      const queryDuration = Date.now() - startTime;
-
-      if (queryDuration > 1000) {
-        console.warn(`Slow friends game logs query detected: ${queryDuration}ms`);
-      }
-
-      const rows = result?.rows || [];
-      const hasNextPage = rows.length > limit;
-      const paginatedRows = hasNextPage ? rows.slice(0, limit) : rows;
-
-      // Get total count
-      const totalCountQuery = `
-        SELECT COUNT(*) as total_count
-        FROM game_logs gl
-        WHERE gl.deleted_at IS NULL
-          AND gl.classification = '${CLASSIFICATION.PROTECTED}'
-          AND gl.user_id IN (
-            SELECT DISTINCT
-              CASE
-                WHEN f.user_id = '${context.user.id}' THEN f.friend_id
-                WHEN f.friend_id = '${context.user.id}' THEN f.user_id
-              END
-            FROM friendships f
-            WHERE f.status = '${FRIENDSHIP_STATUS.ACCEPTED}'
-              AND (f.user_id = '${context.user.id}' OR f.friend_id = '${context.user.id}')
-          )
-      `;
-
-      const totalCountResult = await db()?.execute(sql.raw(totalCountQuery));
-      const totalCount = parseInt(
-        (totalCountResult?.rows?.[0] as { total_count?: string })?.total_count || '0'
-      );
-
-      const edges = paginatedRows.map(row => ({
-        cursor: row.id,
-        node: {
-          id: row.id,
-          game_id: row.game_id,
-          rating_for_game: row.rating_for_game,
-          notes: row.notes,
-          tags: row.tags || [],
-          watched_date: row.watched_date ? new Date(row.watched_date as string) : undefined,
-          watched_setting: row.watched_setting,
-          watched_location: row.watched_location,
-          watched_scope: row.watched_scope,
-          classification: row.classification,
-          created_at: row.created_at ? new Date(row.created_at as string) : undefined,
-          updated_at: row.updated_at ? new Date(row.updated_at as string) : undefined,
-          deleted_at: row.deleted_at ? new Date(row.deleted_at as string) : undefined,
-          user: {
-            id: row.user_id_full || '',
-            username: row.username || '',
-            first_name: row.first_name || '',
-            last_name: row.last_name || '',
-            email_address: null,
-            phone_number: null,
-            image_url: row.image_url || null,
-          },
-          game: row.game_id_full
-            ? {
-                id: row.game_id_full,
-                date: row.game_date ? new Date(row.game_date as string) : undefined,
-                status: row.game_status,
-                game_type: row.game_type,
-                nba_game_id: row.nba_game_id,
-                home_team_id: row.home_team_id,
-                away_team_id: row.away_team_id,
-                home_team: row.ht_id
-                  ? {
-                      id: row.ht_id,
-                      name: row.ht_name,
-                      nickname: row.ht_nickname,
-                      code: row.ht_code,
-                      city: row.ht_city,
-                      logo: row.ht_logo,
-                      all_star: row.ht_all_star,
-                      nba_franchise: row.ht_nba_franchise,
-                      conference: row.ht_conference,
-                      created_at: row.ht_created_at
-                        ? new Date(row.ht_created_at as string)
-                        : undefined,
-                      updated_at: row.ht_updated_at
-                        ? new Date(row.ht_updated_at as string)
-                        : undefined,
-                    }
-                  : null,
-                away_team: row.at_id
-                  ? {
-                      id: row.at_id,
-                      name: row.at_name,
-                      nickname: row.at_nickname,
-                      code: row.at_code,
-                      city: row.at_city,
-                      logo: row.at_logo,
-                      all_star: row.at_all_star,
-                      nba_franchise: row.at_nba_franchise,
-                      conference: row.at_conference,
-                      created_at: row.at_created_at
-                        ? new Date(row.at_created_at as string)
-                        : undefined,
-                      updated_at: row.at_updated_at
-                        ? new Date(row.at_updated_at as string)
-                        : undefined,
-                    }
-                  : null,
-                home_team_score: row.home_team_score,
-                away_team_score: row.away_team_score,
-                average_rating: row.average_rating ? Number(row.average_rating) : undefined,
-                total_ratings: row.total_ratings,
-                created_at: row.game_created_at
-                  ? new Date(row.game_created_at as string)
-                  : undefined,
-                updated_at: row.game_updated_at
-                  ? new Date(row.game_updated_at as string)
-                  : undefined,
-              }
-            : null,
-          totalCommentCount: 0,
-          totalReactionCount: 0,
-        },
-      }));
-
-      return {
-        edges,
-        pageInfo: {
-          hasNextPage,
-          hasPreviousPage: !!pagination?.after,
-          startCursor: edges[0]?.cursor || null,
-          endCursor: edges[edges.length - 1]?.cursor || null,
-        },
-        totalCount,
-      };
-    } catch (error) {
-      errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
-        component: 'GraphQL Resolver',
-        action: 'Fetch optimized friends game logs',
-      });
+    if (!userFriendships || userFriendships.length === 0) {
       return {
         edges: [],
         pageInfo: {
@@ -542,5 +160,410 @@ export const optimizedGameLogQueryResolvers = {
         totalCount: 0,
       };
     }
+
+    const friendIds = userFriendships
+      .map((f: { friend_id: string | null }) => f.friend_id)
+      .filter((id): id is string => id !== null);
+
+    // Build WHERE conditions for friends' game logs
+    const whereConditions = [
+      isNull(game_logs.deleted_at),
+      inArray(game_logs.user_id, friendIds),
+      // Only show PUBLIC and PROTECTED logs from friends
+      sql`${game_logs.classification} IN ('PUBLIC', 'PROTECTED')`,
+    ];
+
+    if (pagination?.after) {
+      // Get the created_at timestamp of the cursor record
+      const cursorRecord = await db()?.query.game_logs.findFirst({
+        where: eq(game_logs.id, pagination.after),
+        columns: { created_at: true },
+      });
+
+      if (cursorRecord?.created_at) {
+        whereConditions.push(sql`${game_logs.created_at} < ${cursorRecord.created_at}`);
+      }
+    }
+
+    const whereClause = and(...whereConditions);
+
+    if (!whereClause) {
+      throw new Error('Invalid where clause');
+    }
+
+    // Use the most efficient query based on limit
+    if (limit <= 10) {
+      return executeUltraFastQuery(whereClause, limit);
+    } else if (limit <= 50) {
+      return executeOptimizedQuery(whereClause, limit);
+    } else {
+      return executeMinimalQuery(whereClause, limit);
+    }
   },
 };
+
+// Strategy 1: Ultra-fast query (≤10 items) - optimized for speed
+async function executeUltraFastQuery(whereClause: SQL<unknown>, limit: number) {
+  const startTime = Date.now();
+
+  const result = await db()?.query.game_logs.findMany({
+    where: whereClause,
+    limit: limit + 1,
+    orderBy: [desc(game_logs.created_at)],
+    with: {
+      user: {
+        columns: {
+          username: true,
+          first_name: true,
+          last_name: true,
+          image_url: true,
+        },
+      },
+      game: {
+        columns: {
+          id: true,
+          teams: true,
+          scores: true,
+          date: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  const queryDuration = Date.now() - startTime;
+
+  if (result && result.length > 0) {
+    // Found game logs
+  } else {
+    // No game logs found
+  }
+
+  if (queryDuration > 50) {
+    console.warn(`Ultra-fast query took ${queryDuration}ms`);
+  }
+
+  return processQueryResult(result, limit, queryDuration, false);
+}
+
+// Strategy 2: Optimized query (11-50 items) - balanced performance with counts
+async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
+  const startTime = Date.now();
+
+  // Get game logs with user and game data
+  const gameLogs = await db()?.query.game_logs.findMany({
+    where: whereClause,
+    limit: limit + 1,
+    orderBy: [desc(game_logs.created_at)],
+    with: {
+      user: {
+        columns: {
+          id: true,
+          username: true,
+          first_name: true,
+          last_name: true,
+          image_url: true,
+        },
+      },
+      game: {
+        columns: {
+          id: true,
+          teams: true,
+          scores: true,
+          date: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  // Debug: Test alternative query approach
+  const _testGameLogs = await db()
+    ?.select({
+      id: game_logs.id,
+      user_id: game_logs.user_id,
+      game_id: game_logs.game_id,
+      rating_for_game: game_logs.rating_for_game,
+      notes: game_logs.notes,
+      classification: game_logs.classification,
+      created_at: game_logs.created_at,
+      updated_at: game_logs.updated_at,
+      username: users.username,
+      first_name: users.first_name,
+      last_name: users.last_name,
+      image_url: users.image_url,
+    })
+    .from(game_logs)
+    .leftJoin(users, eq(game_logs.user_id, users.id))
+    .where(whereClause)
+    .limit(1);
+
+  // Debug: Check if game data is being fetched
+  if (gameLogs && gameLogs.length > 0) {
+    // Game logs found
+  }
+
+  // Debug: Log the first game log to see what user data we're getting
+  if (gameLogs && gameLogs.length > 0) {
+    // Test: Try to manually fetch the user to see if the relationship works
+    if (gameLogs[0].user_id) {
+      const _manualUser = await db()?.query.users.findFirst({
+        where: eq(users.id, gameLogs[0].user_id),
+      });
+    }
+  }
+
+  if (!gameLogs || gameLogs.length === 0) {
+    return {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        endCursor: null,
+      },
+      totalCount: 0,
+    };
+  }
+
+  // Get comment and reaction counts for each game log
+  const gameLogIds = gameLogs.map(gl => gl.id);
+
+  const [commentCounts, reactionCounts] = await Promise.all([
+    // Get comment counts
+    db()
+      ?.select({
+        parent_id: comments.parent_id,
+        count: count(),
+      })
+      .from(comments)
+      .where(
+        and(
+          inArray(comments.parent_id, gameLogIds),
+          eq(comments.parent_type, 'GAME_LOG'),
+          isNull(comments.deleted_at)
+        )
+      )
+      .groupBy(comments.parent_id),
+
+    // Get reaction counts
+    db()
+      ?.select({
+        target_id: reactions.target_id,
+        count: count(),
+      })
+      .from(reactions)
+      .where(
+        and(
+          inArray(reactions.target_id, gameLogIds),
+          eq(reactions.target_type, 'GAME_LOG'),
+          isNull(reactions.deleted_at)
+        )
+      )
+      .groupBy(reactions.target_id),
+  ]);
+
+  // Create lookup maps for counts
+  const commentCountMap = new Map((commentCounts || []).map(cc => [cc.parent_id, cc.count]));
+  const reactionCountMap = new Map((reactionCounts || []).map(rc => [rc.target_id, rc.count]));
+
+  const queryDuration = Date.now() - startTime;
+
+  if (queryDuration > 100) {
+    console.warn(`Optimized query took ${queryDuration}ms`);
+  }
+
+  return processQueryResultWithCounts(
+    gameLogs,
+    limit,
+    queryDuration,
+    commentCountMap,
+    reactionCountMap
+  );
+}
+
+// Strategy 3: Minimal query (>50 items) - fastest possible query
+async function executeMinimalQuery(whereClause: SQL<unknown>, limit: number) {
+  const startTime = Date.now();
+
+  const result = await db()?.query.game_logs.findMany({
+    where: whereClause,
+    limit: limit + 1,
+    orderBy: [desc(game_logs.created_at)],
+    columns: {
+      id: true,
+      user_id: true,
+      game_id: true,
+      rating_for_game: true,
+      notes: true,
+      tags: true,
+      watched_date: true,
+      watched_setting: true,
+      watched_location: true,
+      watched_scope: true,
+      classification: true,
+      created_at: true,
+      updated_at: true,
+    },
+    with: {
+      user: {
+        columns: {
+          username: true,
+          first_name: true,
+          last_name: true,
+          image_url: true,
+        },
+      },
+      game: {
+        columns: {
+          id: true,
+          teams: true,
+          scores: true,
+          date: true,
+          status: true,
+        },
+      },
+    },
+  });
+
+  const queryDuration = Date.now() - startTime;
+
+  if (queryDuration > 200) {
+    console.warn(`Minimal query took ${queryDuration}ms`);
+  }
+
+  return processQueryResult(result, limit, queryDuration, false);
+}
+
+// Process query result for ultra-fast and minimal queries
+function processQueryResult(
+  result: unknown[] | undefined,
+  limit: number,
+  queryDuration: number,
+  _minimal = false
+) {
+  if (!result || result.length === 0) {
+    return {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+      totalCount: 0,
+    };
+  }
+
+  const hasNextPage = result.length > limit;
+  const paginatedRows = hasNextPage ? result.slice(0, limit) : result;
+
+  const edges = paginatedRows.map((row: unknown) => {
+    const typedRow = row as Record<string, unknown>;
+    // Debug: Log each row being processed
+
+    return {
+      node: {
+        id: typedRow.id,
+        game_id: typedRow.game_id,
+        rating_for_game: typedRow.rating_for_game,
+        notes: typedRow.notes,
+        tags: typedRow.tags || [],
+        watched_date: typedRow.watched_date ? new Date(typedRow.watched_date as string) : undefined,
+        watched_setting: typedRow.watched_setting,
+        watched_location: typedRow.watched_location,
+        watched_scope: typedRow.watched_scope,
+        classification: typedRow.classification,
+        created_at: typedRow.created_at ? new Date(typedRow.created_at as string) : new Date(),
+        updated_at: typedRow.updated_at ? new Date(typedRow.updated_at as string) : new Date(),
+        user: {
+          id: typedRow.user_id,
+          username: (typedRow.user as Record<string, unknown>)?.username || 'Unknown User',
+          first_name: (typedRow.user as Record<string, unknown>)?.first_name || 'Unknown',
+          last_name: (typedRow.user as Record<string, unknown>)?.last_name || 'User',
+          image_url: (typedRow.user as Record<string, unknown>)?.image_url,
+        },
+      },
+      cursor: typedRow.id,
+    };
+  });
+
+  return {
+    edges,
+    pageInfo: {
+      hasNextPage,
+      hasPreviousPage: false, // For forward-only pagination, this is always false
+      startCursor: edges[0]?.cursor ?? null,
+      endCursor: hasNextPage
+        ? (paginatedRows[paginatedRows.length - 1] as Record<string, unknown>)?.id
+        : null,
+    },
+    totalCount: paginatedRows.length, // For minimal queries, we don't get total count
+  };
+}
+
+// Process query result for optimized queries with counts
+function processQueryResultWithCounts(
+  result: unknown[] | undefined,
+  limit: number,
+  queryDuration: number,
+  commentCountMap: Map<string, number>,
+  reactionCountMap: Map<string, number>
+) {
+  if (!result || result.length === 0) {
+    return {
+      edges: [],
+      pageInfo: {
+        hasNextPage: false,
+        hasPreviousPage: false,
+        startCursor: null,
+        endCursor: null,
+      },
+      totalCount: 0,
+    };
+  }
+
+  const hasNextPage = result.length > limit;
+  const paginatedRows = hasNextPage ? result.slice(0, limit) : result;
+
+  const edges = paginatedRows.map((row: unknown) => {
+    const typedRow = row as Record<string, unknown>;
+    return {
+      node: {
+        id: typedRow.id,
+        game_id: typedRow.game_id,
+        rating_for_game: typedRow.rating_for_game,
+        notes: typedRow.notes,
+        tags: typedRow.tags || [],
+        watched_date: typedRow.watched_date ? new Date(typedRow.watched_date as string) : undefined,
+        watched_setting: typedRow.watched_setting,
+        watched_location: typedRow.watched_location,
+        watched_scope: typedRow.watched_scope,
+        classification: typedRow.classification,
+        created_at: typedRow.created_at ? new Date(typedRow.created_at as string) : new Date(),
+        updated_at: typedRow.updated_at ? new Date(typedRow.updated_at as string) : new Date(),
+        user: {
+          id: typedRow.user_id,
+          username: (typedRow.user as Record<string, unknown>)?.username || 'Unknown User',
+          first_name: (typedRow.user as Record<string, unknown>)?.first_name || 'Unknown',
+          last_name: (typedRow.user as Record<string, unknown>)?.last_name || 'User',
+          image_url: (typedRow.user as Record<string, unknown>)?.image_url,
+        },
+        totalCommentCount: commentCountMap.get(typedRow.id as string) || 0,
+        totalReactionCount: reactionCountMap.get(typedRow.id as string) || 0,
+      },
+      cursor: typedRow.id,
+    };
+  });
+
+  return {
+    edges,
+    pageInfo: {
+      hasNextPage,
+      hasPreviousPage: false, // For forward-only pagination, this is always false
+      startCursor: edges[0]?.cursor ?? null,
+      endCursor: hasNextPage
+        ? (paginatedRows[paginatedRows.length - 1] as Record<string, unknown>)?.id
+        : null,
+    },
+    totalCount: paginatedRows.length, // For optimized queries, we don't get total count
+  };
+}

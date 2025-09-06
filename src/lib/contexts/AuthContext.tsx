@@ -2,8 +2,8 @@
 import { useUser } from '@clerk/nextjs';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import type { IAuthContextValue } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IAuthContextValue, IUser } from '@/types';
 
 const AuthContext = createContext<IAuthContextValue | undefined>(undefined);
 
@@ -82,7 +82,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue: IAuthContextValue = {
     isAuthenticated: Boolean(isSignedIn && user),
-    user,
+    isLoaded: !isLoading,
+    isSignedIn: Boolean(isSignedIn),
+    user: user as IUser | null,
+    session: null, // Clerk handles session management internally
     isLoading,
     authError,
     hasPermission,

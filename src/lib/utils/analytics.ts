@@ -1,32 +1,6 @@
 import { track } from '@vercel/analytics';
 
-// Analytics event types for the game-diary application
-export type AnalyticsEvent =
-  | 'page_view'
-  | 'game_log_created'
-  | 'game_log_updated'
-  | 'game_log_deleted'
-  | 'game_log_viewed'
-  | 'search_performed'
-  | 'user_signed_up'
-  | 'user_signed_in'
-  | 'live_game_viewed'
-  | 'sport_page_viewed'
-  | 'comment_added'
-  | 'reaction_added'
-  | 'friend_added'
-  | 'profile_updated'
-  | 'settings_changed'
-  | 'error_occurred'
-  | 'performance_metric'
-  | 'feature_used'
-  | 'scroll_depth'
-  | 'time_on_page'
-  | 'click';
-
-import type { IAnalyticsProperties } from '@/lib/types';
-
-export type { IAnalyticsProperties };
+import type { AnalyticsEvent, IAnalyticsProperties } from '@/types';
 
 // TEMPORARILY DISABLED: Custom analytics tracking to reduce costs
 // Set this to true to re-enable custom analytics events

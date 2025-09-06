@@ -27,9 +27,9 @@ export const OPTIMIZATION_CONFIG = {
     game_logs: 100,
     comments: 400,
     reactions: 500,
-    nba_games: 50, // Smaller due to JSONB fields
-    teams: 100,
-    players: 200,
+    basketball_games: 100, // Increased due to JSONB performance improvements
+    basketball_teams: 100,
+    basketball_players: 200,
     game_stats: 25, // Complex stats data
     player_stats: 50,
   },

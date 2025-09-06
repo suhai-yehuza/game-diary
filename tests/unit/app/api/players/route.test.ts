@@ -10,8 +10,15 @@ import {
   getUniquePositions,
 } from '@/lib/db/services/players.service';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
 
-// Cache system disabled - no mocking needed
+// Mock the cache service
+vi.mock('@/lib/cache/hybrid-cache-service', () => ({
+  hybridCacheService: {
+    get: vi.fn(),
+    set: vi.fn(),
+  },
+}));
 
 // Mock the players service
 vi.mock('@/lib/db/services/players.service', () => ({
@@ -32,7 +39,9 @@ describe('GET /api/players', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Cache system disabled
+    // Cache system disabled - ensure cache always misses
+    vi.mocked(hybridCacheService.get).mockResolvedValue(null);
+    vi.mocked(hybridCacheService.set).mockResolvedValue();
   });
 
   it('should return players with default parameters', async () => {
@@ -73,7 +82,7 @@ describe('GET /api/players', () => {
       countryFilter: undefined,
       sortBy: 'name',
       sortDirection: 'asc',
-      limit: 50,
+      limit: 5000,
       offset: 0,
     });
 
@@ -177,7 +186,7 @@ describe('GET /api/players', () => {
 
     expect(getPlayers).toHaveBeenCalledWith(
       expect.objectContaining({
-        limit: 50, // Default value
+        limit: 5000, // Default value
         offset: 0, // Default value
       })
     );

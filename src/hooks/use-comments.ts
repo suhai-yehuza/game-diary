@@ -1,218 +1,521 @@
-import { useMutation, useQuery } from '@apollo/client';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 
-import { API_CONFIG } from '@/lib/config/app.config';
-import { CREATE_COMMENT, UPDATE_COMMENT, DELETE_COMMENT } from '@/lib/graphql/mutations';
+import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { CommentCacheUtils, CACHE_CONFIG } from '@/lib/cache';
+import { CREATE_COMMENT, DELETE_COMMENT, UPDATE_COMMENT } from '@/lib/graphql/mutations';
 import { GET_COMMENTS } from '@/lib/graphql/queries';
-import type { IComment, ICommentsOptions, ICommentsResponse } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import {
+  ErrorCategory,
+  ErrorSeverity,
+  ParentType,
+  useCreateCommentMutation,
+  useUpdateCommentMutation,
+  useDeleteCommentMutation,
+} from '@/types';
+import type {
+  IComment,
+  GetCommentsQuery,
+  ICreateCommentResponse,
+  IUpdateCommentResponse,
+  IDeleteCommentResponse,
+} from '@/types';
 
-export function useComments(options: ICommentsOptions = {}) {
-  const { filters = {}, pagination = {} } = options;
+// Adapter functions to convert GraphQL types to IComment interface
+function adaptGraphQLComment(graphqlComment: Record<string, unknown>): IComment {
+  return {
+    id: graphqlComment.id as string,
+    content: graphqlComment.content as string,
+    user_id: graphqlComment.user_id as string,
+    parent_id: graphqlComment.parent_id as string,
+    parent_type: graphqlComment.parent_type as ParentType,
+    depth: graphqlComment.depth as number,
+    created_at: graphqlComment.created_at as string,
+    updated_at: (graphqlComment.updated_at || graphqlComment.created_at) as string,
+    user: {
+      id: (graphqlComment.user as { id: string }).id,
+      username: (graphqlComment.user as { username: string }).username,
+      first_name: (graphqlComment.user as { first_name: string }).first_name,
+      last_name: (graphqlComment.user as { last_name: string }).last_name,
+      image_url: (graphqlComment.user as { image_url: string }).image_url,
+      isAdmin: false, // Default value, should be fetched from user data
+    },
+    reactions: [], // GraphQL types don't include reactions
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    childComments: graphqlComment.childComments as any,
+    totalChildCommentCount: (graphqlComment.totalChildCommentCount as number) || 0,
+    totalReactionCount: (graphqlComment.totalReactionCount as number) || 0,
+  };
+}
+
+export function useComments(
+  parentId: string,
+  parentType: string,
+  initialFilters: Record<string, unknown> = {},
+  initialPagination: Record<string, unknown> = { first: 10 }
+) {
   const [comments, setComments] = useState<IComment[]>([]);
   const [commentsEndCursor, setCommentsEndCursor] = useState<string | null>(null);
-  const [commentsHasNextPage, setCommentsHasNextPage] = useState(true);
+  const [commentsHasNextPage, setCommentsHasNextPage] = useState<boolean>(false);
   const [commentsTotalCount, setCommentsTotalCount] = useState<number>(0);
 
-  const { loading, error, refetch, fetchMore } = useQuery<ICommentsResponse>(GET_COMMENTS, {
+  // Cache state
+  const [cachedComments, setCachedComments] = useState<IComment[] | null>(null);
+  const [isCacheHit, setIsCacheHit] = useState(false);
+
+  // Try to get comments from cache first
+  useEffect(() => {
+    const loadFromCache = async () => {
+      if (!parentId || !parentType) return;
+
+      try {
+        const cached = await CommentCacheUtils.getCachedCommentList(parentId, parentType);
+
+        if (cached) {
+          setCachedComments(cached as unknown as IComment[]);
+          setIsCacheHit(true);
+        }
+      } catch (error) {
+        console.warn('Failed to load comments from cache:', error);
+      }
+    };
+
+    void loadFromCache();
+  }, [parentId, parentType]);
+
+  const filters = useMemo(
+    () => ({ ...initialFilters, parentId, parentType }),
+    [initialFilters, parentId, parentType]
+  );
+  const pagination = useMemo(() => ({ ...initialPagination }), [initialPagination]);
+
+  const { loading, error, refetch, fetchMore } = useOptimizedQuery<GetCommentsQuery>(GET_COMMENTS, {
     variables: {
       filters,
       pagination,
     },
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-    // Add a small delay to prevent overwhelming the server
-    notifyOnNetworkStatusChange: true,
+    skip: !parentId || isCacheHit, // Skip if we have cached data
+    context: {
+      component: 'useComments',
+      action: 'Load comments',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
     onCompleted: data => {
-      if (
-        data &&
-        typeof data === 'object' &&
-        'comments' in data &&
-        data.comments &&
-        Array.isArray(data.comments.edges)
-      ) {
-        setComments(data.comments.edges.map(edge => edge.node));
-        setCommentsTotalCount(data.comments.totalCount);
+      if (data?.comments) {
+        const newComments = data.comments.edges.map(edge =>
+          adaptGraphQLComment(edge.node as Record<string, unknown>)
+        );
+        setComments(newComments);
         setCommentsEndCursor(data.comments.pageInfo.endCursor ?? null);
         setCommentsHasNextPage(!!data.comments.pageInfo.hasNextPage);
+        setCommentsTotalCount(data.comments.totalCount);
+
+        // Cache the comments
+        if (!isCacheHit) {
+          void CommentCacheUtils.cacheCommentList(parentId, parentType, newComments, {
+            ttl: CACHE_CONFIG.TTL.COMMENT_LIST,
+            tags: [`parent:${parentType}:${parentId}`],
+          });
+        }
       }
     },
-    onError: error => {
-      errorHandlers.api(error, {
+    onError: (error: unknown) => {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
         component: 'useComments',
-        action: 'Query comments',
+        action: 'Load comments',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
       });
-      // Handle rate limiting errors gracefully
-      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-        errorHandlers.authentication(error, {
-          component: 'useComments',
-          action: 'Query comments',
-        });
-      }
     },
   });
 
   const loadMoreComments = useCallback(async () => {
-    if (!commentsHasNextPage || loading) return;
-    const fetchResult = await fetchMore({
-      variables: {
-        filters,
-        pagination: {
-          first: API_CONFIG.pagination.DEFAULT_COMMENT_PAGE_SIZE,
-          after: commentsEndCursor,
+    if (!commentsHasNextPage || !commentsEndCursor) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            ...pagination,
+            after: commentsEndCursor,
+          },
         },
-      },
-    });
-    const moreData = fetchResult?.data;
-    if (
-      moreData &&
-      typeof moreData === 'object' &&
-      'comments' in moreData &&
-      moreData.comments &&
-      Array.isArray(moreData.comments.edges)
-    ) {
-      setComments(prev => {
-        const existingIds = new Set(prev.map(comment => comment.id));
-        const newComments = moreData.comments.edges
-          .map(edge => edge.node)
-          .filter(comment => !existingIds.has(comment.id));
-        return [...prev, ...newComments];
       });
-      // Don't update totalCount in loadMore - it should remain constant
-      // The totalCount from the server is already correct and shouldn't be modified client-side
-      // setCommentsTotalCount(moreData.comments.totalCount);
-      setCommentsEndCursor(moreData.comments.pageInfo.endCursor ?? null);
-      setCommentsHasNextPage(!!moreData.comments.pageInfo.hasNextPage);
+
+      if (result.data?.comments) {
+        const newComments = result.data.comments.edges.map(edge =>
+          adaptGraphQLComment(edge.node as Record<string, unknown>)
+        );
+        setComments(prev => [...prev, ...newComments]);
+        setCommentsEndCursor(result.data.comments.pageInfo.endCursor ?? null);
+        setCommentsHasNextPage(!!result.data.comments.pageInfo.hasNextPage);
+
+        // Cache the updated comment list
+        void CommentCacheUtils.cacheCommentList(
+          parentId,
+          parentType,
+          [...comments, ...newComments],
+          {
+            ttl: CACHE_CONFIG.TTL.COMMENT_LIST,
+            tags: [`parent:${parentType}:${parentId}`],
+          }
+        );
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useComments',
+        action: 'Load more comments',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
     }
-  }, [fetchMore, filters, commentsEndCursor, commentsHasNextPage, loading]);
-
-  const wrappedRefetch = useCallback(
-    async (...args: Parameters<typeof refetch>) => {
-      const result = await refetch(...args);
-      const newData = result?.data;
-      if (
-        newData &&
-        typeof newData === 'object' &&
-        'comments' in newData &&
-        newData.comments &&
-        Array.isArray(newData.comments.edges)
-      ) {
-        setComments(newData.comments.edges.map(edge => edge.node));
-        setCommentsTotalCount(newData.comments.totalCount);
-        setCommentsEndCursor(newData.comments.pageInfo.endCursor ?? null);
-        setCommentsHasNextPage(!!newData.comments.pageInfo.hasNextPage);
-      }
-      return result;
-    },
-    [refetch]
-  );
-
-  return {
-    comments,
-    loading,
-    error: error ? new Error(error.message) : null,
-    refetch: wrappedRefetch,
+  }, [
     commentsHasNextPage,
-    loadMoreComments,
-    commentsTotalCount,
-  };
-}
+    commentsEndCursor,
+    pagination,
+    fetchMore,
+    comments,
+    parentId,
+    parentType,
+  ]);
 
-export function useCreateComment() {
-  const [createComment, { loading, error }] = useMutation(CREATE_COMMENT);
+  const [createCommentMutation, createCommentResult] = useOptimizedMutation(CREATE_COMMENT, {
+    context: {
+      component: 'useComments',
+      action: 'Create comment',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+    onCompleted: (data: ICreateCommentResponse) => {
+      if (data?.createComment?.comment) {
+        // Add new comment to the beginning of the list
+        const newComment = adaptGraphQLComment(data.createComment.comment);
+        setComments(prev => [newComment, ...prev]);
+        setCommentsTotalCount(prev => prev + 1);
 
-  const createCommentMutation = useCallback(
-    async (input: { content: string; parentId: string; parentType: ParentType }) => {
-      try {
-        const result = await createComment({
-          variables: { input },
+        // Cache the updated comment list
+        void CommentCacheUtils.cacheCommentList(parentId, parentType, [newComment, ...comments], {
+          ttl: CACHE_CONFIG.TTL.COMMENT_LIST,
+          tags: [`parent:${parentType}:${parentId}`],
         });
-        return result.data?.createComment;
-      } catch (err) {
-        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
-          component: 'useCreateComment',
-          action: 'Create comment',
+
+        // Cache the individual comment
+        void CommentCacheUtils.cacheComment(newComment.id, newComment, {
+          ttl: CACHE_CONFIG.TTL.COMMENT,
+          tags: [`comment:${newComment.id}`, `parent:${parentType}:${parentId}`],
         });
-        throw err;
       }
     },
-    [createComment]
+    onError: (error: unknown) => {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useComments',
+        action: 'Create comment',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
+  });
+
+  const createComment = createCommentMutation;
+  const { loading: createLoading, error: createError } = createCommentResult;
+
+  const [updateCommentMutation, updateCommentResult] = useOptimizedMutation(UPDATE_COMMENT, {
+    context: {
+      component: 'useComments',
+      action: 'Update comment',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+    onCompleted: (data: IUpdateCommentResponse) => {
+      if (data?.updateComment?.comment) {
+        // Update the comment in the list
+        const updatedComment = adaptGraphQLComment(data.updateComment.comment);
+        setComments(prev =>
+          prev.map(comment => (comment.id === updatedComment.id ? updatedComment : comment))
+        );
+
+        // Cache the updated comment
+        void CommentCacheUtils.cacheComment(updatedComment.id, updatedComment, {
+          ttl: CACHE_CONFIG.TTL.COMMENT,
+          tags: [`comment:${updatedComment.id}`, `parent:${parentType}:${parentId}`],
+        });
+
+        // Invalidate comment list cache to ensure consistency
+        void CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
+      }
+    },
+    onError: (error: unknown) => {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useComments',
+        action: 'Update comment',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
+  });
+
+  const updateComment = updateCommentMutation;
+  const { loading: updateLoading, error: updateError } = updateCommentResult;
+
+  const [deleteCommentMutation, deleteCommentResult] = useOptimizedMutation(DELETE_COMMENT, {
+    context: {
+      component: 'useComments',
+      action: 'Delete comment',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+    onCompleted: (data: IDeleteCommentResponse) => {
+      if (data?.deleteComment?.success) {
+        // Since the GraphQL response doesn't include the comment ID,
+        // we need to handle this differently. The comment will be removed
+        // from the UI when the cache is invalidated and refetched.
+        // For now, just invalidate all comment caches for this parent.
+        void CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
+
+        // Refetch comments to get the updated list
+        void refetch();
+      }
+    },
+    onError: (error: unknown) => {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useComments',
+        action: 'Delete comment',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
+  });
+
+  const deleteComment = deleteCommentMutation;
+  const { loading: deleteLoading, error: deleteError } = deleteCommentResult;
+
+  const handleCreateComment = useCallback(
+    async (content: string) => {
+      if (!content.trim()) return;
+
+      try {
+        await createComment({
+          variables: {
+            input: {
+              content: content.trim(),
+              parentId,
+              parentType,
+            },
+          },
+        });
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useComments',
+          action: 'Create comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    },
+    [createComment, parentId, parentType]
   );
 
-  return {
-    createComment: createCommentMutation,
-    loading,
-    error: error ? new Error(error.message) : null,
-  };
-}
+  const handleUpdateComment = useCallback(
+    async (commentId: string, content: string) => {
+      if (!content.trim()) return;
 
-export function useUpdateComment() {
-  const [updateComment, { loading, error }] = useMutation(UPDATE_COMMENT);
-
-  const updateCommentMutation = useCallback(
-    async (id: string, input: { content: string }) => {
       try {
-        const result = await updateComment({
-          variables: { id, input },
+        await updateComment({
+          variables: {
+            id: commentId,
+            input: { content: content.trim() },
+          },
         });
-        return result.data?.updateComment;
-      } catch (err) {
-        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
-          component: 'useUpdateComment',
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useComments',
           action: 'Update comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
         });
-        throw err;
       }
     },
     [updateComment]
   );
 
-  return {
-    updateComment: updateCommentMutation,
-    loading,
-    error: error ? new Error(error.message) : null,
-  };
-}
-
-export function useDeleteComment() {
-  const [deleteComment, { loading, error }] = useMutation(DELETE_COMMENT);
-
-  const deleteCommentMutation = useCallback(
-    async (id: string) => {
+  const handleDeleteComment = useCallback(
+    async (commentId: string) => {
       try {
-        const result = await deleteComment({
-          variables: { id },
+        await deleteComment({
+          variables: { id: commentId },
         });
-        return result.data?.deleteComment;
-      } catch (err) {
-        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
-          component: 'useDeleteComment',
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useComments',
           action: 'Delete comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
         });
-        throw err;
       }
     },
     [deleteComment]
   );
 
+  // Force refresh from server (bypassing cache)
+  const forceRefresh = useCallback(async () => {
+    setIsCacheHit(false);
+    setCachedComments(null);
+    await refetch();
+  }, [refetch]);
+
+  // Clear cache for this parent
+  const clearCache = useCallback(async () => {
+    await CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
+    setCachedComments(null);
+    setIsCacheHit(false);
+  }, [parentId, parentType]);
+
   return {
-    deleteComment: deleteCommentMutation,
-    loading,
-    error: error ? new Error(error.message) : null,
+    // Data
+    comments: cachedComments || comments,
+    cachedComments,
+    isCacheHit,
+
+    // Pagination
+    commentsEndCursor,
+    commentsHasNextPage,
+    commentsTotalCount,
+
+    // State
+    loading: loading || createLoading || updateLoading || deleteLoading,
+    error: error || createError || updateError || deleteError,
+
+    // Performance
+    queryTime: 0, // Removed
+    isSlowQuery: false, // Removed
+
+    // Actions
+    createComment: handleCreateComment,
+    updateComment: handleUpdateComment,
+    deleteComment: handleDeleteComment,
+    loadMoreComments,
+    forceRefresh,
+    clearCache,
+    refetch,
+
+    // Utilities
+    hasMoreComments: commentsHasNextPage,
+    canLoadMore: commentsHasNextPage && !!commentsEndCursor,
   };
 }
 
 export function useGameLogComments(gameLogId: string, initialLimit = 3) {
-  return useComments({
-    filters: { parentId: gameLogId, parentType: ParentType.GameLog },
-    pagination: { first: initialLimit },
-  });
+  return useComments(gameLogId, ParentType.GameLog, {}, { first: initialLimit });
 }
 
 export function useCommentReplies(commentId: string, initialLimit = 2) {
-  return useComments({
-    filters: { parentId: commentId, parentType: ParentType.Comment },
-    pagination: { first: initialLimit },
-  });
+  return useComments(commentId, ParentType.Comment, {}, { first: initialLimit });
+}
+
+// Individual mutation hooks
+export function useCreateComment() {
+  const [createCommentMutation, { loading, error }] = useCreateCommentMutation();
+
+  const createComment = useCallback(
+    async (input: { parentId: string; parentType: ParentType; content: string }) => {
+      try {
+        const result = await createCommentMutation({
+          variables: { input },
+        });
+        return result;
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useCreateComment',
+          action: 'Create comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+    },
+    [createCommentMutation]
+  );
+
+  return {
+    createComment,
+    loading,
+    error,
+  };
+}
+
+export function useUpdateComment() {
+  const [updateCommentMutation, { loading, error }] = useUpdateCommentMutation();
+
+  const updateComment = useCallback(
+    async (input: { id: string; content: string }) => {
+      try {
+        const result = await updateCommentMutation({
+          variables: { id: input.id, input: { content: input.content } },
+        });
+        return result;
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useUpdateComment',
+          action: 'Update comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+    },
+    [updateCommentMutation]
+  );
+
+  return {
+    updateComment,
+    loading,
+    error,
+  };
+}
+
+export function useDeleteComment() {
+  const [deleteCommentMutation, { loading, error }] = useDeleteCommentMutation();
+
+  const deleteComment = useCallback(
+    async (id: string) => {
+      try {
+        const result = await deleteCommentMutation({
+          variables: { id },
+        });
+        return result;
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useDeleteComment',
+          action: 'Delete comment',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
+        });
+        throw error;
+      }
+    },
+    [deleteCommentMutation]
+  );
+
+  return {
+    deleteComment,
+    loading,
+    error,
+  };
 }

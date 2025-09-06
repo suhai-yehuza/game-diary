@@ -13,7 +13,7 @@ import type {
   IDistributionConfig,
   IStatisticalSeedingConfig,
   DistributionConfigPreset,
-} from '@/lib/types/seeding.types';
+} from '@/types';
 
 // No external imports needed for statistical distributions
 
@@ -552,7 +552,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableTimeDecay: true,
   },
 
-  // Uniform distribution for testing
+  // Uniform distribution for development testing
   UNIFORM: {
     userEngagement: { type: 'uniform', parameters: { min: 0.1, max: 1.0 } },
     userActivityFrequency: { type: 'uniform', parameters: { min: 1, max: 30 } },
@@ -770,7 +770,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     enableViralContent: false,
   },
 
-  // Performance testing patterns
+  // Performance testing patterns for load testing
   PERFORMANCE: {
     ...DEFAULT_DISTRIBUTION_CONFIG,
     userEngagement: { type: 'uniform', parameters: { min: 0.5, max: 1.0 } },
@@ -786,11 +786,11 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
       type: 'poisson',
       parameters: { lambda: 10 },
     },
-    commentReactionProbability: 0.4, // 40% of comments get reactions in performance testing
-    gameLogReactionProbability: 0.6, // 60% of game logs get reactions in performance testing
-    userGameLogProbability: 0.5, // 50% of users generate game logs in performance testing
-    userFriendshipProbability: 0.7, // 70% of users form friendships in performance testing
-    gameLogGameProbability: 0.4, // 40% of games get logged in performance testing
+    commentReactionProbability: 0.4, // 40% of comments get reactions in load testing
+    gameLogReactionProbability: 0.6, // 60% of game logs get reactions in load testing
+    userGameLogProbability: 0.5, // 50% of users generate game logs in load testing
+    userFriendshipProbability: 0.7, // 70% of users form friendships in load testing
+    gameLogGameProbability: 0.4, // 40% of games get logged in load testing
     enableRealisticPatterns: false,
   },
 } as const;
@@ -808,7 +808,7 @@ export function generateValue(config: IDistributionConfig): number {
   const { type, parameters, customFunction } = config;
 
   if (customFunction) {
-    return customFunction();
+    return customFunction(config);
   }
 
   switch (type) {
@@ -865,7 +865,7 @@ export function generateValue(config: IDistributionConfig): number {
  */
 export function generateUserEngagementWithConfig(config: IStatisticalSeedingConfig): number {
   if (!config.enableRealisticPatterns) {
-    return generateValue(config.userEngagement);
+    return config.userEngagement ? generateValue(config.userEngagement) : Math.random();
   }
 
   // Use realistic pattern: 20% power users, 80% regular users
@@ -885,7 +885,9 @@ export function generateGameRatingWithConfig(config: IStatisticalSeedingConfig):
   let rating: number;
 
   if (!config.enableRealisticPatterns) {
-    rating = generateValue(config.gameRating);
+    rating = config.gameRating
+      ? generateValue(config.gameRating)
+      : Math.floor(Math.random() * 5) + 1;
   } else {
     // Use beta distribution for realistic rating patterns
     rating = betaDistribution(2.5, 2.5, 1, 5);
@@ -900,7 +902,9 @@ export function generateGameRatingWithConfig(config: IStatisticalSeedingConfig):
  */
 export function generateCommentCountWithConfig(config: IStatisticalSeedingConfig): number {
   if (!config.enableViralContent) {
-    return generateValue(config.commentCount);
+    return config.commentCount
+      ? generateValue(config.commentCount)
+      : Math.floor(Math.random() * 10) + 1;
   }
 
   // Use realistic pattern: 5% viral content, 95% regular content
@@ -918,7 +922,9 @@ export function generateCommentCountWithConfig(config: IStatisticalSeedingConfig
  */
 export function generateReactionCountWithConfig(config: IStatisticalSeedingConfig): number {
   if (!config.enableRealisticPatterns) {
-    return generateValue(config.reactionCount);
+    return config.reactionCount
+      ? generateValue(config.reactionCount)
+      : Math.floor(Math.random() * 5) + 1;
   }
 
   return Math.round(paretoDistribution(0, 50, 1.2));
@@ -929,7 +935,9 @@ export function generateReactionCountWithConfig(config: IStatisticalSeedingConfi
  */
 export function generateActivityAgeWithConfig(config: IStatisticalSeedingConfig): number {
   if (!config.enableTimeDecay) {
-    return generateValue(config.activityAge);
+    return config.activityAge
+      ? generateValue(config.activityAge)
+      : Math.floor(Math.random() * 365) + 1;
   }
 
   // Use realistic pattern: 70% recent activity, 30% older activity
@@ -948,10 +956,18 @@ export function generateActivityAgeWithConfig(config: IStatisticalSeedingConfig)
 export function generateUserBehaviorWithConfig(config: IStatisticalSeedingConfig) {
   return {
     engagement: generateUserEngagementWithConfig(config),
-    activityFrequency: generateValue(config.userActivityFrequency),
-    friendCount: generateValue(config.userFriendCount),
-    contentQuality: generateValue(config.userContentQuality),
-    lastActivityAge: generateValue(config.userActivityAge),
+    activityFrequency: config.userActivityFrequency
+      ? generateValue(config.userActivityFrequency)
+      : Math.floor(Math.random() * 30) + 1,
+    friendCount: config.userFriendCount
+      ? generateValue(config.userFriendCount)
+      : Math.floor(Math.random() * 10) + 1,
+    contentQuality: config.userContentQuality
+      ? generateValue(config.userContentQuality)
+      : Math.random(),
+    lastActivityAge: config.userActivityAge
+      ? generateValue(config.userActivityAge)
+      : Math.floor(Math.random() * 30) + 1,
   };
 }
 
@@ -973,8 +989,12 @@ export function generateContentEngagementWithConfig(config: IStatisticalSeedingC
 export function generateTimePatternsWithConfig(config: IStatisticalSeedingConfig) {
   return {
     activityAge: generateActivityAgeWithConfig(config),
-    responseTime: generateValue(config.responseTime),
-    sessionDuration: generateValue(config.sessionDuration),
+    responseTime: config.responseTime
+      ? generateValue(config.responseTime)
+      : Math.floor(Math.random() * 1000) + 100,
+    sessionDuration: config.sessionDuration
+      ? generateValue(config.sessionDuration)
+      : Math.floor(Math.random() * 3600) + 300,
   };
 }
 

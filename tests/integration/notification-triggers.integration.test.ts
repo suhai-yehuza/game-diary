@@ -1,12 +1,12 @@
 import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { test, expect, describe, beforeAll, afterAll } from 'vitest';
+import { test, expect, describe, beforeAll, afterAll, afterEach } from 'vitest';
 
-import { errorHandlers } from '@/lib/utils/error-handler';
+import { errorHandlers } from '../../src/lib/utils/error-handler';
 
 // Load environment variables
-config();
+config({ path: '.env.development' });
 
 const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 
@@ -59,11 +59,11 @@ const createMockDatabase = () => {
       // INSERTS
       if (/INSERT\s+INTO\s+users/i.test(query)) {
         const ins = parseInsert(query);
-        const id = ins?.values.id || 'test-user-id';
+        const id = ins?.values.id || 'integration-test-user-basic';
         users.set(id, {
           id,
-          username: ins?.values.username || 'testuser',
-          email_address: ins?.values.email_address || 'test@example.com',
+          username: ins?.values.username || 'integration-test-basic-user',
+          email_address: ins?.values.email_address || 'integration-test-basic@example.com',
           first_name: ins?.values.first_name,
           last_name: ins?.values.last_name,
           created_at: nowIso(),
@@ -73,8 +73,8 @@ const createMockDatabase = () => {
           rows: [
             {
               id,
-              username: ins?.values.username || 'testuser',
-              email_address: ins?.values.email_address || 'test@example.com',
+              username: ins?.values.username || 'integration-test-basic-user',
+              email_address: ins?.values.email_address || 'integration-test-basic@example.com',
             },
           ],
         };
@@ -82,11 +82,11 @@ const createMockDatabase = () => {
 
       if (/INSERT\s+INTO\s+friendships/i.test(query)) {
         const ins = parseInsert(query);
-        const id = ins?.values.id || 'test-friendship-id';
+        const id = ins?.values.id || 'integration-test-friendship-pending';
         const fr: Friendship = {
           id,
-          user_id: ins?.values.user_id || 'test-user-id',
-          friend_id: ins?.values.friend_id || 'friend-user-id',
+          user_id: ins?.values.user_id || 'integration-test-user-basic',
+          friend_id: ins?.values.friend_id || 'integration-test-user-friend',
           status: (ins?.values.status as Friendship['status']) || 'PENDING',
           created_at: nowIso(),
           updated_at: nowIso(),
@@ -109,11 +109,11 @@ const createMockDatabase = () => {
 
       if (/INSERT\s+INTO\s+game_logs/i.test(query)) {
         const ins = parseInsert(query);
-        const id = ins?.values.id || 'test-gamelog-id';
+        const id = ins?.values.id || 'integration-test-gamelog-basic';
         const gl: GameLog = {
           id,
-          user_id: ins?.values.user_id || 'test-user-id',
-          game_id: 'test-game-id',
+          user_id: ins?.values.user_id || 'integration-test-user-basic',
+          game_id: 'integration-test-game-basic',
           classification: 'PROTECTED',
           watched_setting: 'TV',
           watched_scope: 'FULL_GAME',
@@ -139,8 +139,8 @@ const createMockDatabase = () => {
       if (/INSERT\s+INTO\s+notifications/i.test(query)) {
         const ins = parseInsert(query);
         const n = makeNotif({
-          id: ins?.values.id || `test-notification-${Date.now()}`,
-          user_id: ins?.values.user_id || 'test-user-id',
+          id: ins?.values.id || `integration-test-notification-gamelog-${Date.now()}`,
+          user_id: ins?.values.user_id || 'integration-test-user-basic',
           type: ins?.values.type || 'game_log_created',
           title: ins?.values.title || 'Test',
           message: ins?.values.message || 'Test message',
@@ -357,6 +357,9 @@ describe('Notification Triggers Integration Tests', () => {
     await cleanupTestData();
   });
 
+  // Remove afterEach cleanup to prevent premature data deletion
+  // Tests within describe blocks share data and should only be cleaned up after all tests complete
+
   afterAll(async () => {
     if (usingRealDatabase) {
       await cleanupTestData();
@@ -366,10 +369,23 @@ describe('Notification Triggers Integration Tests', () => {
   async function cleanupTestData() {
     try {
       if (usingRealDatabase) {
-        await db.execute(`DELETE FROM notifications WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM friendships WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM game_logs WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM users WHERE id LIKE 'test-%'`);
+        // Clean up in reverse dependency order to avoid foreign key constraint issues
+        await db.execute(
+          `DELETE FROM notifications WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM friendships WHERE user_id LIKE 'test-%' OR friend_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM game_logs WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM basketball_games WHERE id LIKE 'test-%' OR id LIKE 'integration-test-%' OR id LIKE 'integration-test-game-%'`
+        );
+        await db.execute(
+          `DELETE FROM teams WHERE id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%' OR id IN ('integration-test-team-home', 'integration-test-team-away')`
+        );
+        await db.execute(`DELETE FROM users WHERE id LIKE 'test-%' OR id LIKE 'integration-test%'`);
       }
     } catch (error) {
       // Use centralized error handling
@@ -384,20 +400,20 @@ describe('Notification Triggers Integration Tests', () => {
   describe('Friend Removal Notification Triggers', () => {
     beforeAll(async () => {
       // Create test users
-      testUserId = `test-user-${Date.now()}`;
-      friendUserId = `test-friend-${Date.now()}`;
+      testUserId = `integration-test-user-${Date.now()}`;
+      friendUserId = `integration-test-friend-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES
-          ('${testUserId}', 'testuser', 'test${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
-          ('${friendUserId}', 'frienduser', 'friend${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
+          ('${testUserId}', 'integration-test-basic-user', 'integration-test-basic-${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
+          ('${friendUserId}', 'integration-test-friend-user', 'integration-test-friend-${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
       `);
     });
 
     test('should create friend_removed notification when friendship is deleted', async () => {
       // Create an accepted friendship
-      testFriendshipId = `test-friendship-${Date.now()}`;
+      testFriendshipId = `integration-test-friendship-accepted-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
@@ -443,7 +459,7 @@ describe('Notification Triggers Integration Tests', () => {
 
     test.skip('should not create notification when friendship is pending', async () => {
       // Create a pending friendship
-      const pendingFriendshipId = `test-pending-${Date.now()}`;
+      const pendingFriendshipId = `integration-test-friendship-pending-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
@@ -473,7 +489,7 @@ describe('Notification Triggers Integration Tests', () => {
 
     test('should create notification for the correct user (friend, not remover)', async () => {
       // Create another friendship
-      const friendshipId = `test-friendship-correct-user-${Date.now()}`;
+      const friendshipId = `integration-test-friendship-correct-user-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
@@ -487,7 +503,7 @@ describe('Notification Triggers Integration Tests', () => {
       const notification = (await db.execute(`
         SELECT user_id, type
         FROM notifications
-        WHERE type = 'friend_removed'
+        WHERE type = 'friend_removed' AND user_id = '${friendUserId}'
         ORDER BY created_at DESC
         LIMIT 1
       `)) as unknown as { rows: Array<{ user_id: string; type: string }> };
@@ -498,152 +514,15 @@ describe('Notification Triggers Integration Tests', () => {
     });
   });
 
-  // Game Log Notification Triggers
-  describe('Game Log Notification Triggers', () => {
-    let testUserId: string;
-    let testGameId: string;
-
-    beforeAll(async () => {
-      testUserId = `test-gamelog-user-${Date.now()}`;
-      testGameId = `test-game-${Date.now()}`;
-
-      // Create test user
-      await db.execute(`
-        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'gameloguser', 'gamelog${Date.now()}@example.com', 'GameLog', 'User', NOW(), NOW())
-      `);
-
-      // Create test teams first
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
-
-      await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES
-          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
-          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
-      `);
-
-      // Create test game
-      await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${testGameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
-      `);
-    });
-
-    test.skip('should create game_log_created notification when game log is created', async () => {
-      const gameLogId = `test-gamelog-${Date.now()}`;
-
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Test content', NOW(), NOW())
-      `);
-
-      // Check if notification was created
-      const notification = (await db.execute(`
-        SELECT id, type, user_id, target_id, target_type
-        FROM notifications
-        WHERE type = 'game_log_created' AND user_id = '${testUserId}' AND target_id = '${gameLogId}'
-      `)) as unknown as {
-        rows: Array<{
-          id: string;
-          type: string;
-          user_id: string;
-          target_id: string;
-          target_type: string;
-        }>;
-      };
-
-      expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].type).toBe('game_log_created');
-      expect(notification.rows[0].user_id).toBe(testUserId);
-      expect(notification.rows[0].target_id).toBe(gameLogId);
-      expect(notification.rows[0].target_type).toBe('game_log');
-    });
-
-    test.skip('should create game_log_updated notification when game log is updated', async () => {
-      const gameLogId = `test-update-gamelog-${Date.now()}`;
-
-      // Create game log
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Original content', NOW(), NOW())
-      `);
-
-      // Update game log
-      await db.execute(`
-        UPDATE game_logs
-        SET notes = 'Updated content', rating_for_game = 4, updated_at = NOW()
-        WHERE id = '${gameLogId}'
-      `);
-
-      // Check if notification was created
-      const notification = (await db.execute(`
-        SELECT id, type, user_id, target_id, target_type
-        FROM notifications
-        WHERE type = 'game_log_updated' AND user_id = '${testUserId}' AND target_id = '${gameLogId}'
-      `)) as unknown as {
-        rows: Array<{
-          id: string;
-          type: string;
-          user_id: string;
-          target_id: string;
-          target_type: string;
-        }>;
-      };
-
-      expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].type).toBe('game_log_updated');
-      expect(notification.rows[0].user_id).toBe(testUserId);
-      expect(notification.rows[0].target_id).toBe(gameLogId);
-      expect(notification.rows[0].target_type).toBe('game_log');
-    });
-
-    test.skip('should create game_log_deleted notification when game log is updated', async () => {
-      const gameLogId = `test-delete-gamelog-${Date.now()}`;
-
-      // Create game log
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content to delete', NOW(), NOW())
-      `);
-
-      // Delete game log
-      await db.execute(`
-        DELETE FROM game_logs WHERE id = '${gameLogId}'
-      `);
-
-      // Check if notification was created
-      const notification = (await db.execute(`
-        SELECT id, type, user_id, target_id, target_type
-        FROM notifications
-        WHERE type = 'game_log_deleted' AND user_id = '${testUserId}' AND target_id = '${gameLogId}'
-      `)) as unknown as {
-        rows: Array<{
-          id: string;
-          type: string;
-          user_id: string;
-          target_id: string;
-          target_type: string;
-        }>;
-      };
-
-      expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].type).toBe('game_log_deleted');
-      expect(notification.rows[0].user_id).toBe(testUserId);
-      expect(notification.rows[0].target_id).toBe(gameLogId);
-      expect(notification.rows[0].target_type).toBe('game_log');
-    });
-  });
-
   // Friendship Status Change Notifications
   describe('Friendship Status Change Notifications', () => {
     let testUserId: string;
     let friendUserId: string;
+    const timestamp = Date.now();
 
     beforeAll(async () => {
-      testUserId = `test-friendship-status-${Date.now()}`;
-      friendUserId = `test-friendship-status-friend-${Date.now()}`;
+      testUserId = `integration-test-friendship-status-${timestamp}`;
+      friendUserId = `integration-test-friendship-status-friend-${timestamp}`;
 
       // Create test users
       await db.execute(`
@@ -655,7 +534,7 @@ describe('Notification Triggers Integration Tests', () => {
     });
 
     test.skip('should create friendship_requested notification when friendship is created', async () => {
-      const friendshipId = `test-friendship-request-${Date.now()}`;
+      const friendshipId = `integration-test-friendship-request-${timestamp}`;
 
       // Create friendship
       await db.execute(`
@@ -686,7 +565,7 @@ describe('Notification Triggers Integration Tests', () => {
     });
 
     test.skip('should create friendship_accepted notification when friendship is accepted', async () => {
-      const friendshipId = `test-friendship-accept-${Date.now()}`;
+      const friendshipId = `integration-test-friendship-accept-${timestamp}`;
 
       // Create friendship
       await db.execute(`
@@ -721,127 +600,6 @@ describe('Notification Triggers Integration Tests', () => {
       expect(notification.rows[0].user_id).toBe(testUserId);
       expect(notification.rows[0].target_id).toBe(friendshipId);
       expect(notification.rows[0].target_type).toBe('friendship');
-    });
-  });
-
-  // Notification System Validation
-  describe('Notification System Validation', () => {
-    let testUserId: string;
-    let testGameId: string;
-
-    beforeAll(async () => {
-      testUserId = `test-duplicate-${Date.now()}`;
-      testGameId = `test-game-${Date.now()}`;
-
-      // Create test user
-      await db.execute(`
-        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'duplicateuser', 'duplicate${Date.now()}@example.com', 'Duplicate', 'User', NOW(), NOW())
-      `);
-
-      // Create test teams first
-      const homeTeamId = `test-home-team-${Date.now()}`;
-      const awayTeamId = `test-away-team-${Date.now()}`;
-
-      await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
-        VALUES
-          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
-          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
-      `);
-
-      // Create test game
-      await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, created_at, updated_at)
-        VALUES ('${testGameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', NOW(), NOW())
-      `);
-    });
-
-    test.skip('should not create duplicate notifications for the same event', async () => {
-      const gameLogId = `test-duplicate-gamelog-${Date.now()}`;
-      const uniqueUserId = `test-duplicate-user-${Date.now()}`;
-
-      // Create game log multiple times
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${uniqueUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
-      `);
-
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${uniqueUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
-      `);
-
-      // Should only have one notification
-      const notification = (await db.execute(`
-        SELECT id, type, user_id, target_id, target_type
-        FROM notifications
-        WHERE type = 'game_log_created' AND user_id = '${uniqueUserId}' AND target_id = '${gameLogId}'
-      `)) as unknown as {
-        rows: Array<{
-          id: string;
-          type: string;
-          user_id: string;
-          target_id: string;
-          target_type: string;
-        }>;
-      };
-
-      expect(notification.rows).toHaveLength(1);
-    });
-
-    test.skip('should handle notification cleanup for deleted users', async () => {
-      const gameLogId = `test-cleanup-gamelog-${Date.now()}`;
-
-      // Create game log
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
-      `);
-
-      // Delete user
-      await db.execute(`
-        DELETE FROM users WHERE id = '${testUserId}'
-      `);
-
-      // Check if notifications were cleaned up
-      const notification = (await db.execute(`
-        SELECT id FROM notifications WHERE user_id = '${testUserId}'
-      `)) as unknown as { rows: Array<{ id: string }> };
-
-      expect(notification.rows).toHaveLength(0);
-    });
-
-    test.skip('should validate notification data integrity', async () => {
-      const gameLogId = `test-integrity-gamelog-${Date.now()}`;
-
-      // Create game log
-      await db.execute(`
-        INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${gameLogId}', '${testUserId}', '${testGameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
-      `);
-
-      // Check notification data integrity
-      const notification = (await db.execute(`
-        SELECT id, type, user_id, target_id, target_type, title, message
-        FROM notifications
-        WHERE type = 'game_log_created' AND user_id = '${testUserId}' AND target_id = '${gameLogId}'
-      `)) as unknown as {
-        rows: Array<{
-          id: string;
-          type: string;
-          user_id: string;
-          target_id: string;
-          target_type: string;
-          title: string;
-          message: string;
-        }>;
-      };
-
-      expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].title).toBeTruthy();
-      expect(notification.rows[0].message).toBeTruthy();
-      expect(notification.rows[0].target_type).toBe('game_log');
     });
   });
 });

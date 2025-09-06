@@ -1,4 +1,4 @@
-import type { IBadgeProps } from '@src/lib/types';
+import type { IBadgeProps } from '@/types';
 
 export const Badge = ({ children, variant = 'default', className = '' }: IBadgeProps) => (
   <span

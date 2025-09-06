@@ -1,7 +1,7 @@
 // External API data seeding (with overwrites)
 import * as schema from '@/lib/db/schema';
-import type { IExternalApiSeedingConfig } from '@/lib/types';
 import { ErrorHandler } from '@/lib/utils/error-handler';
+import type { IExternalApiSeedingConfig } from '@/types';
 
 import {
   createDatabaseConnection,
@@ -13,6 +13,8 @@ import {
   determineSeasonsToSeed,
   seedGames,
   seedPlayers,
+  seedPublicComments,
+  seedPublicReactions,
 } from './shared-seeding-utils';
 
 export async function seedExternalApiData(
@@ -55,7 +57,10 @@ export async function seedExternalApiData(
         const allSeasons = await db.select().from(schema.seasons).orderBy(schema.seasons.year);
         const allSeasonsSorted = allSeasons.map(s => s.year).sort((a, b) => b - a);
 
-        return determineSeasonsToSeed(allSeasonsSorted, optimizationConfig || {});
+        return determineSeasonsToSeed(
+          allSeasonsSorted,
+          optimizationConfig || ({} as IExternalApiSeedingConfig)
+        );
       });
 
       // Step 5: Seed games (with overwrites)
@@ -66,6 +71,16 @@ export async function seedExternalApiData(
       // Step 6: Seed players (with overwrites)
       await timeStep('Player fetching and insertion for all seasons and teams', async () => {
         return seedPlayers(db, apiClient, allSeasonsData, teamsData, false, 'External API Seeding');
+      });
+
+      // Step 7: Seed public comments
+      await timeStep('Public comments seeding', async () => {
+        return seedPublicComments(db, 'External API Seeding');
+      });
+
+      // Step 8: Seed public reactions
+      await timeStep('Public reactions seeding', async () => {
+        return seedPublicReactions(db, 'External API Seeding');
       });
 
       console.log('🎉 External API data seeding completed successfully!');
@@ -94,10 +109,12 @@ export async function clearExternalApiData() {
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
         // Clear in reverse order of dependencies
-        await timeStep('Clear NBA games', () => db.delete(schema.nba_games));
+        await timeStep('Clear public reactions', () => db.delete(schema.publicReactions));
+        await timeStep('Clear public comments', () => db.delete(schema.publicComments));
+        await timeStep('Clear NBA games', () => db.delete(schema.basketball_games));
         await timeStep('Clear game ratings', () => db.delete(schema.game_ratings));
-        await timeStep('Clear NBA players', () => db.delete(schema.nba_players));
-        await timeStep('Clear teams', () => db.delete(schema.teams));
+        await timeStep('Clear NBA players', () => db.delete(schema.basketball_players));
+        await timeStep('Clear teams', () => db.delete(schema.basketball_teams));
         await timeStep('Clear seasons', () => db.delete(schema.seasons));
         await timeStep('Clear leagues', () => db.delete(schema.leagues));
 

@@ -3,7 +3,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types';
+import type { GraphQLContext } from '@/types';
 
 // Reaction Query Resolvers
 export const reactionQueryResolvers = {
@@ -13,8 +13,18 @@ export const reactionQueryResolvers = {
     args: { targetId: string; targetType: string },
     context: GraphQLContext
   ) => {
+    console.log('🎯 reactions query called:', {
+      targetId: args.targetId,
+      targetType: args.targetType,
+    });
+
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
+    }
+
+    // If MOCK_MODE is enabled, return empty array for reactions
+    if (process.env.MOCK_MODE === 'true') {
+      return [];
     }
 
     const reactionsData = await db()?.query.reactions.findMany({
@@ -28,7 +38,7 @@ export const reactionQueryResolvers = {
       },
     });
 
-    return (
+    const result =
       reactionsData?.map(reaction => ({
         id: reaction.id,
         emoji: reaction.emoji,
@@ -46,9 +56,17 @@ export const reactionQueryResolvers = {
           email_address: null,
           phone_number: null,
           image_url: reaction.user?.image_url ?? null,
+          isAdmin: reaction.user?.isAdmin ?? false, // Ensure isAdmin is always present
         },
-      })) ?? []
-    );
+      })) ?? [];
+
+    console.log('🎯 reactions query result:', {
+      targetId: args.targetId,
+      count: result.length,
+      reactions: result.slice(0, 3), // Show first 3 reactions
+    });
+
+    return result;
   },
 };
 

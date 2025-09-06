@@ -9,7 +9,16 @@ import {
 vi.mock('@apollo/client', () => ({
   gql: (literals: TemplateStringsArray) => String(literals),
   useQuery: () => ({ data: undefined, refetch: vi.fn() }),
-  useMutation: () => [vi.fn(async () => ({}))],
+  useMutation: () => [
+    vi.fn(async () => ({})),
+    {
+      data: undefined,
+      loading: false,
+      error: undefined,
+      called: false,
+      client: null,
+    },
+  ],
 }));
 
 vi.mock('@clerk/nextjs', () => ({
@@ -18,6 +27,23 @@ vi.mock('@clerk/nextjs', () => ({
 
 vi.mock('sonner', () => ({
   toast: { info: vi.fn(), error: vi.fn() },
+}));
+
+// Mock useOptimizedMutation hook
+vi.mock('@/hooks/use-optimized-mutation', () => ({
+  useOptimizedMutation: () => [
+    vi.fn().mockResolvedValue({}),
+    {
+      data: undefined,
+      loading: false,
+      error: undefined,
+      called: false,
+      client: null,
+      mutate: vi.fn().mockResolvedValue({}),
+      mutateAsync: vi.fn().mockResolvedValue({}),
+      reset: vi.fn(),
+    },
+  ],
 }));
 
 function Consumer() {

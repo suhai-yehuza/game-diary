@@ -1,4 +1,4 @@
-import type { IGamesApiResponse } from '@/lib/types';
+import type { IGamesApiResponse } from '@/types';
 
 // Constants for common basketball scores
 const BASKETBALL_SCORES = {
@@ -25,6 +25,10 @@ const BASKETBALL_SCORES = {
 } as const;
 
 export const MOCK_LIVE_GAMES: IGamesApiResponse = {
+  games: [],
+  total: 2,
+  page: 1,
+  limit: 25,
   get: 'games',
   parameters: {
     league: '12',
@@ -35,20 +39,16 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
   results: 8,
   response: [
     {
-      id: 1234567,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-23T19:30:00.000Z',
-        end: '2024-12-23T22:15:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
+      id: '1234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T19:30:00.000Z',
       status: {
-        clock: '5:30',
-        halftime: false,
         short: 'Q3',
         long: '3rd Quarter',
+        clock: '5:30',
+        halftime: false,
       },
       periods: {
         current: 3,
@@ -92,20 +92,16 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       leadChanges: 3,
     },
     {
-      id: 1234568,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-23T20:00:00.000Z',
-        end: '2024-12-23T22:45:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
+      id: '1234568',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T20:00:00.000Z',
       status: {
-        clock: '2:15',
-        halftime: false,
         short: 'Q4',
         long: '4th Quarter',
+        clock: '2:15',
+        halftime: false,
       },
       periods: {
         current: 4,
@@ -172,20 +168,15 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       nugget: 'Lakers lead by 1 in a nail-biter finish',
     },
     {
-      id: 1234569,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-23T18:30:00.000Z',
-        end: '2024-12-23T21:15:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
+      id: '1234569',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T18:30:00.000Z',
       status: {
-        clock: undefined,
-        halftime: true,
         short: 'HT',
         long: 'Halftime',
+        halftime: true,
       },
       periods: {
         current: 2,
@@ -243,12 +234,17 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
     },
     // Additional mock games for testing
     {
-      id: 2234567,
-      league: 'NBA',
-      season: 2024,
-      date: { start: '2024-12-23T20:00:00.000Z', end: '', duration: '' },
-      stage: 2,
-      status: { clock: '2:15', halftime: false, short: 'Q4', long: '4th Quarter' },
+      id: '2234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T20:00:00.000Z',
+      status: {
+        short: 'Q4',
+        long: '4th Quarter',
+        clock: '8:45',
+        halftime: false,
+      },
       periods: { current: 4, total: 4, endOfPeriod: false },
       arena: { name: 'Chase Center', city: 'San Francisco', state: 'CA', country: 'USA' },
       teams: {
@@ -288,12 +284,16 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       leadChanges: 2,
     },
     {
-      id: 3234567,
-      league: 'NBA',
-      season: 2024,
-      date: { start: '2024-12-23T21:00:00.000Z', end: '', duration: '' },
-      stage: 2,
-      status: { clock: 'HALFTIME', halftime: true, short: 'HT', long: 'Halftime' },
+      id: '3234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T21:00:00.000Z',
+      status: {
+        short: 'HT',
+        long: 'Halftime',
+        halftime: true,
+      },
       periods: { current: 2, total: 4, endOfPeriod: false },
       arena: { name: 'United Center', city: 'Chicago', state: 'IL', country: 'USA' },
       teams: {
@@ -321,12 +321,17 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       leadChanges: 1,
     },
     {
-      id: 4234567,
-      league: 'NBA',
-      season: 2024,
-      date: { start: '2024-12-23T22:00:00.000Z', end: '', duration: '' },
-      stage: 2,
-      status: { clock: '8:00', halftime: false, short: 'Q1', long: '1st Quarter' },
+      id: '4234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T22:00:00.000Z',
+      status: {
+        short: 'Q1',
+        long: '1st Quarter',
+        clock: '3:20',
+        halftime: false,
+      },
       periods: { current: 1, total: 4, endOfPeriod: false },
       arena: { name: 'Barclays Center', city: 'Brooklyn', state: 'NY', country: 'USA' },
       teams: {
@@ -354,12 +359,17 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       leadChanges: 0,
     },
     {
-      id: 5234567,
-      league: 'NBA',
-      season: 2024,
-      date: { start: '2024-12-23T22:30:00.000Z', end: '', duration: '' },
-      stage: 2,
-      status: { clock: '3:45', halftime: false, short: 'Q2', long: '2nd Quarter' },
+      id: '5234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T22:30:00.000Z',
+      status: {
+        short: 'Q2',
+        long: '2nd Quarter',
+        clock: '7:10',
+        halftime: false,
+      },
       periods: { current: 2, total: 4, endOfPeriod: false },
       arena: { name: 'American Airlines Center', city: 'Dallas', state: 'TX', country: 'USA' },
       teams: {
@@ -387,12 +397,17 @@ export const MOCK_LIVE_GAMES: IGamesApiResponse = {
       leadChanges: 0,
     },
     {
-      id: 6234567,
-      league: 'NBA',
-      season: 2024,
-      date: { start: '2024-12-23T23:00:00.000Z', end: '', duration: '' },
-      stage: 2,
-      status: { clock: '0:45', halftime: false, short: 'Q3', long: '3rd Quarter' },
+      id: '6234567',
+      season: '2024',
+      league: '12',
+      stage: 'Regular Season',
+      date: '2024-12-23T23:00:00.000Z',
+      status: {
+        short: 'Q3',
+        long: '3rd Quarter',
+        clock: '4:30',
+        halftime: false,
+      },
       periods: { current: 3, total: 4, endOfPeriod: false },
       arena: { name: 'Crypto.com Arena', city: 'Los Angeles', state: 'CA', country: 'USA' },
       teams: {

@@ -2,18 +2,24 @@
 
 import { GameLogsSearch } from '@/app/components/game-logs/GameLogsSearch';
 import { GameLogsSort } from '@/app/components/game-logs/GameLogsSort';
-import type { IGameLogsFiltersProps } from '@/lib/types';
+import type { IGameLogsFiltersProps } from '@/types';
 
 export const GameLogsFilters = ({
-  searchTerm,
-  searchField,
-  sortConfig,
-  displayedCount,
-  totalCount,
-  classification,
-  onSearchChange,
-  onSearchClear,
-  onSort,
+  searchTerm = '',
+  searchField = '',
+  sortConfig = {},
+  displayedCount = 0,
+  totalCount = 0,
+  classification = '',
+  onSearchChange = (_term: string, _field: string) => {
+    // Default no-op function
+  },
+  onSearchClear = () => {
+    // Default no-op function
+  },
+  onSort = (_key: string, _direction: 'asc' | 'desc' | null) => {
+    // Default no-op function
+  },
 }: IGameLogsFiltersProps) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 sm:p-6 space-y-4">

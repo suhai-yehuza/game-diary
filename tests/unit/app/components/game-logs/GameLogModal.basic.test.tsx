@@ -2,8 +2,8 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { GameLogModal } from '@/app/components/game-logs/GameLogModal';
-import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/types';
-import type { IGameLog } from '@/lib/types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/types';
+import type { IGameLog } from '@/types';
 
 // Mock Apollo Client
 const mockMutate = vi.fn();
@@ -144,8 +144,22 @@ const mockGameLog: IGameLog = {
     date: '2024-01-15T00:00:00Z',
     status: 'scheduled',
     game_type: 'nba',
-    home_team_id: 'home-team-id',
-    away_team_id: 'away-team-id',
+    teams: {
+      home: {
+        id: 'home-team-id',
+        name: 'Los Angeles Lakers',
+        nickname: 'Lakers',
+        code: 'LAL',
+        logo: 'test-logo.png',
+      },
+      away: {
+        id: 'away-team-id',
+        name: 'Golden State Warriors',
+        nickname: 'Warriors',
+        code: 'GSW',
+        logo: 'test-logo.png',
+      },
+    },
     created_at: '2024-01-01T00:00:00Z',
     updated_at: '2024-01-01T00:00:00Z',
     home_team: {

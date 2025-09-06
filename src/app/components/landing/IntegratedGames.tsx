@@ -1,41 +1,29 @@
 'use client';
 
-import { Calendar, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
-import { useLatestGames } from '@/hooks/use-latest-games';
-import { API_LIMITS } from '@/lib/constants';
+import { useLandingPageData } from '@/hooks/use-landing-page-data';
+import { useScrollAnimation } from '@/hooks/use-scroll-animation';
+import type { IRecentGame } from '@/types';
 
 export function IntegratedGames() {
-  const { latestGames, loading, error } = useLatestGames({
-    limit: API_LIMITS.GAMES.DEFAULT,
-    forceRealData: true,
+  const { data, loading, error } = useLandingPageData();
+  const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
+    speed: 15, // Desktop speed
+    mobileSpeed: 8, // Mobile speed - slower for better readability
+    pauseOnHover: true,
+    autoStart: true,
   });
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
 
-  // Filter to only show finished games
-  const finishedGames = latestGames.filter(
-    game => game.status?.short === 'FT' || game.status?.long === 'Finished'
-  );
-
-  // Auto-cycle through games every 4 seconds
-  useEffect(() => {
-    if (finishedGames.length <= 1 || isPaused) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % finishedGames.length);
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [finishedGames.length, isPaused]);
+  // Extract recent games from cached data
+  const latestGames = data?.recentGames || [];
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }, (_, i) => `game-skeleton-${i}-${Date.now()}`).map(uniqueId => (
+      <div className="space-y-3 flex flex-col h-full">
+        {Array.from({ length: 5 }, (_, i) => `game-skeleton-${i}-${Date.now()}`).map(uniqueId => (
           <div key={uniqueId} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 animate-pulse">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
@@ -61,7 +49,7 @@ export function IntegratedGames() {
     );
   }
 
-  if (error || !finishedGames.length) {
+  if (error || !latestGames.length) {
     return (
       <div className="text-center py-8">
         <div className="text-gray-500 dark:text-gray-400 mb-4">No recent games available</div>
@@ -75,9 +63,10 @@ export function IntegratedGames() {
     );
   }
 
-  const currentGame = finishedGames[currentIndex];
+  // Show top 5 recent games
+  const displayGames = latestGames.slice(0, 5);
 
-  const formatGameDate = (game: typeof currentGame) => {
+  const formatGameDate = (game: IRecentGame) => {
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -87,7 +76,7 @@ export function IntegratedGames() {
     });
   };
 
-  const formatGameTime = (game: typeof currentGame) => {
+  const formatGameTime = (game: IRecentGame) => {
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
@@ -98,163 +87,144 @@ export function IntegratedGames() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Featured Game */}
+    <div className="space-y-3 flex flex-col h-full">
+      {/* Recent Games List with Scroll Animation */}
       <div
-        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 relative"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        ref={containerRef}
+        className="h-[42rem] overflow-auto relative scroll-container animate-scroll"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Navigation Controls */}
-        {finishedGames.length > 1 && (
-          <div className="absolute top-2 right-2 flex gap-1">
-            <button
-              onClick={() =>
-                setCurrentIndex(prev => (prev - 1 + finishedGames.length) % finishedGames.length)
-              }
-              className="p-1 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              aria-label="Previous game"
+        <div ref={contentRef} className="space-y-3 scroll-content">
+          {displayGames.map((game: IRecentGame, index: number) => (
+            <div
+              key={`recent-${String(game.id)}`}
+              className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             >
-              <ChevronLeft className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            </button>
-            <button
-              onClick={() => setCurrentIndex(prev => (prev + 1) % finishedGames.length)}
-              className="p-1 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              aria-label="Next game"
-            >
-              <ChevronRight className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            </button>
-          </div>
-        )}
-
-        {/* Arena Info */}
-        {currentGame.arena && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">🏟️</span>
+              {/* Game Header with Rank and Status */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                    #{index + 1}
+                  </span>
+                  <div className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span>Final</span>
+                  </div>
                 </div>
-                <span className="font-medium text-gray-900 dark:text-white truncate">
-                  {currentGame.arena.name}
-                </span>
+                <div className="text-xs text-gray-500 dark:text-gray-400">
+                  {formatGameDate(game)}
+                </div>
               </div>
-              {currentGame.arena.city && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {currentGame.arena.city}
-                  {currentGame.arena.state && `, ${currentGame.arena.state}`}
-                </span>
-              )}
-            </div>
-          </div>
-        )}
 
-        {/* Team Logos and Scores */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-              {currentGame.teams?.home?.logo ? (
-                <Image
-                  src={currentGame.teams.home.logo}
-                  alt={currentGame.teams.home.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                  style={{ width: 'auto', height: 'auto' }}
-                />
-              ) : (
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  {currentGame.teams?.home?.name?.charAt(0) || 'H'}
-                </span>
+              {/* Arena Info */}
+              {game.arena && (
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-2 mb-3">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                        🏟️
+                      </span>
+                    </div>
+                    <span className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                      {game.arena.name}
+                    </span>
+                    {game.arena.city && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        {game.arena.city}
+                        {game.arena.state && `, ${game.arena.state}`}
+                      </span>
+                    )}
+                  </div>
+                </div>
               )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-gray-900 dark:text-white text-sm break-words leading-tight">
-                {currentGame.teams?.home?.name || 'Home Team'}
-              </div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
-                {currentGame.scores?.home?.points || '-'}
-              </div>
-            </div>
-          </div>
 
-          <div className="text-center mx-3 flex-shrink-0">
-            <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">VS</div>
-            <div className="text-xs font-medium text-green-600 dark:text-green-400 flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full" />
-              <span>Final</span>
-            </div>
-          </div>
+              {/* Team Logos and Scores */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    {game.teams?.home?.logo ? (
+                      <Image
+                        src={game.teams.home.logo}
+                        alt={game.teams.home.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                        style={{ width: 'auto', height: 'auto' }}
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                        {game.teams?.home?.name?.charAt(0) || 'H'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm break-words leading-tight">
+                      {game.teams?.home?.name || 'Home Team'}
+                    </div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      {game.scores?.home?.points || '-'}
+                    </div>
+                  </div>
+                </div>
 
-          <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
-            <div className="flex-1 text-right min-w-0">
-              <div className="font-semibold text-gray-900 dark:text-white text-sm break-words leading-tight">
-                {currentGame.teams?.visitors?.name || 'Away Team'}
+                <div className="text-center mx-2 flex-shrink-0">
+                  <div className="text-xs text-gray-500 dark:text-gray-400">VS</div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-1 justify-end min-w-0">
+                  <div className="flex-1 text-right min-w-0">
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm break-words leading-tight">
+                      {game.teams?.visitors?.name || 'Away Team'}
+                    </div>
+                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                      {game.scores?.visitors?.points || '-'}
+                    </div>
+                  </div>
+                  <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    {game.teams?.visitors?.logo ? (
+                      <Image
+                        src={game.teams.visitors.logo}
+                        alt={game.teams.visitors.name}
+                        width={24}
+                        height={24}
+                        className="rounded-full"
+                        style={{ width: 'auto', height: 'auto' }}
+                      />
+                    ) : (
+                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                        {game.teams?.visitors?.name?.charAt(0) || 'A'}
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div className="text-xl font-bold text-gray-900 dark:text-white">
-                {currentGame.scores?.visitors?.points || '-'}
+
+              {/* Game Info */}
+              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  <span>{formatGameDate(game)}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {formatGameTime(game)}
+                </div>
               </div>
             </div>
-            <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
-              {currentGame.teams?.visitors?.logo ? (
-                <Image
-                  src={currentGame.teams.visitors.logo}
-                  alt={currentGame.teams.visitors.name}
-                  width={32}
-                  height={32}
-                  className="rounded-full"
-                  style={{ width: 'auto', height: 'auto' }}
-                />
-              ) : (
-                <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                  {currentGame.teams?.visitors?.name?.charAt(0) || 'A'}
-                </span>
-              )}
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Game Info */}
-        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-1">
-            <Calendar className="w-3 h-3" />
-            <span>{formatGameDate(currentGame)}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Clock className="w-3 h-3" />
-            {formatGameTime(currentGame)}
-          </div>
-        </div>
-
-        {/* Progress Indicators */}
-        {finishedGames.length > 1 && (
-          <div className="flex gap-1 justify-center mt-3">
-            {finishedGames.slice(0, 5).map((game, index) => (
-              <button
-                key={`game-${game.id}`}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                aria-label={`Go to game ${index + 1}`}
-              />
-            ))}
-            {finishedGames.length > 5 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                +{finishedGames.length - 5} more
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* View All Button */}
-      <Link
-        href="/sports/all-sports"
-        className="block w-full text-center py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-medium"
-      >
-        View All Games
-      </Link>
+      <div className="mt-auto pt-4">
+        <Link
+          href="/sports/all-sports"
+          className="block w-full text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+        >
+          View All Games
+        </Link>
+      </div>
     </div>
   );
 }

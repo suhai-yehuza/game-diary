@@ -1,9 +1,7 @@
 'use client';
 
 import { Button } from '@/app/components/ui/button';
-import type { ISportsPaginationProps } from '@/lib/types';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { ISportsPaginationProps } from '@/types';
 
 export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPaginationProps) {
   if (totalPages <= 1) return null;

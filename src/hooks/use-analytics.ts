@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 
-import { analytics, type IAnalyticsProperties } from '@/lib/utils/analytics';
+import { analytics } from '@/lib/utils/analytics';
+import type { IAnalyticsProperties } from '@/types';
 
 export function useAnalytics() {
   const trackPageView = useCallback((page: string, properties?: IAnalyticsProperties) => {

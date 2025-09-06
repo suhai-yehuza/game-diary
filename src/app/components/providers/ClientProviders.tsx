@@ -3,15 +3,14 @@
 import { ApolloProvider } from '@apollo/client';
 import dynamic from 'next/dynamic';
 import { ThemeProvider } from 'next-themes';
-import { Suspense } from 'react';
+import { Suspense, memo } from 'react';
 import { Toaster } from 'sonner';
 
-// Cache initializer components removed
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
 import { MenuProvider } from '@/app/components/providers/MenuContext';
 import { NotificationProvider } from '@/app/components/providers/NotificationProvider';
 import { apolloClient } from '@/lib/apollo-client';
-import type { IClientProvidersProps } from '@/lib/types';
+import type { IClientProvidersProps } from '@/types';
 
 // Dynamically import NotificationOnLogin with SSR disabled to prevent context errors
 const NotificationOnLogin = dynamic(
@@ -24,36 +23,56 @@ const NotificationOnLogin = dynamic(
   }
 );
 
-export function ClientProviders({ children }: IClientProvidersProps) {
-  return (
-    <ApolloProvider client={apolloClient}>
-      <MenuProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Suspense fallback={<>{children}</>}>
-            <ClerkProviderWrapper>
-              <NotificationProvider>
-                {children}
-                <NotificationOnLogin />
-                {/* Cache initializer removed */}
-              </NotificationProvider>
-            </ClerkProviderWrapper>
-          </Suspense>
-          <Toaster
-            position="top-right"
-            richColors
-            closeButton
-            duration={10000}
-            expand={true}
-            theme="dark"
-          />
-          {/* Cache status display removed */}
-        </ThemeProvider>
-      </MenuProvider>
-    </ApolloProvider>
-  );
-}
+// Optimized loading fallback component
+const LoadingFallback = memo(() => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4" />
+      <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+    </div>
+  </div>
+));
+
+LoadingFallback.displayName = 'LoadingFallback';
+
+// Combined core providers to reduce nesting
+const CoreProviders = memo(({ children }: { children: React.ReactNode }) => (
+  <ApolloProvider client={apolloClient}>
+    <ClerkProviderWrapper>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <MenuProvider>{children}</MenuProvider>
+      </ThemeProvider>
+    </ClerkProviderWrapper>
+  </ApolloProvider>
+));
+
+CoreProviders.displayName = 'CoreProviders';
+
+// Notification and UI providers (lighter weight)
+const NotificationProviders = memo(({ children }: { children: React.ReactNode }) => (
+  <NotificationProvider>
+    {children}
+    <NotificationOnLogin />
+  </NotificationProvider>
+));
+
+NotificationProviders.displayName = 'NotificationProviders';
+
+// Main optimized providers component
+export const OptimizedProviders = memo(({ children }: IClientProvidersProps) => (
+  <CoreProviders>
+    <Suspense fallback={<LoadingFallback />}>
+      <NotificationProviders>{children}</NotificationProviders>
+    </Suspense>
+    <Toaster
+      position="top-right"
+      richColors
+      closeButton
+      duration={10000}
+      expand={true}
+      theme="dark"
+    />
+  </CoreProviders>
+));
+
+OptimizedProviders.displayName = 'OptimizedProviders';

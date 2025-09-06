@@ -5,9 +5,9 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { users, friendships } from '@/lib/db/schema';
-import { FRIENDSHIP_STATUS } from '@/lib/types';
 import { decryptField, deserializeEncryptedField, isEncrypted } from '@/lib/utils/encryption';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import { FRIENDSHIP_STATUS } from '@/types';
 
 // Helper function to safely decrypt a field
 function safeDecrypt(encryptedValue: string | null | undefined): string | null {

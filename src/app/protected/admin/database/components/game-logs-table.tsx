@@ -4,26 +4,26 @@ import React, { useState } from 'react';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
 import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
-import type { ClassificationType, IGameLog } from '@/lib/types';
+import type { CLASSIFICATION, IGameLog } from '@/types';
 
 export function GameLogsTableWithSearch() {
   const [selectedClassification, setSelectedClassification] =
-    useState<ClassificationType>('PUBLIC');
+    useState<(typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]>('PUBLIC');
 
   const columns = [
-    { key: 'id' as keyof IGameLog, label: 'id', sortable: true },
-    { key: 'user_id' as keyof IGameLog, label: 'user_id', sortable: true },
-    { key: 'game_id' as keyof IGameLog, label: 'game_id', sortable: true },
-    { key: 'rating_for_game' as keyof IGameLog, label: 'rating_for_game', sortable: true },
-    { key: 'classification' as keyof IGameLog, label: 'classification', sortable: true },
-    { key: 'created_at' as keyof IGameLog, label: 'created_at', sortable: true },
+    { key: 'id' as string, label: 'id', sortable: true },
+    { key: 'user_id' as string, label: 'user_id', sortable: true },
+    { key: 'game_id' as string, label: 'game_id', sortable: true },
+    { key: 'rating_for_game' as string, label: 'rating_for_game', sortable: true },
+    { key: 'classification' as string, label: 'classification', sortable: true },
+    { key: 'created_at' as string, label: 'created_at', sortable: true },
   ];
 
-  const getTableName = (classification: ClassificationType) => {
+  const getTableName = (classification: (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]) => {
     return `game_logs_${classification.toLowerCase()}`;
   };
 
-  const getItemLabel = (classification: ClassificationType) => {
+  const getItemLabel = (classification: (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]) => {
     return `${classification.toLowerCase()} game logs`;
   };
 
@@ -31,7 +31,9 @@ export function GameLogsTableWithSearch() {
     <div className="space-y-4">
       <Tabs
         value={selectedClassification}
-        onValueChange={value => setSelectedClassification(value as ClassificationType)}
+        onValueChange={value =>
+          setSelectedClassification(value as (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION])
+        }
       >
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger

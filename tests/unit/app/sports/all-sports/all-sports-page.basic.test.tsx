@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-import { ClientProviders } from '@src/app/components/providers';
+import { TestProviders } from '@src/app/components/providers/TestProviders';
 import AllSportsPage from '@src/app/sports/all-sports/page';
 
 // Mock CacheProgressTracker component
@@ -59,9 +59,9 @@ describe('AllSportsPage', () => {
 
   it('renders the all sports page with correct structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for main heading
@@ -76,9 +76,9 @@ describe('AllSportsPage', () => {
 
   it('applies correct CSS classes for layout', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for main section
@@ -92,9 +92,9 @@ describe('AllSportsPage', () => {
 
   it('has proper semantic structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for heading hierarchy
@@ -109,16 +109,16 @@ describe('AllSportsPage', () => {
 
   it('renders consistently', () => {
     const { rerender } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Re-render and check consistency
     rerender(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -130,9 +130,9 @@ describe('AllSportsPage', () => {
 
   it('has proper accessibility attributes', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for proper heading structure
@@ -142,17 +142,17 @@ describe('AllSportsPage', () => {
 
   it('handles multiple renders without issues', () => {
     const { rerender } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Multiple re-renders
     for (let i = 0; i < 3; i++) {
       rerender(
-        <ClientProviders>
+        <TestProviders>
           <AllSportsPage />
-        </ClientProviders>
+        </TestProviders>
       );
     }
 
@@ -162,9 +162,9 @@ describe('AllSportsPage', () => {
 
   it('uses container layout', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     const section = container.querySelector('section');
@@ -173,9 +173,9 @@ describe('AllSportsPage', () => {
 
   it('has proper content structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -190,9 +190,9 @@ describe('AllSportsPage', () => {
 
   it('centers content with proper spacing', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     const section = container.querySelector('section');
@@ -201,9 +201,9 @@ describe('AllSportsPage', () => {
 
   it('has responsive container layout', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     const section = container.querySelector('section');
@@ -218,9 +218,9 @@ describe('UserGreeting', () => {
 
   it('renders welcome message', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     expect(
@@ -230,9 +230,9 @@ describe('UserGreeting', () => {
 
   it('is contained within the welcome section', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     const welcomeSection = container.querySelector('.mb-6.p-4.bg-blue-900\\/20.rounded-lg');
@@ -243,9 +243,9 @@ describe('UserGreeting', () => {
 
   it('renders as a paragraph element', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <AllSportsPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     const welcomeText = screen.getByText('Welcome to All Sports - Explore your favorite leagues');

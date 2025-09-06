@@ -6,7 +6,7 @@ import React from 'react';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IFriendRequestCardProps } from '@/lib/types';
+import type { IFriendRequestCardProps } from '@/types';
 
 export function FriendRequestCard({
   request,

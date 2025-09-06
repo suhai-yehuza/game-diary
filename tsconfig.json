@@ -26,7 +26,9 @@
       "@lib/*": ["./src/lib/*"],
       "@app/*": ["./src/app/*"],
       "@scripts/*": ["./scripts/*"],
-      "@tests/*": ["./tests/*"]
+      "@tests/*": ["./tests/*"],
+      "@types": ["./types/index.ts"],
+      "@/types": ["./types/index.ts"]
     },
     "typeRoots": ["./node_modules/@types"],
     "baseUrl": ".",
@@ -35,23 +37,11 @@
   },
   "include": [
     "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
     "src/**/*.ts",
     "src/**/*.tsx",
-    "lib/**/*.ts",
-    "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "src/lib/types/global.d.ts"
+    ".next/types/**/*.ts",
+    "types/**/*.ts",
+    "codegen.ts"
   ],
-  "exclude": [
-    "node_modules",
-    ".next/**/*",
-    "!.next/types/**/*.ts",
-    "out",
-    "coverage",
-    "**/dist/**",
-    "src/lib/types/generated/**"
-  ]
+  "exclude": ["node_modules", ".next/**/*", "!.next/types/**/*.ts", "out", "coverage", "**/dist/**"]
 }

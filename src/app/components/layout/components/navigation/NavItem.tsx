@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 
-import type { INavItemExtendedProps } from '@/lib/types';
+import type { INavItemExtendedProps } from '@/types';
 
 export function NavItem({
   href,

@@ -11,8 +11,8 @@ import { GameCard } from '@/app/components/sports/game-card';
 import { PlayerCard } from '@/app/components/sports/player-card';
 import { Tabs } from '@/app/components/sports/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
-import type { ITeamResponse, IPlayerResponse, ITeamDetailPageProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { ITeamResponse, IPlayerResponse, ITeamDetailPageProps } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
 
@@ -20,7 +20,7 @@ export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
   const [teamId, setTeamId] = useState<string>('');
 
   useEffect(() => {
-    void params.then(p => setTeamId(p.teamId));
+    setTeamId((params as { teamId: string }).teamId);
   }, [params]);
 
   // Fetch team data from database
@@ -247,6 +247,10 @@ export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
         <Tabs
           defaultTab="overview"
           showLiveGamesTab={false}
+          activeTab="overview"
+          onTabChange={() => {
+            // Tab change functionality not implemented yet
+          }}
           tabs={[
             {
               id: 'overview',
@@ -476,10 +480,7 @@ export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
                   ) : teamGames.length > 0 ? (
                     <div className="grid gap-4">
                       {teamGames.map(game => (
-                        <GameCard
-                          key={(game as { id: string }).id}
-                          game={game as import('@/lib/types').IGameResponse}
-                        />
+                        <GameCard key={(game as { id: string }).id} game={game} />
                       ))}
                     </div>
                   ) : (

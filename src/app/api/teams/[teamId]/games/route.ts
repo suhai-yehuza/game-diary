@@ -1,9 +1,9 @@
-import { eq, or, desc } from 'drizzle-orm';
+import { eq, or, desc, sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
-import { nba_games, teams } from '@/lib/db/schema';
+import { basketball_games, basketball_teams } from '@/lib/db/schema';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(
@@ -29,9 +29,14 @@ export async function GET(
     }
     const games = await database
       .select()
-      .from(nba_games)
-      .where(or(eq(nba_games.home_team_id, teamId), eq(nba_games.away_team_id, teamId)))
-      .orderBy(desc(nba_games.date))
+      .from(basketball_games)
+      .where(
+        or(
+          sql`(${basketball_games.teams}->'home'->>'id')::text = ${teamId}`,
+          sql`(${basketball_games.teams}->'away'->>'id')::text = ${teamId}`
+        )
+      )
+      .orderBy(desc(basketball_games.date))
       .limit(10);
 
     // For each game, fetch team details and transform to expected format
@@ -41,13 +46,33 @@ export async function GET(
           game.date instanceof Date
             ? game.date.toISOString()
             : new Date(game.date as unknown as string).toISOString();
-        const [homeTeam, awayTeam] = await Promise.all([
-          db()?.query.teams.findFirst({
-            where: eq(teams.id, game.home_team_id),
-          }),
-          db()?.query.teams.findFirst({
-            where: eq(teams.id, game.away_team_id),
-          }),
+        const teamsData = game.teams as {
+          home?: {
+            id?: string | number;
+            name?: string;
+            nickname?: string;
+            code?: string;
+            logo?: string;
+          };
+          away?: {
+            id?: string | number;
+            name?: string;
+            nickname?: string;
+            code?: string;
+            logo?: string;
+          };
+        } | null;
+        const [homeTeam, _awayTeam] = await Promise.all([
+          teamsData?.home?.id
+            ? db()?.query.basketball_teams.findFirst({
+                where: eq(basketball_teams.id, String(teamsData.home.id)),
+              })
+            : null,
+          teamsData?.away?.id
+            ? db()?.query.basketball_teams.findFirst({
+                where: eq(basketball_teams.id, String(teamsData.away.id)),
+              })
+            : null,
         ]);
 
         // Transform to match GameCard expected format
@@ -66,28 +91,28 @@ export async function GET(
             total: 4,
             endOfPeriod: false,
           },
-          teams: {
+          basketball_teams: {
             home: {
-              id: Number.parseInt(String(game.home_team_id), 10) || 0,
-              name: homeTeam?.name || 'Unknown Team',
-              nickname: homeTeam?.nickname || '',
-              code: homeTeam?.code || '',
-              logo: homeTeam?.logo || '',
+              id: teamsData?.home?.id || 0,
+              name: teamsData?.home?.name || 'Unknown Team',
+              nickname: teamsData?.home?.nickname || '',
+              code: teamsData?.home?.code || '',
+              logo: teamsData?.home?.logo || '',
             },
             visitors: {
-              id: Number.parseInt(String(game.away_team_id), 10) || 0,
-              name: awayTeam?.name || 'Unknown Team',
-              nickname: awayTeam?.nickname || '',
-              code: awayTeam?.code || '',
-              logo: awayTeam?.logo || '',
+              id: teamsData?.away?.id || 0,
+              name: teamsData?.away?.name || 'Unknown Team',
+              nickname: teamsData?.away?.nickname || '',
+              code: teamsData?.away?.code || '',
+              logo: teamsData?.away?.logo || '',
             },
           },
-          scores: {
+          scores: game.scores || {
             home: {
-              points: game.home_team_score || 0,
+              points: 0,
             },
             visitors: {
-              points: game.away_team_score || 0,
+              points: 0,
             },
           },
           arena: {

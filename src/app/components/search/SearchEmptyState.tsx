@@ -2,7 +2,7 @@
 
 import { Search } from 'lucide-react';
 
-import type { ISearchEmptyStateProps } from '@/lib/types';
+import type { ISearchEmptyStateProps } from '@/types';
 
 export function SearchEmptyState({ hasQuery }: ISearchEmptyStateProps) {
   if (hasQuery) {

@@ -10,211 +10,27 @@ permissions:
   actions: read
 
 jobs:
-  # Quality gate validation
-  quality-gate:
-    name: Quality Gate Validation
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Quality Gate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
-          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
-          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          CI: 'true'
-          SKIP_RAPIDAPI_VALIDATION: 'true'
-          SKIP_DB_TESTS: 'true'
-          SKIP_UNIT_TESTS: 'true'
-        run: |
-          echo "Running quality gate validation for nightly tests..."
-          ./scripts/validation-pipeline.sh ci --skip-e2e-tests --skip-db-tests --skip-unit-tests
-
-      - name: Upload Quality Gate Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-quality-gate-artifacts
-          path: |
-            logs/
-            test-results/
-            coverage/
-          retention-days: 7
-          if-no-files-found: warn
-
-  # Unit tests
-  unit-tests:
-    name: Unit Tests & Coverage
-    needs: [quality-gate]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Unit Tests
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
-          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
-          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          CI: 'true'
-        run: pnpm test:unit
-
-      - uses: codecov/codecov-action@v4
-        if: success()
-        with:
-          file: ./coverage/lcov.info
-          flags: unittests
-          name: codecov-umbrella
-
-      - name: Upload Unit Test Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-unit-test-artifacts
-          path: |
-            test-results/
-            coverage/
-          retention-days: 7
-          if-no-files-found: warn
-
-  # Database tests
-  database-tests:
-    name: Database Tests
-    needs: [quality-gate, unit-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Database Tests
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
-          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
-          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          CI: 'true'
-          NODE_ENV: 'production'
-        run: |
-          echo "🔧 Setting up database triggers..."
-          pnpm db:triggers
-          echo "🔍 Validating database trigger definitions..."
-          pnpm db:validate-triggers
-          echo "🧪 Running comprehensive database trigger tests..."
-          pnpm db:test:all-triggers
-
-      - name: Upload Database Test Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-database-test-artifacts
-          path: |
-            logs/
-            test-results/
-          retention-days: 7
-          if-no-files-found: warn
-
-  # Integration tests
-  integration-tests:
-    name: Integration Tests
-    needs: [quality-gate, unit-tests, database-tests]
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: '10'
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run Integration Tests
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
-          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
-          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
-          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
-          CI: 'true'
-          NODE_ENV: 'production'
-        run: |
-          echo "🧪 Running integration tests..."
-          pnpm test:integration
-
-      - name: Upload Integration Test Artifacts
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: nightly-integration-test-artifacts
-          path: |
-            test-results/
-            coverage/
-            logs/
-          retention-days: 7
-          if-no-files-found: warn
+  # Use the pre-deployment validation workflow for all validation jobs
+  validation:
+    name: Nightly Validation
+    uses: ./.github/workflows/pre-deployment.yml
+    with:
+      workflow-name: 'Nightly Validation'
+      environment: 'Production'
+      skip-e2e-tests: false
+    secrets:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
 
   # Comprehensive E2E testing job - optimized for speed
   comprehensive-e2e:
     name: Comprehensive E2E Testing
-    needs: [quality-gate, unit-tests, database-tests, integration-tests]
+    needs: [validation]
     runs-on: ubuntu-latest
     timeout-minutes: 30 # Reduced from 45 minutes
     strategy:
@@ -333,7 +149,7 @@ jobs:
   # Coverage report job - now independent and optimized
   coverage-report:
     name: Coverage Report
-    needs: [comprehensive-e2e]
+    needs: [validation, comprehensive-e2e]
     if: always() # Run even if comprehensive-e2e job fails
     runs-on: ubuntu-latest
     timeout-minutes: 10 # Reduced from 15 minutes
@@ -352,10 +168,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Download E2E Test Results
+      - name: Download Test Results
         uses: actions/download-artifact@v4
         with:
-          pattern: nightly-e2e-results-*
+          pattern: '*artifacts'
           path: ./
 
       - name: Generate E2E Coverage Report
@@ -463,3 +279,67 @@ jobs:
             build/
           retention-days: 7
           if-no-files-found: warn
+
+  # Validation summary
+  summary:
+    name: Nightly Test Summary
+    needs: [validation, comprehensive-e2e, coverage-report]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate Nightly Test Summary
+        run: |
+          echo "## 🌙 Nightly Test Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Purpose:** Comprehensive nightly testing and validation" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Validation summary
+          if [ "${{ needs.validation.result }}" = "success" ]; then
+            echo "### ✅ Validation Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Quality gate validation completed" >> $GITHUB_STEP_SUMMARY
+            echo "- Unit tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "- Database tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "- Integration tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E Mock Verification completed" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E Responsive tests completed" >> $GITHUB_STEP_SUMMARY
+            echo "- E2E Browser tests completed (Chromium, WebKit, Firefox, Mobile)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Validation Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- Validation workflow failed - check individual job results" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Comprehensive E2E tests summary
+          if [ "${{ needs.comprehensive-e2e.result }}" = "success" ]; then
+            echo "### ✅ Comprehensive E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Comprehensive E2E tests completed across all browsers" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Comprehensive E2E Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+            echo "- Comprehensive E2E tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Coverage report summary
+          if [ "${{ needs.coverage-report.result }}" = "success" ]; then
+            echo "### ✅ Coverage Report Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "- Coverage report generated successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ❌ Coverage Report Results" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** FAILED" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note:** This is a comprehensive nightly test suite that validates all aspects of the application." >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:** Review any failed tests and address issues before the next deployment." >> $GITHUB_STEP_SUMMARY

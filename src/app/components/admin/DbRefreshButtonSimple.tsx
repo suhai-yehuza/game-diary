@@ -3,8 +3,8 @@
 import { Database, RefreshCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 
-import type { IDbRefreshProgress, IDbRefreshButtonSimpleProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IDbRefreshProgress, IDbRefreshButtonSimpleProps } from '@/types';
 
 export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimpleProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -39,7 +39,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
       status: 'running',
       message: 'Starting database refresh process',
       details: 'Initializing database connection and API client',
-      startTime: new Date(),
+      startTime: Date.now(),
     });
 
     try {
@@ -48,7 +48,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
       // Simulate progress updates for each step
       const simulateProgress = async () => {
         // Step 1: Leagues
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           currentStep: 'Processing Leagues',
           stepNumber: 1,
@@ -59,7 +59,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Step 2: Seasons
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           currentStep: 'Processing Seasons',
           stepNumber: 2,
@@ -70,7 +70,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Step 3: Teams
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           currentStep: 'Processing Teams',
           stepNumber: 3,
@@ -81,7 +81,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Step 4: Games
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           currentStep: 'Processing Games',
           stepNumber: 4,
@@ -92,7 +92,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
         await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Step 5: Players
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           currentStep: 'Processing Players',
           stepNumber: 5,
@@ -125,7 +125,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
         setMessage(`Database refresh completed successfully in ${result.duration}!`);
 
         // Update progress to completed
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           status: 'completed',
           progress: 100, // Set to 100% only when actually completed
@@ -154,7 +154,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
       console.error('❌ Database refresh failed:', errorObj);
 
       // Update progress to error
-      setProgress(prev => ({
+      setProgress((prev: IDbRefreshProgress) => ({
         ...prev,
         status: 'error',
         message: 'Database refresh failed',
@@ -194,7 +194,7 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
 
       if (result.success) {
         console.log('✅ Job termination requested successfully');
-        setProgress(prev => ({
+        setProgress((prev: IDbRefreshProgress) => ({
           ...prev,
           status: 'error',
           message: 'Job termination requested',
@@ -233,11 +233,16 @@ export function DbRefreshButtonSimple({ onProgressChange }: IDbRefreshButtonSimp
   useEffect(() => {
     if (onProgressChange) {
       onProgressChange({
-        isRefreshing,
-        progress,
-        status,
+        ...progress,
+        status:
+          status === 'success'
+            ? 'completed'
+            : status === 'idle'
+              ? 'idle'
+              : status === 'error'
+                ? 'error'
+                : 'running',
         message,
-        onTerminate: () => void handleTerminate(),
       });
     }
   }, [isRefreshing, progress, status, message, onProgressChange, handleTerminate]);

@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 
+import { logError, logInfo } from '@/lib/utils/logger';
 import type {
   IAsyncState,
   IUseAsyncStateReturn,
   IPaginatedState,
   IUsePaginatedStateReturn,
-} from '@/lib/types';
-import { logError, logInfo } from '@/lib/utils/logger';
+} from '@/types';
 
 /**
  * Reusable hook for managing async operations with loading, error, and data states
@@ -18,7 +18,7 @@ export function useAsyncState<T>(initialData: T | null = null): IUseAsyncStateRe
     error: null,
   });
 
-  const setData = useCallback((data: T) => {
+  const setData = useCallback((data: T | null) => {
     setState(prev => ({ ...prev, data, loading: false, error: null }));
   }, []);
 
@@ -55,7 +55,9 @@ export function useAsyncState<T>(initialData: T | null = null): IUseAsyncStateRe
   );
 
   return {
-    state,
+    data: state.data,
+    loading: state.loading,
+    error: state.error,
     setData,
     setLoading,
     setError,
@@ -73,28 +75,19 @@ export function usePaginatedState<T>(): IUsePaginatedStateReturn<T> {
     data: [],
     loading: false,
     error: null,
-    pageInfo: {
-      hasNextPage: false,
-      hasPreviousPage: false,
-      startCursor: null,
-      endCursor: null,
-    },
+    hasMore: false,
     totalCount: 0,
   });
 
-  const setData = useCallback(
-    (data: T[], pageInfo?: IPaginatedState<T>['pageInfo'], totalCount?: number) => {
-      setState(prev => ({
-        ...prev,
-        data,
-        loading: false,
-        error: null,
-        pageInfo: pageInfo ?? prev.pageInfo,
-        totalCount: totalCount ?? prev.totalCount,
-      }));
-    },
-    []
-  );
+  const setData = useCallback((data: T[], totalCount?: number) => {
+    setState(prev => ({
+      ...prev,
+      data,
+      loading: false,
+      error: null,
+      totalCount: totalCount ?? prev.totalCount,
+    }));
+  }, []);
 
   const setLoading = useCallback((loading: boolean) => {
     setState(prev => ({ ...prev, loading, error: loading ? null : prev.error }));
@@ -109,21 +102,15 @@ export function usePaginatedState<T>(): IUsePaginatedStateReturn<T> {
       data: [],
       loading: false,
       error: null,
-      pageInfo: {
-        hasNextPage: false,
-        hasPreviousPage: false,
-        startCursor: null,
-        endCursor: null,
-      },
+      hasMore: false,
       totalCount: 0,
     });
   }, []);
 
-  const appendData = useCallback((newData: T[], pageInfo?: IPaginatedState<T>['pageInfo']) => {
+  const _appendData = useCallback((newData: T[]) => {
     setState(prev => ({
       ...prev,
       data: [...(prev.data ?? []), ...newData],
-      pageInfo: pageInfo ?? prev.pageInfo,
       loading: false,
       error: null,
     }));
@@ -133,7 +120,6 @@ export function usePaginatedState<T>(): IUsePaginatedStateReturn<T> {
     async (
       asyncFn: () => Promise<{
         data: T[];
-        pageInfo: IPaginatedState<T>['pageInfo'];
         totalCount: number;
       }>
     ): Promise<T[] | undefined> => {
@@ -142,7 +128,7 @@ export function usePaginatedState<T>(): IUsePaginatedStateReturn<T> {
 
       try {
         const result = await asyncFn();
-        setData(result.data, result.pageInfo, result.totalCount);
+        setData(result.data, result.totalCount);
         logInfo('Paginated async operation completed successfully', {
           dataCount: result.data.length,
           totalCount: result.totalCount,
@@ -163,11 +149,16 @@ export function usePaginatedState<T>(): IUsePaginatedStateReturn<T> {
 
   return {
     state,
+    loadMore: () => {
+      // Load more functionality not implemented yet
+    },
+    refresh: () => {
+      // Refresh functionality not implemented yet
+    },
     setData,
     setLoading,
     setError,
     reset,
-    appendData,
     execute,
   };
 }

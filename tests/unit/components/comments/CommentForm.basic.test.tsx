@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { CommentForm } from '@/app/components/comments/CommentForm';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 // Mock error handlers
 vi.mock('@/lib/utils/error-handler', () => ({
@@ -373,7 +373,13 @@ describe('CommentForm', () => {
       reactions: [],
     };
 
-    mockCreateComment.mockResolvedValue({ comment: mockComment });
+    mockCreateComment.mockResolvedValue({
+      data: {
+        createComment: {
+          comment: mockComment,
+        },
+      },
+    });
 
     render(<CommentForm {...defaultProps} />);
 
@@ -391,22 +397,26 @@ describe('CommentForm', () => {
   it('should clear content after successful submission', async () => {
     const user = userEvent.setup();
     mockCreateComment.mockResolvedValue({
-      comment: {
-        id: 'new-comment',
-        content: 'New comment',
-        user_id: 'test-user-id',
-        parent_id: 'parent-1',
-        parent_type: ParentType.GameLog,
-        depth: 0,
-        created_at: '2025-08-10T20:00:00Z',
-        updated_at: '2025-08-10T20:00:00Z',
-        user: {
-          id: 'test-user-id',
-          username: 'testuser',
-          firstName: 'Test',
-          lastName: 'User',
+      data: {
+        createComment: {
+          comment: {
+            id: 'new-comment',
+            content: 'New comment',
+            user_id: 'test-user-id',
+            parent_id: 'parent-1',
+            parent_type: ParentType.GameLog,
+            depth: 0,
+            created_at: '2025-08-10T20:00:00Z',
+            updated_at: '2025-08-10T20:00:00Z',
+            user: {
+              id: 'test-user-id',
+              username: 'testuser',
+              firstName: 'Test',
+              lastName: 'User',
+            },
+            reactions: [],
+          },
         },
-        reactions: [],
       },
     });
 

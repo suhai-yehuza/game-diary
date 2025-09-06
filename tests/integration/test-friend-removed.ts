@@ -2,7 +2,7 @@ import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import { errorHandlers } from '@/lib/utils/error-handler';
+import { errorHandlers } from '../../src/lib/utils/error-handler';
 
 // Load environment variables
 config();
@@ -15,6 +15,9 @@ if (!databaseUrl) {
 
 const sql = neon(databaseUrl);
 const db = drizzle(sql);
+
+// Track test data for cleanup
+const testDataIds: string[] = [];
 
 async function testFriendRemoved() {
   try {
@@ -43,6 +46,7 @@ async function testFriendRemoved() {
 
     // Step 1: Create an accepted friendship
     const friendshipId = `test-${Date.now()}`;
+    testDataIds.push(friendshipId); // Track for cleanup
     console.log('\n🔍 Step 1: Creating accepted friendship...');
 
     await db.execute(`
@@ -121,6 +125,31 @@ async function testFriendRemoved() {
       action: 'Friend removed test',
     });
     console.error('❌ Error testing friend_removed:', error);
+  } finally {
+    // Always clean up test data
+    await cleanupTestData();
+  }
+}
+
+async function cleanupTestData() {
+  try {
+    console.log('\n🧹 Cleaning up test data...');
+
+    // Clean up notifications for test data
+    for (const id of testDataIds) {
+      await db.execute(`DELETE FROM notifications WHERE target_id = '${id}'`);
+    }
+
+    // Clean up any remaining test friendships
+    await db.execute(`DELETE FROM friendships WHERE id LIKE 'test-%'`);
+
+    console.log('✅ Test data cleanup completed');
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Integration Test',
+      action: 'Test data cleanup',
+    });
+    console.warn('⚠️ Warning during cleanup:', error);
   }
 }
 

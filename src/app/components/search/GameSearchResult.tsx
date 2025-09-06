@@ -4,7 +4,7 @@ import { Calendar, Star, Trophy } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { BRAND_COLORS, GRADIENTS } from '@/lib/constants/colors';
-import type { IGameSearchResultProps } from '@/lib/types';
+import type { IGameSearchResultProps } from '@/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
@@ -71,14 +71,15 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
               </div>
 
               {/* Game Score */}
-              {game.home_team_score !== undefined && game.away_team_score !== undefined && (
-                <div className="flex items-center space-x-1 mb-3">
-                  <Trophy className="w-4 h-4 text-gray-400" />
-                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
-                    {formatScore(game.home_team_score, game.away_team_score)}
-                  </span>
-                </div>
-              )}
+              {game.scores?.home?.points !== undefined &&
+                game.scores?.visitors?.points !== undefined && (
+                  <div className="flex items-center space-x-1 mb-3">
+                    <Trophy className="w-4 h-4 text-gray-400" />
+                    <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                      {formatScore(game.scores.home.points, game.scores.visitors.points)}
+                    </span>
+                  </div>
+                )}
 
               <div className="flex items-center flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                 <div className="flex items-center space-x-1.5">

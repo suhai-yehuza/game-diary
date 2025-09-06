@@ -1,7 +1,7 @@
 import { Search, X } from 'lucide-react';
 import React, { useEffect, useRef, useState } from 'react';
 
-import type { ITableSearchProps } from '@/lib/types';
+import type { ITableSearchProps } from '@/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 
 export function TableSearch({
@@ -39,7 +39,7 @@ export function TableSearch({
 
   const handleClear = () => {
     setLocalSearchTerm('');
-    onClear();
+    onClear?.();
   };
 
   return (

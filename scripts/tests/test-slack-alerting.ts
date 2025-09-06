@@ -33,8 +33,20 @@ import { errorHandlers } from '@/lib/utils/error-handler';
 // Ensure database is initialized for the global AuditLogger
 async function ensureDatabaseInitialized(): Promise<void> {
   try {
-    // Get the correct connection string using the same logic as createDatabaseClient
+    // 🚨 PRODUCTION DATABASE PROTECTION
     const env = process.env.NODE_ENV || 'development';
+    if (
+      env === 'production' &&
+      process.env.CI !== 'true' &&
+      process.env.ALLOW_ACCESS_TO_PRODUCTION_DB !== 'true'
+    ) {
+      throw new Error(
+        '🚨 PRODUCTION DATABASE ACCESS BLOCKED: Slack alerting tests cannot run against production database. ' +
+          'If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable.'
+      );
+    }
+
+    // Get the correct connection string using the same logic as createDatabaseClient
     let databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
 
     // If no DATABASE_URL is found and we're in a CI environment, try to construct it

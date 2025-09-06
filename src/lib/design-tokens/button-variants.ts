@@ -34,19 +34,20 @@ export const buttonVariants = {
   primaryForm: 'bg-blue-600 hover:bg-blue-700 text-white',
 } as const;
 
-export type ButtonVariant = keyof typeof buttonVariants;
+import type { ButtonVariant } from '@/types';
 
 /**
  * Get button variant class names
  */
 export function getButtonVariant(variant: ButtonVariant): string {
-  return buttonVariants[variant];
+  return buttonVariants[variant as keyof typeof buttonVariants] || buttonVariants.primary;
 }
 
 /**
  * Combine button variant with additional classes
  */
 export function combineButtonClasses(variant: ButtonVariant, additionalClasses?: string): string {
-  const baseClasses = buttonVariants[variant];
+  const baseClasses =
+    buttonVariants[variant as keyof typeof buttonVariants] || buttonVariants.primary;
   return additionalClasses ? `${baseClasses} ${additionalClasses}` : baseClasses;
 }

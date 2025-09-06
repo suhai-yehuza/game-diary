@@ -1,12 +1,14 @@
-import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { renderHook } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 
-// Mock Apollo Client
-vi.mock('@apollo/client', () => ({
-  useQuery: vi.fn(),
-  useMutation: vi.fn(),
+// Mock optimized hooks
+vi.mock('@/hooks/use-optimized-query', () => ({
+  useOptimizedQuery: vi.fn(),
+}));
+
+vi.mock('@/hooks/use-optimized-mutation', () => ({
+  useOptimizedMutation: vi.fn(),
 }));
 
 // Mock Clerk
@@ -56,40 +58,40 @@ import {
   useCommentReactions,
   useReactionEmojis,
 } from '@/hooks/use-reactions';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 describe('useReactions', () => {
   const mockUser = {
-    id: 'user-1',
-    username: 'testuser',
+    id: 'unit-test-user-1',
+    username: 'unit-test-basic-user',
     firstName: 'Test',
     lastName: 'User',
-    emailAddresses: [{ emailAddress: 'test@example.com' }],
+    emailAddresses: [{ emailAddress: 'unit-test-basic@example.com' }],
   };
 
   const mockReactions = [
     {
-      id: 'reaction-1',
+      id: 'unit-test-reaction-1',
       emoji: '👍',
-      user_id: 'user-1',
-      target_id: 'target-1',
+      user_id: 'unit-test-user-1',
+      target_id: 'unit-test-target-1',
       target_type: 'GAME_LOG',
       created_at: '2024-01-01T00:00:00Z',
       updated_at: '2024-01-01T00:00:00Z',
       deleted_at: null,
       user: {
-        id: 'user-1',
-        username: 'testuser',
+        id: 'unit-test-user-1',
+        username: 'unit-test-basic-user',
         first_name: 'Test',
         last_name: 'User',
-        email_address: 'test@example.com',
+        email_address: 'unit-test-basic@example.com',
         phone_number: null,
         image_url: null,
       },
     },
   ];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
 
     // Mock useUser
@@ -97,16 +99,18 @@ describe('useReactions', () => {
       user: mockUser,
     });
 
-    // Mock useQuery
-    (useQuery as any).mockReturnValue({
+    // Mock useOptimizedQuery
+    const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
+    (useOptimizedQuery as any).mockReturnValue({
       data: { reactions: mockReactions },
       loading: false,
       error: null,
       refetch: vi.fn(),
     });
 
-    // Mock useMutation
-    (useMutation as any).mockReturnValue([
+    // Mock useOptimizedMutation
+    const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
+    (useOptimizedMutation as any).mockReturnValue([
       vi.fn().mockResolvedValue({ data: { createReaction: { reaction: mockReactions[0] } } }),
       { loading: false, error: null },
     ]);
@@ -121,7 +125,7 @@ describe('useReactions', () => {
     );
 
     expect(result.current.reactions).toBeDefined();
-    expect(result.current.groupedReactions).toBeDefined();
+    expect(result.current.reactionGroups).toBeDefined();
     expect(result.current.userReactions).toBeDefined();
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBeNull();
@@ -171,8 +175,9 @@ describe('useReactions', () => {
     expect(typeof result.current.refetch).toBe('function');
   });
 
-  it('should handle loading state', () => {
-    (useQuery as any).mockReturnValue({
+  it('should handle loading state', async () => {
+    const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
+    (useOptimizedQuery as any).mockReturnValue({
       data: null,
       loading: true,
       error: null,
@@ -189,8 +194,9 @@ describe('useReactions', () => {
     expect(result.current.loading).toBe(true);
   });
 
-  it('should handle error state', () => {
-    (useQuery as any).mockReturnValue({
+  it('should handle error state', async () => {
+    const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
+    (useOptimizedQuery as any).mockReturnValue({
       data: null,
       loading: false,
       error: { message: 'Test error' },
@@ -204,11 +210,13 @@ describe('useReactions', () => {
       })
     );
 
-    expect(result.current.error).toBe('Test error');
+    expect(result.current.error).toEqual({ message: 'Test error' });
+    expect(result.current.error?.message).toBe('Test error');
   });
 
-  it('should handle empty reactions data', () => {
-    (useQuery as any).mockReturnValue({
+  it('should handle empty reactions data', async () => {
+    const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
+    (useOptimizedQuery as any).mockReturnValue({
       data: { reactions: [] },
       loading: false,
       error: null,
@@ -223,7 +231,7 @@ describe('useReactions', () => {
     );
 
     expect(result.current.reactions).toEqual([]);
-    expect(result.current.groupedReactions).toEqual([]);
+    expect(result.current.reactionGroups).toEqual([]);
   });
 });
 

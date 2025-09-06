@@ -1,0 +1,45 @@
+NOTES
+
+# Nuke and setup db and tables
+===== ===== ===== ===== =====
+# This creates a new migration file in drizzle/ directory
+> pnpm db:generate:unsafe
+
+# Seed with external api data
+> pnpm hard:reseed:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm hard:reseed:prod
+
+# Test all triggers are working correctly
+> pnpm db:test:all-triggers
+# > pnpm db:test:all-triggers:prod:override
+
+# seed user data (for dev only)
+> pnpm seed:user-data:large-pareto:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true DISABLE_USER_SEEDING=false pnpm seed:user-data:large-pareto:prod
+
+> pnpm seed:test-user-interactions:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm seed:test-user-interactions:prod
+
+
+# for local clerk
+> ngrok http --url=cuddly-unduly-zebra.ngrok-free.app 3000
+
+# view virtual db
+> db:studio
+===== ===== ===== ===== =====
+
+
+# Future changes to schema
+===== ===== ===== ===== =====
+# 1. Edit schema files (src/lib/db/schema/*) or custom db files (src/lib/db/migrations/*)
+
+# 2. Generate migration
+> pnpm db:generate:dev
+# The above creates a new migration file in drizzle/ directory
+
+# 3. Apply migration
+> pnpm db:migrate:dev
+
+# 4. Test everything works
+> pnpm db:test:all-triggers
+===== ===== ===== ===== =====

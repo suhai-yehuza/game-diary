@@ -8,8 +8,8 @@ import { toast } from 'sonner';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
 import { useFriendshipStatus } from '@/hooks/use-friendships';
-import type { IUserSearchResultCardProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IUserSearchResultCardProps } from '@/types';
 
 export function UserSearchResultCard({
   user,

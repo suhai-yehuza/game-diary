@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { ClientProviders } from '@src/app/components/providers';
+import { TestProviders } from '@src/app/components/providers/TestProviders';
 import UserPage from '@src/app/protected/user/page';
 
 // Mock CacheProgressTracker component
@@ -61,12 +61,8 @@ vi.mock('@/app/components/layout/components/SearchBar', () => ({
 }));
 
 // Mock table components
-vi.mock('@/app/components/game-logs/GameLogsTable', () => ({
-  GameLogsTable: () => <div data-testid="game-logs-table">Game Logs Table</div>,
-}));
-
-vi.mock('@/app/components/game-logs/MobileGameLogsTable', () => ({
-  MobileGameLogsTable: () => <div data-testid="mobile-game-logs-table">Mobile Game Logs Table</div>,
+vi.mock('@/app/components/game-logs/SimpleGameLogsTable', () => ({
+  SimpleGameLogsTable: () => <div data-testid="simple-game-logs-table">Simple Game Logs Table</div>,
 }));
 
 vi.mock('@/app/protected/user/components/ActivityTable', () => ({
@@ -80,9 +76,9 @@ vi.mock('@/app/protected/user/components/FriendsTable', () => ({
 // Helper function to render the user page with providers
 function renderUserPage() {
   return render(
-    <ClientProviders>
+    <TestProviders>
       <UserPage />
-    </ClientProviders>
+    </TestProviders>
   );
 }
 

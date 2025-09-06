@@ -1,6 +1,13 @@
-import type { ITeamsApiResponse } from '@/lib/types';
+import type { ITeamsApiResponse } from '@/types';
 
 export const MOCK_NBA_TEAMS: ITeamsApiResponse = {
+  success: true,
+  teams: [],
+  total: 10,
+  page: 1,
+  limit: 25,
+  timestamp: new Date().toISOString(),
+  requestId: 'mock-teams-request-id',
   get: 'teams',
   parameters: {
     league: '12',

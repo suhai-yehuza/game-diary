@@ -3,8 +3,8 @@
 import { User, MapPin, GraduationCap, Calendar, Ruler, Trophy, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { IPlayerSearchResultProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IPlayerSearchResultProps } from '@/types';
 
 function _formatDate(dateString: string) {
   try {
@@ -160,8 +160,12 @@ export function PlayerSearchResult({ player }: IPlayerSearchResultProps) {
     // Handle direct array
     if (Array.isArray(player.teams)) {
       return player.teams
-        .map(team =>
-          typeof team === 'object' ? team.team_name || team.name || 'Unknown Team' : team
+        .map((team: unknown) =>
+          typeof team === 'object' && team !== null
+            ? (team as { team_name?: string; name?: string }).team_name ||
+              (team as { team_name?: string; name?: string }).name ||
+              'Unknown Team'
+            : String(team)
         )
         .filter(Boolean)
         .join(', ');

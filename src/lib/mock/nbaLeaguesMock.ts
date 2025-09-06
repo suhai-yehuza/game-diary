@@ -1,55 +1,43 @@
-import type { ILeaguesApiResponse } from '@/lib/types';
+import type { ILeaguesApiResponse } from '@/types';
 
 export const MOCK_NBA_LEAGUES: ILeaguesApiResponse = {
-  get: 'leagues',
-  parameters: {},
-  errors: [],
-  results: 3,
-  response: [
+  success: true,
+  leagues: [
     {
-      id: 12,
+      id: '12',
       name: 'NBA',
-      type: 'League',
-      logo: 'https://media.api-sports.io/basketball/leagues/12.png',
-      country: {
-        id: 5,
-        name: 'USA',
-        code: 'US',
-        flag: 'https://media.api-sports.io/flags/us.svg',
-      },
-      flag: 'https://media.api-sports.io/flags/us.svg',
-      season: 2024,
-      round: 'Regular Season',
+      season: '2024',
     },
     {
-      id: 13,
+      id: '13',
       name: 'NBA Summer League',
-      type: 'League',
-      logo: 'https://media.api-sports.io/basketball/leagues/13.png',
-      country: {
-        id: 5,
-        name: 'USA',
-        code: 'US',
-        flag: 'https://media.api-sports.io/flags/us.svg',
-      },
-      flag: 'https://media.api-sports.io/flags/us.svg',
-      season: 2024,
-      round: 'Summer League',
+      season: '2024',
     },
     {
-      id: 14,
+      id: '14',
       name: 'NBA G League',
-      type: 'League',
-      logo: 'https://media.api-sports.io/basketball/leagues/14.png',
-      country: {
-        id: 5,
-        name: 'USA',
-        code: 'US',
-        flag: 'https://media.api-sports.io/flags/us.svg',
-      },
-      flag: 'https://media.api-sports.io/flags/us.svg',
-      season: 2024,
-      round: 'Regular Season',
+      season: '2024',
     },
   ],
+  total: 3,
+  data: {
+    leagues: [
+      {
+        id: '12',
+        name: 'NBA',
+        season: '2024',
+      },
+      {
+        id: '13',
+        name: 'NBA Summer League',
+        season: '2024',
+      },
+      {
+        id: '14',
+        name: 'NBA G League',
+        season: '2024',
+      },
+    ],
+  },
+  timestamp: new Date().toISOString(),
 };

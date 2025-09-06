@@ -1,7 +1,7 @@
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import React from 'react';
 
-import type { SortDirection, ISortableHeaderProps } from '@/lib/types';
+import type { ISortDirection, ISortableHeaderProps } from '@/types';
 
 export function SortableHeader({
   children,
@@ -23,7 +23,7 @@ export function SortableHeader({
 
     if (disabled) return;
 
-    let newDirection: SortDirection;
+    let newDirection: ISortDirection;
     if (!isActive) {
       newDirection = 'asc';
     } else if (isAsc) {

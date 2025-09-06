@@ -32,6 +32,14 @@ type Query {
   gameLogs(filters: GameLogFilters, pagination: PaginationInput): GameLogConnection!
   friendsGameLogs(pagination: PaginationInput): GameLogConnection!
 
+  # NBA Player queries
+  nbaPlayer(id: ID!): NBAPlayer
+  nbaPlayers(filters: NBAPlayerFilters, pagination: PaginationInput): NBAPlayerConnection!
+
+  # Team queries
+  team(id: ID!): Team
+  basketball_teams(filters: TeamFilters, pagination: PaginationInput): TeamConnection!
+
   # Friendship queries
   userFriendships(filters: FriendshipFilters, pagination: PaginationInput): FriendshipConnection!
   friendshipRequests(pagination: PaginationInput): FriendshipConnection!
@@ -40,8 +48,17 @@ type Query {
   # Comment queries
   comments(filters: CommentFilters, pagination: PaginationInput): CommentConnection!
 
+  # Public Comment queries (no authentication required)
+  publicComments(
+    filters: PublicCommentFilters
+    pagination: PaginationInput
+  ): PublicCommentConnection!
+
   # Reaction queries
   reactions(targetId: ID!, targetType: ParentType!): [Reaction!]!
+
+  # Public Reaction queries (no authentication required)
+  publicReactions(targetId: ID!, targetType: ParentType!): [PublicReaction!]!
 
   # Notification queries
   userNotifications(
@@ -69,9 +86,18 @@ type Mutation {
   updateComment(id: ID!, input: UpdateCommentInput!): UpdateCommentResponse!
   deleteComment(id: ID!): DeleteCommentResponse!
 
+  # Public Comment mutations (no authentication required)
+  createPublicComment(input: CreatePublicCommentInput!): CreatePublicCommentResponse!
+  updatePublicComment(id: ID!, input: UpdatePublicCommentInput!): UpdatePublicCommentResponse!
+  deletePublicComment(id: ID!): DeletePublicCommentResponse!
+
   # Reaction mutations
   createReaction(input: CreateReactionInput!): CreateReactionResponse!
   deleteReaction(id: ID!): DeleteReactionResponse!
+
+  # Public Reaction mutations (no authentication required)
+  createPublicReaction(input: CreatePublicReactionInput!): CreatePublicReactionResponse!
+  deletePublicReaction(id: ID!): DeletePublicReactionResponse!
 
   # Notification mutations
   markNotificationAsRead(notificationId: ID!): MarkNotificationAsReadResponse!
@@ -81,6 +107,7 @@ type Mutation {
 # Scalars
 scalar DateTime
 scalar Any
+scalar JSON
 
 # Common Types
 type ErrorResult {
@@ -188,21 +215,25 @@ enum FriendshipStatus {
 type Game {
   id: ID!
   date: DateTime!
-  status: String!
+  status: JSON
   game_type: String!
   season: String
-  nba_game_id: String
-  home_team_id: String!
-  away_team_id: String!
-  home_team: Team!
-  away_team: Team!
-  home_team_score: Int
-  away_team_score: Int
+  basketball_game_id: String
+  teams: JSON
+  home_team: JSON
+  away_team: JSON
+  scores: JSON
+  arena: JSON
+  periods: JSON
   average_rating: Float
   total_ratings: Int
   created_at: DateTime!
   updated_at: DateTime!
   deleted_at: DateTime
+  publicComments: PublicCommentConnection!
+  totalPublicCommentCount: Int!
+  publicReactions: [PublicReaction!]!
+  totalPublicReactionCount: Int!
 }
 
 type Team {
@@ -215,8 +246,36 @@ type Team {
   all_star: Boolean!
   nba_franchise: Boolean!
   conference: String
+  leagues: JSON
   created_at: DateTime!
   updated_at: DateTime!
+  publicComments: PublicCommentConnection!
+  totalPublicCommentCount: Int!
+  publicReactions: [PublicReaction!]!
+  totalPublicReactionCount: Int!
+}
+
+# NBA Player Types
+type NBAPlayer {
+  id: ID!
+  first_name: String!
+  last_name: String!
+  birth: JSON
+  nba: JSON
+  height: JSON
+  weight: JSON
+  college: String
+  affiliation: String
+  teams: JSON
+  leagues: JSON
+  image_url: String
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
+  publicComments: PublicCommentConnection!
+  totalPublicCommentCount: Int!
+  publicReactions: [PublicReaction!]!
+  totalPublicReactionCount: Int!
 }
 
 type GameLog {
@@ -245,6 +304,51 @@ enum Classification {
   PRIVATE
   PROTECTED
   PUBLIC
+}
+
+# NBA Player Connection Types
+type NBAPlayerConnection {
+  edges: [NBAPlayerEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type NBAPlayerEdge {
+  node: NBAPlayer!
+  cursor: String!
+}
+
+# NBA Player Input Types
+input NBAPlayerFilters {
+  searchTerm: String
+  positionFilter: String
+  teamFilter: String
+  collegeFilter: String
+  countryFilter: String
+  sortBy: String
+  sortDirection: String
+}
+
+# Team Connection Types
+type TeamConnection {
+  edges: [TeamEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type TeamEdge {
+  node: Team!
+  cursor: String!
+}
+
+# Team Input Types
+input TeamFilters {
+  searchTerm: String
+  conferenceFilter: String
+  divisionFilter: String
+  leagueFilter: String
+  sortBy: String
+  sortDirection: String
 }
 
 enum GameStatusEnum {
@@ -276,6 +380,11 @@ type Comment {
 enum ParentType {
   GAME_LOG
   COMMENT
+  BASKETBALL_GAME
+  BASKETBALL_PLAYER
+  BASKETBALL_TEAM
+  PUBLIC_COMMENT
+  PUBLIC_REACTION
 }
 
 type CommentConnection {
@@ -297,6 +406,54 @@ type Reaction {
   user_id: ID!
   target_id: ID!
   target_type: ParentType!
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
+}
+
+# Public Comment Types (for NBA games, players, teams - no authentication required)
+type PublicComment {
+  id: ID!
+  content: String!
+  user: UserSummary
+  user_id: ID
+  anonymous_name: String
+  anonymous_email: String
+  parent_id: ID!
+  parent_type: ParentType!
+  depth: Int!
+  is_approved: Boolean!
+  created_at: DateTime!
+  updated_at: DateTime!
+  deleted_at: DateTime
+  childComments: PublicCommentConnection!
+  totalChildCommentCount: Int!
+  reactions: [PublicReaction!]!
+  totalReactionCount: Int!
+}
+
+type PublicCommentConnection {
+  edges: [PublicCommentEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type PublicCommentEdge {
+  cursor: String!
+  node: PublicComment!
+}
+
+# Public Reaction Types (for NBA games, players, teams - no authentication required)
+type PublicReaction {
+  id: ID!
+  emoji: String!
+  user: UserSummary
+  user_id: ID
+  anonymous_name: String
+  anonymous_email: String
+  target_id: ID!
+  target_type: ParentType!
+  is_approved: Boolean!
   created_at: DateTime!
   updated_at: DateTime!
   deleted_at: DateTime
@@ -387,6 +544,37 @@ input CreateReactionInput {
   targetType: ParentType!
 }
 
+# Public Comment Input Types
+input PublicCommentFilters {
+  parentId: ID
+  parentType: ParentType
+  userId: ID
+  anonymousName: String
+  isApproved: Boolean
+  search: String
+}
+
+input CreatePublicCommentInput {
+  content: String!
+  parentId: ID!
+  parentType: ParentType!
+  anonymousName: String # Optional - will generate random name if not provided for anonymous users
+  anonymousEmail: String
+}
+
+input UpdatePublicCommentInput {
+  content: String!
+}
+
+# Public Reaction Input Types
+input CreatePublicReactionInput {
+  emoji: String!
+  targetId: ID!
+  targetType: ParentType!
+  anonymousName: String # Optional - will generate random name if not provided for anonymous users
+  anonymousEmail: String
+}
+
 input CreateGameLogInput {
   gameId: ID!
   rating_for_game: Int!
@@ -412,14 +600,12 @@ input UpdateGameLogInput {
 
 input CreateGameInput {
   date: DateTime!
-  home_team_id: String!
-  away_team_id: String!
+  teams: JSON
   game_type: String!
   season: String
-  nba_game_id: ID
+  basketball_game_id: ID
   status: String!
-  home_team_score: Int
-  away_team_score: Int
+  scores: JSON
 }
 
 input UserFilters {
@@ -480,6 +666,33 @@ type CreateReactionResponse {
 }
 
 type DeleteReactionResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+# Public Comment Response Types
+type CreatePublicCommentResponse {
+  comment: PublicComment
+  errors: [ErrorResult!]
+}
+
+type UpdatePublicCommentResponse {
+  comment: PublicComment
+  errors: [ErrorResult!]
+}
+
+type DeletePublicCommentResponse {
+  success: Boolean!
+  errors: [ErrorResult!]
+}
+
+# Public Reaction Response Types
+type CreatePublicReactionResponse {
+  reaction: PublicReaction
+  errors: [ErrorResult!]
+}
+
+type DeletePublicReactionResponse {
   success: Boolean!
   errors: [ErrorResult!]
 }

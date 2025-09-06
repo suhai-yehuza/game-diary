@@ -164,8 +164,8 @@ vi.mock('@/lib/config/app.config', () => ({
 }));
 
 // Mock the types
-vi.mock('@/lib/types', () => ({
-  TABS: {
+vi.mock('@/types', () => ({
+  ADMIN_TABS: {
     SEASONS: 'seasons',
     LEAGUES: 'leagues',
     GAMES: 'games',

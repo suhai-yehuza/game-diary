@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useTopGameLogs } from '@/hooks/use-top-game-logs';
 import { API_LIMITS } from '@/lib/constants';
-import type { IGameLog } from '@/lib/types';
+import type { IGameLog } from '@/types';
 
 export function FloatingTopGameLogs() {
   const { topGameLogs, loading, error } = useTopGameLogs({ limit: API_LIMITS.GAME_LOGS.LARGE });

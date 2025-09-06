@@ -5,11 +5,17 @@ import { useState } from 'react';
 
 import { DbRefreshProgressTracker } from '@/app/components/db-refresh/DbRefreshProgressTracker';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IDbRefreshProgress } from '@/types';
 
 export function DbRefreshButton() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showProgress, setShowProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [progress, _setProgress] = useState<IDbRefreshProgress>({
+    status: 'idle',
+    progress: 0,
+    message: '',
+  });
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -94,7 +100,11 @@ export function DbRefreshButton() {
         </div>
       )}
 
-      <DbRefreshProgressTracker isVisible={showProgress} onComplete={handleProgressComplete} />
+      <DbRefreshProgressTracker
+        progress={progress}
+        isVisible={showProgress}
+        onComplete={handleProgressComplete}
+      />
     </>
   );
 }

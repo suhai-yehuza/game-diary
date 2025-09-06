@@ -43,7 +43,7 @@ describe('Health API Route', () => {
       checks: {
         database: {
           healthy: true,
-          response_time: 0,
+          response_time: 5, // MOCK_MODE=true returns 5ms response time
         },
         external_services: {
           healthy: true,
@@ -64,6 +64,16 @@ describe('Health API Route', () => {
     (db as any).mockReturnValue(mockDatabase);
     (dbManager.testConnection as any).mockResolvedValue(false);
 
+    // Mock external services as unhealthy and disable mock mode to ensure overall unhealthy status
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.NEXT_PUBLIC_RAPID_API_KEY;
+    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    delete process.env.CLERK_SECRET_KEY;
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.REDIS_URL;
+    process.env.MOCK_MODE = 'false'; // Disable mock mode so database mocking takes effect
+
     const response = await GET(mockRequest);
     const data = await response.json();
 
@@ -76,15 +86,18 @@ describe('Health API Route', () => {
           error: 'Database check failed',
         },
         external_services: {
-          healthy: true,
+          healthy: false, // External services should be unhealthy when env vars are removed
           services: expect.objectContaining({
-            clerk: expect.any(Boolean),
-            rapidapi: expect.any(Boolean),
-            redis: expect.any(Boolean),
+            clerk: false,
+            rapidapi: false,
+            redis: false,
           }),
         },
       },
     });
+
+    // Restore original environment
+    process.env = originalEnv;
   });
 
   it('returns error status when database is not available', async () => {
@@ -92,6 +105,16 @@ describe('Health API Route', () => {
       throw new Error('Database not available');
     });
 
+    // Mock external services as unhealthy and disable mock mode to ensure overall unhealthy status
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.NEXT_PUBLIC_RAPID_API_KEY;
+    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    delete process.env.CLERK_SECRET_KEY;
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.REDIS_URL;
+    process.env.MOCK_MODE = 'false'; // Disable mock mode so database mocking takes effect
+
     const response = await GET(mockRequest);
     const data = await response.json();
 
@@ -104,15 +127,18 @@ describe('Health API Route', () => {
           error: 'Database check failed',
         },
         external_services: {
-          healthy: expect.any(Boolean), // Can be true if any service has env vars
+          healthy: false, // External services should be unhealthy when env vars are removed
           services: expect.objectContaining({
-            clerk: expect.any(Boolean),
-            rapidapi: expect.any(Boolean),
-            redis: expect.any(Boolean),
+            clerk: false,
+            rapidapi: false,
+            redis: false,
           }),
         },
       },
     });
+
+    // Restore original environment
+    process.env = originalEnv;
   });
 
   it('handles database connection errors gracefully', async () => {
@@ -121,6 +147,16 @@ describe('Health API Route', () => {
     };
     (db as any).mockReturnValue(mockDatabase);
 
+    // Mock external services as unhealthy and disable mock mode to ensure overall unhealthy status
+    const originalEnv = process.env;
+    process.env = { ...originalEnv };
+    delete process.env.NEXT_PUBLIC_RAPID_API_KEY;
+    delete process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+    delete process.env.CLERK_SECRET_KEY;
+    delete process.env.UPSTASH_REDIS_REST_URL;
+    delete process.env.REDIS_URL;
+    process.env.MOCK_MODE = 'false'; // Disable mock mode so database mocking takes effect
+
     const response = await GET(mockRequest);
     const data = await response.json();
 
@@ -133,15 +169,18 @@ describe('Health API Route', () => {
           error: 'Database check failed',
         },
         external_services: {
-          healthy: expect.any(Boolean), // Can be true if any service has env vars
+          healthy: false, // External services should be unhealthy when env vars are removed
           services: expect.objectContaining({
-            clerk: expect.any(Boolean),
-            rapidapi: expect.any(Boolean),
-            redis: expect.any(Boolean),
+            clerk: false,
+            rapidapi: false,
+            redis: false,
           }),
         },
       },
     });
+
+    // Restore original environment
+    process.env = originalEnv;
   });
 
   it('includes response time in the response', async () => {

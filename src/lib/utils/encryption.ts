@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-import type { IEncryptedField } from '@/lib/types';
 import { loadEnvironmentVariables, isCI } from '@/lib/utils/env-loader';
+import type { IEncryptedField } from '@/types';
 
 // Load environment variables safely
 loadEnvironmentVariables();
@@ -42,19 +42,19 @@ export function encryptField(plain: string, keyOverride?: string | Buffer): IEnc
   const tag = cipher.getAuthTag();
   return {
     iv: iv.toString('hex'),
-    content: encrypted,
+    encrypted: encrypted,
     tag: tag.toString('hex'),
   };
 }
 
 export function decryptField(
-  { iv, content, tag }: IEncryptedField,
+  { iv, encrypted, tag }: IEncryptedField,
   keyOverride?: string | Buffer
 ): string {
   const key = getKey(keyOverride);
   const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
   decipher.setAuthTag(Buffer.from(tag, 'hex'));
-  let decrypted = decipher.update(content, 'hex', 'utf8');
+  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
 }
@@ -77,7 +77,7 @@ export function isEncrypted(value: string | null): boolean {
       parsed &&
       typeof parsed === 'object' &&
       'iv' in parsed &&
-      'content' in parsed &&
+      'encrypted' in parsed &&
       'tag' in parsed
     );
   } catch {

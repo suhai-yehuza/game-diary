@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { TABLET_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
 import { ClientOnlyNavigationLinks } from '@/app/components/layout/components/navigation/ClientOnlyNavigationLinks';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
-import type { INavigationContainerProps } from '@/lib/types';
+import type { INavigationContainerProps } from '@/types';
 
 export function NavigationContainer({
   isMenuExpanded,

@@ -1,8 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 
-import type { ITeamFilterState, ITeamFilterOptions, ITeamResponse } from '@/lib/types';
-
-export type { ITeamFilterState, ITeamFilterOptions };
+import type { ITeamFilterState, ITeamFilterOptions, ITeamResponse } from '@/types';
 
 const INITIAL_TEAM_FILTERS: ITeamFilterState = {
   searchTerm: '',
@@ -42,6 +40,7 @@ export function useTeamFilters(teams: ITeamResponse[]) {
     return {
       conferences,
       divisions,
+      franchises: [],
     };
   }, [teams]);
 
@@ -130,7 +129,7 @@ export function useTeamFilters(teams: ITeamResponse[]) {
 
   // Update filter function
   const updateFilter = useCallback((key: keyof ITeamFilterState, value: string) => {
-    setFilters(prev => ({
+    setFilters((prev: ITeamFilterState) => ({
       ...prev,
       [key]: value,
     }));

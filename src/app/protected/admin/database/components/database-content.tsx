@@ -17,6 +17,7 @@ import { GameRatingsTableWithSearch } from '@/app/protected/admin/database/compo
 import { NotificationsTableWithSearch } from '@/app/protected/admin/database/components/notifications-table';
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { API_CONFIG } from '@/lib/config/app.config';
+import type { IApiResponse } from '@/types';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
 import { ReactionsTableWithSearch } from '@src/app/protected/admin/database/components/reactions-table';
@@ -25,7 +26,6 @@ import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 import { LastUpdated } from '@src/app/protected/admin/database/components/ui/last-updated';
 import { UsersTableWithSearch } from '@src/app/protected/admin/database/components/users-table';
-import type { IApiResponse } from '@src/lib/types';
 
 const tableConfigs = {
   users: {
@@ -117,11 +117,11 @@ export function AdminDatabaseContent() {
             if (data.pagination) {
               setPagination(prev => ({
                 ...prev,
-                [tableName]: data.pagination as {
-                  page: number;
-                  limit: number;
-                  total: number;
-                  pages: number;
+                [tableName]: {
+                  page: data.pagination?.page || 1,
+                  limit: data.pagination?.limit || 10,
+                  total: data.pagination?.total || 0,
+                  pages: data.pagination?.totalPages || 1,
                 },
               }));
             }

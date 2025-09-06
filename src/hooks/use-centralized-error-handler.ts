@@ -6,8 +6,8 @@
 import { useCallback } from 'react';
 import { toast } from 'sonner';
 
-import type { IErrorContext, ICentralizedErrorHandlerOptions } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IErrorContext, ICentralizedErrorHandlerOptions } from '@/types';
 
 export function useCentralizedErrorHandler(options: ICentralizedErrorHandlerOptions = {}) {
   const { showToast = true, toastMessage, context = {} } = options;
@@ -29,6 +29,7 @@ export function useCentralizedErrorHandler(options: ICentralizedErrorHandlerOpti
         errorHandlers.api(errorObj, {
           ...context,
           ...operationContext,
+          timestamp: new Date().toISOString(),
         });
 
         // Show toast if enabled
@@ -57,6 +58,7 @@ export function useCentralizedErrorHandler(options: ICentralizedErrorHandlerOpti
         errorHandlers.api(errorObj, {
           ...context,
           ...operationContext,
+          timestamp: new Date().toISOString(),
         });
 
         // Show toast if enabled

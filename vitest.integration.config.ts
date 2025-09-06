@@ -29,15 +29,17 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: {
-      '@src': resolve(__dirname, 'src'),
-      '@lib': resolve(__dirname, 'lib'),
-      '@utils': resolve(__dirname, 'scripts/utils'),
-      '@': resolve(__dirname, 'src'),
-      '@scripts': resolve(__dirname, 'scripts'),
-      '@tests': resolve(__dirname, 'tests'),
-      '@app': resolve(__dirname, 'src/app'),
-    },
+    alias: [
+      { find: '@/types', replacement: resolve(__dirname, 'types/index.ts') },
+      { find: '@types', replacement: resolve(__dirname, 'types/index.ts') },
+      { find: '@src', replacement: resolve(__dirname, 'src') },
+      { find: '@lib', replacement: resolve(__dirname, 'lib') },
+      { find: '@utils', replacement: resolve(__dirname, 'scripts/utils') },
+      { find: '@', replacement: resolve(__dirname, 'src') },
+      { find: '@scripts', replacement: resolve(__dirname, 'scripts') },
+      { find: '@tests', replacement: resolve(__dirname, 'tests') },
+      { find: '@app', replacement: resolve(__dirname, 'src/app') },
+    ],
   },
   plugins: [tsconfigPaths()],
   define: {

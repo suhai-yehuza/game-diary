@@ -30,9 +30,9 @@ function sanitizeGameLogData(gameLog: Record<string, unknown>) {
 }
 
 export const GET = withAdminAuth(
-  async (authContext, request: Request, { params }: { params: Promise<{ table: string }> }) => {
+  async (authContext, request: Request, context: { params: Promise<{ table: string }> }) => {
     try {
-      const { table } = await params;
+      const { table } = await context.params;
       const { searchParams } = new URL(request.url);
       const search = searchParams.get('search') ?? '';
       const searchField = searchParams.get('searchField') ?? '';
@@ -175,12 +175,12 @@ export const GET = withAdminAuth(
           break;
         }
 
-        case 'nba_games': {
-          const nbaGameColumns = ['id', 'date', 'status', 'home_team_score', 'away_team_score'];
+        case 'basketball_games': {
+          const nbaGameColumns = ['id', 'date', 'status', 'teams', 'scores'];
           const nbaGameSearchCondition = buildSearchCondition(search, searchField, nbaGameColumns);
           const orderByClause = buildOrderByClause('created_at');
-          query = sql`SELECT * FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-          countQuery = sql`SELECT COUNT(*) as total FROM nba_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``}`;
+          query = sql`SELECT * FROM basketball_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+          countQuery = sql`SELECT COUNT(*) as total FROM basketball_games ${nbaGameSearchCondition ? sql.raw(nbaGameSearchCondition) : sql``}`;
           break;
         }
 
@@ -235,9 +235,9 @@ export const GET = withAdminAuth(
 );
 
 export const POST = withAdminAuth(
-  async (authContext, request: Request, { params }: { params: Promise<{ table: string }> }) => {
+  async (authContext, request: Request, context: { params: Promise<{ table: string }> }) => {
     try {
-      const { table } = await params;
+      const { table } = await context.params;
       const body = (await request.json()) as { operation: string };
 
       // Handle different operations based on body
@@ -270,14 +270,14 @@ export const POST = withAdminAuth(
 );
 
 export const PUT = withAdminAuth(
-  async (_authContext, _request: Request, _params: { params: Promise<{ table: string }> }) => {
+  async (_authContext, _request: Request, _context: { params: Promise<{ table: string }> }) => {
     await Promise.resolve(); // Satisfy async requirement
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 );
 
 export const DELETE = withAdminAuth(
-  async (_authContext, _request: Request, _params: { params: Promise<{ table: string }> }) => {
+  async (_authContext, _request: Request, _context: { params: Promise<{ table: string }> }) => {
     await Promise.resolve(); // Satisfy async requirement
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }

@@ -2,8 +2,8 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import type { IClerkDeletedUserData } from '@/lib/types';
 import { webhookLogger } from '@/lib/utils/logger';
+import type { IClerkDeletedUserData } from '@/types';
 
 // Helper function
 const createResponse = (message: string, status: number) => new Response(message, { status });

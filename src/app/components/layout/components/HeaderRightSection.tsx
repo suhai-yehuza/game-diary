@@ -5,7 +5,7 @@ import React, { useState } from 'react';
 import { ThemeToggle } from '@/app/components/common';
 import { ClientOnlyAuthControls } from '@/app/components/layout/components/AuthControls';
 import { SearchBar, useMobileDetection } from '@/app/components/layout/components/SearchBar';
-import type { IHeaderRightSectionProps } from '@/lib/types';
+import type { IHeaderRightSectionProps } from '@/types';
 
 // Dynamically import NotificationBell with SSR disabled to prevent context errors
 const NotificationBell = dynamic(

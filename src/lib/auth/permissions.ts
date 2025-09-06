@@ -1,4 +1,4 @@
-import { Permission, Role, type IUser } from '@/lib/types';
+import { Permission, Role, type IUser } from '@/types';
 
 // Define base permissions for each role
 const USER_PERMISSIONS = [
@@ -6,9 +6,9 @@ const USER_PERMISSIONS = [
   Permission.UPDATE_OWN_PROFILE,
   Permission.DELETE_OWN_PROFILE,
   Permission.READ_OWN_GAME_LOGS,
-  Permission.CREATE_GAME_LOGS,
-  Permission.UPDATE_OWN_GAME_LOGS,
-  Permission.DELETE_OWN_GAME_LOGS,
+  Permission.CREATE_GAME_LOG,
+  Permission.UPDATE_GAME_LOG,
+  Permission.DELETE_GAME_LOG,
   Permission.READ_PUBLIC_GAME_LOGS,
   Permission.READ_PROTECTED_GAME_LOGS,
   Permission.CREATE_COMMENTS,
@@ -59,7 +59,9 @@ export class PermissionChecker {
     }
 
     // Check role-based permissions
-    return this.user.roles?.some(role => ROLE_PERMISSIONS[role]?.includes(permission)) ?? false;
+    return (
+      this.user.roles?.some(role => ROLE_PERMISSIONS[role as Role]?.includes(permission)) ?? false
+    );
   }
 
   hasRole(role: Role): boolean {
@@ -110,12 +112,13 @@ export class PermissionChecker {
   getEffectivePermissions(): Permission[] {
     if (!this.user) return [];
 
-    const rolePermissions = this.user.roles?.flatMap(role => ROLE_PERMISSIONS[role] || []) ?? [];
+    const rolePermissions =
+      this.user.roles?.flatMap(role => ROLE_PERMISSIONS[role as Role] || []) ?? [];
 
     const explicitPermissions = this.user.permissions || [];
 
     // Combine and deduplicate
-    return Array.from(new Set([...rolePermissions, ...explicitPermissions]));
+    return Array.from(new Set([...rolePermissions, ...explicitPermissions])) as Permission[];
   }
 }
 

@@ -2,7 +2,7 @@
 
 import ClerkSignUp from '@/app/components/auth/ClerkSignUp';
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
-import type { ISignUpPageProps } from '@/lib/types';
+import type { ISignUpPageProps } from '@/types';
 
 export default function SignUpPage({ params: _params }: ISignUpPageProps) {
   return (

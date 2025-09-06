@@ -1,11 +1,15 @@
 // Shared utilities for external API seeding
+import { faker } from '@faker-js/faker';
 import { neon } from '@neondatabase/serverless';
-import { eq } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import { getRapidApiConfig } from '@/lib/config/app.config';
-import { GAME_STATUS_VALUES } from '@/lib/constants';
+import { GAME_STATUS_VALUES, REACTION_EMOJIS } from '@/lib/constants';
 import * as schema from '@/lib/db/schema';
+import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { errorHandlers } from '@/lib/utils/error-handler';
+import { formatDuration } from '@/lib/utils/format-duration';
 import type {
   Database,
   ITeamsApiResponse,
@@ -15,23 +19,20 @@ import type {
   IPlayerResponse,
   ITeamResponse,
   IExternalApiSeedingConfig,
-} from '@/lib/types';
-import { createRapidAPIClient } from '@/lib/utils/api-client';
-import { errorHandlers } from '@/lib/utils/error-handler';
-import { formatDuration } from '@/lib/utils/format-duration';
+} from '@/types';
 
 // Shared functions
 export async function fetchNBAData<T>(
   apiClient: ReturnType<typeof createRapidAPIClient>,
   endpoint: string,
-  params: Record<string, string> = {},
+  params: Record<string, unknown> = {},
   componentName = 'External API Seeding'
 ): Promise<T> {
   try {
     console.log(`📡 Fetching ${endpoint} with params:`, params);
-    const data = await apiClient.fetch(endpoint, params);
+    const data = await apiClient.fetch(endpoint, params as Record<string, string>);
     console.log(`✅ Successfully fetched ${endpoint}`);
-    return data;
+    return data as T;
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -158,17 +159,17 @@ export async function seedTeams(
   console.log('🏀 Step 3: Fetching and inserting teams...');
 
   const data: ITeamsApiResponse = await fetchNBAData(apiClient, '/teams', {}, componentName);
-  console.log(`📡 Fetched ${data.response.length} teams from API`);
+  console.log(`📡 Fetched ${data.response?.length || 0} teams from API`);
 
-  if (data.response.length === 0) {
+  if (!data.response || data.response.length === 0) {
     console.warn('⚠️  No teams returned from API, skipping teams seeding');
     return data;
   }
 
-  for (const team of data.response) {
+  for (const team of data.response || []) {
     try {
       await db
-        .insert(schema.teams)
+        .insert(schema.basketball_teams)
         .values({
           id: team.id?.toString() ?? 'missing-team-id',
           name: team.name ?? 'missing-team-name',
@@ -179,6 +180,7 @@ export async function seedTeams(
           all_star: team.allStar ?? false,
           nba_franchise: team.nbaFranchise ?? false,
           conference: team.leagues?.standard?.conference ?? 'unassigned',
+          leagues: team.leagues ?? null, // Store comprehensive league data as JSONB
         })
         .onConflictDoNothing();
     } catch (error) {
@@ -190,7 +192,17 @@ export async function seedTeams(
       console.error('❌ Error inserting team:', team.name, error);
     }
   }
-  console.log(`✅ Seeded ${data.response.length} teams`);
+  console.log(`✅ Seeded ${data.response?.length || 0} teams`);
+
+  // Invalidate NBA Hub counts cache since teams count changed
+  try {
+    const { NBAHubCacheUtils } = await import('@/lib/cache');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
+    console.log('✅ Invalidated NBA Hub teams count cache');
+  } catch (cacheError) {
+    console.warn('Failed to invalidate NBA Hub teams count cache:', cacheError);
+  }
+
   return data;
 }
 
@@ -220,8 +232,8 @@ export function determineSeasonsToSeed(
 
 export function determineGameStatus(game: IGameResponse): string {
   // Use the actual status from the API response
-  const statusShort = game.status.short;
-  const statusLong = game.status.long;
+  const statusShort = typeof game.status === 'string' ? game.status : game.status.short;
+  const statusLong = typeof game.status === 'string' ? game.status : game.status.long;
 
   // Map status codes to readable values
   // statusShort is a string, undefined, or null
@@ -231,7 +243,9 @@ export function determineGameStatus(game: IGameResponse): string {
 
   // A game is only LIVE if it has a clock value (actual game time)
   if (
-    (game.status.clock !== null && game.status.clock !== undefined) ||
+    (typeof game.status !== 'string' &&
+      game.status.clock !== null &&
+      game.status.clock !== undefined) ||
     statusLong?.toLowerCase().includes('live')
   ) {
     return GAME_STATUS_VALUES.LIVE;
@@ -264,15 +278,12 @@ export function createGameInsertData(
   id: string;
   game_type: string;
   season: string;
-  nba_game_id: string;
+  basketball_game_id: string;
   date: Date;
   stage: number;
-  home_team_id: string;
-  away_team_id: string;
-  home_team_score: number | null;
-  away_team_score: number | null;
-  status: string;
-  status_data: Record<string, unknown>;
+  teams: Record<string, unknown>;
+  game_status: string;
+  status: Record<string, unknown>;
   scores: Record<string, unknown>;
   arena: Record<string, unknown>;
   periods: Record<string, unknown>;
@@ -285,21 +296,21 @@ export function createGameInsertData(
     id: `${season}-${game.id?.toString() ?? 'missing-game-id'}`,
     game_type: 'nba',
     season: season.toString(),
-    nba_game_id: game.id?.toString() ?? 'missing-nba-game-id',
-    date: new Date(game.date.start),
-    stage: game.stage, // Store the game stage
-    home_team_id: game.teams.home.id?.toString() ?? 'missing-home-team-id',
-    away_team_id: game.teams.visitors.id?.toString() ?? 'missing-away-team-id',
-    home_team_score: game.scores?.home?.points ?? null,
-    away_team_score: game.scores?.visitors?.points ?? null,
-    status: determineGameStatus(game),
-    status_data: game.status ?? {}, // Store the complete status object
+    basketball_game_id: game.id?.toString() ?? 'missing-nba-game-id',
+    date: new Date(typeof game.date === 'string' ? game.date : game.date.start),
+    stage: game.stage || 0, // Store the game stage
+    teams: game.teams ?? {}, // Store the complete teams object with home and away team data
+    game_status: determineGameStatus(game),
+    status:
+      typeof game.status === 'string'
+        ? { short: game.status, long: game.status }
+        : (game.status ?? {}), // Store the complete status object
     scores: game.scores ?? {}, // Store the complete scores object
     arena: game.arena ?? {}, // Store the complete arena object
     periods: game.periods ?? {}, // Store the complete periods object
     officials: game.officials ?? [], // Store officials array
-    times_tied: game.timesTied ?? 0, // Store times tied
-    lead_changes: game.leadChanges ?? 0, // Store lead changes
+    times_tied: (game as IGameResponse & { timesTied?: number }).timesTied ?? 0, // Store times tied
+    lead_changes: (game as IGameResponse & { leadChanges?: number }).leadChanges ?? 0, // Store lead changes
     nugget: game.nugget ?? null, // Store game nugget/summary
   };
 }
@@ -331,25 +342,25 @@ export async function seedGames(
       );
 
       let gamesInserted = 0;
-      for (const game of gamesData.response) {
+      for (const game of gamesData.response || []) {
         const gameData = createGameInsertData(game, season);
 
         if (isSafeMode) {
           // Check if game already exists
           const existingGame = await db
             .select()
-            .from(schema.nba_games)
-            .where(eq(schema.nba_games.id, gameData.id));
+            .from(schema.basketball_games)
+            .where(eq(schema.basketball_games.id, gameData.id));
 
           if (existingGame.length === 0) {
             // Game doesn't exist, insert it
-            await db.insert(schema.nba_games).values(gameData);
+            await db.insert(schema.basketball_games).values(gameData);
             gamesInserted++;
           }
         } else {
           // Insert with conflict handling - try to insert, if conflict then skip
           try {
-            await db.insert(schema.nba_games).values(gameData);
+            await db.insert(schema.basketball_games).values(gameData);
             gamesInserted++;
           } catch (error) {
             if (
@@ -377,6 +388,15 @@ export async function seedGames(
     }
   }
 
+  // Invalidate NBA Hub counts cache since games count changed
+  try {
+    const { NBAHubCacheUtils } = await import('@/lib/cache');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('games');
+    console.log('✅ Invalidated NBA Hub games count cache');
+  } catch (cacheError) {
+    console.warn('Failed to invalidate NBA Hub games count cache:', cacheError);
+  }
+
   return totalGamesInserted;
 }
 
@@ -397,7 +417,7 @@ export async function seedPlayers(
   for (const season of seasonsToSeed) {
     console.log(`   📅 Processing season ${season}...`);
 
-    for (const team of teamsData.response) {
+    for (const team of teamsData.response || []) {
       console.log(`     🏀 Processing team: ${team.name} for season ${season}...`);
 
       try {
@@ -418,8 +438,8 @@ export async function seedPlayers(
             // Check if player already exists
             const existingPlayer = await db
               .select()
-              .from(schema.nba_players)
-              .where(eq(schema.nba_players.id, playerId));
+              .from(schema.basketball_players)
+              .where(eq(schema.basketball_players.id, playerId));
 
             if (existingPlayer.length === 0) {
               // Player doesn't exist, insert it
@@ -427,7 +447,13 @@ export async function seedPlayers(
               totalPlayersInserted++;
             } else {
               // Player exists - update teams field
-              await updatePlayerTeams(db, existingPlayer[0], team, season, componentName);
+              await updatePlayerTeams(
+                db,
+                existingPlayer[0] as { id: string; teams: string | null },
+                team,
+                season,
+                componentName
+              );
             }
           } else {
             // Insert with conflict handling (now handled in insertPlayerWithTeams)
@@ -447,8 +473,18 @@ export async function seedPlayers(
 
   console.log(`✅ Total players ${isSafeMode ? 'safely ' : ''}inserted: ${totalPlayersInserted}`);
   console.log(
-    `📊 Seeding completed for ${seasonsToSeed.length} seasons and ${teamsData.response.length} teams`
+    `📊 Seeding completed for ${seasonsToSeed.length} seasons and ${teamsData.response?.length || 0} teams`
   );
+
+  // Invalidate NBA Hub counts cache since players count changed
+  try {
+    const { NBAHubCacheUtils } = await import('@/lib/cache');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('players');
+    console.log('✅ Invalidated NBA Hub players count cache');
+  } catch (cacheError) {
+    console.warn('Failed to invalidate NBA Hub players count cache:', cacheError);
+  }
+
   return totalPlayersInserted;
 }
 
@@ -464,19 +500,25 @@ async function insertPlayerWithTeams(
   // Check if player already exists
   const existingPlayer = await db
     .select()
-    .from(schema.nba_players)
-    .where(eq(schema.nba_players.id, playerId));
+    .from(schema.basketball_players)
+    .where(eq(schema.basketball_players.id, playerId));
 
   if (existingPlayer.length > 0) {
     // Player already exists, update teams field
     console.log(`     🔄 Player ${playerId} already exists, updating teams...`);
-    await updatePlayerTeams(db, existingPlayer[0], team, season, _componentName);
+    await updatePlayerTeams(
+      db,
+      existingPlayer[0] as { id: string; teams: string | null },
+      team,
+      season,
+      _componentName
+    );
     console.log(`     ✅ Updated teams for existing player ${playerId}`);
     return;
   }
 
   // Player doesn't exist, insert it
-  const teamsData = JSON.stringify([
+  const teamsData = [
     {
       season: season.toString(),
       teams: [
@@ -486,20 +528,20 @@ async function insertPlayerWithTeams(
         },
       ],
     },
-  ]);
+  ];
 
-  await db.insert(schema.nba_players).values({
+  await db.insert(schema.basketball_players).values({
     id: playerId,
     first_name: player.firstname ?? 'missing-first-name',
     last_name: player.lastname ?? 'missing-last-name',
-    birth: player.birth ? JSON.stringify(player.birth) : null,
-    nba: player.nba ? JSON.stringify(player.nba) : null,
-    height: player.height ? JSON.stringify(player.height) : null,
-    weight: player.weight ? JSON.stringify(player.weight) : null,
+    birth: player.birth || null, // Store as JSONB object directly
+    nba: player.nba || null, // Store as JSONB object directly
+    height: player.height || null, // Store as JSONB object directly
+    weight: player.weight || null, // Store as JSONB object directly
     college: player.college,
     affiliation: player.affiliation,
-    teams: teamsData,
-    leagues: player.leagues ? JSON.stringify(player.leagues) : null,
+    teams: teamsData, // Store as JSONB array directly
+    leagues: player.leagues || null, // Store as JSONB object directly
     image_url: null, // IPlayerResponse doesn't have image property
   });
 }
@@ -550,12 +592,12 @@ async function updatePlayerTeams(
   // Update the player with new teams data
   try {
     await db
-      .update(schema.nba_players)
+      .update(schema.basketball_players)
       .set({
-        teams: JSON.stringify(currentTeamsBySeason),
+        teams: currentTeamsBySeason, // Store as JSONB array directly
         updated_at: new Date(),
       })
-      .where(eq(schema.nba_players.id, currentPlayer.id));
+      .where(eq(schema.basketball_players.id, currentPlayer.id));
   } catch (error) {
     errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
       component: _componentName,
@@ -589,6 +631,7 @@ export async function syncReactionEmojis(db: Database, componentName = 'Reaction
 
     // Find emojis to remove (in database but not in constants)
     const emojisToRemove = existingEmojis.filter(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       emoji => !constantEmojiSet.has(emoji.emoji as any)
     );
 
@@ -621,6 +664,281 @@ export async function syncReactionEmojis(db: Database, componentName = 'Reaction
       action: 'Sync reaction emojis',
     });
     console.error('❌ Error syncing reaction emojis:', error);
+    throw error;
+  }
+}
+
+/**
+ * Seed public comments for NBA games from the latest season
+ * Creates realistic comments using faker for 10% of games
+ */
+export async function seedPublicComments(db: Database, componentName = 'Public Comments Seeding') {
+  console.log('💬 Seeding public comments for latest season games...');
+
+  try {
+    // Get the latest season
+    const latestSeason = await db
+      .select()
+      .from(schema.seasons)
+      .orderBy(desc(schema.seasons.year))
+      .limit(1);
+
+    if (latestSeason.length === 0) {
+      console.warn('⚠️  No seasons found, skipping public comments seeding');
+      return;
+    }
+
+    const seasonYear = latestSeason[0].year;
+    console.log(`📅 Using season ${seasonYear} for comments seeding`);
+
+    // Get 10% of games from the latest season
+    const allGames = await db
+      .select()
+      .from(schema.basketball_games)
+      .where(eq(schema.basketball_games.season, seasonYear.toString()));
+
+    const gamesToComment = Math.max(1, Math.floor(allGames.length * 0.1));
+    const selectedGames = faker.helpers.arrayElements(allGames, gamesToComment);
+
+    console.log(
+      `🎯 Selected ${selectedGames.length} games (${gamesToComment} out of ${allGames.length}) for comments`
+    );
+
+    let commentCount = 0;
+    const createdComments: Array<{ id: string; gameId: string }> = [];
+
+    // Generate realistic comments for each selected game
+    for (const game of selectedGames) {
+      // Generate 5-50 comments per game
+      const numComments = faker.number.int({ min: 5, max: 50 });
+
+      for (let i = 0; i < numComments; i++) {
+        const commentId = faker.string.uuid();
+        const commentContent = generateGameComment(game);
+
+        await db
+          .insert(schema.publicComments)
+          .values({
+            id: commentId,
+            parent_id: game.id,
+            parent_type: 'BASKETBALL_GAME' as const,
+            content: commentContent,
+            anonymous_name: faker.internet.displayName(),
+            anonymous_email: faker.internet.email(),
+            depth: 0,
+            is_approved: true,
+          })
+          .onConflictDoNothing();
+
+        createdComments.push({ id: commentId, gameId: game.id });
+        commentCount++;
+      }
+    }
+
+    // Generate child comments (replies) for some of the created comments
+    const commentsToReplyTo = faker.helpers.arrayElements(
+      createdComments,
+      Math.floor(createdComments.length * 0.3)
+    );
+    let childCommentCount = 0;
+
+    for (const parentComment of commentsToReplyTo) {
+      // Generate 1-3 replies per parent comment
+      const numReplies = faker.number.int({ min: 1, max: 3 });
+
+      for (let i = 0; i < numReplies; i++) {
+        const replyId = faker.string.uuid();
+        const replyContent = generateReplyComment();
+
+        await db
+          .insert(schema.publicComments)
+          .values({
+            id: replyId,
+            parent_id: parentComment.id,
+            parent_type: 'PUBLIC_COMMENT' as const,
+            content: replyContent,
+            anonymous_name: faker.internet.displayName(),
+            anonymous_email: faker.internet.email(),
+            depth: 1,
+            is_approved: true,
+          })
+          .onConflictDoNothing();
+
+        childCommentCount++;
+      }
+    }
+
+    // Generate reactions for some comments
+    const commentsToReactTo = faker.helpers.arrayElements(
+      createdComments,
+      Math.floor(createdComments.length * 0.4)
+    );
+    let commentReactionCount = 0;
+
+    for (const comment of commentsToReactTo) {
+      // Generate 1-5 reactions per comment
+      const numReactions = faker.number.int({ min: 1, max: 5 });
+
+      for (let i = 0; i < numReactions; i++) {
+        const reactionId = faker.string.uuid();
+        const emoji = faker.helpers.arrayElement(Object.values(REACTION_EMOJIS));
+
+        await db
+          .insert(schema.publicReactions)
+          .values({
+            id: reactionId,
+            target_id: comment.id,
+            target_type: 'PUBLIC_COMMENT' as const,
+            emoji: emoji,
+            anonymous_name: faker.internet.displayName(),
+            anonymous_email: faker.internet.email(),
+            is_approved: true,
+          })
+          .onConflictDoNothing();
+
+        commentReactionCount++;
+      }
+    }
+
+    console.log(
+      `✅ Seeded ${commentCount} public comments, ${childCommentCount} replies, and ${commentReactionCount} comment reactions for ${selectedGames.length} games`
+    );
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: componentName,
+      action: 'Seed public comments',
+    });
+    console.error('❌ Error seeding public comments:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate realistic game comments using faker
+ */
+function generateGameComment(game: {
+  id: string;
+  home_team?: { name: string } | null;
+  visitor_team?: { name: string } | null;
+}): string {
+  const commentTemplates = [
+    `What a game! ${game.home_team?.name || 'Home team'} vs ${game.visitor_team?.name || 'Away team'} was incredible!`,
+    `Amazing performance by both teams. The energy was off the charts! 🔥`,
+    `This game had everything - great plays, intense moments, and fantastic basketball!`,
+    `Can't believe how close this game was! Every possession mattered.`,
+    `The atmosphere must have been electric! Wish I could have been there.`,
+    `What a nail-biter! This is why I love basketball.`,
+    `Both teams brought their A-game tonight. Respect to all the players!`,
+    `This game will be remembered for a long time. Absolutely incredible!`,
+    `The intensity in this game was something else. Pure basketball at its finest!`,
+    `What a display of skill and determination from both sides!`,
+  ];
+
+  return faker.helpers.arrayElement(commentTemplates);
+}
+
+/**
+ * Generate realistic reply comments using faker
+ */
+function generateReplyComment(): string {
+  const replyTemplates = [
+    'Totally agree! This was an amazing game.',
+    'I was there and the atmosphere was incredible!',
+    "Couldn't have said it better myself!",
+    'This game will be remembered for years to come.',
+    'The players really brought their A-game tonight.',
+    'What a performance by both teams!',
+    "I've been following this team all season and this was their best game yet.",
+    'The energy in the arena was off the charts!',
+    'This is why I love basketball - games like this!',
+    "Absolutely incredible! Can't wait for the next one.",
+    'You said it perfectly! This was basketball at its finest.',
+    'The intensity was something else tonight.',
+    'Both teams deserve respect for that performance.',
+    'This game had everything - drama, skill, and heart.',
+    'What a nail-biter! My heart was racing the whole time.',
+  ];
+
+  return faker.helpers.arrayElement(replyTemplates);
+}
+
+/**
+ * Seed public reactions for NBA games from the latest season
+ * Creates realistic reactions using faker for 10% of games
+ */
+export async function seedPublicReactions(
+  db: Database,
+  componentName = 'Public Reactions Seeding'
+) {
+  console.log('👍 Seeding public reactions for latest season games...');
+
+  try {
+    // Get the latest season
+    const latestSeason = await db
+      .select()
+      .from(schema.seasons)
+      .orderBy(desc(schema.seasons.year))
+      .limit(1);
+
+    if (latestSeason.length === 0) {
+      console.warn('⚠️  No seasons found, skipping public reactions seeding');
+      return;
+    }
+
+    const seasonYear = latestSeason[0].year;
+    console.log(`📅 Using season ${seasonYear} for reactions seeding`);
+
+    // Get 10% of games from the latest season
+    const allGames = await db
+      .select()
+      .from(schema.basketball_games)
+      .where(eq(schema.basketball_games.season, seasonYear.toString()));
+
+    const gamesToReact = Math.max(1, Math.floor(allGames.length * 0.1));
+    const selectedGames = faker.helpers.arrayElements(allGames, gamesToReact);
+
+    console.log(
+      `🎯 Selected ${selectedGames.length} games (${gamesToReact} out of ${allGames.length}) for reactions`
+    );
+
+    // Common reaction emojis for basketball games
+    const reactionEmojis = Object.values(REACTION_EMOJIS);
+
+    let reactionCount = 0;
+
+    // Generate realistic reactions for each selected game
+    for (const game of selectedGames) {
+      // Generate 2-8 reactions per game
+      const numReactions = faker.number.int({ min: 5, max: 100 });
+
+      for (let i = 0; i < numReactions; i++) {
+        const reactionId = faker.string.uuid();
+        const emoji = faker.helpers.arrayElement(reactionEmojis);
+
+        await db
+          .insert(schema.publicReactions)
+          .values({
+            id: reactionId,
+            target_id: game.id,
+            target_type: 'BASKETBALL_GAME' as const,
+            emoji: emoji,
+            anonymous_name: faker.internet.displayName(),
+            anonymous_email: faker.internet.email(),
+            is_approved: true,
+          })
+          .onConflictDoNothing();
+
+        reactionCount++;
+      }
+    }
+
+    console.log(`✅ Seeded ${reactionCount} game reactions for ${selectedGames.length} games`);
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: componentName,
+      action: 'Seed public reactions',
+    });
+    console.error('❌ Error seeding public reactions:', error);
     throw error;
   }
 }

@@ -1,30 +1,38 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Database, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { GameCard } from '@/app/components/sports/game-card';
 import { GameFilters } from '@/app/components/sports/game-filters';
-import { Pagination } from '@/app/components/sports/pagination';
+import { Pagination as _Pagination } from '@/app/components/sports/pagination';
 import { Button } from '@/app/components/ui/button';
 import { useGameFilters } from '@/hooks/use-game-filters';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { API_LIMITS } from '@/lib/constants';
 
+// Utility function to format large numbers
+const formatShort = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
+
 export default function NBAGamesPage() {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [currentSeasonFilter, setCurrentSeasonFilter] = useState('2024');
-  const gamesPerPage = 12;
+  const [currentSeasonFilter, setCurrentSeasonFilter] = useState('all');
+  const [forceRefresh, setForceRefresh] = useState(false);
 
   // Convert season filter to array of seasons to fetch
   const getSeasonsToFetch = useCallback((seasonFilter: string) => {
     if (seasonFilter === 'all') {
-      const currentYear = new Date().getFullYear();
-      const currentMonth = new Date().getMonth();
-      const nbaSeason = currentMonth >= 9 ? currentYear : currentYear - 1;
-      return [nbaSeason];
+      // Return ['all'] to use the merged cache instead of individual seasons
+      return ['all'];
     }
 
     const seasonYear = parseInt(seasonFilter);
@@ -32,6 +40,7 @@ export default function NBAGamesPage() {
       return [seasonYear];
     }
 
+    // Default to current season if parsing fails
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().getMonth();
     const nbaSeason = currentMonth >= 9 ? currentYear : currentYear - 1;
@@ -48,10 +57,13 @@ export default function NBAGamesPage() {
     loading: gamesLoading,
     error: gamesError,
     refetch: refetchGames,
+    cacheStatus,
+    refreshCache,
   } = useLatestGames({
     limit: API_LIMITS.GAMES.LARGE,
     forceRealData: false, // Use mock data instead of external API
     seasons: seasonsToFetch,
+    forceRefresh,
   });
 
   // Games filtering logic
@@ -66,10 +78,32 @@ export default function NBAGamesPage() {
     toggleAdvancedFilters,
   } = useGameFilters(latestGames);
 
+  // Simple pagination with grid-aware items per page
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 18; // Always 18 items (6 rows × 3 columns) to avoid gaps
+  const totalPages = Math.ceil(filteredGames.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filteredGames.slice(startIndex, endIndex);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filteredGames]);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleUpdateFilter = useCallback(
     (key: string, value: string) => {
       if (key === 'seasonFilter') {
         setCurrentSeasonFilter(value);
+        // Reset to first page when season changes
+        setCurrentPage(1);
+        // The useLatestGames hook will automatically fetch the new season data
+        // based on the updated seasonsToFetch array
       }
       updateFilter(key as keyof typeof filters, value);
     },
@@ -77,15 +111,44 @@ export default function NBAGamesPage() {
   );
 
   const handleClearFilters = useCallback(() => {
-    setCurrentSeasonFilter('2024');
+    setCurrentSeasonFilter('all');
     clearFilters();
     setCurrentPage(1);
   }, [clearFilters]);
 
+  const handleForceRefresh = () => {
+    setForceRefresh(true);
+    refreshCache();
+    // Reset force refresh after a short delay
+    setTimeout(() => setForceRefresh(false), 1000);
+  };
+
+  const getCacheStatusIcon = () => {
+    switch (cacheStatus) {
+      case 'cached':
+        return <Database className="w-4 h-4 text-green-500" />;
+      case 'fresh':
+        return <Zap className="w-4 h-4 text-blue-500" />;
+      default:
+        return <Database className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getCacheStatusText = () => {
+    switch (cacheStatus) {
+      case 'cached':
+        return 'Cached';
+      case 'fresh':
+        return 'Fresh';
+      default:
+        return 'No Cache';
+    }
+  };
+
   // Deduplicate games by ID to prevent React key conflicts
-  const uniqueFilteredGames = useMemo(() => {
-    const seen = new Set<number>();
-    const duplicates = new Map<number, number>();
+  const _uniqueFilteredGames = useMemo(() => {
+    const seen = new Set<string>();
+    const duplicates = new Map<string, number>();
 
     const result = filteredGames.filter(game => {
       // Use the database id directly - it's already unique (season-game.id format)
@@ -108,12 +171,6 @@ export default function NBAGamesPage() {
 
     return result;
   }, [filteredGames]);
-
-  // Pagination
-  const totalPages = Math.ceil(uniqueFilteredGames.length / gamesPerPage);
-  const startIndex = (currentPage - 1) * gamesPerPage;
-  const endIndex = startIndex + gamesPerPage;
-  const currentGames = uniqueFilteredGames.slice(startIndex, endIndex);
 
   return (
     <SportsPageLayout
@@ -152,6 +209,42 @@ export default function NBAGamesPage() {
         </div>
       </div>
 
+      {/* Cache Status and Controls */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-200 dark:border-blue-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {getCacheStatusIcon()}
+            <div>
+              <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Cache Status: {getCacheStatusText()}
+              </div>
+              <div className="text-xs text-blue-700 dark:text-blue-300">
+                {formatShort(latestGames.length)} games loaded • 30 min cache TTL
+              </div>
+              <div className="text-xs text-blue-600 dark:text-blue-400">
+                Page {currentPage} of {totalPages} • {formatShort(filteredGames.length)} filtered
+                games
+              </div>
+              <div className="text-xs text-blue-500 dark:text-blue-400">
+                {itemsPerPage} per page • Responsive to screen size
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleForceRefresh}
+              disabled={forceRefresh}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${forceRefresh ? 'animate-spin' : ''}`} />
+              {forceRefresh ? 'Refreshing...' : 'Force Refresh'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Game Filters */}
       <GameFilters
         filters={filters}
@@ -186,9 +279,9 @@ export default function NBAGamesPage() {
         </div>
       )}
 
-      {!gamesLoading && (
+      {!gamesLoading && latestGames.length > 0 && (
         <div className="space-y-4 mt-8">
-          {currentGames.length === 0 ? (
+          {currentItems.length === 0 ? (
             <div className="text-center py-8 sm:py-12">
               <p className="nba-empty-state-text text-base sm:text-lg">
                 No games found matching your criteria.
@@ -202,19 +295,30 @@ export default function NBAGamesPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-              {currentGames.map(game => (
-                <GameCard key={game.id} game={game} />
+              {currentItems.map(game => (
+                <GameCard
+                  key={`${game.id}-${typeof game.date === 'string' ? game.date : game.date?.start || ''}-${game.teams?.home?.id}-${game.teams?.visitors?.id}`}
+                  game={game}
+                />
               ))}
             </div>
           )}
         </div>
       )}
 
-      {!gamesLoading && filteredGames.length > gamesPerPage && (
-        <Pagination
+      {!gamesLoading && latestGames.length === 0 && (
+        <div className="text-center py-8 sm:py-12">
+          <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">
+            No games available.
+          </p>
+        </div>
+      )}
+
+      {!gamesLoading && filteredGames.length > itemsPerPage && (
+        <_Pagination
           currentPage={currentPage}
           totalPages={totalPages}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       )}
     </SportsPageLayout>

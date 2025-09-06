@@ -259,11 +259,9 @@ describe('useNBAPlayers Hook', () => {
       expect(result.current.loading).toBe(false);
     });
 
-    // Should only include active players
-    expect(result.current.players).toHaveLength(2);
-    expect(result.current.players.every(player => player.leagues?.standard?.active !== false)).toBe(
-      true
-    );
+    // Should include all players (filtering was removed)
+    expect(result.current.players).toHaveLength(3);
+    expect(result.current.players).toEqual(playersWithInactive);
   });
 
   it('should handle API errors gracefully', async () => {
@@ -317,7 +315,9 @@ describe('useNBAPlayers Hook', () => {
 
     await waitFor(() => {
       expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/api/players?limit=200&team=lakers')
+        expect.stringContaining(
+          '/api/players?limit=5000&sortBy=name&sortDirection=asc&bypass-cache=true&team=lakers'
+        )
       );
     });
   });
@@ -363,7 +363,11 @@ describe('useNBAPlayers Hook', () => {
     renderHook(() => useNBAPlayers({ forceRealData: true }));
 
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith(expect.stringContaining('/api/players?limit=200'));
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '/api/players?limit=5000&sortBy=name&sortDirection=asc&bypass-cache=true'
+        )
+      );
     });
   });
 

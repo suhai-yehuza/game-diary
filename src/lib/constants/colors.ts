@@ -73,6 +73,45 @@ export const SPORTS_COLORS = {
   },
 } as const;
 
+// Sports configuration for navigation and routing
+export const SPORTS_CONFIG = {
+  nba: {
+    name: 'NBA',
+    fullName: 'National Basketball Association',
+    href: '/sports/nba',
+    color: SPORTS_COLORS.nba.primary,
+    icon: '🏀',
+  },
+  nfl: {
+    name: 'NFL',
+    fullName: 'National Football League',
+    href: '/sports/nfl',
+    color: SPORTS_COLORS.nfl.primary,
+    icon: '🏈',
+  },
+  mlb: {
+    name: 'MLB',
+    fullName: 'Major League Baseball',
+    href: '/sports/mlb',
+    color: SPORTS_COLORS.mlb.primary,
+    icon: '⚾',
+  },
+  nhl: {
+    name: 'NHL',
+    fullName: 'National Hockey League',
+    href: '/sports/nhl',
+    color: SPORTS_COLORS.nhl.primary,
+    icon: '🏒',
+  },
+  mls: {
+    name: 'MLS',
+    fullName: 'Major League Soccer',
+    href: '/sports/mls',
+    color: SPORTS_COLORS.mls.primary,
+    icon: '⚽',
+  },
+} as const;
+
 // ========================================
 // UI COLORS
 // ========================================
@@ -351,9 +390,4 @@ export const CSS_COLORS = {
 // ========================================
 // TYPE DEFINITIONS
 // ========================================
-
-export type SportKey = keyof typeof SPORTS_COLORS;
-export type StatusType = keyof typeof TAILWIND_CLASSES.status;
-export type BrandColor = keyof typeof BRAND_COLORS;
-export type ThemeColor = keyof typeof THEME_COLORS;
-export type CssColor = keyof typeof CSS_COLORS;
+// All type definitions have been moved to @/lib/types

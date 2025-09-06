@@ -1,4 +1,4 @@
-import { SPORTS_CONFIG, type SportKey } from '@/lib/types';
+import { SPORTS_CONFIG, type SportKey } from '@/types';
 
 export { SPORTS_CONFIG, type SportKey };
 

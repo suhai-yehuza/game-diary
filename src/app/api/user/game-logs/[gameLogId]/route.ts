@@ -6,6 +6,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { game_logs } from '@/lib/db/schema';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IGameLogWithRelations } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -23,13 +24,13 @@ export async function GET(
     const { gameLogId } = await params;
 
     // Get the game log from the database
-    const gameLog = await db()?.query.game_logs.findFirst({
+    const gameLog = (await db()?.query.game_logs.findFirst({
       where: eq(game_logs.id, gameLogId),
       with: {
         user: true,
         game: true,
       },
-    });
+    })) as IGameLogWithRelations | undefined;
 
     if (!gameLog) {
       return NextResponse.json({ error: 'Game log not found' }, { status: 404 });
@@ -86,10 +87,8 @@ export async function GET(
             id: gameLog.game.id,
             date: gameLog.game.date,
             status: gameLog.game.status,
-            home_team_id: gameLog.game.home_team_id,
-            away_team_id: gameLog.game.away_team_id,
-            home_team_score: gameLog.game.home_team_score,
-            away_team_score: gameLog.game.away_team_score,
+            teams: gameLog.game.teams,
+            scores: gameLog.game.scores,
           }
         : null,
     });

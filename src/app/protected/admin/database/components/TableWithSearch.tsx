@@ -9,13 +9,11 @@ import { PaginationInfo } from '@/app/protected/admin/database/components/ui/pag
 import { SortableHeader } from '@/app/protected/admin/database/components/ui/sortable-header';
 import { TableSearch } from '@/app/protected/admin/database/components/ui/table-search';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { ITableWithSearchProps } from '@/lib/types';
+import type { ITableWithSearchProps } from '@/types';
 
-export default function TableWithSearch<T extends { id: string | number }>({
-  tableName,
-  columns,
-  itemLabel,
-}: ITableWithSearchProps<T>) {
+export default function TableWithSearch<
+  T extends Record<string, unknown> & { id: string | number },
+>({ tableName, columns, itemLabel }: ITableWithSearchProps<T>) {
   const typedColumns = columns;
   const [rawData, setRawData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,10 +56,10 @@ export default function TableWithSearch<T extends { id: string | number }>({
         return direction === 'asc' ? aValue - bValue : bValue - aValue;
       }
 
-      if (aValue instanceof Date && bValue instanceof Date) {
+      if ((aValue as unknown) instanceof Date && (bValue as unknown) instanceof Date) {
         return direction === 'asc'
-          ? aValue.getTime() - bValue.getTime()
-          : bValue.getTime() - aValue.getTime();
+          ? (aValue as unknown as Date).getTime() - (bValue as unknown as Date).getTime()
+          : (bValue as unknown as Date).getTime() - (aValue as unknown as Date).getTime();
       }
 
       // Fallback to string comparison
@@ -98,14 +96,15 @@ export default function TableWithSearch<T extends { id: string | number }>({
 
   // Generate search fields based on columns
   const searchFields = [
-    { value: 'all', label: 'All Fields' },
+    { key: 'all', label: 'All Fields', value: 'all' },
     ...typedColumns.map(col => ({
-      value: String(col.key),
+      key: String(col.key),
       label: col.label.charAt(0).toUpperCase() + col.label.slice(1).replace(/_/g, ' '),
+      value: String(col.key),
     })),
   ];
 
-  const handleSort = useCallback((key: string, direction: 'asc' | 'desc' | null) => {
+  const handleSort = useCallback((key: string, direction?: 'asc' | 'desc' | null) => {
     console.log('Sort clicked:', key, direction);
     if (direction === null) {
       // Clear sorting
@@ -114,18 +113,18 @@ export default function TableWithSearch<T extends { id: string | number }>({
     } else {
       // Set new sort
       setSortKey(key);
-      setSortDirection(direction);
+      setSortDirection(direction || 'asc');
     }
   }, []);
 
-  const noopSort = useCallback((_key: string, _direction: 'asc' | 'desc' | null) => {
+  const noopSort = useCallback((_key: string, _direction?: 'asc' | 'desc' | null) => {
     // No-op for non-sortable columns
   }, []);
 
   const handleSearchChange = useCallback(
-    (term: string, field: string) => {
+    (term: string, field?: string) => {
       setSearchTerm(term);
-      setSearchField(field);
+      setSearchField(field || '');
       setCurrentPage(1);
       setFetchTrigger(prev => prev + 1);
     },
@@ -261,8 +260,11 @@ export default function TableWithSearch<T extends { id: string | number }>({
         {/* Pagination Info - Top */}
         <PaginationInfo
           totalCount={totalCount}
+          totalItems={totalCount}
+          totalPages={Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE)}
           currentPage={currentPage}
           pageSize={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
+          itemsPerPage={API_CONFIG.pagination.DEFAULT_PAGE_SIZE}
           itemLabel={itemLabel}
         />
 
@@ -346,9 +348,11 @@ export default function TableWithSearch<T extends { id: string | number }>({
         {/* Pagination Controls - Bottom */}
         <PaginationControls
           totalCount={totalCount}
+          totalPages={Math.ceil(totalCount / API_CONFIG.pagination.DEFAULT_PAGE_SIZE)}
           currentPage={currentPage}
           pageInfo={pageInfo}
           loading={loading}
+          onPageChange={(page: number) => setCurrentPage(page)}
           onFirst={handleFirst}
           onPrev={handlePrev}
           onNext={handleNext}

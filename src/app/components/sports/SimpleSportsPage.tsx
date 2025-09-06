@@ -1,6 +1,6 @@
 import React from 'react';
 
-import type { ISimpleSportsPageProps } from '@/lib/types';
+import type { ISimpleSportsPageProps } from '@/types';
 
 export function SimpleSportsPage({ title, description, children }: ISimpleSportsPageProps) {
   return (

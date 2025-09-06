@@ -1,19 +1,33 @@
 'use client';
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Database, Zap } from 'lucide-react';
 import Link from 'next/link';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { SportsPageLayout, TeamCard, TeamFilters } from '@/app/components/sports';
 import { Button } from '@/app/components/ui/button';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { useTeamFilters } from '@/hooks/use-team-filters';
 import { TAILWIND_CLASSES } from '@/lib/constants/colors';
-import type { ITeamResponse } from '@/lib/types';
+import type { ITeamResponse } from '@/types';
+
+// Utility function to format large numbers
+const formatShort = (num: number): string => {
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1) + 'M';
+  }
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1) + 'K';
+  }
+  return num.toString();
+};
 
 export default function NBATeamsPage() {
-  const { teams, loading, error, refetch } = useNBATeams({
+  const [forceRefresh, setForceRefresh] = useState(false);
+
+  const { teams, loading, error, refetch, cacheStatus, refreshCache } = useNBATeams({
     forceRealData: true,
+    forceRefresh,
   });
 
   // Use team filters hook
@@ -31,21 +45,92 @@ export default function NBATeamsPage() {
   // Group teams by conference
   const teamsByConference = useMemo(() => {
     const grouped = filteredTeams.reduce<Record<string, ITeamResponse[]>>((acc, team) => {
-      const conference = team.leagues?.standard?.conference || 'Unknown';
-      if (!acc[conference]) {
-        acc[conference] = [];
+      let groupName = 'Exhibition'; // Default to Exhibition
+
+      // Check if team is an All Star team first
+      if (team.allStar) {
+        groupName = 'All Star';
+      } else if (team.nbaFranchise) {
+        // Check if team is an NBA franchise (but not All Star)
+        const conference = team.leagues?.standard?.conference;
+        if (conference === 'East' || conference === 'Eastern') {
+          groupName = 'East';
+        } else if (conference === 'West' || conference === 'Western') {
+          groupName = 'West';
+        }
+        // If NBA franchise but conference doesn't match East/West, it goes to Exhibition
+      } else {
+        // Not an NBA franchise - check if conference contains "int" (case insensitive)
+        const conference = team.leagues?.standard?.conference;
+        if (conference?.toLowerCase().includes('int')) {
+          groupName = 'International';
+        }
+        // If not NBA franchise and conference doesn't contain "int", it goes to Exhibition
       }
-      acc[conference].push(team);
+
+      if (!acc[groupName]) {
+        acc[groupName] = [];
+      }
+      acc[groupName].push(team);
       return acc;
     }, {});
 
-    // Sort teams within each conference by name
-    Object.keys(grouped).forEach(conference => {
-      grouped[conference].sort((a, b) => a.name.localeCompare(b.name));
+    // Sort teams within each group by name
+    Object.keys(grouped).forEach(group => {
+      grouped[group].sort((a, b) => a.name.localeCompare(b.name));
     });
 
-    return grouped;
+    // Sort groups in desired order: East, West, All Star, International, Exhibition
+    const sortedGroups = Object.keys(grouped).sort((a, b) => {
+      const order = {
+        East: 1,
+        West: 2,
+        'All Star': 3,
+        International: 4,
+        Exhibition: 5,
+      };
+      const orderA = order[a as keyof typeof order] || 6;
+      const orderB = order[b as keyof typeof order] || 6;
+      return orderA - orderB;
+    });
+
+    // Create new object with sorted groups
+    const sortedGrouped: Record<string, ITeamResponse[]> = {};
+    sortedGroups.forEach(group => {
+      sortedGrouped[group] = grouped[group];
+    });
+
+    return sortedGrouped;
   }, [filteredTeams]);
+
+  const handleForceRefresh = () => {
+    setForceRefresh(true);
+    refreshCache();
+    // Reset force refresh after a short delay
+    setTimeout(() => setForceRefresh(false), 1000);
+  };
+
+  const getCacheStatusIcon = () => {
+    switch (cacheStatus) {
+      case 'cached':
+        return <Database className="w-4 h-4 text-green-500" />;
+      case 'fresh':
+        return <Zap className="w-4 h-4 text-blue-500" />;
+      default:
+        return <Database className="w-4 h-4 text-gray-400" />;
+    }
+  };
+
+  const getCacheStatusText = () => {
+    switch (cacheStatus) {
+      case 'cached':
+        return 'Cached';
+      case 'fresh':
+        return 'Fresh';
+      default:
+        return 'No Cache';
+    }
+  };
 
   if (loading) {
     return (
@@ -168,6 +253,42 @@ export default function NBATeamsPage() {
         </div>
       </div>
 
+      {/* Cache Status and Controls */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 mb-6 border border-blue-200 dark:border-blue-800">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3">
+            {getCacheStatusIcon()}
+            <div>
+              <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                Cache Status: {getCacheStatusText()}
+              </div>
+              <div className="text-xs text-blue-700 dark:text-blue-300">
+                {formatShort(teams.length)} teams loaded • 1 hour cache TTL
+              </div>
+              <div className="text-xs text-blue-600 dark:text-blue-400">
+                {formatShort(filteredTeams.length)} teams shown • {formatShort(teams.length)} total
+                teams
+              </div>
+              <div className="text-xs text-blue-500 dark:text-blue-400">
+                All teams shown • No pagination needed
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleForceRefresh}
+              disabled={forceRefresh}
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${forceRefresh ? 'animate-spin' : ''}`} />
+              {forceRefresh ? 'Refreshing...' : 'Force Refresh'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
       {/* Team Filters */}
       <TeamFilters
         filters={filters}
@@ -176,7 +297,7 @@ export default function NBATeamsPage() {
         hasActiveFilters={hasActiveFilters}
         totalTeams={teams.length}
         filteredTeamsCount={filteredTeams.length}
-        onUpdateFilter={updateFilter}
+        onUpdateFilter={updateFilter as (key: string, value: unknown) => void}
         onClearFilters={clearFilters}
         onToggleAdvancedFilters={toggleAdvancedFilters}
         onRefresh={() => void refetch()}
@@ -195,9 +316,12 @@ export default function NBATeamsPage() {
             </button>
           </div>
         ) : (
-          Object.entries(teamsByConference).map(([conference, conferenceTeams]) => (
-            <div key={conference} className="space-y-4">
-              {conferenceTeams.map(team => (
+          Object.entries(teamsByConference).map(([groupName, groupTeams]) => (
+            <div key={groupName} className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white border-b border-gray-200 dark:border-gray-700 pb-2">
+                {groupName} ({groupTeams.length} teams)
+              </h3>
+              {groupTeams.map(team => (
                 <TeamCard key={team.id || `team-${team.name}-${team.code}`} team={team} />
               ))}
             </div>

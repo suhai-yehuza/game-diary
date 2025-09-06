@@ -1,252 +1,215 @@
-import { LogLevel } from '@/lib/types';
-import type { ILogContext, ILoggerConfig } from '@/lib/types';
+/**
+ * Logger utility for consistent logging across the application
+ */
 
-const defaultConfig: ILoggerConfig = {
-  level: process.env.NODE_ENV === 'production' ? LogLevel.WARN : LogLevel.DEBUG,
-  enableTimestamp: true,
-  enableColors: process.env.NODE_ENV !== 'production',
-  enableFileInfo: process.env.NODE_ENV === 'development',
-  prefix: undefined,
-};
+import { LogLevel, type ILogContext } from '@/types';
 
 class Logger {
-  private config: ILoggerConfig;
-  private readonly isDevelopment: boolean;
-  private readonly isTest: boolean;
+  private logLevel: LogLevel = LogLevel.INFO;
+  private readonly isDevelopment: boolean = process.env.NODE_ENV === 'development';
 
-  constructor(config: ILoggerConfig = defaultConfig) {
-    this.config = { ...defaultConfig, ...config };
-    this.isDevelopment = process.env.NODE_ENV === 'development';
-    this.isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
+  constructor() {
+    // Set log level from environment variable
+    const envLogLevel = process.env.LOG_LEVEL?.toUpperCase();
+    if (envLogLevel && envLogLevel in LogLevel) {
+      this.logLevel = LogLevel[envLogLevel as keyof typeof LogLevel];
+    }
 
-    // Set log level based on environment
-    if (this.isTest) {
-      this.config.level = LogLevel.ERROR; // Only show errors in tests
-    } else if (this.isDevelopment) {
-      this.config.level = LogLevel.DEBUG; // Show all logs in development
-    } else {
-      this.config.level = LogLevel.INFO; // Show info and above in production
+    // In development, default to DEBUG level
+    if (this.isDevelopment && this.logLevel > LogLevel.DEBUG) {
+      this.logLevel = LogLevel.DEBUG;
     }
   }
 
-  private formatTimestamp(): string {
-    if (!this.config.enableTimestamp) return '';
-    const now = new Date();
-    return `[${now.toISOString()}]`;
-  }
-
-  private getColorCode(level: LogLevel): string {
-    if (!this.config.enableColors) return '';
-
-    const colors: Record<LogLevel, string> = {
-      [LogLevel.DEBUG]: '\x1b[36m', // Cyan
-      [LogLevel.INFO]: '\x1b[32m', // Green
-      [LogLevel.WARN]: '\x1b[33m', // Yellow
-      [LogLevel.ERROR]: '\x1b[31m', // Red
-    };
-
-    return colors[level] ?? '';
-  }
-
-  private getResetCode(): string {
-    return this.config.enableColors ? '\x1b[0m' : '';
-  }
-
-  private getLevelString(level: LogLevel): string {
-    const levels: Record<LogLevel, string> = {
-      [LogLevel.DEBUG]: 'DEBUG',
-      [LogLevel.INFO]: 'INFO',
-      [LogLevel.WARN]: 'WARN',
-      [LogLevel.ERROR]: 'ERROR',
-    };
-
-    return levels[level];
-  }
-
-  private getFileInfo(): string {
-    if (!this.config.enableFileInfo) return '';
-
-    try {
-      const stack = new Error().stack;
-      if (!stack) return '';
-
-      const lines = stack.split('\n');
-      // Skip the first 4 lines to get to the actual caller
-      const callerLine = lines[4];
-      if (!callerLine) return '';
-
-      // Extract file info from stack trace
-      const match = callerLine.match(/at .* \((.+):(\d+):(\d+)\)/);
-      if (match) {
-        const [, filePath, line] = match;
-        const fileName = filePath.split('/').pop() ?? filePath;
-        return `[${fileName}:${line}]`;
-      }
-    } catch {
-      // Silently fail if we can't get file info
-    }
-
-    return '';
+  private formatMessage(level: string, message: string, context?: ILogContext): string {
+    const timestamp = new Date().toISOString();
+    const contextStr = context ? ` [${JSON.stringify(context)}]` : '';
+    return `[${timestamp}] [${level}] ${message}${contextStr}`;
   }
 
   private shouldLog(level: LogLevel): boolean {
-    return level >= this.config.level;
-  }
-
-  private formatMessage(level: LogLevel, message: string, context?: ILogContext): string {
-    const timestamp = this.formatTimestamp();
-    const levelStr = this.getLevelString(level);
-    const colorCode = this.getColorCode(level);
-    const resetCode = this.getResetCode();
-    const prefix = this.config.prefix ? `[${this.config.prefix}]` : '';
-    const fileInfo = this.getFileInfo();
-    const contextStr = context ? ` [${JSON.stringify(context)}]` : '';
-
-    const parts = [
-      timestamp,
-      prefix,
-      fileInfo,
-      `${colorCode}${levelStr}${resetCode}`,
-      message,
-      contextStr,
-    ]
-      .filter(Boolean)
-      .join(' ');
-
-    return parts;
-  }
-
-  private writeLog(level: LogLevel, message: string, error?: Error, context?: ILogContext): void {
-    if (!this.shouldLog(level)) return;
-
-    const formattedMessage = this.formatMessage(level, message, context);
-    const errorDetails = error ? `\nError: ${error.message}\nStack: ${error.stack}` : '';
-
-    switch (level) {
-      case LogLevel.DEBUG:
-        console.debug(formattedMessage + errorDetails);
-        break;
-      case LogLevel.INFO:
-        console.info(formattedMessage + errorDetails);
-        break;
-      case LogLevel.WARN:
-        console.warn(formattedMessage + errorDetails);
-        break;
-      case LogLevel.ERROR:
-        console.error(formattedMessage + errorDetails);
-        break;
-    }
+    return level >= this.logLevel;
   }
 
   debug(message: string, context?: ILogContext): void {
-    this.writeLog(LogLevel.DEBUG, message, undefined, context);
-  }
-
-  info(message: string, context?: ILogContext): void {
-    this.writeLog(LogLevel.INFO, message, undefined, context);
-  }
-
-  log(message: string, context?: ILogContext): void {
-    this.writeLog(LogLevel.INFO, message, undefined, context);
-  }
-
-  warn(message: string, context?: ILogContext): void {
-    this.writeLog(LogLevel.WARN, message, undefined, context);
-  }
-
-  error(message: string, error?: Error, context?: ILogContext): void {
-    this.writeLog(LogLevel.ERROR, message, error, context);
-  }
-
-  // Specialized logging methods for common patterns
-  apiRequest(endpoint: string, method: string, context?: ILogContext): void {
-    this.info(`API ${method} request to ${endpoint}`, context);
-  }
-
-  apiResponse(endpoint: string, status: number, context?: ILogContext): void {
-    this.info(`API response from ${endpoint}: ${status}`, context);
-  }
-
-  componentRender(componentName: string, props?: Record<string, unknown>): void {
-    this.debug(`Rendering ${componentName}`, { component: componentName, props });
-  }
-
-  hookCall(hookName: string, context?: ILogContext): void {
-    this.debug(`Hook called: ${hookName}`, { ...context, hook: hookName });
-  }
-
-  userAction(action: string, userId?: string, context?: ILogContext): void {
-    this.info(`User action: ${action}`, { ...context, userId, action });
-  }
-
-  // E2E test specific logging
-  e2eDebug(message: string, context?: ILogContext): void {
-    if (this.isTest && process.env.MOCK_MODE === 'true') {
-      console.log(`[E2E DEBUG] ${message}`, context);
+    if (this.shouldLog(LogLevel.DEBUG)) {
+      console.debug(this.formatMessage('DEBUG', message, context));
     }
   }
 
-  // Performance logging
+  info(message: string, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.INFO)) {
+      console.info(this.formatMessage('INFO', message, context));
+    }
+  }
+
+  warn(message: string, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.WARN)) {
+      console.warn(this.formatMessage('WARN', message, context));
+    }
+  }
+
+  error(message: string, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.ERROR)) {
+      console.error(this.formatMessage('ERROR', message, context));
+    }
+  }
+
+  // Specialized logging methods
   performance(operation: string, duration: number, context?: ILogContext): void {
-    this.info(`Performance: ${operation} took ${duration}ms`, { ...context, operation, duration });
+    if (this.shouldLog(LogLevel.INFO)) {
+      const message = `Performance: ${operation} took ${duration}ms`;
+      console.info(this.formatMessage('PERF', message, context));
+    }
   }
 
-  // Create specialized loggers for different modules
-  createChild(prefix: string, config?: Partial<ILoggerConfig>): Logger {
-    return new Logger({
-      ...this.config,
-      prefix,
-      ...(config ?? {}),
-    });
+  cache(operation: 'hit' | 'miss' | 'set' | 'delete', key: string, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.DEBUG)) {
+      const message = `Cache ${operation}: ${key}`;
+      console.debug(this.formatMessage('CACHE', message, context));
+    }
   }
 
-  // Update logger configuration
-  updateConfig(newConfig: Partial<ILoggerConfig>): void {
-    this.config = { ...this.config, ...newConfig };
+  database(operation: string, query: string, duration?: number, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.DEBUG)) {
+      const message = `Database ${operation}: ${query}${duration ? ` (${duration}ms)` : ''}`;
+      console.debug(this.formatMessage('DB', message, context));
+    }
+  }
+
+  api(operation: string, endpoint: string, duration?: number, context?: ILogContext): void {
+    if (this.shouldLog(LogLevel.INFO)) {
+      const message = `API ${operation}: ${endpoint}${duration ? ` (${duration}ms)` : ''}`;
+      console.info(this.formatMessage('API', message, context));
+    }
+  }
+
+  graphql(
+    operation: 'query' | 'mutation' | 'subscription',
+    name: string,
+    duration?: number,
+    context?: ILogContext
+  ): void {
+    if (this.shouldLog(LogLevel.INFO)) {
+      const message = `GraphQL ${operation}: ${name}${duration ? ` (${duration}ms)` : ''}`;
+      console.info(this.formatMessage('GRAPHQL', message, context));
+    }
+  }
+
+  // Set log level dynamically
+  setLogLevel(level: LogLevel): void {
+    this.logLevel = level;
+  }
+
+  // Get current log level
+  getLogLevel(): LogLevel {
+    return this.logLevel;
+  }
+
+  // Check if a log level is enabled
+  isEnabled(level: LogLevel): boolean {
+    return this.shouldLog(level);
+  }
+
+  // Add missing methods that tests expect
+  apiRequest(endpoint: string, method: string, context?: ILogContext): void {
+    this.api('REQUEST', `${method} ${endpoint}`, undefined, context);
+  }
+
+  apiResponse(endpoint: string, status: number, context?: ILogContext): void {
+    this.api('RESPONSE', `${endpoint} - ${status}`, undefined, context);
+  }
+
+  componentRender(
+    componentName: string,
+    props?: Record<string, unknown>,
+    context?: ILogContext
+  ): void {
+    const message = `Component rendered: ${componentName}${props ? ` with props: ${JSON.stringify(props)}` : ''}`;
+    this.debug(message, context);
+  }
+
+  hookCall(hookName: string, context?: ILogContext): void {
+    this.debug(`Hook called: ${hookName}`, context);
+  }
+
+  userAction(action: string, userId?: string, context?: ILogContext): void {
+    const message = `User action: ${action}${userId ? ` by user: ${userId}` : ''}`;
+    this.info(message, context);
+  }
+
+  createChild(prefix: string): Logger {
+    const childLogger = new Logger();
+    childLogger.setLogLevel(this.logLevel);
+    // Add prefix to all messages
+    const originalFormatMessage = childLogger['formatMessage'];
+    childLogger['formatMessage'] = (level: string, message: string, context?: ILogContext) => {
+      return `[${prefix}] ${originalFormatMessage(level, message, context)}`;
+    };
+    return childLogger;
+  }
+
+  updateConfig(config: { level?: LogLevel }): void {
+    if (config.level !== undefined) {
+      this.setLogLevel(config.level);
+    }
   }
 }
 
-// Create default logger instance
+// Export singleton instance
 export const logger = new Logger();
 
-// Create specialized loggers for different modules
-export const dbLogger = logger.createChild('DB');
-export const apiLogger = logger.createChild('API');
-export const cacheLogger = logger.createChild('CACHE');
-export const seedLogger = logger.createChild('SEED');
-export const webhookLogger = logger.createChild('WEBHOOK');
-
-// Export the Logger class for custom instances
+// Export the class for testing
 export { Logger };
 
-// Export convenience functions
-export const logDebug = (message: string, context?: ILogContext) => logger.debug(message, context);
+// Export convenience functions for backward compatibility
+export const logError = (message: string, error?: Error | unknown, context?: ILogContext) => {
+  if (error instanceof Error) {
+    logger.error(`${message}: ${error.message}`, context);
+  } else {
+    logger.error(message, context);
+  }
+};
 export const logInfo = (message: string, context?: ILogContext) => logger.info(message, context);
 export const logWarn = (message: string, context?: ILogContext) => logger.warn(message, context);
-export const logError = (message: string, error?: Error, context?: ILogContext) =>
-  logger.error(message, error, context);
-export const logE2E = (message: string, context?: ILogContext) => logger.e2eDebug(message, context);
-export const logPerformance = (operation: string, duration: number, context?: ILogContext) =>
-  logger.performance(operation, duration, context);
+export const logDebug = (message: string, context?: ILogContext) => logger.debug(message, context);
 
-// Utility function to set global log level
-export const setLogLevel = (level: LogLevel): void => {
-  logger.updateConfig({ level });
+// Export specialized loggers
+export const webhookLogger = {
+  info: (message: string, context?: ILogContext) => logger.info(`[WEBHOOK] ${message}`, context),
+  error: (message: string, error?: Error | unknown, context?: ILogContext) => {
+    if (error instanceof Error) {
+      logger.error(`[WEBHOOK] ${message}: ${error.message}`, context);
+    } else {
+      logger.error(`[WEBHOOK] ${message}`, context);
+    }
+  },
+  warn: (message: string, context?: ILogContext) => logger.warn(`[WEBHOOK] ${message}`, context),
 };
 
-// Utility to create performance loggers
+export const logE2E = (message: string, context?: ILogContext) => {
+  logger.info(`[E2E] ${message}`, context);
+};
+
+// Add missing functions that tests expect
+export const logPerformance = (operation: string, duration: number, context?: ILogContext) => {
+  logger.performance(operation, duration, context);
+};
+
+export const setLogLevel = (level: LogLevel): void => {
+  logger.setLogLevel(level);
+};
+
 export const createPerformanceLogger = (operation: string) => {
-  const start = Date.now();
+  const startTime = Date.now();
   return {
-    end: (additionalInfo?: string) => {
-      const duration = Date.now() - start;
-      logger.info(
-        `${operation} completed in ${duration}ms${additionalInfo ? ` - ${additionalInfo}` : ''}`
-      );
+    end: (context?: ILogContext) => {
+      const duration = Date.now() - startTime;
+      logger.performance(operation, duration, context);
+      return duration;
     },
-    error: (error: Error) => {
-      const duration = Date.now() - start;
-      logger.error(`${operation} failed after ${duration}ms:`, error);
+    log: (message: string, context?: ILogContext) => {
+      logger.info(`[PERF] ${operation}: ${message}`, context);
     },
   };
 };

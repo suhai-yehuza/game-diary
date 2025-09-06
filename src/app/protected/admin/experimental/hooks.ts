@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { TabValue } from '@/lib/types';
-import { TABS } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { AdminTabValue } from '@/types';
+import { ADMIN_TABS as TABS } from '@/types';
 
 // Teams data hook
 export const useTeamsData = () => {
@@ -301,7 +301,7 @@ export const useFormState = (seasons: Array<{ value: string; label: string }> = 
 
 // Tab state hook
 export const useTabState = () => {
-  const [selectedTab, setSelectedTab] = useState<TabValue>(TABS.SEASONS);
+  const [selectedTab, setSelectedTab] = useState<AdminTabValue>(TABS.SEASONS);
   const [gamesSubTab, setGamesSubTab] = useState<string>('games');
   const [teamsSubTab, setTeamsSubTab] = useState<string>('teams');
   const [playersSubTab, setPlayersSubTab] = useState<string>('players');

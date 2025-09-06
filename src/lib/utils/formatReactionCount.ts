@@ -1,4 +1,4 @@
-import { REACTION_EMOJIS } from '@/lib/types';
+import { REACTION_EMOJIS } from '@/types';
 
 /**
  * Format reaction count for display

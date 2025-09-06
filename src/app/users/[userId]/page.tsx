@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/app/components/ui/Card';
-import type { IUserProfile } from '@/lib/types';
+import type { IUserProfile } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
 

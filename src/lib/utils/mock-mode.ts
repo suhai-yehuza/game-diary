@@ -4,12 +4,7 @@
  */
 
 // Import the extended window interface
-interface IExtendedWindow extends Window {
-  __MOCK_MODE__?: boolean;
-  __API_MOCK_MODE__?: boolean;
-  __E2E_MOCK_MODE__?: boolean;
-  __PLAYWRIGHT_TEST__?: boolean;
-}
+import type { IExtendedWindow } from '@/types';
 
 /**
  * Check if mock mode is enabled

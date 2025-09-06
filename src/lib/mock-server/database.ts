@@ -1,4 +1,3 @@
-import { mockDataProvider } from '@src/lib/mock';
 import type {
   MockDatabaseSchema,
   MockUser,
@@ -8,7 +7,9 @@ import type {
   MockReaction,
   MockNotification,
   MockGameRating,
-} from '@src/lib/types';
+  FriendshipStatus,
+} from '@/types';
+import { mockDataProvider } from '@src/lib/mock';
 
 // Generate realistic mock data
 function generateMockUsers(count = 50): MockUser[] {
@@ -41,9 +42,11 @@ function generateMockUsers(count = 50): MockUser[] {
     users.push({
       id: `user_${i + 1}`,
       email: `${username}@example.com`,
+      name: `${username.charAt(0).toUpperCase() + username.slice(1)} User`,
       username: `${username}_${i + 1}`,
-      avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
+      imageUrl: `https://api.dicebear.com/7.x/avataaars/svg?seed=${username}`,
       isAdmin: i === 0, // Make the first user an admin for testing
+      createdAt: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -91,11 +94,13 @@ function generateMockGameLogs(users: MockUser[], count = 100): MockGameLog[] {
 
     gameLogs.push({
       id: `game_log_${i + 1}`,
-      user_id: user.id,
+      userId: user.id,
       game_id: `game_${Math.floor(Math.random() * 1000) + 1}`,
       title: titles[titleIndex],
       content: contents[contentIndex],
+      classification: 'PUBLIC' as const,
       rating: Math.floor(Math.random() * 5) + 1,
+      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -114,12 +119,14 @@ function generateMockFriendships(users: MockUser[], count = 75): MockFriendship[
     if (user1.id !== user2.id) {
       friendships.push({
         id: `friendship_${i + 1}`,
+        requesterId: user1.id,
+        addresseeId: user2.id,
         user_id: user1.id,
         friend_id: user2.id,
-        status: ['pending', 'accepted', 'rejected'][Math.floor(Math.random() * 3)] as
-          | 'pending'
-          | 'accepted'
-          | 'rejected',
+        status: ['PENDING', 'ACCEPTED', 'REJECTED'][
+          Math.floor(Math.random() * 3)
+        ] as FriendshipStatus,
+        createdAt: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
         created_at: new Date(Date.now() - Math.random() * 180 * 24 * 60 * 60 * 1000).toISOString(),
         updated_at: new Date().toISOString(),
       });
@@ -167,9 +174,11 @@ function generateMockComments(
 
     comments.push({
       id: `comment_${i + 1}`,
-      user_id: user.id,
+      userId: user.id,
+      gameLogId: gameLog.id,
       game_log_id: gameLog.id,
       content: commentText,
+      createdAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -200,9 +209,13 @@ function generateMockReactions(
 
     reactions.push({
       id: `reaction_${i + 1}`,
-      user_id: user.id,
-      game_log_id: gameLog.id,
-      type: reactionType,
+      userId: user.id,
+      targetId: gameLog.id,
+      targetType: 'GAME_LOG',
+      emoji: reactionType === 'like' ? '👍' : '❤️',
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      type: reactionType as any,
+      createdAt: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 3 * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -223,9 +236,11 @@ function generateMockGameRatings(
 
     gameRatings.push({
       id: `game_rating_${i + 1}`,
-      user_id: user.id,
-      game_id: gameLog.game_id,
+      userId: user.id,
+      gameId: gameLog.gameId,
+      gameLogId: gameLog.id,
       rating: Math.floor(Math.random() * 5) + 1, // 1-5 rating
+      createdAt: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString(),
       updated_at: new Date().toISOString(),
     });
@@ -270,11 +285,13 @@ function generateMockNotifications(users: MockUser[], count = 150): MockNotifica
 
     notifications.push({
       id: `notification_${i + 1}`,
-      user_id: user.id,
-      type,
+      userId: user.id,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
+      type: type.toUpperCase() as any,
       title: `New ${type.replace('_', ' ')}`,
       message,
       read: Math.random() > 0.3,
+      createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
       created_at: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000).toISOString(),
     });
   }
@@ -299,18 +316,46 @@ async function generateMockNBAData() {
 
   return {
     seasons,
-    nba_games: Array.isArray(nbaGames)
+    basketball_games: Array.isArray(nbaGames)
       ? nbaGames.map((game: Record<string, unknown>, index: number) => ({
-          id: `2024-nba_game_${index + 1}`,
+          id: `2024-basketball_game_${index + 1}`,
           game_type: 'nba',
           season: '2024', // Default to 2024 season
-          nba_game_id: `nba_game_${index + 1}`,
-          home_team_id:
-            (game.home_team_id as string) || `team_${Math.floor(Math.random() * 30) + 1}`,
-          away_team_id:
-            (game.away_team_id as string) || `team_${Math.floor(Math.random() * 30) + 1}`,
-          home_team_score: (game.home_score as number) || Math.floor(Math.random() * 150),
-          away_team_score: (game.away_score as number) || Math.floor(Math.random() * 150),
+          basketball_game_id: `basketball_game_${index + 1}`,
+          teams: {
+            home: {
+              id: `team_${Math.floor(Math.random() * 30) + 1}`,
+              name: (game.home_team_name as string) || `Team ${Math.floor(Math.random() * 30) + 1}`,
+              nickname:
+                (game.home_team_nickname as string) || `Team${Math.floor(Math.random() * 30) + 1}`,
+              code: (game.home_team_code as string) || `T${Math.floor(Math.random() * 30) + 1}`,
+              logo: (game.home_team_logo as string) || null,
+            },
+            away: {
+              id: `team_${Math.floor(Math.random() * 30) + 1}`,
+              name: (game.away_team_name as string) || `Team ${Math.floor(Math.random() * 30) + 1}`,
+              nickname:
+                (game.away_team_nickname as string) || `Team${Math.floor(Math.random() * 30) + 1}`,
+              code: (game.away_team_code as string) || `T${Math.floor(Math.random() * 30) + 1}`,
+              logo: (game.away_team_logo as string) || null,
+            },
+          },
+          scores: {
+            home: {
+              points: (game.home_score as number) || Math.floor(Math.random() * 150),
+              win: 0,
+              loss: 0,
+              series: { win: 0, loss: 0 },
+              linescore: [(game.home_score as number) || Math.floor(Math.random() * 150)],
+            },
+            away: {
+              points: (game.away_score as number) || Math.floor(Math.random() * 150),
+              win: 0,
+              loss: 0,
+              series: { win: 0, loss: 0 },
+              linescore: [(game.away_score as number) || Math.floor(Math.random() * 150)],
+            },
+          },
           status:
             (game.status as 'scheduled' | 'live' | 'finished') ||
             (['scheduled', 'live', 'finished'] as const)[Math.floor(Math.random() * 3)],
@@ -337,7 +382,7 @@ async function generateMockNBAData() {
             `https://api.dicebear.com/7.x/shapes/svg?seed=team${index + 1}`,
         }))
       : [],
-    nba_players: Array.isArray(nbaPlayers)
+    basketball_players: Array.isArray(nbaPlayers)
       ? nbaPlayers.map((player: Record<string, unknown>, index: number) => ({
           id: (player.id as string) || `player_${index + 1}`,
           name: (player.name as string) || `Player ${index + 1}`,
@@ -375,34 +420,34 @@ export function createMockDatabase() {
   // Initialize NBA data
   void generateMockNBAData().then(nbaData => {
     mockData.seasons = nbaData.seasons;
-    mockData.nba_games = nbaData.nba_games;
+    mockData.basketball_games = nbaData.basketball_games;
     mockData.teams = nbaData.teams;
-    mockData.nba_players = nbaData.nba_players;
+    mockData.basketball_players = nbaData.basketball_players;
   });
 
   const mockData: MockDatabaseSchema = {
     users,
-    game_logs: gameLogs,
+    gameLogs: gameLogs,
     friendships,
     comments,
     reactions,
-    game_ratings: gameRatings,
+    gameRatings: gameRatings,
     notifications,
     seasons: [],
-    nba_games: [],
+    basketball_games: [],
     teams: [],
-    nba_players: [],
+    basketball_players: [],
   };
 
   return {
     // Database operations
     select: (table: string, query?: Record<string, unknown>) => {
       const tableData = mockData[table as keyof MockDatabaseSchema] || [];
-      let data = [...tableData];
+      let data = [...(tableData as unknown[])];
 
       if (query?.where) {
         data = data.filter(item => {
-          const recordItem = item as unknown as Record<string, unknown>;
+          const recordItem = item as Record<string, unknown>;
           return Object.entries(query.where as Record<string, unknown>).every(([key, value]) => {
             return recordItem[key] === value;
           });

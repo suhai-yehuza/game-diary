@@ -259,8 +259,8 @@ describe('Database Services Integration Tests', () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            email: `perf-test-${i}@example.com`,
-            username: `perfuser${i}`,
+            email: `integration-test-perf-${i}@example.com`,
+            username: `integration-test-perf-user-${i}`,
           }),
         })
       );

@@ -6,7 +6,7 @@ import { useState, useEffect, Suspense } from 'react';
 
 import { useMobileDetection, SearchBar } from '@/app/components/layout/components/SearchBar';
 import { SearchEmptyState, SearchResults } from '@/app/components/search';
-import type { ISearchResponse } from '@/lib/types';
+import type { ISearchResponse } from '@/types';
 
 function SearchPageContent() {
   const searchParams = useSearchParams();
@@ -111,7 +111,9 @@ function SearchPageContent() {
           )}
 
           {/* Search Results */}
-          {results && query && <SearchResults results={results} query={query} />}
+          {results && query && (
+            <SearchResults results={{ ...results, page: 1, limit: 20 }} query={query} />
+          )}
 
           {/* Empty State - Only show when no query and not on mobile (mobile has search input above) */}
           {!query && !loading && !isMobile && <SearchEmptyState hasQuery={false} />}

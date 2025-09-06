@@ -7,9 +7,9 @@ import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { Button } from '@/app/components/ui/button';
 import { useGameLogComments, useDeleteComment, useUpdateComment } from '@/hooks/use-comments';
-import type { IComment, IGameLogCommentsProps } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IComment, IGameLogCommentsProps } from '@/types';
+import { ParentType } from '@/types';
 
 export function GameLogComments({ gameLog, showComments = false }: IGameLogCommentsProps) {
   const [showCommentForm, setShowCommentForm] = useState(false);
@@ -28,7 +28,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
     loadMoreComments,
     refetch,
     commentsTotalCount,
-  } = useGameLogComments(gameLog.id, showComments ? 5 : 0);
+  } = useGameLogComments(gameLog?.id || '', showComments ? 5 : 0);
 
   const { deleteComment } = useDeleteComment();
   const { updateComment: _updateComment } = useUpdateComment();
@@ -100,7 +100,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
   const commentCount =
     showComments && commentsTotalCount !== undefined
       ? commentsTotalCount
-      : (gameLog.totalCommentCount ?? 0);
+      : (gameLog?.totalCommentCount ?? 0);
 
   return (
     <div className="p-4" data-testid="game-log-comments">
@@ -119,7 +119,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
           {showCommentForm && (
             <div className="mb-4">
               <CommentForm
-                parentId={gameLog.id}
+                parentId={gameLog?.id}
                 parentType={ParentType.GameLog}
                 onSuccess={handleCommentSuccess}
                 onCancel={handleCommentCancel}
@@ -140,7 +140,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
                   comment={comment}
                   onReply={handleReply}
                   onEdit={handleEdit}
-                  onDelete={commentId => {
+                  onDelete={(commentId: string) => {
                     void handleDelete(commentId);
                   }}
                 />
