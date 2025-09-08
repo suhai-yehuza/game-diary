@@ -108,17 +108,47 @@ export async function clearExternalApiData() {
     // Use centralized error handling for the clearing process
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
-        // Clear in reverse order of dependencies
-        await timeStep('Clear public reactions', () => db.delete(schema.publicReactions));
-        await timeStep('Clear public comments', () => db.delete(schema.publicComments));
-        await timeStep('Clear NBA games', () => db.delete(schema.basketball_games));
-        await timeStep('Clear game ratings', () => db.delete(schema.game_ratings));
-        await timeStep('Clear NBA players', () => db.delete(schema.basketball_players));
-        await timeStep('Clear teams', () => db.delete(schema.basketball_teams));
-        await timeStep('Clear seasons', () => db.delete(schema.seasons));
-        await timeStep('Clear leagues', () => db.delete(schema.leagues));
+        // Helper function to safely delete from table if it exists
+        const safeDelete = async (tableName: string, deleteFn: () => Promise<any>) => {
+          try {
+            await deleteFn();
+            console.log(`✅ Cleared ${tableName}`);
+          } catch (error: any) {
+            if (error.code === '42P01') {
+              console.log(`⏭️  Skipping ${tableName} (table does not exist)`);
+            } else {
+              console.warn(`⚠️  Warning: Could not clear ${tableName}: ${error.message}`);
+            }
+          }
+        };
 
-        console.log('✅ External API data cleared successfully!');
+        // Clear in reverse order of dependencies, with safe deletion
+        await timeStep('Clear public reactions', () =>
+          safeDelete('public reactions', () => db.delete(schema.publicReactions))
+        );
+        await timeStep('Clear public comments', () =>
+          safeDelete('public comments', () => db.delete(schema.publicComments))
+        );
+        await timeStep('Clear NBA games', () =>
+          safeDelete('NBA games', () => db.delete(schema.basketball_games))
+        );
+        await timeStep('Clear game ratings', () =>
+          safeDelete('game ratings', () => db.delete(schema.game_ratings))
+        );
+        await timeStep('Clear NBA players', () =>
+          safeDelete('NBA players', () => db.delete(schema.basketball_players))
+        );
+        await timeStep('Clear teams', () =>
+          safeDelete('teams', () => db.delete(schema.basketball_teams))
+        );
+        await timeStep('Clear seasons', () =>
+          safeDelete('seasons', () => db.delete(schema.seasons))
+        );
+        await timeStep('Clear leagues', () =>
+          safeDelete('leagues', () => db.delete(schema.leagues))
+        );
+
+        console.log('✅ External API data clearing completed!');
         return { success: true };
       },
       {

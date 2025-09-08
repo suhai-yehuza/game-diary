@@ -124,6 +124,9 @@ export const gameLogMutationResolvers = {
           // For now, we'll assume current season - this should be passed from the frontend
           const currentSeason = new Date().getFullYear().toString();
           gameIdToUse = `${currentSeason}-${input.gameId}`;
+          console.log('🔍 createGameLog: converted gameId to season-gameId format:', gameIdToUse);
+        } else {
+          console.log('🔍 createGameLog: gameId already in correct format:', gameIdToUse);
         }
 
         // Check if the game exists in basketball_games table using direct query

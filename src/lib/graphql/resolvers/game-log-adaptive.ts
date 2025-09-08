@@ -85,11 +85,43 @@ export const adaptiveGameLogQueryResolvers = {
     },
     context: GraphQLContext
   ) => {
+    const { filters, pagination } = args;
+    console.log('🔍 gameLogs resolver: called with args:', { filters, pagination });
+
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
     }
 
-    const { filters, pagination } = args;
+    // Log user's existing game log IDs for debugging
+    try {
+      console.log('🔍 [USER_GAME_LOGS] About to query database for user game logs...');
+      const dbInstance = db();
+      console.log('🔍 [USER_GAME_LOGS] Database instance:', !!dbInstance);
+
+      const userGameLogsQuery = await dbInstance?.execute(sql`
+        SELECT id, game_id, created_at
+        FROM game_logs
+        WHERE user_id = ${context.user.id}
+        AND deleted_at IS NULL
+        ORDER BY created_at DESC
+        LIMIT 20
+      `);
+
+      console.log('🔍 [USER_GAME_LOGS] Query result:', userGameLogsQuery);
+      const userGameLogs = userGameLogsQuery?.rows || [];
+      console.log('🔍 [USER_GAME_LOGS] Session user existing game log IDs:', {
+        userId: context.user.id,
+        totalGameLogs: userGameLogs.length,
+        gameLogs: userGameLogs.map((log: Record<string, unknown>) => ({
+          id: log.id,
+          gameId: log.game_id,
+          createdAt: log.created_at,
+        })),
+      });
+    } catch (error) {
+      console.error('❌ [USER_GAME_LOGS] Error fetching user game logs:', error);
+    }
+
     const limit = Math.min(pagination?.first ?? 50, 100);
 
     // Build WHERE conditions
@@ -100,6 +132,9 @@ export const adaptiveGameLogQueryResolvers = {
     }
 
     if (filters?.gameId) {
+      console.log('🔍 [QUERY_GAME_ID] Filtering by gameId:', filters.gameId);
+      console.log('🔍 [QUERY_GAME_ID] Game ID type:', typeof filters.gameId);
+      console.log('🔍 [QUERY_GAME_ID] Game ID length:', filters.gameId.length);
       whereConditions.push(`gl.game_id = '${filters.gameId}'`);
     }
 
@@ -137,21 +172,41 @@ export const adaptiveGameLogQueryResolvers = {
 
     // Strategy 1: Ultra-fast query for small datasets (≤10 items)
     if (limit <= 10) {
-      return executeUltraFastQuery(whereClause, limit);
+      console.log('🔍 [QUERY_STRATEGY] Using ultra-fast query with whereClause:', whereClause);
+      const result = await executeUltraFastQuery(whereClause, limit);
+      console.log('🔍 [QUERY_RESULT] Ultra-fast query result:', {
+        totalCount: result.totalCount,
+        edgesCount: result.edges?.length || 0,
+        gameLogIds: result.edges?.map(edge => edge.node.id) || [],
+      });
+      return result;
     }
 
     // Strategy 2: Optimized query for medium datasets (11-30 items)
     if (limit <= 50) {
-      return executeOptimizedQuery(whereClause, limit);
+      const result = await executeOptimizedQuery(whereClause, limit);
+      console.log('🔍 [QUERY_RESULT] Optimized query result:', {
+        totalCount: result.totalCount,
+        edgesCount: result.edges?.length || 0,
+        gameLogIds: result.edges?.map(edge => edge.node.id) || [],
+      });
+      return result;
     }
 
     // Strategy 3: Minimal query for large datasets (>30 items)
-    return executeMinimalQuery(whereClause, limit);
+    const result = await executeMinimalQuery(whereClause, limit);
+    console.log('🔍 [QUERY_RESULT] Minimal query result:', {
+      totalCount: result.totalCount,
+      edgesCount: result.edges?.length || 0,
+      gameLogIds: result.edges?.map(edge => edge.node.id) || [],
+    });
+    return result;
   },
 };
 
 // Strategy 1: Ultra-fast query (≤10 items) - minimal data for fastest response
 async function executeUltraFastQuery(whereClause: string, limit: number) {
+  // Truly minimal query for ultra-fast execution
   const ultraFastQuery = `
     SELECT
       gl.id,
@@ -167,35 +222,45 @@ async function executeUltraFastQuery(whereClause: string, limit: number) {
       gl.classification,
       gl.created_at,
       gl.updated_at,
-      COALESCE(comment_counts.total_comment_count, 0) as total_comment_count,
-      COALESCE(reaction_counts.total_reaction_count, 0) as total_reaction_count
+      0 as total_comment_count,
+      0 as total_reaction_count,
+      u.id as user_id,
+      u.username as user_username,
+      u.first_name as user_first_name,
+      u.last_name as user_last_name
     FROM game_logs gl
-    LEFT JOIN (
-      SELECT parent_id, COUNT(*) as total_comment_count
-      FROM comments
-      WHERE parent_type = 'GAME_LOG' AND deleted_at IS NULL
-      GROUP BY parent_id
-    ) comment_counts ON gl.id = comment_counts.parent_id
-    LEFT JOIN (
-      SELECT target_id, COUNT(*) as total_reaction_count
-      FROM reactions
-      WHERE target_type = 'GAME_LOG' AND deleted_at IS NULL
-      GROUP BY target_id
-    ) reaction_counts ON gl.id = reaction_counts.target_id
+    LEFT JOIN users u ON gl.user_id = u.id
     ${whereClause}
     ORDER BY gl.created_at DESC
     LIMIT ${limit + 1}
   `;
 
   const startTime = Date.now();
-  const result = await db()?.execute(sql.raw(ultraFastQuery));
-  const queryDuration = Date.now() - startTime;
 
-  if (queryDuration > 50) {
-    console.warn(`Ultra-fast query took ${queryDuration}ms`);
+  try {
+    console.log('🔍 [ULTRA_FAST] About to execute query:', ultraFastQuery);
+    const dbInstance = db();
+    console.log('🔍 [ULTRA_FAST] Database instance available:', !!dbInstance);
+
+    const result = await dbInstance?.execute(sql.raw(ultraFastQuery));
+    const queryDuration = Date.now() - startTime;
+
+    console.log('🔍 [ULTRA_FAST] Query executed successfully:', {
+      result,
+      resultType: typeof result,
+      resultRows: result?.rows?.length || 0,
+      queryDuration,
+    });
+
+    if (queryDuration > 50) {
+      console.warn(`Ultra-fast query took ${queryDuration}ms`);
+    }
+
+    return processQueryResult(result, limit, queryDuration, true, whereClause); // minimal = true for ultra-fast
+  } catch (error) {
+    console.error('❌ [ULTRA_FAST] Query execution failed:', error);
+    throw error;
   }
-
-  return processQueryResult(result, limit, queryDuration, true, whereClause); // minimal = true for ultra-fast
 }
 
 // Strategy 2: Optimized query (11-50 items) - reduced JOINs for better performance
@@ -356,7 +421,7 @@ function processQueryResult(
   result: unknown,
   limit: number,
   queryDuration: number,
-  minimal = false,
+  _minimal = false,
   _whereClause = ''
 ) {
   const rows = (result as { rows?: unknown[] })?.rows || [];
@@ -384,19 +449,17 @@ function processQueryResult(
         deleted_at: typedRow.deleted_at ? new Date(typedRow.deleted_at as string) : undefined,
         totalCommentCount: typedRow.total_comment_count ?? 0,
         totalReactionCount: typedRow.total_reaction_count ?? 0,
-        // User data (if available from query, otherwise let resolver handle it)
-        user: minimal
-          ? undefined // Let the user resolver handle this
-          : {
-              id: typedRow.user_id || '',
-              username: typedRow.username || '',
-              first_name: typedRow.first_name || '',
-              last_name: typedRow.last_name || '',
-              email_address: null,
-              phone_number: null,
-              image_url: typedRow.image_url || null,
-              isAdmin: false, // Default value
-            },
+        // User data (always include to avoid null field error)
+        user: {
+          id: typedRow.user_id || typedRow.user_id || '',
+          username: typedRow.username || typedRow.user_username || '',
+          first_name: typedRow.first_name || typedRow.user_first_name || '',
+          last_name: typedRow.last_name || typedRow.user_last_name || '',
+          email_address: null,
+          phone_number: null,
+          image_url: typedRow.image_url || null,
+          isAdmin: false, // Default value
+        },
         // Game data - let the individual resolver handle this to avoid complex JOINs
         game: null,
       },

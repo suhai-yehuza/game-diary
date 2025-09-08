@@ -15,7 +15,7 @@ import {
   friendshipQueryResolvers,
 } from '@/lib/graphql/resolvers/friendship';
 import { gameLogMutationResolvers, gameLogResolver } from '@/lib/graphql/resolvers/game-log';
-// import { adaptiveGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-adaptive';
+import { adaptiveGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-adaptive';
 import { optimizedGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-optimized';
 import {
   gameMutationResolvers,
@@ -53,7 +53,9 @@ const resolvers = {
     ...gameQueryResolvers,
     ...nbaPlayerQueryResolvers,
     ...teamQueryResolvers,
-    ...optimizedGameLogQueryResolvers, // Use optimized resolver for better performance
+    ...adaptiveGameLogQueryResolvers, // Use adaptive resolver for gameLogs (fixing user field issue)
+    // Add friendsGameLogs from optimized resolver since adaptive doesn't have it
+    friendsGameLogs: optimizedGameLogQueryResolvers.friendsGameLogs,
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
     ...publicCommentQueryResolvers,

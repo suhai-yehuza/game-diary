@@ -15,8 +15,8 @@ import type {
 } from '@/types';
 
 export function useGameLogs(
-  filters: GameLogFilters = {},
-  pagination: IPaginationParams = { page: 1, limit: 20 },
+  filtersParam: GameLogFilters = {},
+  paginationParam: IPaginationParams = { page: 1, limit: 20 },
   options: { skip?: boolean } = {}
 ) {
   const [gameLogs, setGameLogs] = useState<IGameLog[]>([]);
@@ -35,34 +35,25 @@ export function useGameLogs(
   const [isMounted, setIsMounted] = useState(true);
 
   // Memoize filters and pagination to prevent unnecessary re-renders
-  const memoizedFilters = useMemo(
-    () => filters,
-    [
-      filters.userId,
-      filters.gameId,
-      filters.classification,
-      filters.watchedSetting,
-      filters.watchedScope,
-      filters.ratingForGame,
-      filters.tags,
-      filters.search,
-      filters.dateRange?.start,
-      filters.dateRange?.end,
-    ]
-  );
+  const memoizedFilters = useMemo(() => {
+    try {
+      const safeFilters = filtersParam || {};
+      return safeFilters;
+    } catch (error) {
+      console.error('❌ useGameLogs: Error in memoizedFilters:', error);
+      return {};
+    }
+  }, [filtersParam]);
 
-  const memoizedPagination = useMemo(() => pagination, [pagination.page, pagination.limit]);
+  const memoizedPagination = useMemo(
+    () => paginationParam || { page: 1, limit: 20 },
+    [paginationParam?.page, paginationParam?.limit]
+  );
 
   // Track if cache has been loaded to prevent multiple loads
   const cacheLoadedRef = useRef(false);
 
-  // Track if query has completed to prevent multiple executions
-  const queryCompletedRef = useRef(false);
-
-  // Reset query completed flag when filters or pagination change
-  useEffect(() => {
-    queryCompletedRef.current = false;
-  }, [memoizedFilters, memoizedPagination]);
+  // Remove queryCompletedRef to allow refetches to work properly
 
   // Cleanup effect to prevent state updates on unmounted component
   useEffect(() => {
@@ -102,8 +93,8 @@ export function useGameLogs(
   // Memoize the onCompleted callback to prevent infinite re-renders
   const onCompleted = useCallback(
     (data: IGameLogsResponse) => {
-      // Only update state if component is still mounted and query hasn't completed yet
-      if (!isMounted || queryCompletedRef.current) return;
+      // Only update state if component is still mounted
+      if (!isMounted) return;
 
       if (data?.gameLogs) {
         const newGameLogs = data.gameLogs.edges.map(edge => edge.node);
@@ -124,9 +115,6 @@ export function useGameLogs(
             }
           );
         }
-
-        // Mark query as completed
-        queryCompletedRef.current = true;
       }
     },
     [isMounted, isCacheHit, memoizedFilters, memoizedPagination]
@@ -149,14 +137,17 @@ export function useGameLogs(
     [isMounted]
   );
 
-  const { loading, error, refetch, fetchMore, networkStatus } =
+  // GraphQL query for game logs
+
+  const { loading, error, refetch, fetchMore, networkStatus, data } =
     useOptimizedQuery<IGameLogsResponse>(GET_GAME_LOGS, {
       variables: {
-        filters: memoizedFilters, // Pass memoized filters as a nested object
-        pagination: { first: memoizedPagination.limit }, // Pass memoized pagination as a nested object
+        filters: memoizedFilters || {}, // Pass memoized filters as a nested object with fallback
+        pagination: { first: memoizedPagination?.limit || 20 }, // Pass memoized pagination as a nested object with fallback
       },
-      skip: options.skip, // Only skip if explicitly requested, not based on cache
+      skip: options.skip, // Re-enable now that initialization error is fixed
       notifyOnNetworkStatusChange: true,
+      fetchPolicy: 'cache-and-network', // Force network request
       context: {
         component: 'useGameLogs',
         action: 'Load game logs',
@@ -164,9 +155,23 @@ export function useGameLogs(
         severity: ErrorSeverity.MEDIUM,
         timestamp: new Date().toISOString(),
       },
-      onCompleted,
-      onError,
+      onCompleted: data => {
+        onCompleted(data);
+      },
+      onError: error => {
+        onError(error);
+      },
     });
+
+  // Check if the query has data but onCompleted wasn't called
+  useEffect(() => {
+    if (!loading && !error && networkStatus === 7 && data) {
+      // Manually trigger the onCompleted logic if it wasn't called
+      if (data?.gameLogs && data.gameLogs.edges?.length > 0) {
+        onCompleted(data);
+      }
+    }
+  }, [loading, error, networkStatus, data, onCompleted]);
 
   const loadMoreGameLogs = useCallback(async () => {
     if (!gameLogsHasNextPage || !gameLogsEndCursor) return;
@@ -222,7 +227,13 @@ export function useGameLogs(
     setIsCacheHit(false);
     setCachedGameLogs(null);
     cacheLoadedRef.current = false; // Reset cache loaded flag
-    await refetch();
+    try {
+      const result = await refetch();
+      return result;
+    } catch (error) {
+      console.error('❌ useGameLogs: refetch failed:', error);
+      throw error;
+    }
   }, [refetch]);
 
   // Clear cache for this query
@@ -233,9 +244,12 @@ export function useGameLogs(
     cacheLoadedRef.current = false; // Reset cache loaded flag
   }, []);
 
+  // Use the array with data, not just truthy check
+  const returnedGameLogs = cachedGameLogs && cachedGameLogs.length > 0 ? cachedGameLogs : gameLogs;
+
   return {
     // Data
-    gameLogs: cachedGameLogs || gameLogs,
+    gameLogs: returnedGameLogs,
     cachedGameLogs,
     isCacheHit,
 

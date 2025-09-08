@@ -16,11 +16,17 @@ export const optimizedGameLogQueryResolvers = {
     },
     context: GraphQLContext
   ) {
+    const { filters, pagination } = args;
+    setTimeout(() => {
+      console.log('🔍 [RESOLVER] optimized gameLogs resolver: called with args:', {
+        filters,
+        pagination,
+      });
+    }, 50);
+
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
     }
-
-    const { filters, pagination } = args;
     const limit = Math.min(pagination?.first ?? 20, 100);
 
     // Build WHERE conditions using Drizzle ORM
@@ -28,14 +34,32 @@ export const optimizedGameLogQueryResolvers = {
 
     if (filters?.userId) {
       whereConditions.push(eq(game_logs.user_id, filters.userId));
+      setTimeout(() => {
+        console.log(
+          '🔍 [RESOLVER] optimized gameLogs resolver: added userId filter:',
+          filters.userId
+        );
+      }, 100);
     }
 
     if (filters?.classification) {
       whereConditions.push(eq(game_logs.classification, filters.classification));
+      setTimeout(() => {
+        console.log(
+          '🔍 [RESOLVER] optimized gameLogs resolver: added classification filter:',
+          filters.classification
+        );
+      }, 120);
     }
 
     if (filters?.gameId) {
       whereConditions.push(eq(game_logs.game_id, filters.gameId));
+      setTimeout(() => {
+        console.log(
+          '🔍 [RESOLVER] optimized gameLogs resolver: added gameId filter:',
+          filters.gameId
+        );
+      }, 140);
     }
 
     if (filters?.hasNotes) {
@@ -44,7 +68,7 @@ export const optimizedGameLogQueryResolvers = {
 
     if (pagination?.after) {
       // Get the created_at timestamp of the cursor record
-      const cursorRecord = await db()?.query.game_logs.findFirst({
+      const cursorRecord = await dbInstance.query.game_logs.findFirst({
         where: eq(game_logs.id, pagination.after),
         columns: { created_at: true },
       });
@@ -57,17 +81,79 @@ export const optimizedGameLogQueryResolvers = {
     const whereClause = and(...whereConditions);
 
     if (!whereClause) {
+      // Return empty result if whereClause is invalid
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
+    }
+
+    setTimeout(() => {
+      console.log('🔍 [RESOLVER] optimized gameLogs resolver: WHERE conditions:', whereConditions);
+      console.log('🔍 [RESOLVER] optimized gameLogs resolver: limit:', limit);
+    }, 160);
+
+    // Debug: Check if there are any game logs for this user at all
+    const totalUserGameLogs =
+      (await dbInstance.query.game_logs.findMany({
+        where: and(isNull(game_logs.deleted_at), eq(game_logs.user_id, context.user.id)),
+        limit: 10,
+        columns: {
+          id: true,
+          game_id: true,
+          user_id: true,
+          created_at: true,
+        },
+      })) || [];
+
+    setTimeout(() => {
+      console.log(
+        '🔍 [RESOLVER] optimized gameLogs resolver: total user game logs:',
+        totalUserGameLogs?.length
+      );
+      console.log(
+        '🔍 [RESOLVER] optimized gameLogs resolver: user game log IDs and game IDs:',
+        totalUserGameLogs?.map(log => ({
+          id: log.id,
+          game_id: log.game_id,
+          created_at: log.created_at,
+        }))
+      );
+    }, 180);
+
+    if (!whereClause) {
       throw new Error('Invalid where clause');
     }
 
     // Use the most efficient query based on limit
+    let result;
     if (limit <= 10) {
-      return executeUltraFastQuery(whereClause, limit);
+      setTimeout(() => {
+        console.log('🔍 [RESOLVER] optimized gameLogs resolver: using executeUltraFastQuery');
+      }, 200);
+      result = await executeUltraFastQuery(whereClause, limit);
     } else if (limit <= 50) {
-      return executeOptimizedQuery(whereClause, limit);
+      setTimeout(() => {
+        console.log('🔍 [RESOLVER] optimized gameLogs resolver: using executeOptimizedQuery');
+      }, 200);
+      result = await executeOptimizedQuery(whereClause, limit);
     } else {
-      return executeMinimalQuery(whereClause, limit);
+      setTimeout(() => {
+        console.log('🔍 [RESOLVER] optimized gameLogs resolver: using executeMinimalQuery');
+      }, 200);
+      result = await executeMinimalQuery(whereClause, limit);
     }
+
+    setTimeout(() => {
+      console.log('🔍 [RESOLVER] optimized gameLogs resolver: result:', result);
+    }, 220);
+    return result;
   },
 
   // Optimized gameLog query for single item
@@ -78,7 +164,7 @@ export const optimizedGameLogQueryResolvers = {
 
     const { id } = args;
 
-    const gameLog = await db()?.query.game_logs.findFirst({
+    const gameLog = await dbInstance.query.game_logs.findFirst({
       where: and(eq(game_logs.id, id), isNull(game_logs.deleted_at)),
       with: {
         user: {
@@ -143,7 +229,12 @@ export const optimizedGameLogQueryResolvers = {
     const limit = Math.min(pagination?.first ?? 20, 100);
 
     // Get user's friends
-    const userFriendships = await db()?.query.friendships.findMany({
+    const dbInstance = db();
+    if (!dbInstance) {
+      throw new Error('Database connection not available');
+    }
+
+    const userFriendships = await dbInstance.query.friendships.findMany({
       where: and(eq(friendships.user_id, context.user.id), eq(friendships.status, 'ACCEPTED')),
       columns: { friend_id: true },
     });
@@ -175,7 +266,7 @@ export const optimizedGameLogQueryResolvers = {
 
     if (pagination?.after) {
       // Get the created_at timestamp of the cursor record
-      const cursorRecord = await db()?.query.game_logs.findFirst({
+      const cursorRecord = await dbInstance.query.game_logs.findFirst({
         where: eq(game_logs.id, pagination.after),
         columns: { created_at: true },
       });
@@ -188,7 +279,17 @@ export const optimizedGameLogQueryResolvers = {
     const whereClause = and(...whereConditions);
 
     if (!whereClause) {
-      throw new Error('Invalid where clause');
+      // Return empty result if whereClause is invalid
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
     }
 
     // Use the most efficient query based on limit
@@ -206,7 +307,12 @@ export const optimizedGameLogQueryResolvers = {
 async function executeUltraFastQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
-  const result = await db()?.query.game_logs.findMany({
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Database connection not available');
+  }
+
+  const result = await dbInstance.query.game_logs.findMany({
     where: whereClause,
     limit: limit + 1,
     orderBy: [desc(game_logs.created_at)],
@@ -243,15 +349,22 @@ async function executeUltraFastQuery(whereClause: SQL<unknown>, limit: number) {
     console.warn(`Ultra-fast query took ${queryDuration}ms`);
   }
 
-  return processQueryResult(result, limit, queryDuration, false);
+  // Ensure result is always an array
+  const safeResult = result || [];
+  return processQueryResult(safeResult, limit, queryDuration, false);
 }
 
 // Strategy 2: Optimized query (11-50 items) - balanced performance with counts
 async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Database connection not available');
+  }
+
   // Get game logs with user and game data
-  const gameLogs = await db()?.query.game_logs.findMany({
+  const gameLogs = await dbInstance.query.game_logs.findMany({
     where: whereClause,
     limit: limit + 1,
     orderBy: [desc(game_logs.created_at)],
@@ -307,7 +420,7 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
   if (gameLogs && gameLogs.length > 0) {
     // Test: Try to manually fetch the user to see if the relationship works
     if (gameLogs[0].user_id) {
-      const _manualUser = await db()?.query.users.findFirst({
+      const _manualUser = await dbInstance.query.users.findFirst({
         where: eq(users.id, gameLogs[0].user_id),
       });
     }
@@ -371,8 +484,10 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
     console.warn(`Optimized query took ${queryDuration}ms`);
   }
 
+  // Ensure gameLogs is always an array
+  const safeGameLogs = gameLogs || [];
   return processQueryResultWithCounts(
-    gameLogs,
+    safeGameLogs,
     limit,
     queryDuration,
     commentCountMap,
@@ -384,7 +499,12 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
 async function executeMinimalQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
-  const result = await db()?.query.game_logs.findMany({
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Database connection not available');
+  }
+
+  const result = await dbInstance.query.game_logs.findMany({
     where: whereClause,
     limit: limit + 1,
     orderBy: [desc(game_logs.created_at)],
@@ -430,7 +550,9 @@ async function executeMinimalQuery(whereClause: SQL<unknown>, limit: number) {
     console.warn(`Minimal query took ${queryDuration}ms`);
   }
 
-  return processQueryResult(result, limit, queryDuration, false);
+  // Ensure result is always an array
+  const safeResult = result || [];
+  return processQueryResult(safeResult, limit, queryDuration, false);
 }
 
 // Process query result for ultra-fast and minimal queries

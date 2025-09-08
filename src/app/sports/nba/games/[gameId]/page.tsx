@@ -5,7 +5,7 @@ import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } fr
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
@@ -31,7 +31,11 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
 
   // Set resolved params from the unwrapped Promise
   useEffect(() => {
-    if (resolvedParamsData && typeof resolvedParamsData === 'object' && 'gameId' in resolvedParamsData) {
+    if (
+      resolvedParamsData &&
+      typeof resolvedParamsData === 'object' &&
+      'gameId' in resolvedParamsData
+    ) {
       setResolvedParams({ gameId: resolvedParamsData.gameId as string });
     } else {
       console.error('No gameId in params:', resolvedParamsData);
@@ -55,42 +59,111 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     (() => Promise<unknown>) | undefined
   >(undefined);
 
-  // Call useGameLogs only when user is loaded and signed in
+  // Test the simplified useGameLogs hook
+  const shouldSkip = !isLoaded || !isSignedIn || !user?.id || !game?.id?.toString();
+
+  // Debug the parameters being passed to useGameLogs
+  const filtersForUseGameLogs = {
+    userId: user?.id,
+    gameId: game?.id?.toString(),
+  };
+
+  setTimeout(() => {
+    console.log('🔍 [PAGE] useGameLogs call parameters:', {
+      user,
+      userId: user?.id,
+      game,
+      gameId: game?.id,
+      gameIdString: game?.id?.toString(),
+      filtersForUseGameLogs,
+      shouldSkip,
+      timestamp: new Date().toISOString(),
+    });
+  }, 50);
+
   const gameLogsData = useGameLogs(
-    {
-      userId: user?.id,
-      gameId: game?.id?.toString(),
-    },
+    filtersForUseGameLogs,
     { page: 1, limit: 1 },
-    { skip: !isLoaded || !isSignedIn || !user?.id || !game?.id?.toString() }
+    { skip: shouldSkip }
   );
 
-  // Memoize the game logs data to prevent unnecessary re-renders
-  const memoizedGameLogs = useMemo(() => gameLogsData?.gameLogs, [gameLogsData?.gameLogs]);
-  const memoizedForceRefresh = useMemo(
-    () => gameLogsData?.forceRefresh,
-    [gameLogsData?.forceRefresh]
-  );
+  // Debug game ID format
+  console.log('🔍 Game ID format check:', {
+    gameId: game?.id,
+    gameIdString: game?.id?.toString(),
+    gameIdType: typeof game?.id,
+    resolvedParamsGameId: resolvedParams?.gameId,
+  });
 
-  // Update state when gameLogsData changes
+  // Use useMemo for stable references that trigger re-renders when data changes
+  const memoizedGameLogs = useMemo(() => {
+    const result = gameLogsData?.gameLogs || [];
+    setTimeout(() => {
+      console.log('🔍 [MEMO] Memoizing game logs:', {
+        gameLogsData,
+        gameLogs: gameLogsData?.gameLogs,
+        loading: gameLogsData?.loading,
+        error: gameLogsData?.error,
+        gameLogsLength: gameLogsData?.gameLogs?.length,
+        resultLength: result.length,
+        result: result,
+        timestamp: new Date().toISOString(),
+      });
+    }, 200);
+    return result;
+  }, [gameLogsData]);
+
+  const memoizedForceRefresh = useMemo(() => {
+    console.log('🔍 Memoizing force refresh:', gameLogsData?.forceRefresh);
+    return gameLogsData?.forceRefresh;
+  }, [gameLogsData?.forceRefresh]);
+
+  // Update userGameLogs when memoized data changes
   useEffect(() => {
-    console.log('🔍 Game logs data:', {
-      gameLogs: memoizedGameLogs,
-      gameLogsLength: memoizedGameLogs?.length,
-      userId: user?.id,
-      gameId: game?.id?.toString(),
-      isLoaded,
-      isSignedIn,
+    setTimeout(() => {
+      console.log('🔍 [EFFECT] Game logs data updated:', {
+        gameLogs: memoizedGameLogs,
+        gameLogsLength: memoizedGameLogs?.length,
+        userId: user?.id,
+        gameId: game?.id?.toString(),
+        isLoaded,
+        isSignedIn,
+        timestamp: new Date().toISOString(),
+      });
+    }, 300);
+
+    console.log('🔍 [EFFECT] useEffect triggered with:', {
+      memoizedGameLogsLength: memoizedGameLogs?.length,
+      memoizedGameLogs: memoizedGameLogs,
+      currentUserGameLogsLength: userGameLogs?.length,
+      willSetUserGameLogs: memoizedGameLogs && memoizedGameLogs.length > 0,
     });
 
-    if (memoizedGameLogs) {
+    if (memoizedGameLogs && memoizedGameLogs.length > 0) {
+      setTimeout(() => {
+        console.log('📝 [EFFECT] Setting userGameLogs:', memoizedGameLogs);
+      }, 400);
       setUserGameLogs(memoizedGameLogs);
       setRefetchUserGameLogs(() => memoizedForceRefresh);
     } else {
+      setTimeout(() => {
+        console.log('📝 [EFFECT] Clearing userGameLogs');
+      }, 400);
       setUserGameLogs([]);
       setRefetchUserGameLogs(undefined);
     }
   }, [memoizedGameLogs, memoizedForceRefresh, user?.id, game?.id, isLoaded, isSignedIn]);
+
+  // Debug when userGameLogs state changes
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('🔍 [STATE_CHANGE] userGameLogs state changed:', {
+        userGameLogs,
+        userGameLogsLength: userGameLogs?.length,
+        timestamp: new Date().toISOString(),
+      });
+    }, 500);
+  }, [userGameLogs]);
 
   const errorHandlerContext = useMemo(
     () => ({
@@ -135,7 +208,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           throw new Error('Game not found');
         }
 
-        return Promise.resolve(foundGame);
+        return foundGame;
       });
 
       if (result) {
@@ -209,14 +282,17 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   const existingGameLog = userGameLogs?.[0] || null;
   const hasExistingGameLog = !!existingGameLog;
 
-  console.log('🎯 Game log detection:', {
-    userGameLogs,
-    userGameLogsLength: userGameLogs?.length,
-    existingGameLog,
-    hasExistingGameLog,
-    gameId: game?.id?.toString(),
-    userId: user?.id,
-  });
+  setTimeout(() => {
+    console.log('🎯 [BUTTON] Game log detection:', {
+      userGameLogs,
+      userGameLogsLength: userGameLogs?.length,
+      existingGameLog,
+      hasExistingGameLog,
+      gameId: game?.id?.toString(),
+      userId: user?.id,
+      timestamp: new Date().toISOString(),
+    });
+  }, 500);
 
   // Debug logging (removed to prevent infinite re-renders)
 
@@ -281,8 +357,23 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               size="sm"
               className={`flex items-center gap-2 ${getButtonVariant('primary')}`}
             >
-              {hasExistingGameLog ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {hasExistingGameLog ? 'Edit Game Log' : 'Create Game Log'}
+              {(() => {
+                console.log(
+                  '🎯 [RENDER] Button render - hasExistingGameLog:',
+                  hasExistingGameLog,
+                  'userGameLogs length:',
+                  userGameLogs?.length
+                );
+                return hasExistingGameLog ? (
+                  <Edit className="w-4 h-4" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                );
+              })()}
+              {(() => {
+                console.log('🎯 [RENDER] Button text - hasExistingGameLog:', hasExistingGameLog);
+                return hasExistingGameLog ? 'Edit Game Log' : 'Create Game Log';
+              })()}
             </Button>
           </div>
         )}
@@ -547,23 +638,44 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         onClose={() => setIsCreateGameLogModalOpen(false)}
         onSuccess={() => {
           console.log('🎉 Game log created successfully, refetching data...');
+          console.log('🔍 Current state before refetch:', {
+            userGameLogs,
+            userGameLogsLength: userGameLogs?.length,
+            hasExistingGameLog,
+            refetchUserGameLogs: !!refetchUserGameLogs,
+          });
           setIsCreateGameLogModalOpen(false);
           if (refetchUserGameLogs) {
             console.log('🔄 Calling refetchUserGameLogs...');
-            void refetchUserGameLogs();
+            refetchUserGameLogs()
+              .then(result => {
+                console.log('✅ Refetch completed with result:', result);
+                console.log('🔍 State after refetch:', {
+                  userGameLogs,
+                  userGameLogsLength: userGameLogs?.length,
+                  hasExistingGameLog,
+                });
+              })
+              .catch(error => {
+                console.error('❌ Refetch failed:', error);
+              });
           } else {
             console.warn('⚠️ refetchUserGameLogs is not available');
           }
         }}
         preSelectedGame={
           game
-            ? {
-                id: game.id,
-                name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
-                date: typeof game.date === 'string' ? game.date : game.date?.start || '',
-                homeTeam: game.teams?.home?.name || 'Unknown',
-                awayTeam: game.teams?.visitors?.name || 'Unknown',
-              }
+            ? (() => {
+                const preSelectedGame = {
+                  id: game.id,
+                  name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
+                  date: typeof game.date === 'string' ? game.date : game.date?.start || '',
+                  homeTeam: game.teams?.home?.name || 'Unknown',
+                  awayTeam: game.teams?.visitors?.name || 'Unknown',
+                };
+                console.log('🔍 preSelectedGame for modal:', preSelectedGame);
+                return preSelectedGame;
+              })()
             : undefined
         }
       />
