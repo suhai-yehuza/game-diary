@@ -25,8 +25,17 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   // Use proper Clerk authentication
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Unwrap params using React.use() as required by Next.js
-  const resolvedParams = use(Promise.resolve(params));
+  // Handle params properly for Next.js App Router
+  const [resolvedParams, setResolvedParams] = useState<{ gameId: string } | null>(null);
+
+  useEffect(() => {
+    // Resolve params asynchronously
+    const resolveParams = async () => {
+      const resolved = await params;
+      setResolvedParams(resolved);
+    };
+    resolveParams();
+  }, [params]);
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,10 +89,12 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
 
   useEffect(() => {
     const loadGame = async () => {
+      if (!resolvedParams?.gameId) {
+        return; // Wait for params to be resolved
+      }
+
       const result = await handleAsync(async () => {
-        const foundGame = latestGames.find(
-          g => g.id.toString() === (resolvedParams as { gameId: string }).gameId
-        );
+        const foundGame = latestGames.find(g => g.id.toString() === resolvedParams.gameId);
 
         if (!foundGame) {
           throw new Error('Game not found');
@@ -100,7 +111,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
       setLoading(false);
     };
 
-    if (latestGames.length > 0) {
+    if (latestGames.length > 0 && resolvedParams?.gameId) {
       void loadGame();
     }
   }, [resolvedParams, latestGames, handleAsync]);

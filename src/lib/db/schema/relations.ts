@@ -88,6 +88,8 @@ export const publicCommentsRelations = relations(publicComments, ({ one, many })
     references: [users.id],
   }),
   reactions: many(publicReactions),
+  // Note: parent relations are handled dynamically based on parent_type
+  // No direct foreign key constraints to avoid circular dependencies
 }));
 
 // Public Reactions relations
@@ -101,18 +103,18 @@ export const publicReactionsRelations = relations(publicReactions, ({ one }) => 
 // Basketball Games relations (extended)
 export const basketballGamesRelations = relations(basketball_games, ({ many }) => ({
   gameLogs: many(game_logs),
-  publicComments: many(publicComments),
-  publicReactions: many(publicReactions),
+  // Note: publicComments and publicReactions are accessed via parent_id/parent_type
+  // No direct relations to avoid circular dependencies
 }));
 
 // Basketball Players relations
 export const basketballPlayersRelations = relations(basketball_players, ({ many }) => ({
-  publicComments: many(publicComments),
-  publicReactions: many(publicReactions),
+  // Note: publicComments and publicReactions are accessed via parent_id/parent_type
+  // No direct relations to avoid circular dependencies
 }));
 
 // Basketball Teams relations
 export const basketballTeamsRelations = relations(basketball_teams, ({ many }) => ({
-  publicComments: many(publicComments),
-  publicReactions: many(publicReactions),
+  // Note: publicComments and publicReactions are accessed via parent_id/parent_type
+  // No direct relations to avoid circular dependencies
 }));

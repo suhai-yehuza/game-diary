@@ -35,8 +35,23 @@ export function useGameLogs(
   const [isMounted, setIsMounted] = useState(true);
 
   // Memoize filters and pagination to prevent unnecessary re-renders
-  const memoizedFilters = useMemo(() => filters, [filters]);
-  const memoizedPagination = useMemo(() => pagination, [pagination]);
+  const memoizedFilters = useMemo(
+    () => filters,
+    [
+      filters.userId,
+      filters.gameId,
+      filters.classification,
+      filters.watchedSetting,
+      filters.watchedScope,
+      filters.ratingForGame,
+      filters.tags,
+      filters.search,
+      filters.dateRange?.start,
+      filters.dateRange?.end,
+    ]
+  );
+
+  const memoizedPagination = useMemo(() => pagination, [pagination.page, pagination.limit]);
 
   // Track if cache has been loaded to prevent multiple loads
   const cacheLoadedRef = useRef(false);
@@ -50,6 +65,11 @@ export function useGameLogs(
 
   // Try to get game logs from cache first
   useEffect(() => {
+    // Prevent multiple cache loads
+    if (cacheLoadedRef.current) {
+      return;
+    }
+
     const loadFromCache = async () => {
       try {
         const cached = await GameLogCacheUtils.getCachedGameLogList(
@@ -57,17 +77,19 @@ export function useGameLogs(
           memoizedPagination
         );
 
-        if (cached) {
+        if (cached && isMounted) {
           setCachedGameLogs(cached as IGameLog[]);
           setIsCacheHit(true);
         }
       } catch (error) {
         console.warn('Failed to load game logs from cache:', error);
+      } finally {
+        cacheLoadedRef.current = true;
       }
     };
 
     void loadFromCache();
-  }, [memoizedFilters, memoizedPagination]);
+  }, [memoizedFilters, memoizedPagination, isMounted]);
 
   const { loading, error, refetch, fetchMore, networkStatus } =
     useOptimizedQuery<IGameLogsResponse>(GET_GAME_LOGS, {
