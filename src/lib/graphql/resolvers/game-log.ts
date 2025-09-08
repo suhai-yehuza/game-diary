@@ -126,19 +126,37 @@ export const gameLogMutationResolvers = {
           gameIdToUse = `${currentSeason}-${input.gameId}`;
         }
 
-        // Check if the game exists in basketball_games table
-        const existingGame = await db()
-          ?.select({ id: basketball_games.id })
-          .from(basketball_games)
-          .where(eq(basketball_games.id, gameIdToUse))
-          .limit(1);
+        // Check if the game exists in basketball_games table using direct query
+        const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
+        let existingGame = null;
+
+        if (databaseUrl) {
+          const { neon } = await import('@neondatabase/serverless');
+          const directDb = neon(databaseUrl);
+          const gameResults =
+            await directDb`SELECT id FROM basketball_games WHERE id = ${gameIdToUse} LIMIT 1`;
+          existingGame = gameResults.length > 0 ? [{ id: gameResults[0].id }] : [];
+        } else {
+          // Fallback to Drizzle if no direct database URL
+          existingGame = await db()
+            ?.select({ id: basketball_games.id })
+            .from(basketball_games)
+            .where(eq(basketball_games.id, gameIdToUse))
+            .limit(1);
+        }
 
         if (!existingGame || existingGame.length === 0) {
-          return {
-            success: false,
-            error: 'Game not found. Please ensure the game exists before creating a game log.',
-          };
+          throw new Error(
+            'Game not found. Please ensure the game exists before creating a game log.'
+          );
         }
+
+        // Ensure watched_date is a proper Date object
+        const watchedDate = input.watched_date
+          ? input.watched_date instanceof Date
+            ? input.watched_date
+            : new Date(input.watched_date)
+          : new Date();
 
         await db()
           ?.insert(game_logs)
@@ -149,7 +167,7 @@ export const gameLogMutationResolvers = {
             rating_for_game: input.rating_for_game || 3,
             notes: input.notes || null,
             tags: input.tags || [],
-            watched_date: input.watched_date || new Date(),
+            watched_date: watchedDate,
             watched_setting: input.watched_setting || WATCHED_SETTING.TV,
             watched_location: input.watched_location || '',
             watched_scope: input.watched_scope || WATCHED_SCOPE.FULL_GAME,
@@ -157,14 +175,13 @@ export const gameLogMutationResolvers = {
           } as typeof game_logs.$inferInsert);
 
         return {
-          success: true,
           gameLog: {
             id: gameLogId,
             game_id: gameIdToUse,
             rating_for_game: input.rating_for_game || 3,
             notes: input.notes,
             tags: input.tags,
-            watched_date: input.watched_date,
+            watched_date: watchedDate,
             watched_setting: input.watched_setting,
             watched_location: input.watched_location,
             watched_scope: input.watched_scope,
@@ -193,8 +210,7 @@ export const gameLogMutationResolvers = {
 
     return (
       result || {
-        success: false,
-        error: 'Failed to create game log',
+        errors: [{ message: 'Failed to create game log' }],
       }
     );
   },
@@ -237,6 +253,13 @@ export const gameLogMutationResolvers = {
           };
         }
 
+        // Ensure watched_date is a proper Date object if provided
+        const watchedDate = input.watched_date
+          ? input.watched_date instanceof Date
+            ? input.watched_date
+            : new Date(input.watched_date)
+          : existingGameLog.watched_date;
+
         // Update the game log
         await db()
           ?.update(game_logs)
@@ -244,7 +267,7 @@ export const gameLogMutationResolvers = {
             rating_for_game: input.rating_for_game ?? existingGameLog.rating_for_game,
             notes: input.notes ?? existingGameLog.notes,
             tags: input.tags ?? existingGameLog.tags,
-            watched_date: input.watched_date ?? existingGameLog.watched_date,
+            watched_date: watchedDate,
             watched_setting: input.watched_setting ?? existingGameLog.watched_setting,
             watched_location: input.watched_location ?? existingGameLog.watched_location,
             watched_scope: input.watched_scope ?? existingGameLog.watched_scope,
@@ -261,7 +284,7 @@ export const gameLogMutationResolvers = {
             rating_for_game: input.rating_for_game ?? existingGameLog.rating_for_game,
             notes: input.notes ?? existingGameLog.notes,
             tags: input.tags ?? existingGameLog.tags,
-            watched_date: input.watched_date ?? existingGameLog.watched_date,
+            watched_date: watchedDate,
             watched_setting: input.watched_setting ?? existingGameLog.watched_setting,
             watched_location: input.watched_location ?? existingGameLog.watched_location,
             watched_scope: input.watched_scope ?? existingGameLog.watched_scope,

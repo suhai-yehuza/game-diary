@@ -182,6 +182,36 @@ describe('gameLogsUtils', () => {
       const result = getTeamDisplay({ id: 'game-1' } as any);
       expect(result).toBe('Unknown Teams');
     });
+
+    it('handles teams with visitors/home structure (database format)', () => {
+      const game = {
+        id: 'game-1',
+        date: '2024-01-15',
+        status: 'Final',
+        game_type: 'Regular Season',
+        teams: {
+          home: {
+            id: 25,
+            name: 'Oklahoma City Thunder',
+            code: 'OKC',
+            nickname: 'Thunder',
+            logo: 'https://example.com/thunder.png',
+          },
+          visitors: {
+            id: 15,
+            name: 'Indiana Pacers',
+            code: 'IND',
+            nickname: 'Pacers',
+            logo: 'https://example.com/pacers.png',
+          },
+        },
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      const result = getTeamDisplay(game, false);
+      expect(result).toBe('IND @ OKC');
+    });
   });
 
   describe('filterAndSortGameLogs', () => {

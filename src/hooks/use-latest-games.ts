@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
@@ -43,8 +43,21 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
     'Loading data with rate limiting... This may take a moment.'
   );
 
+  // Memoize seasons to prevent unnecessary re-renders
+  const memoizedSeasons = useMemo(() => seasons, [seasons?.join(',')]);
+
+  // Track if fetch has been called to prevent multiple calls
+  const fetchCalledRef = useRef(false);
+
+  // Reset fetch flag when dependencies change
+  useEffect(() => {
+    fetchCalledRef.current = false;
+  }, [skip, forceRealData, memoizedSeasons, latestSeason, _limit, forceRefresh]);
+
   const fetchLatestGames = useCallback(async () => {
-    if (skip) return;
+    if (skip || fetchCalledRef.current) return;
+
+    fetchCalledRef.current = true;
 
     try {
       setLoading(true);
@@ -74,9 +87,14 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
       } else {
         // Fetch from cached API with cache bypass option
         const bypassParam = forceRefresh ? '&bypass-cache=true' : '';
-        logger.info('🎮 Fetching games from cached API...', { seasons, forceRefresh, bypassParam });
+        logger.info('🎮 Fetching games from cached API...', {
+          seasons: memoizedSeasons,
+          forceRefresh,
+          bypassParam,
+        });
 
-        const seasonsToFetch = seasons && seasons.length > 0 ? seasons : [latestSeason];
+        const seasonsToFetch =
+          memoizedSeasons && memoizedSeasons.length > 0 ? memoizedSeasons : [latestSeason];
 
         // Always use the merged cache for optimal performance
         // Client-side filtering will handle season-specific views
@@ -145,7 +163,7 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [skip, forceRealData, seasons, latestSeason, _limit, forceRefresh]);
+  }, [skip, forceRealData, memoizedSeasons, latestSeason, _limit, forceRefresh]);
 
   const refetch = useCallback(() => {
     void fetchLatestGames();

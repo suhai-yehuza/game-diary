@@ -5,7 +5,7 @@ import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } fr
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { useState, useEffect, use, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
@@ -25,17 +25,18 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   // Use proper Clerk authentication
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Handle params properly for Next.js App Router
+  // Handle params properly for Next.js App Router using React.use()
+  const resolvedParamsData = React.use(params);
   const [resolvedParams, setResolvedParams] = useState<{ gameId: string } | null>(null);
 
+  // Set resolved params from the unwrapped Promise
   useEffect(() => {
-    // Resolve params asynchronously
-    const resolveParams = async () => {
-      const resolved = await params;
-      setResolvedParams(resolved);
-    };
-    resolveParams();
-  }, [params]);
+    if (resolvedParamsData && typeof resolvedParamsData === 'object' && 'gameId' in resolvedParamsData) {
+      setResolvedParams({ gameId: resolvedParamsData.gameId as string });
+    } else {
+      console.error('No gameId in params:', resolvedParamsData);
+    }
+  }, [resolvedParamsData]);
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -64,16 +65,32 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     { skip: !isLoaded || !isSignedIn || !user?.id || !game?.id?.toString() }
   );
 
+  // Memoize the game logs data to prevent unnecessary re-renders
+  const memoizedGameLogs = useMemo(() => gameLogsData?.gameLogs, [gameLogsData?.gameLogs]);
+  const memoizedForceRefresh = useMemo(
+    () => gameLogsData?.forceRefresh,
+    [gameLogsData?.forceRefresh]
+  );
+
   // Update state when gameLogsData changes
   useEffect(() => {
-    if (gameLogsData?.gameLogs) {
-      setUserGameLogs(gameLogsData.gameLogs);
-      setRefetchUserGameLogs(() => gameLogsData.forceRefresh);
+    console.log('🔍 Game logs data:', {
+      gameLogs: memoizedGameLogs,
+      gameLogsLength: memoizedGameLogs?.length,
+      userId: user?.id,
+      gameId: game?.id?.toString(),
+      isLoaded,
+      isSignedIn,
+    });
+
+    if (memoizedGameLogs) {
+      setUserGameLogs(memoizedGameLogs);
+      setRefetchUserGameLogs(() => memoizedForceRefresh);
     } else {
       setUserGameLogs([]);
       setRefetchUserGameLogs(undefined);
     }
-  }, [gameLogsData?.gameLogs?.length, gameLogsData?.forceRefresh, gameLogsData?.gameLogs]);
+  }, [memoizedGameLogs, memoizedForceRefresh, user?.id, game?.id, isLoaded, isSignedIn]);
 
   const errorHandlerContext = useMemo(
     () => ({
@@ -94,7 +111,25 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
       }
 
       const result = await handleAsync(async () => {
-        const foundGame = latestGames.find(g => g.id.toString() === resolvedParams.gameId);
+        // First try to find the game in the latest games array
+        let foundGame = latestGames.find(g => g.id.toString() === resolvedParams.gameId);
+
+        // If not found in latest games, try to fetch it directly from the API
+        if (!foundGame) {
+          try {
+            const response = await fetch(`/api/games?season=all&limit=20000`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.response && Array.isArray(data.response)) {
+                foundGame = data.response.find(
+                  (g: IGameResponse) => g.id.toString() === resolvedParams.gameId
+                );
+              }
+            }
+          } catch (error) {
+            console.warn('Failed to fetch game from API:', error);
+          }
+        }
 
         if (!foundGame) {
           throw new Error('Game not found');
@@ -173,6 +208,15 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   // Check if user has an existing game log for this game
   const existingGameLog = userGameLogs?.[0] || null;
   const hasExistingGameLog = !!existingGameLog;
+
+  console.log('🎯 Game log detection:', {
+    userGameLogs,
+    userGameLogsLength: userGameLogs?.length,
+    existingGameLog,
+    hasExistingGameLog,
+    gameId: game?.id?.toString(),
+    userId: user?.id,
+  });
 
   // Debug logging (removed to prevent infinite re-renders)
 
@@ -502,9 +546,13 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         isOpen={isCreateGameLogModalOpen}
         onClose={() => setIsCreateGameLogModalOpen(false)}
         onSuccess={() => {
+          console.log('🎉 Game log created successfully, refetching data...');
           setIsCreateGameLogModalOpen(false);
           if (refetchUserGameLogs) {
+            console.log('🔄 Calling refetchUserGameLogs...');
             void refetchUserGameLogs();
+          } else {
+            console.warn('⚠️ refetchUserGameLogs is not available');
           }
         }}
         preSelectedGame={
@@ -527,9 +575,13 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           isOpen={!!editingGameLog}
           onClose={() => setEditingGameLog(null)}
           onSuccess={() => {
+            console.log('🎉 Game log updated successfully, refetching data...');
             setEditingGameLog(null);
             if (refetchUserGameLogs) {
+              console.log('🔄 Calling refetchUserGameLogs...');
               void refetchUserGameLogs();
+            } else {
+              console.warn('⚠️ refetchUserGameLogs is not available');
             }
           }}
         />

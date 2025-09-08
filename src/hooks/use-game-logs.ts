@@ -56,6 +56,14 @@ export function useGameLogs(
   // Track if cache has been loaded to prevent multiple loads
   const cacheLoadedRef = useRef(false);
 
+  // Track if query has completed to prevent multiple executions
+  const queryCompletedRef = useRef(false);
+
+  // Reset query completed flag when filters or pagination change
+  useEffect(() => {
+    queryCompletedRef.current = false;
+  }, [memoizedFilters, memoizedPagination]);
+
   // Cleanup effect to prevent state updates on unmounted component
   useEffect(() => {
     return () => {
@@ -91,6 +99,56 @@ export function useGameLogs(
     void loadFromCache();
   }, [memoizedFilters, memoizedPagination, isMounted]);
 
+  // Memoize the onCompleted callback to prevent infinite re-renders
+  const onCompleted = useCallback(
+    (data: IGameLogsResponse) => {
+      // Only update state if component is still mounted and query hasn't completed yet
+      if (!isMounted || queryCompletedRef.current) return;
+
+      if (data?.gameLogs) {
+        const newGameLogs = data.gameLogs.edges.map(edge => edge.node);
+        setGameLogs(newGameLogs);
+        setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
+        setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
+        setGameLogsTotalCount(data.gameLogs.totalCount);
+
+        // Cache the game logs
+        if (!isCacheHit) {
+          void GameLogCacheUtils.cacheGameLogList(
+            memoizedFilters,
+            memoizedPagination,
+            newGameLogs,
+            {
+              ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+              tags: ['gameLogList', 'gameLogs'],
+            }
+          );
+        }
+
+        // Mark query as completed
+        queryCompletedRef.current = true;
+      }
+    },
+    [isMounted, isCacheHit, memoizedFilters, memoizedPagination]
+  );
+
+  // Memoize the onError callback
+  const onError = useCallback(
+    (error: Error) => {
+      // Only log error if component is still mounted
+      if (!isMounted) return;
+
+      errorHandlers.api(error, {
+        component: 'useGameLogs',
+        action: 'Load game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
+    [isMounted]
+  );
+
   const { loading, error, refetch, fetchMore, networkStatus } =
     useOptimizedQuery<IGameLogsResponse>(GET_GAME_LOGS, {
       variables: {
@@ -106,43 +164,8 @@ export function useGameLogs(
         severity: ErrorSeverity.MEDIUM,
         timestamp: new Date().toISOString(),
       },
-      onCompleted: (data: IGameLogsResponse) => {
-        // Only update state if component is still mounted
-        if (!isMounted) return;
-
-        if (data?.gameLogs) {
-          const newGameLogs = data.gameLogs.edges.map(edge => edge.node);
-          setGameLogs(newGameLogs);
-          setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
-          setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
-          setGameLogsTotalCount(data.gameLogs.totalCount);
-
-          // Cache the game logs
-          if (!isCacheHit) {
-            void GameLogCacheUtils.cacheGameLogList(
-              memoizedFilters,
-              memoizedPagination,
-              newGameLogs,
-              {
-                ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
-                tags: ['gameLogList', 'gameLogs'],
-              }
-            );
-          }
-        }
-      },
-      onError: error => {
-        // Only log error if component is still mounted
-        if (!isMounted) return;
-
-        errorHandlers.api(error, {
-          component: 'useGameLogs',
-          action: 'Load game logs',
-          category: ErrorCategory.API,
-          severity: ErrorSeverity.MEDIUM,
-          timestamp: new Date().toISOString(),
-        });
-      },
+      onCompleted,
+      onError,
     });
 
   const loadMoreGameLogs = useCallback(async () => {

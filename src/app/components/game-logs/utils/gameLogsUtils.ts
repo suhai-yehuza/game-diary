@@ -6,7 +6,7 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
     return 'Unknown Teams';
   }
 
-  // Handle both data formats: home_team/away_team and teams.home/teams.away
+  // Handle multiple data formats: home_team/away_team, teams.home/teams.away, and teams.visitors/teams.home
   let homeTeam, awayTeam, gameDate;
   if ('home_team' in game && 'away_team' in game) {
     const gameData = game as {
@@ -22,11 +22,13 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
       teams?: {
         home?: { code?: string; nickname?: string; name?: string } | null;
         away?: { code?: string; nickname?: string; name?: string } | null;
+        visitors?: { code?: string; nickname?: string; name?: string } | null;
       } | null;
       date?: string | Date;
     };
+    // Handle both away/visitors naming conventions
     homeTeam = gameData.teams?.home;
-    awayTeam = gameData.teams?.away;
+    awayTeam = gameData.teams?.away || gameData.teams?.visitors;
     gameDate = gameData.date;
   } else {
     return 'Unknown Teams';
