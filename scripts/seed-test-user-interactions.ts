@@ -104,6 +104,7 @@ import * as schema from '@/lib/db/schema';
 import { REACTION_EMOJIS, FRIENDSHIP_STATUS, TARGET_TYPES } from '@/lib/constants';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+import { syncReactionEmojis } from '@/lib/db/seed/shared-seeding-utils';
 import type { NeonHttpDatabase } from 'drizzle-orm/neon-http';
 
 /**
@@ -1235,35 +1236,38 @@ class TestUserInteractionSeeder {
     }
 
     try {
-      // Step 0: Load test users from JSON file
+      // Step 0: Sync reaction emojis to ensure all emojis from constants are in database
+      await syncReactionEmojis(this.db, 'Test User Interaction Seeder');
+
+      // Step 1: Load test users from JSON file
       const testUsers = this.loadTestUsers();
       const testUserIds = testUsers.map(user => user.id);
       logger.info(`👥 Test users: ${testUserIds.length}`);
 
-      // Step 1: Insert test users into database (idempotent)
+      // Step 2: Insert test users into database (idempotent)
       await this.insertTestUsers(testUsers);
 
-      // Step 2: Clean up existing data if requested
+      // Step 3: Clean up existing data if requested
       if (this.clean) {
         await this.cleanupTestUserData(testUserIds);
       }
 
-      // Step 3: Create friendships (single record per pair)
+      // Step 4: Create friendships (single record per pair)
       await this.createFriendships(testUserIds);
 
-      // Step 4: Create outgoing friend requests from test users to non-test users
+      // Step 5: Create outgoing friend requests from test users to non-test users
       await this.createOutgoingFriendRequests(testUserIds);
 
-      // Step 5: Create incoming friend requests to test users from non-test users
+      // Step 6: Create incoming friend requests to test users from non-test users
       await this.createIncomingFriendRequests(testUserIds);
 
-      // Step 6: Create additional accepted friendships between test users and non-test users
+      // Step 7: Create additional accepted friendships between test users and non-test users
       await this.createAdditionalAcceptedFriendships(testUserIds);
 
-      // Step 7: Create game logs
+      // Step 8: Create game logs
       const gameLogIds = await this.createGameLogs(testUserIds);
 
-      // Step 8: Create interactions on selected game logs
+      // Step 9: Create interactions on selected game logs
       await this.createInteractionsOnSelectedGameLogs(gameLogIds, testUserIds);
 
       logger.info('✅ Test user interactions seeding completed successfully!');

@@ -34,6 +34,7 @@ import {
 } from '@scripts/utils/script-utils';
 import type { IMigration, IMigrationVerification, IMigrationVersion } from '@src/lib/types';
 import { SchemaConsistencyChecker } from './ensure-schema-consistency';
+import { syncReactionEmojis } from '@src/lib/db/seed/shared-seeding-utils';
 
 // Import the centralized reset function
 import { execSync } from 'child_process';
@@ -339,7 +340,7 @@ async function runInteractiveCommand(command: string, description: string): Prom
  * Get all migration files from the migrations directory
  */
 async function getMigrationFiles(): Promise<string[]> {
-  const types = ['base', 'feature', 'trigger'];
+  const types = ['data', 'functions', 'rls', 'triggers'];
   const migrations: string[] = [];
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
@@ -683,6 +684,20 @@ async function applyAllMigrations(environment = 'development', dryRun = false): 
     }
     if (changes.added.indexes?.length) {
       logger.info('✅ Added indexes:', { indexes: changes.added.indexes });
+    }
+
+    // Step 7: Sync reaction emojis after all migrations are complete
+    if (!dryRun) {
+      logger.info('\n🔄 Step 7: Syncing reaction emojis with application constants...');
+      try {
+        await syncReactionEmojis(db, 'Migration Process');
+        logger.info('✅ Reaction emojis synced successfully');
+      } catch (error) {
+        logger.warn(`⚠️  Warning: Could not sync reaction emojis: ${error}`);
+        logger.info('📋 This may be normal if the reaction_emojis table does not exist yet');
+      }
+    } else {
+      logger.info('\n⏭️  Step 7: Skipping reaction emoji sync (dry run mode)');
     }
 
     logger.info(`\n🎉 Migration process completed! Applied ${appliedCount} migrations.`);
@@ -1604,6 +1619,21 @@ async function migrateWithSchemaConsistency(
 
   // Run the actual migration
   await applyAllMigrations(environment, dryRun);
+
+  // Sync reaction emojis after migrations (ensures all emojis from constants are in database)
+  if (!dryRun) {
+    logger.info('🔄 Syncing reaction emojis with application constants...');
+    try {
+      const db = createDatabaseClient({ env: environment });
+      await syncReactionEmojis(db, 'Database Migration Manager');
+      logger.info('✅ Reaction emojis synced successfully');
+    } catch (error) {
+      logger.warn(`⚠️  Warning: Could not sync reaction emojis: ${error}`);
+      logger.info('📋 This may be normal if the reaction_emojis table does not exist yet');
+    }
+  } else {
+    logger.info('⏭️  Skipping reaction emoji sync (dry run mode)');
+  }
 
   // Post-migration schema validation
   if (!skipSchemaCheck && !dryRun) {
