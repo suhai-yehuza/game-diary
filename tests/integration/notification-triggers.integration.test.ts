@@ -383,7 +383,7 @@ describe('Notification Triggers Integration Tests', () => {
           `DELETE FROM basketball_games WHERE id LIKE 'test-%' OR id LIKE 'integration-test-%' OR id LIKE 'integration-test-game-%'`
         );
         await db.execute(
-          `DELETE FROM teams WHERE id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%' OR id IN ('integration-test-team-home', 'integration-test-team-away')`
+          `DELETE FROM basketball_teams WHERE id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%' OR id IN ('integration-test-team-home', 'integration-test-team-away')`
         );
         await db.execute(`DELETE FROM users WHERE id LIKE 'test-%' OR id LIKE 'integration-test%'`);
       }
@@ -436,6 +436,25 @@ describe('Notification Triggers Integration Tests', () => {
       `)) as unknown as { rows: Array<{ count: string }> };
 
       const afterNotificationCount = parseInt(afterCount.rows[0].count);
+
+      // Debug: Check if any notifications were created
+      const allNotifications = (await db.execute(`
+        SELECT type, title, message, user_id, created_at
+        FROM notifications
+        WHERE user_id = '${friendUserId}'
+        ORDER BY created_at DESC
+      `)) as unknown as {
+        rows: Array<{
+          type: string;
+          title: string;
+          message: string;
+          user_id: string;
+          created_at: string;
+        }>;
+      };
+
+      console.log(`Before: ${beforeNotificationCount}, After: ${afterNotificationCount}`);
+      console.log('All notifications for friend user:', allNotifications.rows);
 
       // Should have created a notification
       expect(afterNotificationCount).toBe(beforeNotificationCount + 1);

@@ -64,60 +64,115 @@ class TriggerValidator {
 
     try {
       // Clean up all test-related data in the correct order (respecting foreign key constraints)
+      // Each cleanup operation is wrapped in try-catch to continue even if one fails
 
       // 1. Clean up reactions (depends on comments and game_logs)
-      const reactionsDeleted = await db.execute(
-        sql`DELETE FROM reactions WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
-      );
-      logger.info(`   🗑️  Deleted ${reactionsDeleted.rowCount || 0} test reactions`);
+      try {
+        const reactionsDeleted = await db.execute(
+          sql`DELETE FROM reactions WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${reactionsDeleted.rowCount || 0} test reactions`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up reactions: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 2. Clean up comments (depends on game_logs)
-      const commentsDeleted = await db.execute(
-        sql`DELETE FROM comments WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
-      );
-      logger.info(`   🗑️  Deleted ${commentsDeleted.rowCount || 0} test comments`);
+      try {
+        const commentsDeleted = await db.execute(
+          sql`DELETE FROM comments WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${commentsDeleted.rowCount || 0} test comments`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up comments: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 3. Clean up game_logs (depends on users and basketball_games)
-      const gameLogsDeleted = await db.execute(
-        sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
-      );
-      logger.info(`   🗑️  Deleted ${gameLogsDeleted.rowCount || 0} test game logs`);
+      try {
+        const gameLogsDeleted = await db.execute(
+          sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${gameLogsDeleted.rowCount || 0} test game logs`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up game logs: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 4. Clean up game_ratings (depends on basketball_games)
-      const gameRatingsDeleted = await db.execute(
-        sql`DELETE FROM game_ratings WHERE game_id LIKE 'test_%' OR game_id LIKE 'testtrig_%' OR game_id LIKE '2024-ttg_%' OR game_id LIKE 'integration-test-game-%'`
-      );
-      logger.info(`   🗑️  Deleted ${gameRatingsDeleted.rowCount || 0} test game ratings`);
+      try {
+        const gameRatingsDeleted = await db.execute(
+          sql`DELETE FROM game_ratings WHERE game_id LIKE 'test_%' OR game_id LIKE 'testtrig_%' OR game_id LIKE '2024-ttg_%' OR game_id LIKE 'integration-test-game-%'`
+        );
+        logger.info(`   🗑️  Deleted ${gameRatingsDeleted.rowCount || 0} test game ratings`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up game ratings: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 5. Clean up friendships (depends on users)
-      const friendshipsDeleted = await db.execute(
-        sql`DELETE FROM friendships WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'testtrig_%' OR friend_id LIKE 'integration-test%'`
-      );
-      logger.info(`   🗑️  Deleted ${friendshipsDeleted.rowCount || 0} test friendships`);
+      try {
+        const friendshipsDeleted = await db.execute(
+          sql`DELETE FROM friendships WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'testtrig_%' OR friend_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${friendshipsDeleted.rowCount || 0} test friendships`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up friendships: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 6. Clean up notifications (depends on users)
-      const notificationsDeleted = await db.execute(
-        sql`DELETE FROM notifications WHERE user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
-      );
-      logger.info(`   🗑️  Deleted ${notificationsDeleted.rowCount || 0} test notifications`);
+      try {
+        const notificationsDeleted = await db.execute(
+          sql`DELETE FROM notifications WHERE user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${notificationsDeleted.rowCount || 0} test notifications`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up notifications: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 7. Clean up test NBA games (depends on basketball_teams)
-      const nbaGamesDeleted = await db.execute(
-        sql`DELETE FROM basketball_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test-game-%' OR id LIKE 'integration-test-%'`
-      );
-      logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
+      try {
+        const nbaGamesDeleted = await db.execute(
+          sql`DELETE FROM basketball_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test-game-%' OR id LIKE 'integration-test-%'`
+        );
+        logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up NBA games: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 8. Clean up test basketball_teams
-      const teamsDeleted = await db.execute(
-        sql`DELETE FROM basketball_teams WHERE id IN ('test_team_1', 'test_team_2', 'integration-test-team-home', 'integration-test-team-away') OR id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%'`
-      );
-      logger.info(`   🗑️  Deleted ${teamsDeleted.rowCount || 0} test basketball_teams`);
+      try {
+        const teamsDeleted = await db.execute(
+          sql`DELETE FROM basketball_teams WHERE id IN ('test_team_1', 'test_team_2', 'integration-test-team-home', 'integration-test-team-away') OR id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%'`
+        );
+        logger.info(`   🗑️  Deleted ${teamsDeleted.rowCount || 0} test basketball_teams`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up basketball teams: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 9. Clean up test users (should be last as they're referenced by other tables)
-      const usersDeleted = await db.execute(
-        sql`DELETE FROM users WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR id LIKE 'perf-user-%'`
-      );
-      logger.info(`   🗑️  Deleted ${usersDeleted.rowCount || 0} test users`);
+      try {
+        const usersDeleted = await db.execute(
+          sql`DELETE FROM users WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR id LIKE 'perf-user-%'`
+        );
+        logger.info(`   🗑️  Deleted ${usersDeleted.rowCount || 0} test users`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up users: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       logger.info('✅ Test data cleanup completed successfully');
     } catch (error) {
@@ -125,7 +180,8 @@ class TriggerValidator {
         '❌ Error during test data cleanup:',
         error instanceof Error ? error : new Error(String(error))
       );
-      throw error;
+      // Don't throw the error, just log it and continue
+      logger.warn('⚠️  Continuing despite cleanup errors...');
     }
   }
 
@@ -217,6 +273,11 @@ class TriggerValidator {
       passed = false;
       error = err instanceof Error ? err.message : String(err);
       details = `❌ Test error: ${error}`;
+
+      // Log the full error for debugging
+      if (err instanceof Error) {
+        logger.error(`   Full error: ${err.stack || err.message}`);
+      }
     }
 
     this.results.push({

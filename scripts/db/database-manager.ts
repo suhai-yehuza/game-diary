@@ -14,7 +14,7 @@ import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 loadEnvironmentVariables();
 
 import { createHash } from 'crypto';
-import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -914,37 +914,145 @@ async function copyCustomMigrations(): Promise<void> {
   // Ensure target directory exists
   mkdirSync(targetDir, { recursive: true });
 
-  // Function to recursively get all SQL files from the src/lib/db/migrations directory
-  function getAllSqlFiles(dir: string): string[] {
-    const files: string[] = [];
+  // Remove any existing Drizzle-generated files to avoid conflicts
+  const existingFiles = readdirSync(targetDir).filter(f => f.endsWith('.sql'));
+  const drizzlePattern = /^0000_|^0001_/; // Pattern for Drizzle-generated files
+  existingFiles.forEach(file => {
+    if (drizzlePattern.test(file)) {
+      const filePath = join(targetDir, file);
+      unlinkSync(filePath);
+      logger.info(`Removed conflicting Drizzle file: ${file}`);
+    }
+  });
+
+  // Define migration categories and their optimal order
+  const migrationCategories = [
+    {
+      name: 'base_schema',
+      pattern: /^000_base_schema\.sql$/,
+      priority: 1,
+      description: 'Base schema (tables, constraints)',
+    },
+    {
+      name: 'performance_indexes',
+      pattern: /^00[1-9]_.*\.sql$/, // Files starting with 001-009 (performance indexes)
+      priority: 2,
+      description: 'Performance indexes (applied early for query optimization)',
+    },
+    {
+      name: 'functions',
+      pattern: /^functions\/.*\.sql$/,
+      priority: 3,
+      description: 'Database functions (business logic - must exist before triggers)',
+    },
+    {
+      name: 'triggers',
+      pattern: /^triggers\/.*\.sql$/,
+      priority: 4,
+      description: 'Database triggers (depend on functions and tables)',
+    },
+    {
+      name: 'rls_policies',
+      pattern: /^rls\/.*\.sql$/,
+      priority: 5,
+      description: 'Row Level Security policies (applied after all objects exist)',
+    },
+    {
+      name: 'data',
+      pattern: /^data\/.*\.sql$/,
+      priority: 6,
+      description: 'Reference data, seed data (applied last)',
+    },
+  ];
+
+  // Function to recursively get all SQL files from the migrations directory
+  function getAllSqlFiles(
+    dir: string,
+    basePath = ''
+  ): Array<{ path: string; relativePath: string }> {
+    const files: Array<{ path: string; relativePath: string }> = [];
     const entries = readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
       const fullPath = join(dir, entry.name);
+      const relativePath = join(basePath, entry.name);
+
       if (entry.isDirectory()) {
-        files.push(...getAllSqlFiles(fullPath));
+        files.push(...getAllSqlFiles(fullPath, relativePath));
       } else if (entry.isFile() && entry.name.endsWith('.sql')) {
-        files.push(fullPath);
+        files.push({ path: fullPath, relativePath });
       }
     }
 
     return files;
   }
 
-  // Get all SQL files recursively
-  const files = getAllSqlFiles(sourceDir);
+  // Get all SQL files
+  const allFiles = getAllSqlFiles(sourceDir);
 
-  // Copy each file to target directory
-  files.forEach(file => {
-    const relativePath = file.replace(sourceDir, '').replace(/^\//, '');
-    const targetPath = join(targetDir, relativePath);
+  // Categorize files by their purpose
+  const categorizedFiles: { [key: string]: Array<{ path: string; relativePath: string }> } = {};
 
-    // Ensure the target directory exists
-    mkdirSync(join(targetDir, relativePath.split('/').slice(0, -1).join('/')), { recursive: true });
+  allFiles.forEach(file => {
+    let categorized = false;
 
-    copyFileSync(file, targetPath);
-    logger.info(`Copied ${relativePath} to drizzle directory`);
+    for (const category of migrationCategories) {
+      if (category.pattern.test(file.relativePath)) {
+        if (!categorizedFiles[category.name]) {
+          categorizedFiles[category.name] = [];
+        }
+        categorizedFiles[category.name].push(file);
+        categorized = true;
+        break;
+      }
+    }
+
+    if (!categorized) {
+      // Handle files that don't match any category
+      if (!categorizedFiles['other']) {
+        categorizedFiles['other'] = [];
+      }
+      categorizedFiles['other'].push(file);
+      logger.warn(`Uncategorized migration file: ${file.relativePath}`);
+    }
   });
+
+  // Copy files in optimal order
+  let targetCounter = 1;
+
+  migrationCategories.forEach(category => {
+    const files = categorizedFiles[category.name];
+    if (files && files.length > 0) {
+      logger.info(`Processing ${category.description} (${files.length} files)`);
+
+      // Sort files within category alphabetically for consistency
+      files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+
+      files.forEach(file => {
+        const targetName = `${String(targetCounter).padStart(4, '0')}_${file.relativePath.replace(/\//g, '_')}`;
+        const targetPath = join(targetDir, targetName);
+
+        copyFileSync(file.path, targetPath);
+        logger.info(`Copied ${file.relativePath} to drizzle directory as ${targetName}`);
+        targetCounter++;
+      });
+    }
+  });
+
+  // Handle any uncategorized files
+  if (categorizedFiles['other']) {
+    logger.warn(`Found ${categorizedFiles['other'].length} uncategorized migration files:`);
+    categorizedFiles['other'].forEach(file => {
+      const targetName = `${String(targetCounter).padStart(4, '0')}_${file.relativePath.replace(/\//g, '_')}`;
+      const targetPath = join(targetDir, targetName);
+
+      copyFileSync(file.path, targetPath);
+      logger.info(`Copied ${file.relativePath} to drizzle directory as ${targetName}`);
+      targetCounter++;
+    });
+  }
+
+  logger.info(`✅ Migration copy completed. Total files processed: ${targetCounter - 1}`);
 }
 
 /**
@@ -1478,6 +1586,20 @@ async function migrateWithSchemaConsistency(
     }
   } else {
     logger.info('⏭️  Skipping schema consistency check (--skip-schema-check flag)');
+  }
+
+  // Copy custom migrations to drizzle directory to ensure they're included in Drizzle migrations
+  if (!dryRun) {
+    logger.info('📋 Copying custom migrations to drizzle directory...');
+    try {
+      await copyCustomMigrations();
+      logger.info('✅ Custom migrations copied to drizzle directory');
+    } catch (error) {
+      logger.warn(`⚠️  Warning: Could not copy custom migrations: ${error}`);
+      logger.info('📋 This may be normal if no custom migrations exist');
+    }
+  } else {
+    logger.info('⏭️  Skipping custom migration copy (dry run mode)');
   }
 
   // Run the actual migration

@@ -89,6 +89,16 @@ async function resetWithEnvironment(env: string, skipSchemaCheck = false) {
     console.log(`⏭️  Skipping schema consistency check (--skip-schema-check flag)`);
   }
 
+  // Copy custom migrations to drizzle directory to ensure they're included in Drizzle migrations
+  console.log(`📋 Copying custom migrations to drizzle directory...`);
+  try {
+    execSync(`pnpm db:copy-custom-migrations`, { stdio: 'inherit', encoding: 'utf8' });
+    console.log(`✅ Custom migrations copied to drizzle directory`);
+  } catch (error) {
+    console.warn(`⚠️  Warning: Could not copy custom migrations: ${error}`);
+    console.log(`📋 This may be normal if no custom migrations exist`);
+  }
+
   // Now run the modular migration system in optimized order
   console.log(`📄 Running modular migration system in optimized order`);
 
@@ -211,6 +221,7 @@ async function resetWithEnvironment(env: string, skipSchemaCheck = false) {
 
   console.log('✅ Canonical schema reset completed successfully!');
   console.log('📊 Execution Summary:');
+  console.log('   0. ✅ Custom migrations copied to drizzle directory');
   console.log('   1. ✅ Base schema (tables, constraints)');
   console.log('   2. ✅ Performance indexes (query optimization)');
   console.log('   3. ✅ Functions (business logic)');

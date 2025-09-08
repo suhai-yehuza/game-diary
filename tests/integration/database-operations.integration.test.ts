@@ -811,10 +811,24 @@ describe('Database Operations Integration Tests', () => {
       const gameId = `integration-test-game-${timestamp}`;
 
       // Create user, game, and game log
-      await db.execute(`
-        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
-      `);
+      try {
+        await db.execute(`
+          INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
+          VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
+        `);
+
+        // Verify user was created
+        const userCheck = (await db.execute(`
+          SELECT id FROM users WHERE id = '${userId}'
+        `)) as unknown as { rows: Array<{ id: string }> };
+
+        if (userCheck.rows.length === 0) {
+          throw new Error(`User ${userId} was not created successfully`);
+        }
+      } catch (error) {
+        console.error('Failed to create user:', error);
+        throw error;
+      }
 
       // Create test teams first
       const homeTeamId = 'integration-test-home-team';
