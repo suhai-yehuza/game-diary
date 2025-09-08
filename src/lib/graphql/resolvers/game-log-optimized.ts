@@ -5,6 +5,15 @@ import { game_logs, users, comments, reactions, friendships } from '@/lib/db/sch
 import { AuthorizationError } from '@/lib/graphql/errors';
 import type { GraphQLContext } from '@/types';
 
+// Helper function to get database instance
+const getDb = () => {
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Database not available');
+  }
+  return dbInstance;
+};
+
 // Optimized Game Log Resolvers using Drizzle ORM
 export const optimizedGameLogQueryResolvers = {
   // Optimized gameLogs query with better performance
@@ -68,7 +77,7 @@ export const optimizedGameLogQueryResolvers = {
 
     if (pagination?.after) {
       // Get the created_at timestamp of the cursor record
-      const cursorRecord = await dbInstance.query.game_logs.findFirst({
+      const cursorRecord = await getDb().query.game_logs.findFirst({
         where: eq(game_logs.id, pagination.after),
         columns: { created_at: true },
       });
@@ -101,7 +110,7 @@ export const optimizedGameLogQueryResolvers = {
 
     // Debug: Check if there are any game logs for this user at all
     const totalUserGameLogs =
-      (await dbInstance.query.game_logs.findMany({
+      (await getDb().query.game_logs.findMany({
         where: and(isNull(game_logs.deleted_at), eq(game_logs.user_id, context.user.id)),
         limit: 10,
         columns: {
@@ -119,7 +128,7 @@ export const optimizedGameLogQueryResolvers = {
       );
       console.log(
         '🔍 [RESOLVER] optimized gameLogs resolver: user game log IDs and game IDs:',
-        totalUserGameLogs?.map(log => ({
+        totalUserGameLogs?.map((log: { id: string; game_id: string; created_at: Date }) => ({
           id: log.id,
           game_id: log.game_id,
           created_at: log.created_at,
@@ -164,7 +173,7 @@ export const optimizedGameLogQueryResolvers = {
 
     const { id } = args;
 
-    const gameLog = await dbInstance.query.game_logs.findFirst({
+    const gameLog = await getDb().query.game_logs.findFirst({
       where: and(eq(game_logs.id, id), isNull(game_logs.deleted_at)),
       with: {
         user: {
@@ -229,10 +238,7 @@ export const optimizedGameLogQueryResolvers = {
     const limit = Math.min(pagination?.first ?? 20, 100);
 
     // Get user's friends
-    const dbInstance = db();
-    if (!dbInstance) {
-      throw new Error('Database connection not available');
-    }
+    const dbInstance = getDb();
 
     const userFriendships = await dbInstance.query.friendships.findMany({
       where: and(eq(friendships.user_id, context.user.id), eq(friendships.status, 'ACCEPTED')),
@@ -266,7 +272,7 @@ export const optimizedGameLogQueryResolvers = {
 
     if (pagination?.after) {
       // Get the created_at timestamp of the cursor record
-      const cursorRecord = await dbInstance.query.game_logs.findFirst({
+      const cursorRecord = await getDb().query.game_logs.findFirst({
         where: eq(game_logs.id, pagination.after),
         columns: { created_at: true },
       });
@@ -307,10 +313,7 @@ export const optimizedGameLogQueryResolvers = {
 async function executeUltraFastQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
-  const dbInstance = db();
-  if (!dbInstance) {
-    throw new Error('Database connection not available');
-  }
+  const dbInstance = getDb();
 
   const result = await dbInstance.query.game_logs.findMany({
     where: whereClause,
@@ -358,10 +361,7 @@ async function executeUltraFastQuery(whereClause: SQL<unknown>, limit: number) {
 async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
-  const dbInstance = db();
-  if (!dbInstance) {
-    throw new Error('Database connection not available');
-  }
+  const dbInstance = getDb();
 
   // Get game logs with user and game data
   const gameLogs = await dbInstance.query.game_logs.findMany({
@@ -391,7 +391,7 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
   });
 
   // Debug: Test alternative query approach
-  const _testGameLogs = await db()
+  const _testGameLogs = await dbInstance
     ?.select({
       id: game_logs.id,
       user_id: game_logs.user_id,
@@ -442,7 +442,7 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
 
   const [commentCounts, reactionCounts] = await Promise.all([
     // Get comment counts
-    db()
+    dbInstance
       ?.select({
         parent_id: comments.parent_id,
         count: count(),
@@ -458,7 +458,7 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
       .groupBy(comments.parent_id),
 
     // Get reaction counts
-    db()
+    dbInstance
       ?.select({
         target_id: reactions.target_id,
         count: count(),
@@ -475,8 +475,18 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
   ]);
 
   // Create lookup maps for counts
-  const commentCountMap = new Map((commentCounts || []).map(cc => [cc.parent_id, cc.count]));
-  const reactionCountMap = new Map((reactionCounts || []).map(rc => [rc.target_id, rc.count]));
+  const commentCountMap = new Map(
+    (commentCounts || []).map((cc: { parent_id: string; count: number }) => [
+      cc.parent_id,
+      cc.count,
+    ])
+  );
+  const reactionCountMap = new Map(
+    (reactionCounts || []).map((rc: { target_id: string; count: number }) => [
+      rc.target_id,
+      rc.count,
+    ])
+  );
 
   const queryDuration = Date.now() - startTime;
 
@@ -499,10 +509,7 @@ async function executeOptimizedQuery(whereClause: SQL<unknown>, limit: number) {
 async function executeMinimalQuery(whereClause: SQL<unknown>, limit: number) {
   const startTime = Date.now();
 
-  const dbInstance = db();
-  if (!dbInstance) {
-    throw new Error('Database connection not available');
-  }
+  const dbInstance = getDb();
 
   const result = await dbInstance.query.game_logs.findMany({
     where: whereClause,

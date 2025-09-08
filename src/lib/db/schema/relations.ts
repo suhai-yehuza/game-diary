@@ -108,13 +108,13 @@ export const basketballGamesRelations = relations(basketball_games, ({ many }) =
 }));
 
 // Basketball Players relations
-export const basketballPlayersRelations = relations(basketball_players, ({ many }) => ({
+export const basketballPlayersRelations = relations(basketball_players, ({ many: _many }) => ({
   // Note: publicComments and publicReactions are accessed via parent_id/parent_type
   // No direct relations to avoid circular dependencies
 }));
 
 // Basketball Teams relations
-export const basketballTeamsRelations = relations(basketball_teams, ({ many }) => ({
+export const basketballTeamsRelations = relations(basketball_teams, ({ many: _many }) => ({
   // Note: publicComments and publicReactions are accessed via parent_id/parent_type
   // No direct relations to avoid circular dependencies
 }));

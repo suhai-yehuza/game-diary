@@ -3,6 +3,7 @@ import { sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { AuthorizationError } from '@/lib/graphql/errors';
 import { ErrorHandler } from '@/lib/utils/error-handler';
+import { ErrorCategory } from '@/types';
 import type { GraphQLContext } from '@/types';
 
 // Adaptive Game Log Query Resolvers - adjusts strategy based on data size
@@ -24,7 +25,7 @@ export const adaptiveGameLogQueryResolvers = {
     const result = await executeUltraFastQuery(whereClause, 1);
 
     // For single gameLog query, return the first node or null
-    if (result.edges && result.edges.length > 0) {
+    if (result?.edges && result.edges.length > 0) {
       const gameLog = result.edges[0].node;
 
       // Check access permissions based on classification and ownership
@@ -93,34 +94,39 @@ export const adaptiveGameLogQueryResolvers = {
     }
 
     // Log user's existing game log IDs for debugging
-    try {
-      console.log('🔍 [USER_GAME_LOGS] About to query database for user game logs...');
-      const dbInstance = db();
-      console.log('🔍 [USER_GAME_LOGS] Database instance:', !!dbInstance);
+    await ErrorHandler.getInstance().handleAsync(
+      async () => {
+        console.log('🔍 [USER_GAME_LOGS] About to query database for user game logs...');
+        const dbInstance = db();
+        console.log('🔍 [USER_GAME_LOGS] Database instance:', !!dbInstance);
 
-      const userGameLogsQuery = await dbInstance?.execute(sql`
-        SELECT id, game_id, created_at
-        FROM game_logs
-        WHERE user_id = ${context.user.id}
-        AND deleted_at IS NULL
-        ORDER BY created_at DESC
-        LIMIT 20
-      `);
+        const userGameLogsQuery = await dbInstance?.execute(sql`
+          SELECT id, game_id, created_at
+          FROM game_logs
+          WHERE user_id = ${context.user?.id}
+          AND deleted_at IS NULL
+          ORDER BY created_at DESC
+          LIMIT 20
+        `);
 
-      console.log('🔍 [USER_GAME_LOGS] Query result:', userGameLogsQuery);
-      const userGameLogs = userGameLogsQuery?.rows || [];
-      console.log('🔍 [USER_GAME_LOGS] Session user existing game log IDs:', {
-        userId: context.user.id,
-        totalGameLogs: userGameLogs.length,
-        gameLogs: userGameLogs.map((log: Record<string, unknown>) => ({
-          id: log.id,
-          gameId: log.game_id,
-          createdAt: log.created_at,
-        })),
-      });
-    } catch (error) {
-      console.error('❌ [USER_GAME_LOGS] Error fetching user game logs:', error);
-    }
+        console.log('🔍 [USER_GAME_LOGS] Query result:', userGameLogsQuery);
+        const userGameLogs = userGameLogsQuery?.rows || [];
+        console.log('🔍 [USER_GAME_LOGS] Session user existing game log IDs:', {
+          userId: context.user?.id,
+          totalGameLogs: userGameLogs.length,
+          gameLogs: userGameLogs.map((log: Record<string, unknown>) => ({
+            id: log.id,
+            gameId: log.game_id,
+            createdAt: log.created_at,
+          })),
+        });
+      },
+      {
+        component: 'userGameLogsDebug',
+        category: ErrorCategory.DATABASE,
+        severity: 'low',
+      }
+    );
 
     const limit = Math.min(pagination?.first ?? 50, 100);
 
@@ -175,9 +181,9 @@ export const adaptiveGameLogQueryResolvers = {
       console.log('🔍 [QUERY_STRATEGY] Using ultra-fast query with whereClause:', whereClause);
       const result = await executeUltraFastQuery(whereClause, limit);
       console.log('🔍 [QUERY_RESULT] Ultra-fast query result:', {
-        totalCount: result.totalCount,
-        edgesCount: result.edges?.length || 0,
-        gameLogIds: result.edges?.map(edge => edge.node.id) || [],
+        totalCount: result?.totalCount,
+        edgesCount: result?.edges?.length || 0,
+        gameLogIds: result?.edges?.map(edge => edge.node.id) || [],
       });
       return result;
     }
@@ -237,30 +243,34 @@ async function executeUltraFastQuery(whereClause: string, limit: number) {
 
   const startTime = Date.now();
 
-  try {
-    console.log('🔍 [ULTRA_FAST] About to execute query:', ultraFastQuery);
-    const dbInstance = db();
-    console.log('🔍 [ULTRA_FAST] Database instance available:', !!dbInstance);
+  return ErrorHandler.getInstance().handleAsync(
+    async () => {
+      console.log('🔍 [ULTRA_FAST] About to execute query:', ultraFastQuery);
+      const dbInstance = db();
+      console.log('🔍 [ULTRA_FAST] Database instance available:', !!dbInstance);
 
-    const result = await dbInstance?.execute(sql.raw(ultraFastQuery));
-    const queryDuration = Date.now() - startTime;
+      const result = await dbInstance?.execute(sql.raw(ultraFastQuery));
+      const queryDuration = Date.now() - startTime;
 
-    console.log('🔍 [ULTRA_FAST] Query executed successfully:', {
-      result,
-      resultType: typeof result,
-      resultRows: result?.rows?.length || 0,
-      queryDuration,
-    });
+      console.log('🔍 [ULTRA_FAST] Query executed successfully:', {
+        result,
+        resultType: typeof result,
+        resultRows: result?.rows?.length || 0,
+        queryDuration,
+      });
 
-    if (queryDuration > 50) {
-      console.warn(`Ultra-fast query took ${queryDuration}ms`);
+      if (queryDuration > 50) {
+        console.warn(`Ultra-fast query took ${queryDuration}ms`);
+      }
+
+      return processQueryResult(result, limit, queryDuration, true, whereClause); // minimal = true for ultra-fast
+    },
+    {
+      component: 'ultraFastQuery',
+      category: ErrorCategory.DATABASE,
+      severity: 'medium',
     }
-
-    return processQueryResult(result, limit, queryDuration, true, whereClause); // minimal = true for ultra-fast
-  } catch (error) {
-    console.error('❌ [ULTRA_FAST] Query execution failed:', error);
-    throw error;
-  }
+  );
 }
 
 // Strategy 2: Optimized query (11-50 items) - reduced JOINs for better performance

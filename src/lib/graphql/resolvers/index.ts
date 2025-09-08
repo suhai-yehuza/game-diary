@@ -42,6 +42,7 @@ import {
   userSummaryResolver,
   dbUserResolver,
 } from '@/lib/graphql/resolvers/user';
+import type { GraphQLContext } from '@/types';
 
 // Read the GraphQL schema
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf8');
@@ -55,7 +56,12 @@ const resolvers = {
     ...teamQueryResolvers,
     ...adaptiveGameLogQueryResolvers, // Use adaptive resolver for gameLogs (fixing user field issue)
     // Add friendsGameLogs from optimized resolver since adaptive doesn't have it
-    friendsGameLogs: optimizedGameLogQueryResolvers.friendsGameLogs,
+    friendsGameLogs: (parent: unknown, args: unknown, context: unknown) =>
+      optimizedGameLogQueryResolvers.friendsGameLogs(
+        parent,
+        args as { pagination?: { first?: number; after?: string } },
+        context as GraphQLContext
+      ),
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
     ...publicCommentQueryResolvers,

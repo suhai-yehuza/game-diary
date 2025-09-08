@@ -44,7 +44,7 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
   );
 
   // Memoize seasons to prevent unnecessary re-renders
-  const memoizedSeasons = useMemo(() => seasons, [seasons?.join(',')]);
+  const memoizedSeasons = useMemo(() => seasons, [seasons]);
 
   // Track if fetch has been called to prevent multiple calls
   const fetchCalledRef = useRef(false);
@@ -166,10 +166,12 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
   }, [skip, forceRealData, memoizedSeasons, latestSeason, _limit, forceRefresh]);
 
   const refetch = useCallback(() => {
+    fetchCalledRef.current = false; // Reset the flag to allow refetch
     void fetchLatestGames();
   }, [fetchLatestGames]);
 
   const refreshCache = useCallback(() => {
+    fetchCalledRef.current = false; // Reset the flag to allow refresh
     void fetchLatestGames();
   }, [fetchLatestGames]);
 

@@ -5,7 +5,7 @@ import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } fr
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
@@ -25,22 +25,8 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   // Use proper Clerk authentication
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Handle params properly for Next.js App Router using React.use()
-  const resolvedParamsData = React.use(params);
-  const [resolvedParams, setResolvedParams] = useState<{ gameId: string } | null>(null);
-
-  // Set resolved params from the unwrapped Promise
-  useEffect(() => {
-    if (
-      resolvedParamsData &&
-      typeof resolvedParamsData === 'object' &&
-      'gameId' in resolvedParamsData
-    ) {
-      setResolvedParams({ gameId: resolvedParamsData.gameId as string });
-    } else {
-      console.error('No gameId in params:', resolvedParamsData);
-    }
-  }, [resolvedParamsData]);
+  // Use params directly since it's already resolved
+  const resolvedParams = params;
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -152,7 +138,15 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
       setUserGameLogs([]);
       setRefetchUserGameLogs(undefined);
     }
-  }, [memoizedGameLogs, memoizedForceRefresh, user?.id, game?.id, isLoaded, isSignedIn]);
+  }, [
+    memoizedGameLogs,
+    memoizedForceRefresh,
+    user?.id,
+    game?.id,
+    isLoaded,
+    isSignedIn,
+    userGameLogs?.length,
+  ]);
 
   // Debug when userGameLogs state changes
   useEffect(() => {
@@ -163,7 +157,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         timestamp: new Date().toISOString(),
       });
     }, 500);
-  }, [userGameLogs]);
+  }, [userGameLogs, userGameLogs?.length]);
 
   const errorHandlerContext = useMemo(
     () => ({
@@ -185,7 +179,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
 
       const result = await handleAsync(async () => {
         // First try to find the game in the latest games array
-        let foundGame = latestGames.find(g => g.id.toString() === resolvedParams.gameId);
+        let foundGame = latestGames.find(g => g.id.toString() === resolvedParams?.gameId);
 
         // If not found in latest games, try to fetch it directly from the API
         if (!foundGame) {
@@ -195,7 +189,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               const data = await response.json();
               if (data.response && Array.isArray(data.response)) {
                 foundGame = data.response.find(
-                  (g: IGameResponse) => g.id.toString() === resolvedParams.gameId
+                  (g: IGameResponse) => g.id.toString() === resolvedParams?.gameId
                 );
               }
             }

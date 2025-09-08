@@ -500,10 +500,8 @@ export function GameLogModal({
         severity: ErrorSeverity.MEDIUM,
         timestamp: new Date(),
       },
-      onCompleted: (data: {
-        createGameLog?: { gameLog?: unknown; errors?: Array<{ message: string }> };
-      }) => {
-        const created = data?.createGameLog?.gameLog;
+      onCompleted: (data: CreateGameLogResponse) => {
+        const created = data?.gameLog;
         if (created) {
           toast.success('Game log created!');
           onSuccess?.(created);
@@ -517,7 +515,7 @@ export function GameLogModal({
           setSearchTerm('');
           setSearchResults([]);
         } else {
-          const errorObj = data?.createGameLog?.errors?.[0];
+          const errorObj = data?.errors?.[0];
           const errorMsg = errorObj?.message ?? 'Game log creation failed';
           toast.error(errorMsg);
           // Close modal even when there are errors to prevent it from staying open

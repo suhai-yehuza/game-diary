@@ -22,7 +22,7 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { useState, useEffect, useMemo, use } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 // import { toast } from 'sonner';
 
 import { GameLogComments } from '@/app/components/comments/GameLogComments';
@@ -87,8 +87,8 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Unwrap params Promise using React.use() as required by Next.js 15
-  const resolvedParams = use(params);
+  // Use params directly since it's already resolved
+  const resolvedParams = params;
 
   // Calculate query variables and skip condition using useMemo for reactive updates
   const queryVariables = useMemo(() => {

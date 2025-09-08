@@ -47,7 +47,7 @@ export function useGameLogs(
 
   const memoizedPagination = useMemo(
     () => paginationParam || { page: 1, limit: 20 },
-    [paginationParam?.page, paginationParam?.limit]
+    [paginationParam]
   );
 
   // Track if cache has been loaded to prevent multiple loads
@@ -164,14 +164,21 @@ export function useGameLogs(
     });
 
   // Check if the query has data but onCompleted wasn't called
+  const onCompletedTriggeredRef = useRef(false);
   useEffect(() => {
-    if (!loading && !error && networkStatus === 7 && data) {
+    if (!loading && !error && networkStatus === 7 && data && !onCompletedTriggeredRef.current) {
       // Manually trigger the onCompleted logic if it wasn't called
       if (data?.gameLogs && data.gameLogs.edges?.length > 0) {
+        onCompletedTriggeredRef.current = true;
         onCompleted(data);
       }
     }
-  }, [loading, error, networkStatus, data, onCompleted]);
+    // Reset the trigger when data changes
+    if (!data) {
+      onCompletedTriggeredRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, error, networkStatus, data]);
 
   const loadMoreGameLogs = useCallback(async () => {
     if (!gameLogsHasNextPage || !gameLogsEndCursor) return;

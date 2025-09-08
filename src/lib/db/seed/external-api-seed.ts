@@ -1,6 +1,7 @@
 // External API data seeding (with overwrites)
 import * as schema from '@/lib/db/schema';
 import { ErrorHandler } from '@/lib/utils/error-handler';
+import { ErrorCategory } from '@/types';
 import type { IExternalApiSeedingConfig } from '@/types';
 
 import {
@@ -109,17 +110,18 @@ export async function clearExternalApiData() {
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
         // Helper function to safely delete from table if it exists
-        const safeDelete = async (tableName: string, deleteFn: () => Promise<any>) => {
-          try {
-            await deleteFn();
-            console.log(`✅ Cleared ${tableName}`);
-          } catch (error: any) {
-            if (error.code === '42P01') {
-              console.log(`⏭️  Skipping ${tableName} (table does not exist)`);
-            } else {
-              console.warn(`⚠️  Warning: Could not clear ${tableName}: ${error.message}`);
+        const safeDelete = async (tableName: string, deleteFn: () => Promise<unknown>) => {
+          await ErrorHandler.getInstance().handleAsync(
+            async () => {
+              await deleteFn();
+              console.log(`✅ Cleared ${tableName}`);
+            },
+            {
+              component: `clearTable_${tableName}`,
+              category: ErrorCategory.DATABASE,
+              severity: 'low',
             }
-          }
+          );
         };
 
         // Clear in reverse order of dependencies, with safe deletion

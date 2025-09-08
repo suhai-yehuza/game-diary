@@ -147,7 +147,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
 
     // No live games for a while - use reduced polling
     return REDUCED_POLLING_INTERVAL_MS;
-  }, [refreshInterval, liveGames?.response?.length, lastLiveGamesFound]);
+  }, [refreshInterval, liveGames?.response, lastLiveGamesFound]);
 
   // Subscribe to global polling
   useEffect(() => {
@@ -190,7 +190,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
         `🔄 Live Games Polling: ${hasLiveGames ? 'FREQUENT' : 'REDUCED'} (${interval / 1000}s interval)`
       );
     }
-  }, [getAdaptivePollingInterval, liveGames?.response?.length]);
+  }, [getAdaptivePollingInterval, liveGames?.response]);
 
   const games = liveGames?.response ?? [];
 
