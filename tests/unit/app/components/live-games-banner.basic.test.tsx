@@ -35,6 +35,11 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+// Mock the test environment detection to prevent mock games from showing
+vi.mock('@/lib/utils/e2e-test-setup', () => ({
+  isTestOrCIEnvironment: vi.fn(() => false),
+}));
+
 // Mock the getDisplayGames function
 vi.mock('@/lib/mock/liveGamesMock', () => ({
   MOCK_LIVE_GAMES: {

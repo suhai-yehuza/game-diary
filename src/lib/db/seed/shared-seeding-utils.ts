@@ -358,24 +358,9 @@ export async function seedGames(
             gamesInserted++;
           }
         } else {
-          // Insert with conflict handling - try to insert, if conflict then skip
-          try {
-            await db.insert(schema.basketball_games).values(gameData);
-            gamesInserted++;
-          } catch (error) {
-            if (
-              error instanceof Error &&
-              (error.message.includes('duplicate key') ||
-                error.message.includes('violates unique constraint') ||
-                error.message.includes('already exists'))
-            ) {
-              // Game already exists, skip it
-              console.log(`     🔄 Game ${gameData.id} already exists, skipping...`);
-              continue;
-            } else {
-              throw error;
-            }
-          }
+          // Insert with conflict handling - overwrite on conflict
+          await db.insert(schema.basketball_games).values(gameData).onConflictDoNothing();
+          gamesInserted++;
         }
       }
 
@@ -530,20 +515,23 @@ async function insertPlayerWithTeams(
     },
   ];
 
-  await db.insert(schema.basketball_players).values({
-    id: playerId,
-    first_name: player.firstname ?? 'missing-first-name',
-    last_name: player.lastname ?? 'missing-last-name',
-    birth: player.birth || null, // Store as JSONB object directly
-    nba: player.nba || null, // Store as JSONB object directly
-    height: player.height || null, // Store as JSONB object directly
-    weight: player.weight || null, // Store as JSONB object directly
-    college: player.college,
-    affiliation: player.affiliation,
-    teams: teamsData, // Store as JSONB array directly
-    leagues: player.leagues || null, // Store as JSONB object directly
-    image_url: null, // IPlayerResponse doesn't have image property
-  });
+  await db
+    .insert(schema.basketball_players)
+    .values({
+      id: playerId,
+      first_name: player.firstname ?? 'missing-first-name',
+      last_name: player.lastname ?? 'missing-last-name',
+      birth: player.birth || '{}', // Store as JSONB object directly
+      nba: player.nba || '{}', // Store as JSONB object directly
+      height: player.height || '{}', // Store as JSONB object directly
+      weight: player.weight || '{}', // Store as JSONB object directly
+      college: player.college,
+      affiliation: player.affiliation,
+      teams: teamsData, // Store as JSONB array directly
+      leagues: player.leagues || '{}', // Store as JSONB object directly
+      image_url: '', // IPlayerResponse doesn't have image property
+    })
+    .onConflictDoNothing();
 }
 
 async function updatePlayerTeams(
@@ -638,7 +626,10 @@ export async function syncReactionEmojis(db: Database, componentName = 'Reaction
     // Add new emojis
     if (emojisToAdd.length > 0) {
       console.log(`➕ Adding ${emojisToAdd.length} new emojis: ${emojisToAdd.join(', ')}`);
-      await db.insert(schema.reactionEmojis).values(emojisToAdd.map(emoji => ({ emoji })));
+      await db
+        .insert(schema.reactionEmojis)
+        .values(emojisToAdd.map(emoji => ({ emoji })))
+        .onConflictDoNothing();
     }
 
     // Remove old emojis

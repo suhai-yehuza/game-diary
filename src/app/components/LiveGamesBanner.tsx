@@ -8,6 +8,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 import type { IGameResponse } from '@/types';
 
@@ -20,8 +21,8 @@ function getDisplayGames(realGames: IGameResponse[] | null): IGameResponse[] {
     return realGames;
   }
 
-  // Check if we should show mock games
-  const shouldShowMockGames = isMockModeEnabled();
+  // Check if we should show mock games (mock mode or test environment)
+  const shouldShowMockGames = isMockModeEnabled() || isTestOrCIEnvironment();
 
   if (shouldShowMockGames) {
     return MOCK_LIVE_GAMES.response || [];
