@@ -74,7 +74,6 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   const [isClient, setIsClient] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<GetGameLogQuery['gameLog'] | null>(null);
-  const [resolvedParams, setResolvedParams] = useState<{ gameLogId: string } | null>(null);
 
   const { handleParamsResolution: _handleParamsResolution } = useCentralizedErrorHandler({
     context: { component: 'GameLogDetailPage', action: 'Load game log params' },
@@ -88,17 +87,8 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Unwrap params using React.use() as required by Next.js
-  const unwrappedParams = use(Promise.resolve(params));
-
-  // Load params once on mount
-  useEffect(() => {
-    if (unwrappedParams?.gameLogId) {
-      setResolvedParams(unwrappedParams as { gameLogId: string });
-    } else {
-      console.error('No gameLogId in params:', unwrappedParams);
-    }
-  }, [unwrappedParams]);
+  // Unwrap params Promise using React.use() as required by Next.js 15
+  const resolvedParams = use(params);
 
   // Calculate query variables and skip condition using useMemo for reactive updates
   const queryVariables = useMemo(() => {
