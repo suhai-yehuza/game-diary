@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { describe, it, expect, vi } from 'vitest';
 
 import { PlayerSearchResult } from '@/app/components/search/PlayerSearchResult';
-import type { IPlayerSearchResultProps } from '@/lib/types';
+import type { IPlayerSearchResultProps } from '@/types';
 
 // Mock Next.js router
 vi.mock('next/navigation', () => ({

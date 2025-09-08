@@ -1,6 +1,6 @@
 import { Menu } from 'lucide-react';
 
-import type { IMobileMenuButtonProps } from '@/lib/types';
+import type { IMobileMenuButtonProps } from '@/types';
 
 export function MobileMenuButton({ onToggle }: IMobileMenuButtonProps) {
   return (

@@ -54,12 +54,12 @@ describe('User GraphQL Resolvers', () => {
 
   describe('userSummaryResolver', () => {
     const mockContext = {
-      user: { id: 'user-123', email: 'test@example.com', banned: false },
+      user: { id: 'unit-test-user-123', email: 'unit-test-basic@example.com', banned: false },
     };
 
     const createMockUser = (id: string, email?: string, phone?: string) => ({
       id,
-      username: 'testuser',
+      username: 'unit-test-basic-user',
       first_name: 'Test',
       last_name: 'User',
       email_address: email ? createEncryptedField(email) : null,
@@ -69,21 +69,21 @@ describe('User GraphQL Resolvers', () => {
 
     describe('email_address resolver', () => {
       it('should decrypt email for own user', () => {
-        const user = createMockUser('user-123', 'test@example.com');
+        const user = createMockUser('unit-test-user-123', 'unit-test-basic@example.com');
         const result = userSummaryResolver.email_address(user, {}, mockContext);
 
-        expect(result).toBe('test@example.com');
+        expect(result).toBe('unit-test-basic@example.com');
       });
 
       it('should return null for other users', () => {
-        const user = createMockUser('other-user-456', 'test@example.com');
+        const user = createMockUser('unit-test-user-456', 'unit-test-basic@example.com');
         const result = userSummaryResolver.email_address(user, {}, mockContext);
 
         expect(result).toBeNull();
       });
 
       it('should return null when no user context', () => {
-        const user = createMockUser('user-123', 'test@example.com');
+        const user = createMockUser('unit-test-user-123', 'unit-test-basic@example.com');
         const result = userSummaryResolver.email_address(user, {}, {});
 
         expect(result).toBeNull();
@@ -91,7 +91,7 @@ describe('User GraphQL Resolvers', () => {
 
       it('should handle non-encrypted email', () => {
         const user = {
-          ...createMockUser('user-123'),
+          ...createMockUser('unit-test-user-123'),
           email_address: 'plain@example.com',
         };
         const result = userSummaryResolver.email_address(user, {}, mockContext);
@@ -102,21 +102,21 @@ describe('User GraphQL Resolvers', () => {
 
     describe('phone_number resolver', () => {
       it('should decrypt phone for own user', () => {
-        const user = createMockUser('user-123', undefined, '+1-555-123-4567');
+        const user = createMockUser('unit-test-user-123', undefined, '+1-555-123-4567');
         const result = userSummaryResolver.phone_number(user, {}, mockContext);
 
         expect(result).toBe('+1-555-123-4567');
       });
 
       it('should return null for other users', () => {
-        const user = createMockUser('other-user-456', undefined, '+1-555-123-4567');
+        const user = createMockUser('unit-test-user-456', undefined, '+1-555-123-4567');
         const result = userSummaryResolver.phone_number(user, {}, mockContext);
 
         expect(result).toBeNull();
       });
 
       it('should return null when no user context', () => {
-        const user = createMockUser('user-123', undefined, '+1-555-123-4567');
+        const user = createMockUser('unit-test-user-123', undefined, '+1-555-123-4567');
         const result = userSummaryResolver.phone_number(user, {}, {});
 
         expect(result).toBeNull();
@@ -124,7 +124,7 @@ describe('User GraphQL Resolvers', () => {
 
       it('should handle non-encrypted phone', () => {
         const user = {
-          ...createMockUser('user-123'),
+          ...createMockUser('unit-test-user-123'),
           phone_number: '+1-555-123-4567',
         };
         const result = userSummaryResolver.phone_number(user, {}, mockContext);
@@ -136,12 +136,12 @@ describe('User GraphQL Resolvers', () => {
 
   describe('userQueryResolvers', () => {
     const mockContext = {
-      user: { id: 'user-123', email: 'test@example.com', banned: false },
+      user: { id: 'unit-test-user-123', email: 'unit-test-basic@example.com', banned: false },
     };
 
     const createMockDbUser = (id: string, email?: string, phone?: string) => ({
       id,
-      username: 'testuser',
+      username: 'unit-test-basic-user',
       first_name: 'Test',
       last_name: 'User',
       email_address: email ? createEncryptedField(email) : null,
@@ -153,17 +153,21 @@ describe('User GraphQL Resolvers', () => {
 
     describe('me resolver', () => {
       it('should return current user with decrypted sensitive data', async () => {
-        const mockUser = createMockDbUser('user-123', 'test@example.com', '+1-555-123-4567');
+        const mockUser = createMockDbUser(
+          'unit-test-user-123',
+          'unit-test-basic@example.com',
+          '+1-555-123-4567'
+        );
         mockDb.query.users.findFirst.mockResolvedValue(mockUser);
 
         const result = await userQueryResolvers.me({}, {}, mockContext);
 
         expect(result).toEqual({
-          id: 'user-123',
-          username: 'testuser',
+          id: 'unit-test-user-123',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
-          email_address: 'test@example.com',
+          email_address: 'unit-test-basic@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
           isAdmin: false,
@@ -184,17 +188,21 @@ describe('User GraphQL Resolvers', () => {
 
     describe('user resolver', () => {
       it('should return user with decrypted sensitive data for own user', async () => {
-        const mockUser = createMockDbUser('user-123', 'test@example.com', '+1-555-123-4567');
+        const mockUser = createMockDbUser(
+          'unit-test-user-123',
+          'unit-test-basic@example.com',
+          '+1-555-123-4567'
+        );
         mockDb.query.users.findFirst.mockResolvedValue(mockUser);
 
-        const result = await userQueryResolvers.user({}, { id: 'user-123' }, mockContext);
+        const result = await userQueryResolvers.user({}, { id: 'unit-test-user-123' }, mockContext);
 
         expect(result).toEqual({
-          id: 'user-123',
-          username: 'testuser',
+          id: 'unit-test-user-123',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
-          email_address: 'test@example.com',
+          email_address: 'unit-test-basic@example.com',
           phone_number: '+1-555-123-4567',
           image_url: 'https://example.com/avatar.jpg',
           isAdmin: false,
@@ -203,14 +211,18 @@ describe('User GraphQL Resolvers', () => {
       });
 
       it('should return user with null sensitive data for other users', async () => {
-        const mockUser = createMockDbUser('other-user-456', 'test@example.com', '+1-555-123-4567');
+        const mockUser = createMockDbUser(
+          'unit-test-user-456',
+          'unit-test-basic@example.com',
+          '+1-555-123-4567'
+        );
         mockDb.query.users.findFirst.mockResolvedValue(mockUser);
 
-        const result = await userQueryResolvers.user({}, { id: 'other-user-456' }, mockContext);
+        const result = await userQueryResolvers.user({}, { id: 'unit-test-user-456' }, mockContext);
 
         expect(result).toEqual({
-          id: 'other-user-456',
-          username: 'testuser',
+          id: 'unit-test-user-456',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
           email_address: null,
@@ -233,8 +245,8 @@ describe('User GraphQL Resolvers', () => {
     describe('users resolver', () => {
       it('should return users list with proper sensitive data protection', async () => {
         const mockUsers = [
-          createMockDbUser('user-123', 'own@example.com', '+1-555-123-4567'),
-          createMockDbUser('other-user-456', 'other@example.com', '+1-555-987-6543'),
+          createMockDbUser('unit-test-user-123', 'own@example.com', '+1-555-123-4567'),
+          createMockDbUser('unit-test-user-456', 'other@example.com', '+1-555-987-6543'),
         ];
         mockDb.query.users.findMany.mockResolvedValue(mockUsers);
 
@@ -244,8 +256,8 @@ describe('User GraphQL Resolvers', () => {
 
         // Own user should have decrypted data
         expect(result[0]).toEqual({
-          id: 'user-123',
-          username: 'testuser',
+          id: 'unit-test-user-123',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
           email_address: 'own@example.com',
@@ -257,8 +269,8 @@ describe('User GraphQL Resolvers', () => {
 
         // Other user should have null sensitive data
         expect(result[1]).toEqual({
-          id: 'other-user-456',
-          username: 'testuser',
+          id: 'unit-test-user-456',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
           email_address: null,
@@ -281,8 +293,8 @@ describe('User GraphQL Resolvers', () => {
     describe('searchUsers resolver', () => {
       it('should return search results with proper sensitive data protection', async () => {
         const mockUsers = [
-          createMockDbUser('user-123', 'own@example.com', '+1-555-123-4567'),
-          createMockDbUser('other-user-456', 'other@example.com', '+1-555-987-6543'),
+          createMockDbUser('unit-test-user-123', 'own@example.com', '+1-555-123-4567'),
+          createMockDbUser('unit-test-user-456', 'other@example.com', '+1-555-987-6543'),
         ];
         mockDb.query.users.findMany.mockResolvedValue(mockUsers);
 
@@ -294,8 +306,8 @@ describe('User GraphQL Resolvers', () => {
 
         // Own user should have decrypted data
         expect(result.edges[0].node).toEqual({
-          id: 'user-123',
-          username: 'testuser',
+          id: 'unit-test-user-123',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
           email_address: 'own@example.com',
@@ -307,8 +319,8 @@ describe('User GraphQL Resolvers', () => {
 
         // Other user should have null sensitive data
         expect(result.edges[1].node).toEqual({
-          id: 'other-user-456',
-          username: 'testuser',
+          id: 'unit-test-user-456',
+          username: 'unit-test-basic-user',
           first_name: 'Test',
           last_name: 'User',
           email_address: null,

@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
-import type { IErrorState, IUseErrorHandlerReturn } from '@/lib/types';
 import { logError } from '@/lib/utils/logger';
+import type { IErrorState, IUseErrorHandlerReturn } from '@/types';
 
 /**
  * Reusable error handling hook
@@ -55,6 +55,7 @@ export function useErrorHandler(): IUseErrorHandlerReturn {
 
   return {
     error,
+    handleError: setError,
     setError,
     clearError,
     handleAsyncError,

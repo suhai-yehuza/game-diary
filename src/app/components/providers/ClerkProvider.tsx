@@ -4,6 +4,20 @@ import { ClerkProvider } from '@clerk/nextjs';
 import type { ReactNode } from 'react';
 
 export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
+  // Check if we should bypass Clerk (mock mode, test environment, etc.)
+  const shouldBypassClerk =
+    process.env.NODE_ENV === 'test' ||
+    process.env.MOCK_MODE === 'true' ||
+    process.env.E2E_AUTH_BYPASS === 'true' ||
+    process.env.PLAYWRIGHT_TEST === 'true' ||
+    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+
+  // If we should bypass Clerk, just return children without the provider
+  if (shouldBypassClerk) {
+    console.log('[CLERK BYPASS] Skipping ClerkProvider in mock/test mode');
+    return <>{children}</>;
+  }
+
   return (
     <ClerkProvider
       appearance={{
@@ -18,6 +32,23 @@ export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
           formFieldInput:
             'border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500',
           footerActionLink: 'text-blue-600 hover:text-blue-700',
+          alternativeMethodsBlockButton: '!text-black hover:!text-gray-800',
+          alternativeMethodsBlockButtonText: '!text-black hover:!text-gray-800',
+          formFieldAction: '!text-black hover:!text-gray-800',
+          formFieldActionText: '!text-black hover:!text-gray-800',
+          identityPreviewText: '!text-black hover:!text-gray-800',
+          identityPreviewEditButton: '!text-black hover:!text-gray-800',
+          formFieldActionLink: '!text-black hover:!text-gray-800',
+          formFieldActionLinkText: '!text-black hover:!text-gray-800',
+        },
+        variables: {
+          colorPrimary: '#000000',
+          colorText: '#000000',
+          colorTextSecondary: '#000000',
+          colorDanger: '#000000',
+          colorSuccess: '#000000',
+          colorWarning: '#000000',
+          colorNeutral: '#000000',
         },
       }}
       // Add proper configuration for SSO callbacks

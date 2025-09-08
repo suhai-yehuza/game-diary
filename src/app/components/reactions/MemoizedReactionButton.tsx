@@ -1,13 +1,11 @@
 import { memo } from 'react';
 
-import type { IReactionGroup as _IReactionGroup, IMemoizedReactionButtonProps } from '@/lib/types';
 import {
   formatReactionCount,
   formatReactionCountWithEmoji,
   getEmojiName,
 } from '@/lib/utils/formatReactionCount';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { IReactionGroup as _IReactionGroup, IMemoizedReactionButtonProps } from '@/types';
 
 export const MemoizedReactionButton = memo(function MemoizedReactionButton({
   group,

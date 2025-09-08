@@ -33,12 +33,9 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
-import type { IGameLog, IGameLogDetailPageProps } from '@/lib/types';
-import {
-  useGetGameLogQuery,
-  ParentType,
-  type GetGameLogQuery,
-} from '@/lib/types/generated/graphql';
+import { useGetGameLogQuery, ParentType } from '@/types';
+import type { IGameLog, IGameLogDetailPageProps, GetGameLogQuery } from '@/types';
+
 // import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Interface moved to src/lib/types/page.types.ts
@@ -77,9 +74,8 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   const [isClient, setIsClient] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<GetGameLogQuery['gameLog'] | null>(null);
-  const [resolvedParams, setResolvedParams] = useState<{ gameLogId: string } | null>(null);
 
-  const { handleParamsResolution } = useCentralizedErrorHandler({
+  const { handleParamsResolution: _handleParamsResolution } = useCentralizedErrorHandler({
     context: { component: 'GameLogDetailPage', action: 'Load game log params' },
   });
 
@@ -91,19 +87,8 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Load params once on mount
-  useEffect(() => {
-    const loadParams = async () => {
-      const resolved = (await handleParamsResolution(params)) as { gameLogId: string } | undefined;
-      if (resolved?.gameLogId) {
-        setResolvedParams(resolved);
-      } else {
-        console.error('No gameLogId in params:', resolved);
-      }
-    };
-
-    void loadParams();
-  }, [params, handleParamsResolution]);
+  // Use params directly since it's already resolved
+  const resolvedParams = params;
 
   // Calculate query variables and skip condition using useMemo for reactive updates
   const queryVariables = useMemo(() => {
@@ -194,7 +179,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                   </p>
                   <div className="mt-3">
                     <Link href="/sign-in">
-                      <Button size="sm" className={getButtonVariant('primary')}>
+                      <Button size="sm" variant="default" className={getButtonVariant('primary')}>
                         Sign In
                       </Button>
                     </Link>
@@ -278,7 +263,11 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                       </p>
                       <div className="mt-3">
                         <Link href="/sign-in">
-                          <Button size="sm" className={getButtonVariant('primary')}>
+                          <Button
+                            size="sm"
+                            variant="default"
+                            className={getButtonVariant('primary')}
+                          >
                             Sign In
                           </Button>
                         </Link>
@@ -419,10 +408,10 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
-      weekday: 'long',
+      weekday: 'short',
+      month: 'short',
+      day: '2-digit',
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
     });
   };
 
@@ -480,8 +469,10 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
       | {
           status?: string;
           date?: string;
-          home_team_score?: number | null;
-          away_team_score?: number | null;
+          scores?: {
+            home?: { points?: number | null };
+            visitors?: { points?: number | null };
+          } | null;
         }
       | null
       | undefined
@@ -494,10 +485,10 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
 
     // If the game has scores, it's finished regardless of status
     if (
-      game.home_team_score !== null &&
-      game.away_team_score !== null &&
-      game.home_team_score !== undefined &&
-      game.away_team_score !== undefined
+      game.scores?.home?.points !== null &&
+      game.scores?.visitors?.points !== null &&
+      game.scores?.home?.points !== undefined &&
+      game.scores?.visitors?.points !== undefined
     ) {
       return 'FINISHED';
     }
@@ -515,10 +506,11 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
   };
 
   const getWinner = () => {
-    if (!gameLog.game?.home_team_score || !gameLog.game?.away_team_score) return null;
+    const scores = gameLog.game?.scores;
+    if (!scores?.home?.points || !scores?.visitors?.points) return null;
 
-    const homeScore = gameLog.game.home_team_score;
-    const awayScore = gameLog.game.away_team_score;
+    const homeScore = scores.home.points;
+    const awayScore = scores.visitors.points;
 
     if (homeScore > awayScore) return 'home';
     if (awayScore > homeScore) return 'away';
@@ -550,8 +542,8 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
             </li>
             <ChevronRight className="w-4 h-4" />
             <li className="text-neutral-900 dark:text-neutral-100 font-medium" aria-current="page">
-              {gameLog.game?.away_team?.code || gameLog.game?.away_team?.nickname || 'Away'} @{' '}
-              {gameLog.game?.home_team?.code || gameLog.game?.home_team?.nickname || 'Home'}
+              {gameLog.game?.teams?.visitors?.nickname || 'Away'} @{' '}
+              {gameLog.game?.teams?.home?.nickname || 'Home'}
             </li>
           </ol>
         </nav>
@@ -568,6 +560,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
             <Button
               onClick={() => setEditingGameLog(gameLog)}
               size="sm"
+              variant="default"
               className={`flex items-center gap-2 ${getButtonVariant('primary')}`}
             >
               <Edit className="w-4 h-4" />
@@ -582,7 +575,7 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-2xl font-bold">
-                  {gameLog.game?.away_team?.name} @ {gameLog.game?.home_team?.name}
+                  {gameLog.game?.teams?.visitors?.name} @ {gameLog.game?.teams?.home?.name}
                 </CardTitle>
                 <p className="text-neutral-600 dark:text-neutral-400 mt-1">
                   Game Log by @
@@ -649,24 +642,24 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                   }`}
                 >
                   <div className="mb-4">
-                    {gameLog.game.away_team?.logo && (
+                    {gameLog.game?.teams?.visitors?.logo && (
                       <Image
-                        src={gameLog.game.away_team.logo}
-                        alt={`${gameLog.game.away_team.name} logo`}
+                        src={gameLog.game?.teams?.visitors?.logo}
+                        alt={`${gameLog.game?.teams?.visitors?.name} logo`}
                         width={64}
                         height={64}
                         className="w-16 h-16 mx-auto mb-2"
                       />
                     )}
                     <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                      {gameLog.game.away_team?.name}
+                      {gameLog.game?.teams?.visitors?.name}
                     </h3>
                     <p className="text-neutral-600 dark:text-neutral-400">
-                      {gameLog.game.away_team?.nickname}
+                      {gameLog.game?.teams?.visitors?.nickname}
                     </p>
                   </div>
                   <div className="text-4xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {gameLog.game.away_team_score ?? '-'}
+                    {gameLog.game?.scores?.visitors?.points ?? '-'}
                   </div>
                   {winner === 'away' && (
                     <div className="mt-2">
@@ -684,10 +677,10 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                   }`}
                 >
                   <div className="mb-4">
-                    {gameLog.game.home_team?.logo && (
+                    {gameLog.game?.teams?.home?.logo && (
                       <Image
-                        src={gameLog.game.home_team.logo}
-                        alt={`${gameLog.game.home_team.name} logo`}
+                        src={gameLog.game?.teams?.home?.logo}
+                        alt={`${gameLog.game?.teams?.home?.name} logo`}
                         width={64}
                         height={64}
                         className="w-16 h-16 mx-auto mb-2"
@@ -695,14 +688,14 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                       />
                     )}
                     <h3 className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                      {gameLog.game.home_team?.name}
+                      {gameLog.game?.teams?.home?.name}
                     </h3>
                     <p className="text-neutral-600 dark:text-neutral-400">
-                      {gameLog.game.home_team?.nickname}
+                      {gameLog.game?.teams?.home?.nickname}
                     </p>
                   </div>
                   <div className="text-4xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {gameLog.game.home_team_score ?? '-'}
+                    {gameLog.game?.scores?.home?.points ?? '-'}
                   </div>
                   {winner === 'home' && (
                     <div className="mt-2">
@@ -841,6 +834,10 @@ export default function GameLogDetailPage({ params }: IGameLogDetailPageProps) {
                 targetType={ParentType.GameLog}
                 size="lg"
                 showCount={true}
+                onReactionSelect={(emoji: string) => {
+                  // Handle reaction selection
+                  console.log('Reaction selected:', emoji);
+                }}
               />
             </div>
 

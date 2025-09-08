@@ -1,6 +1,6 @@
 import { Star } from 'lucide-react';
 
-import type { IRatingStarsProps } from '@/lib/types';
+import type { IRatingStarsProps } from '@/types';
 
 export const RatingStars = ({ rating }: IRatingStarsProps) => {
   return (

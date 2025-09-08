@@ -4,9 +4,7 @@ import { User, Calendar, GraduationCap, Ruler, Weight, Building2 } from 'lucide-
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IPlayerResponse as _IPlayerResponse, IPlayerCardProps } from '@/lib/types';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { IPlayerResponse as _IPlayerResponse, IPlayerCardProps } from '@/types';
 
 export function PlayerCard({ player }: IPlayerCardProps) {
   const getFullName = () => {
@@ -83,11 +81,14 @@ export function PlayerCard({ player }: IPlayerCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 player-card-enhanced">
-      <CardContent className="p-4 sm:p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+    <Card
+      className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 player-card-enhanced h-full flex flex-col"
+      data-testid="player-card"
+    >
+      <CardContent className="p-4 sm:p-6 flex flex-col h-full">
+        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4 h-full">
           {/* Player Info */}
-          <div className="flex-1">
+          <div className="flex-1 flex flex-col">
             <div className="flex items-center gap-3 sm:gap-4 mb-3">
               {/* Player Avatar */}
               <div className="flex-shrink-0">
@@ -127,7 +128,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
             </div>
 
             {/* Additional Info */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-700 dark:text-gray-400">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-700 dark:text-gray-400 mt-auto">
               {player.college && (
                 <div className="flex items-center gap-1">
                   <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4" />

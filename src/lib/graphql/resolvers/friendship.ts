@@ -3,10 +3,10 @@ import { eq, and, or, desc, asc, sql, isNull } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import { FRIENDSHIP_STATUS } from '@/lib/types';
-import type { GraphQLContext } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
+import { FRIENDSHIP_STATUS } from '@/types';
+import type { GraphQLContext } from '@/types';
 
 // Friendship Query Resolvers
 export const friendshipQueryResolvers = {
@@ -46,7 +46,7 @@ export const friendshipQueryResolvers = {
     // Always filter out soft deleted friendships
     whereConditions.push(isNull(friendships.deleted_at));
 
-    // Always filter by current user
+    // Always filter by current user (temporarily using old logic until canonical_id is fully set up)
     whereConditions.push(
       or(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, context.user.id))
     );
@@ -121,6 +121,7 @@ export const friendshipQueryResolvers = {
               email_address: null, // Don't expose email
               image_url: friendship.user?.image_url ?? null,
               created_at: friendship.user?.created_at ?? null,
+              isAdmin: friendship.user?.isAdmin ?? false, // Ensure isAdmin is always present
             },
             recipient: {
               id: friendship.friend_id,
@@ -130,6 +131,7 @@ export const friendshipQueryResolvers = {
               email_address: null, // Don't expose email
               image_url: friendship.friend?.image_url ?? null,
               created_at: friendship.friend?.created_at ?? null,
+              isAdmin: friendship.friend?.isAdmin ?? false, // Ensure isAdmin is always present
             },
           },
           cursor: friendship.id,
@@ -227,6 +229,7 @@ export const friendshipQueryResolvers = {
               email_address: null,
               image_url: friendship.user?.image_url ?? null,
               created_at: friendship.user?.created_at ?? null,
+              isAdmin: friendship.user?.isAdmin ?? false, // Ensure isAdmin is always present
             },
             recipient: {
               id: friendship.friend_id,
@@ -236,6 +239,7 @@ export const friendshipQueryResolvers = {
               email_address: null,
               image_url: friendship.friend?.image_url ?? null,
               created_at: friendship.friend?.created_at ?? null,
+              isAdmin: friendship.friend?.isAdmin ?? false, // Ensure isAdmin is always present
             },
           },
           cursor: friendship.id,
@@ -285,10 +289,14 @@ export const friendshipQueryResolvers = {
     }
 
     try {
+      // Temporarily use old bidirectional query until canonical_id is fully set up
       const friendship = await db()?.query.friendships.findFirst({
-        where: or(
-          and(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, args.userId)),
-          and(eq(friendships.user_id, args.userId), eq(friendships.friend_id, context.user.id))
+        where: and(
+          isNull(friendships.deleted_at),
+          or(
+            and(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, args.userId)),
+            and(eq(friendships.user_id, args.userId), eq(friendships.friend_id, context.user.id))
+          )
         ),
       });
 
@@ -342,14 +350,17 @@ export const friendshipMutationResolvers = {
     }
 
     try {
-      // Check if a friendship already exists between these users
+      // Check if a friendship already exists between these users (temporarily using old logic)
       const existingFriendship = await db()
         ?.select()
         .from(friendships)
         .where(
-          or(
-            and(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, args.userId)),
-            and(eq(friendships.user_id, args.userId), eq(friendships.friend_id, context.user.id))
+          and(
+            isNull(friendships.deleted_at),
+            or(
+              and(eq(friendships.user_id, context.user.id), eq(friendships.friend_id, args.userId)),
+              and(eq(friendships.user_id, args.userId), eq(friendships.friend_id, context.user.id))
+            )
           )
         )
         .limit(1);
@@ -432,6 +443,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.user?.image_url ?? null,
                   created_at: completeFriendship.user?.created_at ?? null,
+                  isAdmin: completeFriendship.user?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
                 recipient: {
                   id: completeFriendship.friend_id,
@@ -441,6 +453,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.friend?.image_url ?? null,
                   created_at: completeFriendship.friend?.created_at ?? null,
+                  isAdmin: completeFriendship.friend?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
               }
             : null,
@@ -512,6 +525,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.user?.image_url ?? null,
                   created_at: completeFriendship.user?.created_at ?? null,
+                  isAdmin: completeFriendship.user?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
                 recipient: {
                   id: completeFriendship.friend_id,
@@ -521,6 +535,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.friend?.image_url ?? null,
                   created_at: completeFriendship.friend?.created_at ?? null,
+                  isAdmin: completeFriendship.friend?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
               }
             : null,
@@ -594,6 +609,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.user?.image_url ?? null,
                   created_at: completeFriendship.user?.created_at ?? null,
+                  isAdmin: completeFriendship.user?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
                 recipient: {
                   id: completeFriendship.friend_id,
@@ -603,6 +619,7 @@ export const friendshipMutationResolvers = {
                   email_address: null, // Don't expose email
                   image_url: completeFriendship.friend?.image_url ?? null,
                   created_at: completeFriendship.friend?.created_at ?? null,
+                  isAdmin: completeFriendship.friend?.isAdmin ?? false, // Ensure isAdmin is always present
                 },
               }
             : null,

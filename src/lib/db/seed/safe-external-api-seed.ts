@@ -1,10 +1,7 @@
 // Safe external API data seeding (no overwrites)
 
 import * as schema from '@/lib/db/schema';
-import type {
-  IExternalApiSeedingConfig,
-  IDbRefreshProgressCallback,
-} from '@/lib/types/seeding.types';
+import type { IExternalApiSeedingConfig, IDbRefreshProgressCallback } from '@/types';
 
 import {
   createDatabaseConnection,
@@ -17,8 +14,6 @@ import {
   seedGames,
   seedPlayers,
 } from './shared-seeding-utils';
-
-export type { IDbRefreshProgressCallback };
 
 export async function safeSeedExternalApiData(
   optimizationConfig?: IExternalApiSeedingConfig,
@@ -42,7 +37,7 @@ export async function safeSeedExternalApiData(
       status: 'running',
       message: 'Starting database refresh process',
       details: 'Initializing database connection and API client',
-      startTime,
+      startTime: startTime.getTime(),
     });
   }
 
@@ -57,7 +52,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Fetching and inserting leagues',
         details: 'Processing league data from NBA API',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -75,7 +70,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Fetching and inserting seasons',
         details: 'Processing season data from NBA API',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -93,7 +88,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Fetching and inserting teams',
         details: 'Processing team data from NBA API',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -111,7 +106,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Determining which seasons to seed',
         details: 'Processing season configuration and filters',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -119,7 +114,10 @@ export async function safeSeedExternalApiData(
       const allSeasons = await db.select().from(schema.seasons).orderBy(schema.seasons.year);
       const allSeasonsSorted = allSeasons.map(s => s.year).sort((a, b) => b - a);
 
-      return determineSeasonsToSeed(allSeasonsSorted, optimizationConfig || {});
+      return determineSeasonsToSeed(
+        allSeasonsSorted,
+        optimizationConfig || ({} as IExternalApiSeedingConfig)
+      );
     });
 
     // Step 5: Seed games (safely - no overwrites)
@@ -132,7 +130,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Fetching and safely inserting games',
         details: 'Processing game data from NBA API (safe mode)',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -153,7 +151,7 @@ export async function safeSeedExternalApiData(
         status: 'running',
         message: 'Fetching and safely inserting players',
         details: 'Processing player data from NBA API (safe mode)',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -181,7 +179,7 @@ export async function safeSeedExternalApiData(
         status: 'completed',
         message: 'Database refresh completed successfully',
         details: `Seeded ${totalGamesInserted} games and ${totalPlayersInserted} players`,
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 
@@ -200,7 +198,7 @@ export async function safeSeedExternalApiData(
         status: 'error',
         message: 'Database refresh failed',
         details: error instanceof Error ? error.message : 'Unknown error occurred',
-        startTime,
+        startTime: startTime.getTime(),
       });
     }
 

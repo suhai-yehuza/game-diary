@@ -1,7 +1,7 @@
 import { Eye, EyeOff, Lock, Users } from 'lucide-react';
 
-import { CLASSIFICATION } from '@/lib/types';
-import type { IClassificationIconProps } from '@/lib/types';
+import { CLASSIFICATION } from '@/types';
+import type { IClassificationIconProps } from '@/types';
 
 export const ClassificationIcon = ({ classification }: IClassificationIconProps) => {
   switch (classification) {

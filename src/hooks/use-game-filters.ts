@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 
 import { GAME_STATUS_VALUES } from '@/lib/constants';
-import type { IGameResponse, IFilterState, IFilterOptions } from '@/lib/types';
+import type { IGameResponse, IFilterState, IFilterOptions } from '@/types';
 
 const INITIAL_FILTERS: IFilterState = {
   searchTerm: '',
@@ -12,6 +12,8 @@ const INITIAL_FILTERS: IFilterState = {
   customEndDate: '',
   arenaFilter: 'all',
   teamFilter: 'all',
+  conferenceFilter: 'all',
+  divisionFilter: 'all',
   sortBy: 'date',
   sortDirection: 'desc',
 };
@@ -27,41 +29,74 @@ export function useGameFilters(games: IGameResponse[]) {
     ).sort();
     const teams = Array.from(
       new Set([
-        ...games.map(game => game.teams.home.name).filter(name => name && typeof name === 'string'),
         ...games
-          .map(game => game.teams.visitors.name)
+          .map(game => game.teams?.home?.name)
+          .filter(name => name && typeof name === 'string'),
+        ...games
+          .map(game => game.teams?.visitors?.name)
           .filter(name => name && typeof name === 'string'),
       ])
     ).sort();
     const seasons = Array.from(
       new Set(games.map(game => game.season).filter(season => season && typeof season === 'number'))
-    ).sort((a, b) => b - a);
+    ).sort((a, b) => {
+      const numA = typeof a === 'number' ? a : 0;
+      const numB = typeof b === 'number' ? b : 0;
+      return numB - numA;
+    });
     const statuses = Array.from(
       new Set(
         games
           .map(game => {
-            const status = game.status?.short;
+            const status = typeof game.status === 'string' ? game.status : game.status?.short;
             return status ? (typeof status === 'string' ? status : String(status)) : null;
           })
           .filter((status): status is string => status !== null && typeof status === 'string')
       )
     ).sort();
 
-    return { arenas, teams, seasons, statuses };
+    return {
+      arenas: arenas
+        .filter((arena): arena is string => Boolean(arena))
+        .map(arena => ({ value: arena, label: arena })),
+      status: statuses.filter(status => status).map(status => ({ value: status, label: status })),
+      season: seasons
+        .filter(season => season !== undefined)
+        .map(season => ({ value: season.toString(), label: season.toString() })),
+      teams: teams
+        .filter((team): team is string => Boolean(team))
+        .map(team => ({ value: team, label: team })),
+    };
   }, [games]);
 
   // Filter and sort games
   const filteredGames = useMemo(() => {
+    // If no filters are applied, return games as-is without processing
+    const hasActiveFilters =
+      filters.searchTerm ||
+      filters.statusFilter !== 'all' ||
+      filters.seasonFilter !== 'all' ||
+      filters.dateRange !== 'all' ||
+      filters.arenaFilter !== 'all' ||
+      filters.teamFilter !== 'all';
+
+    if (!hasActiveFilters) {
+      return games; // Return games without processing when no filters
+    }
+
     let filtered = [...games];
 
     // Search filter
     if (filters.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();
       filtered = filtered.filter(game => {
-        const homeTeam = game.teams.home.name?.toLowerCase() ?? '';
-        const awayTeam = game.teams.visitors.name?.toLowerCase() ?? '';
+        const homeTeam = game.teams?.home?.name?.toLowerCase() ?? '';
+        const awayTeam = game.teams?.visitors?.name?.toLowerCase() ?? '';
         const arena = game.arena?.name?.toLowerCase() ?? '';
-        const gameDate = new Date(game.date.start).toLocaleDateString().toLowerCase();
+        const gameDate =
+          typeof game.date === 'string'
+            ? new Date(game.date).toLocaleDateString().toLowerCase()
+            : new Date(game.date.start).toLocaleDateString().toLowerCase();
         const season = game.season?.toString() ?? '';
 
         return (
@@ -77,9 +112,10 @@ export function useGameFilters(games: IGameResponse[]) {
     // Status filter
     if (filters.statusFilter !== 'all') {
       filtered = filtered.filter(game => {
-        const gameStatus = game.status?.short;
-        const gameStatusLong = game.status?.long;
-        const gameDate = new Date(game.date.start);
+        const gameStatus = typeof game.status === 'string' ? game.status : game.status?.short;
+        const gameStatusLong = typeof game.status === 'string' ? game.status : game.status?.long;
+        const gameDate =
+          typeof game.date === 'string' ? new Date(game.date) : new Date(game.date.start);
         const now = new Date();
 
         // Handle both string and number status values
@@ -142,11 +178,23 @@ export function useGameFilters(games: IGameResponse[]) {
 
     // Season filter
     if (filters.seasonFilter !== 'all') {
+      // Season filter applied: ${filters.seasonFilter} (${typeof filters.seasonFilter})
+
       filtered = filtered.filter(game => {
         const gameSeason = game.season; // Use number directly
         const filterYear = parseInt(filters.seasonFilter);
-        return filterYear === gameSeason; // Compare numbers directly
+
+        // Handle both string and number season values
+        if (typeof gameSeason === 'string') {
+          return parseInt(gameSeason) === filterYear;
+        } else if (typeof gameSeason === 'number') {
+          return gameSeason === filterYear;
+        }
+
+        return false; // Skip games without season data
       });
+
+      // After season filter: ${filtered.length} games remaining
     }
 
     // Date range filter
@@ -155,7 +203,8 @@ export function useGameFilters(games: IGameResponse[]) {
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
       filtered = filtered.filter(game => {
-        const gameDate = new Date(game.date.start);
+        const gameDate =
+          typeof game.date === 'string' ? new Date(game.date) : new Date(game.date.start);
 
         switch (filters.dateRange) {
           case 'today': {
@@ -197,8 +246,8 @@ export function useGameFilters(games: IGameResponse[]) {
     if (filters.teamFilter !== 'all') {
       filtered = filtered.filter(
         game =>
-          (game.teams.home.name ?? '') === filters.teamFilter ||
-          (game.teams.visitors.name ?? '') === filters.teamFilter
+          (game.teams?.home?.name ?? '') === filters.teamFilter ||
+          (game.teams?.visitors?.name ?? '') === filters.teamFilter
       );
     }
 
@@ -207,17 +256,23 @@ export function useGameFilters(games: IGameResponse[]) {
       let comparison = 0;
 
       switch (filters.sortBy) {
-        case 'date':
-          comparison = new Date(a.date.start).getTime() - new Date(b.date.start).getTime();
+        case 'date': {
+          const aDate = typeof a.date === 'string' ? new Date(a.date) : new Date(a.date.start);
+          const bDate = typeof b.date === 'string' ? new Date(b.date) : new Date(b.date.start);
+          comparison = aDate.getTime() - bDate.getTime();
           break;
-        case 'status':
-          comparison = (a.status?.short ?? '').localeCompare(b.status?.short ?? '');
+        }
+        case 'status': {
+          const aStatus = typeof a.status === 'string' ? a.status : a.status?.short;
+          const bStatus = typeof b.status === 'string' ? b.status : b.status?.short;
+          comparison = (aStatus?.toString() ?? '').localeCompare(bStatus?.toString() ?? '');
           break;
+        }
         case 'arena':
           comparison = (a.arena?.name ?? '').localeCompare(b.arena?.name ?? '');
           break;
         case 'team':
-          comparison = (a.teams.home.name ?? '').localeCompare(b.teams.home.name ?? '');
+          comparison = (a.teams?.home?.name ?? '').localeCompare(b.teams?.home?.name ?? '');
           break;
       }
 

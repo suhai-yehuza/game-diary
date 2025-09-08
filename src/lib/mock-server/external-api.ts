@@ -1,6 +1,6 @@
+import type { ExternalAPIResponse } from '@/types';
 import { API_CONFIG } from '@src/lib/config/app.config';
 import { mockDataProvider } from '@src/lib/mock';
-import type { ExternalAPIResponse } from '@src/lib/types';
 
 // Mock external API endpoints based on API_CONFIG
 const MOCK_ENDPOINTS: Record<string, string> = {
@@ -64,9 +64,11 @@ function simulateAPIDelay(): Promise<void> {
 function generateErrorResponse(errorType: keyof typeof MOCK_ERRORS): ExternalAPIResponse {
   const error = MOCK_ERRORS[errorType];
   return {
+    data: null,
+    status: 500,
     success: false,
     error: error.message,
-    timestamp: new Date().toISOString(),
+    timestamp: new Date(),
     latency: Math.random() * 100 + 50,
   };
 }
@@ -74,9 +76,10 @@ function generateErrorResponse(errorType: keyof typeof MOCK_ERRORS): ExternalAPI
 // Generate successful API response
 function generateSuccessResponse(data: unknown): ExternalAPIResponse {
   return {
-    success: true,
     data,
-    timestamp: new Date().toISOString(),
+    status: 200,
+    success: true,
+    timestamp: new Date(),
     latency: Math.random() * 200 + 100,
   };
 }
@@ -112,7 +115,7 @@ function generateMockGraphQLResponse(params?: Record<string, unknown>) {
   return {
     data: {
       message: 'Mock GraphQL response',
-      timestamp: new Date().toISOString(),
+      timestamp: new Date(),
     },
   };
 }
@@ -247,7 +250,7 @@ export function createMockExternalAPI() {
         endpoint,
         status: 'success',
         data: mockData,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       };
     },
 
@@ -260,9 +263,11 @@ export function createMockExternalAPI() {
     async simulateTimeout(): Promise<ExternalAPIResponse> {
       await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second timeout
       return {
+        data: null,
+        status: 408,
         success: false,
         error: 'Request timeout',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         latency: 5000,
       };
     },
@@ -312,14 +317,14 @@ export function createMockExternalAPI() {
           success: true,
           data: filteredData,
           count: filteredData.length,
-          timestamp: new Date().toISOString(),
+          timestamp: new Date(),
         };
       }
 
       return {
         success: false,
         error: 'No data available',
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
       };
     },
   };

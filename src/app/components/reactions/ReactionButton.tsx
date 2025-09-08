@@ -1,12 +1,12 @@
 import { useState, memo } from 'react';
 
-import type { IReactionButtonProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import {
   formatReactionCount,
   formatReactionCountWithEmoji,
   getEmojiName,
 } from '@/lib/utils/formatReactionCount';
+import type { IReactionButtonProps } from '@/types';
 
 export const ReactionButton = memo(function ReactionButton({
   emoji,

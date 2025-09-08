@@ -1,12 +1,13 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 
 import { API_LIMITS } from '@/lib/constants';
+import { errorHandlers } from '@/lib/utils/error-handler';
+import { logger } from '@/lib/utils/logger';
 import type {
   IPlayerResponse,
   IEnhancedPlayerFilterState,
   IEnhancedPlayerFilterOptions,
-} from '@/lib/types';
-import { errorHandlers } from '@/lib/utils/error-handler';
+} from '@/types';
 
 const INITIAL_FILTERS: IEnhancedPlayerFilterState = {
   searchTerm: '',
@@ -17,26 +18,32 @@ const INITIAL_FILTERS: IEnhancedPlayerFilterState = {
   countryFilter: 'all',
   sortBy: 'name',
   sortDirection: 'asc',
+  customFilters: {},
 };
 
-export function useEnhancedPlayerFilters() {
+export function useEnhancedPlayerFilters(options: { forceRefresh?: boolean } = {}) {
+  const { forceRefresh = false } = options;
+
   const [filters, setFilters] = useState<IEnhancedPlayerFilterState>(INITIAL_FILTERS);
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [players, setPlayers] = useState<IPlayerResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cacheStatus, setCacheStatus] = useState<'cached' | 'fresh' | 'none'>('none');
   const [filterOptions, setFilterOptions] = useState<IEnhancedPlayerFilterOptions>({
     positions: [],
     teams: [],
     colleges: [],
     countries: [],
+    customFilterOptions: {},
   });
   const [totalPlayers, setTotalPlayers] = useState(0);
 
   // Fetch filter options
   const fetchFilterOptions = useCallback(async () => {
     try {
-      const response = await fetch('/api/players?options=true');
+      const bypassParam = forceRefresh ? '&bypass-cache=true' : '';
+      const response = await fetch(`/api/players?options=true${bypassParam}`);
       if (response.ok) {
         const options = await response.json();
         setFilterOptions({
@@ -44,15 +51,20 @@ export function useEnhancedPlayerFilters() {
           teams: options.teams || [],
           colleges: options.colleges || [],
           countries: options.countries || [],
+          customFilterOptions: options.customFilterOptions || {},
         });
+
+        // Set cache status for filter options
+        setCacheStatus(forceRefresh ? 'fresh' : 'cached');
       }
     } catch (error) {
       errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
         component: 'useEnhancedPlayerFilters',
         action: 'Fetch filter options',
       });
+      setCacheStatus('none');
     }
-  }, []);
+  }, [forceRefresh]);
 
   // Fetch players with current filters
   const fetchPlayers = useCallback(async () => {
@@ -81,6 +93,11 @@ export function useEnhancedPlayerFilters() {
       params.append('sortDirection', filters.sortDirection);
       params.append('limit', API_LIMITS.PLAYERS.LARGE.toString());
 
+      // Add cache bypass parameter
+      if (forceRefresh) {
+        params.append('bypass-cache', 'true');
+      }
+
       const response = await fetch(`/api/players?${params.toString()}`);
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status}`);
@@ -89,6 +106,15 @@ export function useEnhancedPlayerFilters() {
       const data = await response.json();
       setPlayers(data.response || []);
       setTotalPlayers(data.results || 0);
+
+      // Set cache status for players
+      setCacheStatus(forceRefresh ? 'fresh' : 'cached');
+
+      logger.info('Players loaded', {
+        count: data.response?.length || 0,
+        source: forceRefresh ? 'fresh' : 'cached',
+        cacheStatus: forceRefresh ? 'fresh' : 'cached',
+      });
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       errorHandlers.api(error, {
@@ -98,12 +124,13 @@ export function useEnhancedPlayerFilters() {
       setError(error.message);
       setPlayers([]);
       setTotalPlayers(0);
+      setCacheStatus('none');
     } finally {
       setLoading(false);
     }
-  }, [filters]);
+  }, [filters, forceRefresh]);
 
-  // Initialize and fetch data
+  // Fetch data when filters change or force refresh is triggered
   useEffect(() => {
     void fetchFilterOptions();
   }, [fetchFilterOptions]);
@@ -112,57 +139,50 @@ export function useEnhancedPlayerFilters() {
     void fetchPlayers();
   }, [fetchPlayers]);
 
-  // Update a single filter
   const updateFilter = useCallback((key: keyof IEnhancedPlayerFilterState, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Clear all filters
   const clearFilters = useCallback(() => {
     setFilters(INITIAL_FILTERS);
   }, []);
 
-  // Toggle advanced filters
   const toggleAdvancedFilters = useCallback(() => {
     setShowAdvancedFilters(prev => !prev);
   }, []);
 
-  // Check if any filters are active
+  const refetch = useCallback(() => {
+    void fetchPlayers();
+  }, [fetchPlayers]);
+
+  const refreshCache = useCallback(() => {
+    void Promise.all([fetchFilterOptions(), fetchPlayers()]);
+  }, [fetchFilterOptions, fetchPlayers]);
+
   const hasActiveFilters = useMemo(() => {
     return (
       filters.searchTerm.trim() !== '' ||
       filters.positionFilter !== 'all' ||
       filters.teamFilter !== 'all' ||
       filters.collegeFilter !== 'all' ||
-      filters.countryFilter !== 'all' ||
-      filters.sortBy !== 'name' ||
-      filters.sortDirection !== 'asc'
+      filters.countryFilter !== 'all'
     );
   }, [filters]);
 
-  // Refetch data
-  const refetch = useCallback(() => {
-    void fetchPlayers();
-  }, [fetchPlayers]);
-
   return {
-    // State
     filters,
     showAdvancedFilters,
     players,
     loading,
     error,
+    cacheStatus,
     filterOptions,
     totalPlayers,
     hasActiveFilters,
-
-    // Actions
     updateFilter,
     clearFilters,
     toggleAdvancedFilters,
     refetch,
+    refreshCache,
   };
 }

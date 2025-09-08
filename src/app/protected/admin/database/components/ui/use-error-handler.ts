@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 
-import type { IErrorState, IUseErrorHandlerReturn } from '@/lib/types';
 import { useErrorHandler as useCentralizedErrorHandler } from '@/lib/utils/error-handler';
+import type { IErrorState, IUseErrorHandlerReturn } from '@/types';
 
 // This file intentionally uses try-catch blocks for error handling
 // as it is a specialized error handler component that needs to capture
@@ -78,6 +78,7 @@ export function useErrorHandler(): IUseErrorHandlerReturn {
 
   return {
     error,
+    handleError: setError,
     setError,
     clearError,
     handleAsyncError,

@@ -1,8 +1,8 @@
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
 
-import type { ISelectProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import type { ISelectProps } from '@/types';
 
 const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
   ({ className, children, placeholder, value, onValueChange, disabled, ...props }, ref) => {
@@ -23,6 +23,8 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
     return (
       <div className="relative">
         <button
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          {...(props as any)}
           ref={ref}
           type="button"
           role="combobox"

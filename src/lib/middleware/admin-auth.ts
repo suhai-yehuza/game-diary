@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { auditLogger } from '@/lib/services/audit-logger';
-import type { IAdminAuthContext } from '@/lib/types';
+import type { IAdminAuthContext } from '@/types';
 
 // Helper to safely extract user roles
 function getUserRoles(sessionClaims: unknown): string[] {
@@ -49,6 +49,7 @@ export async function adminAuthMiddleware(
         method: request.method,
         success: false,
         errorMessage: 'User not authenticated',
+        details: { endpoint: request.url, method: request.method },
       });
 
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
@@ -89,8 +90,12 @@ export async function adminAuthMiddleware(
     });
 
     return {
-      userId,
+      user: null, // Middleware doesn't provide full user object
       isAdmin: true,
+      permissions: ['admin'], // Basic admin permissions
+      loading: false,
+      error: null,
+      userId,
       userEmail: getUserEmail(sessionClaims),
     };
   } catch (error: unknown) {
@@ -106,6 +111,7 @@ export async function adminAuthMiddleware(
       method: request.method,
       success: false,
       errorMessage: err.message,
+      details: { error: err.message, endpoint: request.url, method: request.method },
     });
 
     return NextResponse.json({ error: 'Authentication service error' }, { status: 500 });
@@ -113,15 +119,19 @@ export async function adminAuthMiddleware(
 }
 
 export function withAdminAuth<T extends unknown[]>(
-  handler: (context: IAdminAuthContext, ...args: T) => Promise<Response>
+  handler: (context: IAdminAuthContext, request: NextRequest, ...args: T) => Promise<Response>
 ) {
-  return async (request: NextRequest, ...args: T): Promise<Response> => {
+  return async (
+    request: NextRequest,
+    context: { params: Promise<{ [key: string]: string }> },
+    ...args: T
+  ): Promise<Response> => {
     const authResult = await adminAuthMiddleware(request);
 
     if (authResult instanceof NextResponse) {
       return authResult;
     }
 
-    return handler(authResult, ...args);
+    return handler(authResult, request, ...args);
   };
 }

@@ -17,8 +17,8 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { ICommentProps, IComment } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { ICommentProps, IComment } from '@/types';
+import { ParentType } from '@/types';
 
 export function Comment({
   comment,
@@ -110,7 +110,7 @@ export function Comment({
                       'Unknown User'}
                   </span>
                   <span className="text-xs text-theme-muted">
-                    {format(new Date(displayComment.created_at), 'MMM dd, yyyy HH:mm')}
+                    {format(new Date(displayComment.created_at as string), 'MMM dd, yyyy HH:mm')}
                   </span>
                   {displayComment.updated_at !== displayComment.created_at && (
                     <span className="text-xs text-theme-tertiary">(edited)</span>
@@ -157,20 +157,21 @@ export function Comment({
             )}
 
             {/* Child comments count */}
-            {displayComment.totalChildCommentCount && displayComment.totalChildCommentCount > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowRepliesState(!showRepliesState)}
-                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
-              >
-                <MessageCircle className="h-4 w-4 mr-1" />
-                <span className="text-neutral-900 dark:text-neutral-100">
-                  {displayComment.totalChildCommentCount}{' '}
-                  {displayComment.totalChildCommentCount === 1 ? 'reply' : 'replies'}
-                </span>
-              </Button>
-            )}
+            {(displayComment.totalChildCommentCount as number) &&
+              (displayComment.totalChildCommentCount as number) > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowRepliesState(!showRepliesState)}
+                  className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                >
+                  <MessageCircle className="h-4 w-4 mr-1" />
+                  <span className="text-neutral-900 dark:text-neutral-100">
+                    {displayComment.totalChildCommentCount as number}{' '}
+                    {(displayComment.totalChildCommentCount as number) === 1 ? 'reply' : 'replies'}
+                  </span>
+                </Button>
+              )}
 
             {/* Reactions */}
             <ReactionPicker
@@ -178,6 +179,10 @@ export function Comment({
               targetType={ParentType.Comment}
               size="sm"
               showCount={true}
+              onReactionSelect={(emoji: string) => {
+                // Handle reaction selection
+                console.log('Reaction selected:', emoji);
+              }}
             />
 
             {/* Action menu */}
@@ -220,7 +225,8 @@ export function Comment({
           )}
 
           {/* Show replies section only if there are replies or if replies are currently shown */}
-          {(displayComment.totalChildCommentCount && displayComment.totalChildCommentCount > 0) ||
+          {((displayComment.totalChildCommentCount as number) &&
+            (displayComment.totalChildCommentCount as number) > 0) ||
           showRepliesState ? (
             <div className="mt-3">
               <Button

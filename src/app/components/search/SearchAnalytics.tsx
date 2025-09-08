@@ -2,10 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 
-import type { ISearchAnalyticsProps, ISearchEvent } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
-
-// Interfaces moved to src/lib/types/components.types.ts
+import type { ISearchAnalyticsProps, ISearchEvent } from '@/types';
 
 export function SearchAnalytics({
   query,

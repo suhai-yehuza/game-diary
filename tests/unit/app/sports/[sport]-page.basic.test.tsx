@@ -61,7 +61,7 @@ describe('generateMetadata', () => {
 
     expect(metadata).toEqual({
       title: firstSportConfig.name,
-      description: firstSportConfig.description,
+      description: firstSportConfig.fullName,
     });
   });
 

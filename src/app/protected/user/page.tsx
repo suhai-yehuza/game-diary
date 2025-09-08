@@ -3,7 +3,8 @@
 import { useUser } from '@clerk/nextjs';
 import React from 'react';
 
-import { GameLogsTable } from '@/app/components/game-logs/GameLogsTable';
+import { ErrorBoundary } from '@/app/components/ErrorBoundary';
+import { SimpleGameLogsTable } from '@/app/components/game-logs/SimpleGameLogsTable';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
 import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
@@ -46,12 +47,21 @@ function UserGreeting() {
 export default function UserDashboardPage() {
   const isMobile = useMobileDetection();
   const [selectedTab, setSelectedTab] = React.useState('game-logs');
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  // Handle tab change with loading state
+  const handleTabChange = (value: string) => {
+    setIsLoading(true);
+    setSelectedTab(value);
+    // Simulate loading delay for better UX
+    setTimeout(() => setIsLoading(false), 300);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
       <UserGreeting />
       <div className="container mx-auto px-4 py-4 sm:py-8">
-        <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+        <Tabs value={selectedTab} onValueChange={handleTabChange}>
           {/* Enhanced Responsive Tabs with better visual design */}
           <TabsList
             className={`mb-6 sm:mb-8 ${
@@ -93,7 +103,15 @@ export default function UserDashboardPage() {
           {/* Tab Content - Responsive padding and spacing */}
           <TabsContent value="game-logs" className="mt-0">
             <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
-              <GameLogsTable />
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                </div>
+              ) : (
+                <ErrorBoundary>
+                  <SimpleGameLogsTable />
+                </ErrorBoundary>
+              )}
             </div>
           </TabsContent>
 
@@ -101,7 +119,15 @@ export default function UserDashboardPage() {
             <div
               className={`rounded-lg border bg-background ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8`}
             >
-              <FriendsTable />
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                </div>
+              ) : (
+                <ErrorBoundary>
+                  <FriendsTable />
+                </ErrorBoundary>
+              )}
             </div>
           </TabsContent>
 
@@ -109,7 +135,15 @@ export default function UserDashboardPage() {
             <div
               className={`rounded-lg border bg-background ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8`}
             >
-              <ActivityTable />
+              {isLoading ? (
+                <div className="flex justify-center items-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                </div>
+              ) : (
+                <ErrorBoundary>
+                  <ActivityTable />
+                </ErrorBoundary>
+              )}
             </div>
           </TabsContent>
         </Tabs>

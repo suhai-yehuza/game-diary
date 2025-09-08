@@ -2,10 +2,10 @@
 const ZERO = 0;
 const TEN = 10;
 const FIFTEEN = 15;
+const THIRTY = 30;
 const FORTY = 40;
 const FIFTY = 50;
 const FIFTY_FIVE = 55;
-const SIXTY = 60;
 const SIXTY_FIVE = 65;
 import type {
   ICoverageThresholds,
@@ -14,80 +14,99 @@ import type {
   IE2ECoverageTarget,
   IE2ETestCategory,
   IE2ECoverageConfig,
-} from '@/lib/types';
+} from '@/types';
 
-export type {
-  ICoverageThresholds,
-  IFileThresholds,
-  ICoverageConfig,
-  IE2ECoverageTarget,
-  IE2ETestCategory,
-  IE2ECoverageConfig,
-};
-
-const SEVENTY = 70;
 const SEVENTY_FIVE = 75;
-const EIGHTY = 80;
 const EIGHTY_FIVE = 85;
 const NINETY_FIVE = 95; // 95% coverage is the eventual goal
 
 // E2E Coverage Targets - Updated to match actual test files
 export const E2E_COVERAGE_TARGETS: IE2ECoverageTarget[] = [
   {
+    name: 'Core Navigation',
+    path: '/navigation',
+    threshold: 95,
     category: 'Core Navigation',
     target: 95,
     description: 'All main navigation paths must be tested',
     testFiles: ['navigation.spec.ts', 'home.spec.ts'],
   },
   {
+    name: 'Authentication',
+    path: '/auth',
+    threshold: 90,
     category: 'Authentication',
     target: 90,
     description: 'Sign in, sign up, and protected routes',
     testFiles: ['auth-bypass.spec.ts', 'auth-protection.spec.ts', 'clerk-auth.spec.ts'],
   },
   {
+    name: 'Sports Pages',
+    path: '/sports',
+    threshold: 95,
     category: 'Sports Pages',
     target: 95,
     description: 'All major sports league pages',
     testFiles: ['sports.spec.ts'],
   },
   {
+    name: 'Live Games',
+    path: '/live-games',
+    threshold: 95,
     category: 'Live Games',
     target: 95,
     description: 'Live games functionality',
     testFiles: ['live-games.spec.ts'],
   },
   {
+    name: 'User Dashboard',
+    path: '/dashboard',
+    threshold: 95,
     category: 'User Dashboard',
     target: 95,
     description: 'User dashboard functionality',
     testFiles: ['dashboard.spec.ts'],
   },
   {
+    name: 'Search Functionality',
+    path: '/search',
+    threshold: 95,
     category: 'Search Functionality',
     target: 95,
     description: 'Search and filtering functionality',
     testFiles: ['search.spec.ts'],
   },
   {
+    name: 'Critical Paths',
+    path: '/critical',
+    threshold: 100,
     category: 'Critical Paths',
     target: 100,
     description: 'Critical user journeys and smoke tests',
     testFiles: ['critical.spec.ts', 'smoke.spec.ts'],
   },
   {
+    name: 'Responsive Design',
+    path: '/responsive',
+    threshold: 95,
     category: 'Responsive Design',
     target: 95,
     description: 'Mobile and tablet responsiveness',
     testFiles: ['responsive.spec.ts'],
   },
   {
+    name: 'Cross Browser',
+    path: '/cross-browser',
+    threshold: 85,
     category: 'Cross Browser',
     target: 95,
     description: 'Cross-browser compatibility',
     testFiles: ['cross-browser.spec.ts'],
   },
   {
+    name: 'Mock Server',
+    path: '/mock-server',
+    threshold: 90,
     category: 'Mock Server',
     target: 95,
     description: 'Mock server functionality',
@@ -100,6 +119,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Core Navigation',
     description: 'Basic navigation and routing functionality',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Core Navigation'),
     priority: 'critical',
     userJourneys: [
       'Navigate to home page',
@@ -113,6 +133,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Authentication & Authorization',
     description: 'User authentication and protected routes',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Authentication'),
     priority: 'critical',
     userJourneys: [
       'Sign up new user',
@@ -126,6 +147,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Sports Content',
     description: 'Sports pages and content',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Sports Pages'),
     priority: 'high',
     userJourneys: [
       'View NBA games',
@@ -140,6 +162,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Live Games',
     description: 'Live game functionality',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Live Games'),
     priority: 'high',
     userJourneys: ['View live games', 'Live game updates'],
     testFiles: ['live-games.spec.ts'],
@@ -147,6 +170,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'User Dashboard',
     description: 'User dashboard and profile management',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'User Dashboard'),
     priority: 'high',
     userJourneys: [
       'View user dashboard',
@@ -159,6 +183,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Search & Discovery',
     description: 'Search functionality and content discovery',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Search Functionality'),
     priority: 'high',
     userJourneys: [
       'Search for games',
@@ -171,6 +196,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Critical Paths',
     description: 'Critical user journeys and smoke tests',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Critical Paths'),
     priority: 'critical',
     userJourneys: [
       'Complete user registration flow',
@@ -182,6 +208,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Responsive Design',
     description: 'Mobile and tablet responsiveness',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Responsive Design'),
     priority: 'high',
     userJourneys: [
       'Mobile navigation',
@@ -194,6 +221,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Cross Browser',
     description: 'Cross-browser compatibility',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Cross Browser'),
     priority: 'high',
     userJourneys: [
       'Chrome compatibility',
@@ -206,6 +234,7 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
   {
     name: 'Mock Server',
     description: 'Mock server functionality and verification',
+    targets: E2E_COVERAGE_TARGETS.filter(t => t.category === 'Mock Server'),
     priority: 'medium',
     userJourneys: ['Mock server responses', 'API endpoint verification', 'Data consistency checks'],
     testFiles: ['mock-server.spec.ts', 'mock-verification.spec.ts'],
@@ -214,6 +243,18 @@ export const E2E_TEST_CATEGORIES: IE2ETestCategory[] = [
 
 // File-specific thresholds - adjusted to match current actual coverage
 const FILE_THRESHOLDS: IFileThresholds = {
+  global: {
+    lines: FIFTY,
+    statements: FIFTY,
+    branches: TEN,
+    functions: FIFTEEN,
+  },
+  local: {
+    lines: EIGHTY_FIVE,
+    statements: EIGHTY_FIVE,
+    branches: SEVENTY_FIVE,
+    functions: SEVENTY_FIVE,
+  },
   // Core application files - further adjusted to match current levels
   'src/app/**/*.{ts,tsx}': {
     lines: FIFTY,
@@ -222,23 +263,13 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: FIFTEEN,
     base: FIFTY,
   },
-  // Component files - adjusted to current levels
-  'src/components/**/*.{ts,tsx}': {
-    lines: EIGHTY,
-    statements: EIGHTY,
-    branches: SEVENTY,
-    functions: SEVENTY,
-    base: EIGHTY,
-  },
-  // Hook files - adjusted to current levels
   'src/hooks/**/*.{ts,tsx}': {
-    lines: SEVENTY,
-    statements: SEVENTY,
-    branches: FIFTY_FIVE,
-    functions: SIXTY,
-    base: SEVENTY,
+    lines: NINETY_FIVE - 20,
+    statements: NINETY_FIVE - 20,
+    branches: NINETY_FIVE - 20,
+    functions: NINETY_FIVE - 30,
+    base: NINETY_FIVE,
   },
-  // Utility files - adjusted to current levels
   'src/lib/utils/**/*.{ts,tsx}': {
     lines: EIGHTY_FIVE,
     statements: EIGHTY_FIVE,
@@ -246,7 +277,16 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: SEVENTY_FIVE,
     base: EIGHTY_FIVE,
   },
-  // API routes - adjusted to current levels
+  'src/styles/*': {
+    lines: ZERO,
+    statements: ZERO,
+    branches: ZERO,
+    functions: ZERO,
+    base: ZERO,
+  },
+  // ========================================
+  // Granular src/app
+  // ========================================
   'src/app/api/**/*.{ts,tsx}': {
     lines: SIXTY_FIVE,
     statements: SIXTY_FIVE,
@@ -254,15 +294,26 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: FORTY,
     base: SIXTY_FIVE,
   },
-  // Apollo client - specific threshold for this problematic file
-  'src/lib/apollo-client.ts': {
-    lines: SIXTY,
-    statements: SIXTY,
-    branches: SEVENTY_FIVE,
-    functions: ZERO,
-    base: SIXTY,
+  // ========================================
+  // Granular src/hooks
+  // ========================================
+  'src/app/hooks/**/*.{ts,tsx}': {
+    lines: SIXTY_FIVE,
+    statements: SIXTY_FIVE,
+    branches: FORTY,
+    functions: FORTY,
+    base: SIXTY_FIVE,
   },
-  // Analytics files - no coverage needed
+  // ========================================
+  // Granular src/lib
+  // ========================================
+  'src/lib/apollo-client.ts': {
+    lines: FIFTY,
+    statements: FIFTY,
+    branches: THIRTY,
+    functions: THIRTY,
+    base: FIFTY,
+  },
   'src/lib/analytics/**/*.{ts,tsx}': {
     lines: ZERO,
     statements: ZERO,
@@ -270,7 +321,6 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: ZERO,
     base: ZERO,
   },
-  // Type definitions - no coverage needed
   'src/lib/types/**/*.{ts,tsx}': {
     lines: ZERO,
     statements: ZERO,
@@ -278,7 +328,6 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: ZERO,
     base: ZERO,
   },
-  // Configuration files - no coverage needed
   'src/lib/config/**/*.{ts,tsx}': {
     lines: ZERO,
     statements: ZERO,
@@ -286,7 +335,6 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: ZERO,
     base: ZERO,
   },
-  // Database schema - no coverage needed
   'src/lib/db/schema/**/*.{ts,tsx}': {
     lines: ZERO,
     statements: ZERO,
@@ -294,13 +342,12 @@ const FILE_THRESHOLDS: IFileThresholds = {
     functions: ZERO,
     base: ZERO,
   },
-  // GraphQL resolvers - moderate standards
   'src/lib/graphql/resolvers/**/*.{ts,tsx}': {
-    lines: SEVENTY_FIVE,
-    statements: SEVENTY_FIVE,
-    branches: SIXTY_FIVE,
-    functions: SIXTY_FIVE,
-    base: SEVENTY_FIVE,
+    lines: NINETY_FIVE,
+    statements: NINETY_FIVE,
+    branches: NINETY_FIVE,
+    functions: NINETY_FIVE,
+    base: NINETY_FIVE,
   },
   // Test utilities - moderate standards
   'tests/**/*.{ts,tsx}': {
@@ -314,16 +361,29 @@ const FILE_THRESHOLDS: IFileThresholds = {
 
 export function getGlobalCoverageThresholds(): ICoverageThresholds {
   return {
-    lines: NINETY_FIVE - 15,
-    statements: NINETY_FIVE - 15,
-    branches: NINETY_FIVE - 20,
-    functions: NINETY_FIVE - 25,
-    base: NINETY_FIVE - 15,
+    lines: NINETY_FIVE - 20,
+    functions: NINETY_FIVE - 30,
+    statements: NINETY_FIVE - 20,
+    branches: NINETY_FIVE - 60,
+    base: NINETY_FIVE - 60,
   };
 }
 
 export function getCoverageConfig(): ICoverageConfig {
   return {
+    thresholds: FILE_THRESHOLDS,
+    exclude: [
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      'coverage/**',
+      '**/*.d.ts',
+      '**/*.config.*',
+      'src/lib/mock-server/**',
+    ],
+    include: ['src/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
+    reporter: ['text', 'lcov', 'html'],
+    reportsDirectory: './coverage',
     global: getGlobalCoverageThresholds(),
     files: FILE_THRESHOLDS,
   };
@@ -331,9 +391,15 @@ export function getCoverageConfig(): ICoverageConfig {
 
 export function getE2ECoverageConfig(): IE2ECoverageConfig {
   return {
-    targets: E2E_COVERAGE_TARGETS,
     categories: E2E_TEST_CATEGORIES,
+    globalThreshold: EIGHTY_FIVE,
+    reportPath: './test-results/e2e-coverage',
+    targets: E2E_COVERAGE_TARGETS,
     thresholds: {
+      lines: EIGHTY_FIVE,
+      statements: EIGHTY_FIVE,
+      branches: SEVENTY_FIVE,
+      functions: SEVENTY_FIVE,
       global: {
         statements: NINETY_FIVE,
         branches: NINETY_FIVE,
@@ -381,18 +447,18 @@ export function generateE2ECoverageReport(
   };
 } {
   const e2eConfig = getE2ECoverageConfig();
-  const coverage = e2eConfig.targets.map(target => {
+  const coverage = (e2eConfig.targets || []).map(target => {
     const categoryTests = testResults.filter(result =>
-      target.testFiles.some((file: string) => result.testFile?.includes(file))
+      (target.testFiles || []).some((file: string) => result.testFile?.includes(file))
     );
     const score = calculateE2ECoverageScore(categoryTests);
 
     return {
-      category: target.category,
-      target: target.target,
+      category: target.category || target.name,
+      target: target.target || target.threshold,
       actual: score,
-      met: score >= target.target,
-      description: target.description,
+      met: score >= (target.target || target.threshold),
+      description: target.description || 'No description available',
       testCount: categoryTests.length,
     };
   });

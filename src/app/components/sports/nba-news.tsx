@@ -6,9 +6,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { INBANewsItem, INBANewsProps } from '@/lib/types';
-
-// Interfaces moved to src/lib/types/components.types.ts
+import type { INBANewsItem, INBANewsProps } from '@/types';
 
 // Mock NBA news data (in a real app, this would come from a news API)
 const MOCK_NBA_NEWS: INBANewsItem[] = [

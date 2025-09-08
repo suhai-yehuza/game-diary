@@ -3,20 +3,16 @@ import { headers } from 'next/headers';
 import { db } from '@/lib/db';
 import { audit_logs, key_rotation_logs, rls_access_logs } from '@/lib/db/schema/audit-schemas';
 import { alertingService } from '@/lib/services/alerting';
-import type {
-  IAuditLogData,
-  IKeyRotationLogData,
-  IRLSAccessLogData,
-} from '@/lib/types/services.types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
 import { logger } from '@/lib/utils/logger';
+import type { IAuditLogData, IKeyRotationLogData, IRLSAccessLogData } from '@/types';
 
 // Simple logger for audit service - using the main logger
 const auditServiceLogger = {
   info: (message: string, ...args: unknown[]) => logger.info(`[AUDIT-INFO] ${message}`, { args }),
   error: (message: string, ...args: unknown[]) =>
-    logger.error(`[AUDIT-ERROR] ${message}`, undefined, { args }),
+    logger.error(`[AUDIT-ERROR] ${message}`, { args }),
   warn: (message: string, ...args: unknown[]) => logger.warn(`[AUDIT-WARN] ${message}`, { args }),
 };
 
@@ -80,9 +76,9 @@ export class AuditLogger {
 
       const auditData = {
         id: auditId,
-        category: data.category,
+        category: data.category || 'general',
         action: data.action,
-        severity: data.severity,
+        severity: data.severity || 'info',
         user_id: data.userId ?? this.userId,
         session_id: data.sessionId ?? this.sessionId,
         ip_address: clientInfo.ipAddress,
@@ -101,16 +97,16 @@ export class AuditLogger {
         error_message: data.errorMessage,
         error_code: data.errorCode,
         duration_ms: data.durationMs ?? Date.now() - startTime,
-        compliance_tags: data.complianceTags,
+        compliance_tags: data.complianceTags?.join(',') || null,
       };
 
       await db()?.insert(audit_logs).values(auditData);
 
       auditServiceLogger.info(`Audit log created: ${auditId} - ${data.action}`, {
         auditId,
-        category: data.category,
+        category: data.category || 'general',
         action: data.action,
-        severity: data.severity,
+        severity: data.severity || 'info',
         userId: auditData.user_id,
       });
 
@@ -151,17 +147,17 @@ export class AuditLogger {
       const rotationData = {
         id: rotationId,
         key_id: data.keyId,
-        key_version: data.keyVersion,
-        environment: data.environment,
-        rotation_type: data.rotationType,
-        previous_key_id: data.previousKeyId,
-        new_key_id: data.newKeyId,
-        rotated_by: data.rotatedBy,
-        rotation_reason: data.rotationReason,
+        key_version: data.keyVersion || '1.0',
+        environment: data.environment ?? 'unknown',
+        rotation_type: data.rotationType ?? 'manual',
+        previous_key_id: data.previousKeyId ?? null,
+        new_key_id: data.newKeyId ?? null,
+        rotated_by: data.rotatedBy || 'system',
+        rotation_reason: data.rotationReason ?? 'scheduled',
         affected_records_count: data.affectedRecordsCount,
         re_encryption_required: data.reEncryptionRequired ?? false,
         re_encryption_completed: data.reEncryptionCompleted ?? false,
-        rotation_started_at: data.rotationStartedAt,
+        rotation_started_at: data.rotationStartedAt || new Date(),
         rotation_completed_at: data.rotationCompletedAt,
         re_encryption_started_at: data.reEncryptionStartedAt,
         re_encryption_completed_at: data.reEncryptionCompletedAt,
@@ -188,7 +184,7 @@ export class AuditLogger {
           rotationType: data.rotationType,
           affectedRecordsCount: data.affectedRecordsCount,
         },
-        complianceTags: 'key_rotation,encryption,security',
+        complianceTags: ['key_rotation', 'encryption', 'security'],
       });
 
       auditServiceLogger.info(`Key rotation logged: ${rotationId}`, {
@@ -217,15 +213,15 @@ export class AuditLogger {
 
       const accessData = {
         id: accessId,
-        requesting_user_id: data.requestingUserId,
-        target_user_id: data.targetUserId,
+        requesting_user_id: data.requestingUserId ?? 'unknown',
+        target_user_id: data.targetUserId ?? data.requestingUserId ?? 'unknown',
         table_name: data.tableName,
         operation: data.operation,
-        rls_context_set: data.rlsContextSet,
-        rls_policy_applied: data.rlsPolicyApplied,
-        access_granted: data.accessGranted,
+        rls_context_set: data.rlsContextSet ?? false,
+        rls_policy_applied: data.rlsPolicyApplied ?? false,
+        access_granted: data.accessGranted ?? false,
         rows_affected: data.rowsAffected,
-        sensitive_fields_accessed: data.sensitiveFieldsAccessed,
+        sensitive_fields_accessed: data.sensitiveFieldsAccessed?.join(',') || null,
         request_id: data.requestId ?? this.requestId,
         endpoint: data.endpoint,
         query_hash: data.queryHash,
@@ -236,7 +232,10 @@ export class AuditLogger {
         error_message: data.errorMessage,
       };
 
-      await db()?.insert(rls_access_logs).values(accessData);
+      await db()
+        ?.insert(rls_access_logs)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .values(accessData as any);
 
       // Also log as general audit event
       await this.logAuditEvent({
@@ -260,7 +259,7 @@ export class AuditLogger {
           sensitiveFieldsAccessed: data.sensitiveFieldsAccessed,
         },
         success: data.accessGranted,
-        complianceTags: 'rls,data_access,privacy',
+        complianceTags: ['rls', 'data_access', 'privacy'],
       });
 
       logger.info(`RLS access logged: ${accessId}`, {
@@ -298,7 +297,7 @@ export class AuditLogger {
       resourceId: keyId,
       description: description ?? `New encryption key created for ${environment} environment`,
       details: { keyId, environment },
-      complianceTags: 'key_management,encryption',
+      complianceTags: ['key_management', 'encryption'],
     });
   }
 
@@ -312,7 +311,7 @@ export class AuditLogger {
       resourceId: keyId,
       description: `Encryption key activated for ${environment} environment`,
       details: { keyId, environment },
-      complianceTags: 'key_management,encryption,security',
+      complianceTags: ['key_management', 'encryption', 'security'],
     });
   }
 
@@ -334,7 +333,7 @@ export class AuditLogger {
       description: `Sensitive data access ${success ? 'granted' : 'denied'}`,
       details: { fields, success },
       success,
-      complianceTags: 'data_access,privacy,gdpr',
+      complianceTags: ['data_access', 'privacy', 'gdpr'],
     });
   }
 
@@ -356,7 +355,8 @@ export class AuditLogger {
       description: errorMessage ?? `Encryption event: ${action} on ${tableName}.${columnName}`,
       success,
       errorMessage,
-      complianceTags: 'encryption,data_protection',
+      complianceTags: ['encryption', 'data_protection'],
+      details: { tableName, columnName, action, success },
     });
   }
 

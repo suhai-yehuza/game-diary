@@ -1,9 +1,9 @@
-import type { IAdminButtonProps } from '@src/lib/types';
+import type { IAdminButtonProps } from '@/types';
 
 export const Button = ({
   children,
   variant = 'default',
-  size = 'default',
+  size = 'md',
   className = '',
   ...props
 }: IAdminButtonProps) => (
@@ -13,7 +13,7 @@ export const Button = ({
       variant === 'default'
         ? 'bg-primary text-primary-foreground hover:bg-primary/90'
         : 'border border-input bg-background hover:bg-accent hover:text-accent-foreground'
-    } ${size === 'default' ? 'h-10 py-2 px-4' : 'h-9 px-3'} ${className}`}
+    } ${size === 'md' ? 'h-10 py-2 px-4' : size === 'lg' ? 'h-12 py-3 px-6' : 'h-9 px-3'} ${className}`}
     {...props}
   >
     {children}

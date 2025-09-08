@@ -5,52 +5,37 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useMemo } from 'react';
 
-import { useLatestGames } from '@/hooks/use-latest-games';
-import { useTopGameLogs } from '@/hooks/use-top-game-logs';
-import { API_LIMITS } from '@/lib/constants';
-import type { IGameLog } from '@/lib/types';
+import { useLandingPageData } from '@/hooks/use-landing-page-data';
+import type { ITrendingGameLog, IRecentGame } from '@/types';
 
 export function ContentPreviewBanner() {
-  const { topGameLogs, loading: gameLogsLoading } = useTopGameLogs({
-    limit: API_LIMITS.GAME_LOGS.DEFAULT,
-  });
-  const { latestGames, loading: gamesLoading } = useLatestGames({
-    limit: API_LIMITS.GAMES.DEFAULT,
-    forceRealData: true,
-  });
+  const { data, loading, error: _error } = useLandingPageData();
+
+  // Extract data from cached response
+  const { trendingContent, latestResults } = data || {};
+  const { topGameLogs = [], mostActiveGameLog = null } = trendingContent || {};
+  const { latestGames = [], latestFinishedGame = null } = latestResults || {};
+
+  // Type assertions for proper typing
+  const typedTopGameLogs = topGameLogs;
 
   // Get the most active game log (highest total activity)
-  const mostActiveGameLog = useMemo(() => {
-    if (!topGameLogs.length) return null;
+  const mostActiveGameLogProcessed = useMemo(() => {
+    if (!typedTopGameLogs.length) return null;
 
-    return topGameLogs.reduce((mostActive: IGameLog, current: IGameLog) => {
+    return typedTopGameLogs.reduce((mostActive: ITrendingGameLog, current: ITrendingGameLog) => {
       const currentActivity = (current.totalCommentCount || 0) + (current.totalReactionCount || 0);
       const mostActiveActivity =
         (mostActive.totalCommentCount || 0) + (mostActive.totalReactionCount || 0);
 
       return currentActivity > mostActiveActivity ? current : mostActive;
     });
-  }, [topGameLogs]);
+  }, [typedTopGameLogs]);
 
-  // Get the latest finished game
-  const latestFinishedGame = useMemo(() => {
-    if (!latestGames.length) return null;
-
-    const finishedGames = latestGames.filter(
-      game => game.status?.short === 'FT' || game.status?.long === 'Finished'
-    );
-
-    if (!finishedGames.length) return null;
-
-    // Sort by date and get the most recent
-    const sortedGames = finishedGames.sort((a, b) => {
-      const dateA = typeof a.date === 'string' ? new Date(a.date) : new Date(a.date.start);
-      const dateB = typeof b.date === 'string' ? new Date(b.date) : new Date(b.date.start);
-      return dateB.getTime() - dateA.getTime();
-    });
-
-    return sortedGames[0];
-  }, [latestGames]);
+  // Use cached data if available, fallback to processed data
+  const finalMostActiveGameLog = mostActiveGameLog || mostActiveGameLogProcessed;
+  const finalLatestFinishedGame =
+    latestFinishedGame || (latestGames.length > 0 ? latestGames[0] : null);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -64,7 +49,17 @@ export function ContentPreviewBanner() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const formatGameDate = (game: typeof latestFinishedGame) => {
+  const formatShort = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
+  const formatGameDate = (game: IRecentGame | null) => {
     if (!game) return '';
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
     const date = new Date(dateString);
@@ -78,7 +73,7 @@ export function ContentPreviewBanner() {
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
-  if (gameLogsLoading || gamesLoading) {
+  if (loading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
         <div className="bg-neutral-50/80 dark:bg-neutral-900/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-neutral-200/50 dark:border-neutral-700/50">
@@ -127,14 +122,14 @@ export function ContentPreviewBanner() {
             </span>
           </div>
 
-          {mostActiveGameLog ? (
+          {finalMostActiveGameLog ? (
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
-                  {mostActiveGameLog.user?.image_url ? (
+                  {finalMostActiveGameLog.user?.image_url ? (
                     <Image
-                      src={mostActiveGameLog.user.image_url}
-                      alt={mostActiveGameLog.user.username}
+                      src={finalMostActiveGameLog.user.image_url}
+                      alt={finalMostActiveGameLog.user.username}
                       width={24}
                       height={24}
                       className="rounded-full"
@@ -144,29 +139,29 @@ export function ContentPreviewBanner() {
                   )}
                 </div>
                 <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                  {mostActiveGameLog.user?.username || 'Anonymous'}
+                  {finalMostActiveGameLog.user?.username || 'Anonymous'}
                 </span>
               </div>
 
               <div className="text-sm text-gray-700 dark:text-gray-300">
-                {mostActiveGameLog.game?.home_team?.name} vs{' '}
-                {mostActiveGameLog.game?.away_team?.name}
+                {finalMostActiveGameLog.game?.home_team?.name} vs{' '}
+                {finalMostActiveGameLog.game?.away_team?.name}
               </div>
 
               <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
                 <div className="flex items-center gap-1">
                   <MessageCircle className="w-3 h-3" />
-                  <span>{mostActiveGameLog.totalCommentCount || 0}</span>
+                  <span>{formatShort(finalMostActiveGameLog.totalCommentCount || 0)}</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <Heart className="w-3 h-3" />
-                  <span>{mostActiveGameLog.totalReactionCount || 0}</span>
+                  <span>{formatShort(finalMostActiveGameLog.totalReactionCount || 0)}</span>
                 </div>
-                <span>⭐ {mostActiveGameLog.rating_for_game}/5</span>
+                <span>⭐ {finalMostActiveGameLog.rating_for_game}/5</span>
               </div>
 
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatDate(mostActiveGameLog.created_at)}
+                {formatDate(finalMostActiveGameLog.created_at)}
               </div>
             </div>
           ) : (
@@ -186,15 +181,16 @@ export function ContentPreviewBanner() {
             </span>
           </div>
 
-          {latestFinishedGame ? (
+          {finalLatestFinishedGame ? (
             <div className="space-y-2">
               {/* Arena Information */}
-              {latestFinishedGame.arena && (
+              {finalLatestFinishedGame.arena && (
                 <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 mb-2">
                   <MapPin className="w-3 h-3" />
                   <span className="truncate">
-                    {latestFinishedGame.arena.name}
-                    {latestFinishedGame.arena.city && `, ${latestFinishedGame.arena.city}`}
+                    {finalLatestFinishedGame.arena.name}
+                    {finalLatestFinishedGame.arena.city &&
+                      `, ${finalLatestFinishedGame.arena.city}`}
                   </span>
                 </div>
               )}
@@ -203,26 +199,26 @@ export function ContentPreviewBanner() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                    {latestFinishedGame.teams?.home?.logo ? (
+                    {finalLatestFinishedGame.teams?.home?.logo ? (
                       <Image
-                        src={latestFinishedGame.teams.home.logo}
-                        alt={latestFinishedGame.teams.home.name}
+                        src={finalLatestFinishedGame.teams.home.logo}
+                        alt={finalLatestFinishedGame.teams.home.name}
                         width={16}
                         height={16}
                         className="rounded-full"
                       />
                     ) : (
                       <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                        {latestFinishedGame.teams?.home?.name?.charAt(0) || 'H'}
+                        {finalLatestFinishedGame.teams?.home?.name?.charAt(0) || 'H'}
                       </span>
                     )}
                   </div>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {latestFinishedGame.teams?.home?.name}
+                    {finalLatestFinishedGame.teams?.home?.name}
                   </span>
                 </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {latestFinishedGame.scores?.home?.points || '-'}
+                  {finalLatestFinishedGame.scores?.home?.points || '-'}
                 </span>
               </div>
 
@@ -235,10 +231,10 @@ export function ContentPreviewBanner() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <div className="w-4 h-4 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                    {latestFinishedGame.teams?.visitors?.logo ? (
+                    {finalLatestFinishedGame.teams?.visitors?.logo ? (
                       <Image
-                        src={latestFinishedGame.teams.visitors.logo}
-                        alt={latestFinishedGame.teams.visitors.name}
+                        src={finalLatestFinishedGame.teams.visitors.logo}
+                        alt={finalLatestFinishedGame.teams.visitors.name}
                         width={16}
                         height={16}
                         className="rounded-full"
@@ -246,21 +242,21 @@ export function ContentPreviewBanner() {
                       />
                     ) : (
                       <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                        {latestFinishedGame.teams?.visitors?.name?.charAt(0) || 'A'}
+                        {finalLatestFinishedGame.teams?.visitors?.name?.charAt(0) || 'A'}
                       </span>
                     )}
                   </div>
                   <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {latestFinishedGame.teams?.visitors?.name}
+                    {finalLatestFinishedGame.teams?.visitors?.name}
                   </span>
                 </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {latestFinishedGame.scores?.visitors?.points || '-'}
+                  {finalLatestFinishedGame.scores?.visitors?.points || '-'}
                 </span>
               </div>
 
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                {formatGameDate(latestFinishedGame)}
+                {formatGameDate(finalLatestFinishedGame)}
               </div>
             </div>
           ) : (

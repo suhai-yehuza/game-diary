@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { NestedComment } from '@/app/components/comments/NestedComment';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({

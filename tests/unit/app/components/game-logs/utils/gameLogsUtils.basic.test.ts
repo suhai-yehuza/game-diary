@@ -4,8 +4,8 @@ import {
   getTeamDisplay,
   filterAndSortGameLogs,
 } from '@/app/components/game-logs/utils/gameLogsUtils';
-import { CLASSIFICATION } from '@/lib/types';
-import type { IGameLog } from '@/lib/types';
+import { CLASSIFICATION } from '@/types';
+import type { IGameLog } from '@/types';
 
 describe('gameLogsUtils', () => {
   describe('getTeamDisplay', () => {
@@ -15,27 +15,21 @@ describe('gameLogsUtils', () => {
         date: '2024-01-15',
         status: 'Final',
         game_type: 'Regular Season',
-        home_team_id: 'lakers',
-        away_team_id: 'warriors',
-        home_team: {
-          id: 'lakers',
-          name: 'Lakers',
-          code: 'LAL',
-          nickname: 'Lakers',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-        away_team: {
-          id: 'warriors',
-          name: 'Warriors',
-          code: 'GSW',
-          nickname: 'Warriors',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+        teams: {
+          home: {
+            id: 'lakers',
+            name: 'Lakers',
+            code: 'LAL',
+            nickname: 'Lakers',
+            logo: null,
+          },
+          away: {
+            id: 'warriors',
+            name: 'Warriors',
+            code: 'GSW',
+            nickname: 'Warriors',
+            logo: null,
+          },
         },
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -52,27 +46,21 @@ describe('gameLogsUtils', () => {
         date: '2024-01-15',
         status: 'Final',
         game_type: 'Regular Season',
-        home_team_id: 'lakers',
-        away_team_id: 'warriors',
-        home_team: {
-          id: 'lakers',
-          name: 'Lakers',
-          code: 'LAL',
-          nickname: 'Lakers',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-        away_team: {
-          id: 'warriors',
-          name: 'Warriors',
-          code: 'GSW',
-          nickname: 'Warriors',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+        teams: {
+          home: {
+            id: 'lakers',
+            name: 'Lakers',
+            code: 'LAL',
+            nickname: 'Lakers',
+            logo: null,
+          },
+          away: {
+            id: 'warriors',
+            name: 'Warriors',
+            code: 'GSW',
+            nickname: 'Warriors',
+            logo: null,
+          },
         },
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -88,25 +76,21 @@ describe('gameLogsUtils', () => {
         date: '2024-01-15',
         status: 'Final',
         game_type: 'Regular Season',
-        home_team_id: 'lakers',
-        away_team_id: 'warriors',
-        home_team: {
-          id: 'lakers',
-          name: 'Lakers',
-          nickname: 'Lakers',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-        away_team: {
-          id: 'warriors',
-          name: 'Warriors',
-          nickname: 'Warriors',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+        teams: {
+          home: {
+            id: 'lakers',
+            name: 'Lakers',
+            nickname: 'Lakers',
+            // No code property - so it should use nickname
+            logo: null,
+          },
+          away: {
+            id: 'warriors',
+            name: 'Warriors',
+            nickname: 'Warriors',
+            // No code property - so it should use nickname
+            logo: null,
+          },
         },
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -123,23 +107,23 @@ describe('gameLogsUtils', () => {
         date: '2024-01-15',
         status: 'Final',
         game_type: 'Regular Season',
-        home_team_id: 'lakers',
-        away_team_id: 'warriors',
-        home_team: {
-          id: 'lakers',
-          name: 'Lakers',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-        away_team: {
-          id: 'warriors',
-          name: 'Warriors',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+        teams: {
+          home: {
+            id: 'lakers',
+            name: 'Lakers',
+            all_star: false,
+            nba_franchise: true,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          },
+          away: {
+            id: 'warriors',
+            name: 'Warriors',
+            all_star: false,
+            nba_franchise: true,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          },
         },
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -156,25 +140,25 @@ describe('gameLogsUtils', () => {
         date: 'invalid-date',
         status: 'Final',
         game_type: 'Regular Season',
-        home_team_id: 'lakers',
-        away_team_id: 'warriors',
-        home_team: {
-          id: 'lakers',
-          name: 'Lakers',
-          code: 'LAL',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
-        },
-        away_team: {
-          id: 'warriors',
-          name: 'Warriors',
-          code: 'GSW',
-          all_star: false,
-          nba_franchise: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-01T00:00:00Z',
+        teams: {
+          home: {
+            id: 'lakers',
+            name: 'Lakers',
+            code: 'LAL',
+            all_star: false,
+            nba_franchise: true,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          },
+          away: {
+            id: 'warriors',
+            name: 'Warriors',
+            code: 'GSW',
+            all_star: false,
+            nba_franchise: true,
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
+          },
         },
         created_at: '2024-01-01T00:00:00Z',
         updated_at: '2024-01-01T00:00:00Z',
@@ -198,6 +182,36 @@ describe('gameLogsUtils', () => {
       const result = getTeamDisplay({ id: 'game-1' } as any);
       expect(result).toBe('Unknown Teams');
     });
+
+    it('handles teams with visitors/home structure (database format)', () => {
+      const game = {
+        id: 'game-1',
+        date: '2024-01-15',
+        status: 'Final',
+        game_type: 'Regular Season',
+        teams: {
+          home: {
+            id: 25,
+            name: 'Oklahoma City Thunder',
+            code: 'OKC',
+            nickname: 'Thunder',
+            logo: 'https://example.com/thunder.png',
+          },
+          visitors: {
+            id: 15,
+            name: 'Indiana Pacers',
+            code: 'IND',
+            nickname: 'Pacers',
+            logo: 'https://example.com/pacers.png',
+          },
+        },
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+      };
+
+      const result = getTeamDisplay(game, false);
+      expect(result).toBe('IND @ OKC');
+    });
   });
 
   describe('filterAndSortGameLogs', () => {
@@ -220,25 +234,21 @@ describe('gameLogsUtils', () => {
           date: '2024-01-15',
           status: 'Final',
           game_type: 'Regular Season',
-          home_team_id: 'lakers',
-          away_team_id: 'warriors',
-          home_team: {
-            id: 'lakers',
-            name: 'Lakers',
-            code: 'LAL',
-            all_star: false,
-            nba_franchise: true,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          away_team: {
-            id: 'warriors',
-            name: 'Warriors',
-            code: 'GSW',
-            all_star: false,
-            nba_franchise: true,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
+          teams: {
+            home: {
+              id: 'lakers',
+              name: 'Lakers',
+              code: 'LAL',
+              nickname: 'Lakers',
+              logo: null,
+            },
+            away: {
+              id: 'warriors',
+              name: 'Warriors',
+              code: 'GSW',
+              nickname: 'Warriors',
+              logo: null,
+            },
           },
           created_at: '2024-01-01T00:00:00Z',
           updated_at: '2024-01-01T00:00:00Z',
@@ -268,25 +278,21 @@ describe('gameLogsUtils', () => {
           date: '2024-01-16',
           status: 'Final',
           game_type: 'Regular Season',
-          home_team_id: 'celtics',
-          away_team_id: 'heat',
-          home_team: {
-            id: 'celtics',
-            name: 'Celtics',
-            code: 'BOS',
-            all_star: false,
-            nba_franchise: true,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
-          },
-          away_team: {
-            id: 'heat',
-            name: 'Heat',
-            code: 'MIA',
-            all_star: false,
-            nba_franchise: true,
-            created_at: '2024-01-01T00:00:00Z',
-            updated_at: '2024-01-01T00:00:00Z',
+          teams: {
+            home: {
+              id: 'celtics',
+              name: 'Celtics',
+              code: 'BOS',
+              nickname: 'Celtics',
+              logo: null,
+            },
+            away: {
+              id: 'heat',
+              name: 'Heat',
+              code: 'MIA',
+              nickname: 'Heat',
+              logo: null,
+            },
           },
           created_at: '2024-01-01T00:00:00Z',
           updated_at: '2024-01-01T00:00:00Z',
@@ -346,7 +352,7 @@ describe('gameLogsUtils', () => {
     it('filters by team', () => {
       const result = filterAndSortGameLogs(mockGameLogs, 'LAL', 'team', null);
       expect(result).toHaveLength(1);
-      expect(result[0].game?.home_team.name).toBe('Lakers');
+      expect(result[0].game?.teams?.home?.name).toBe('Lakers');
     });
 
     it('sorts by rating in ascending order', () => {

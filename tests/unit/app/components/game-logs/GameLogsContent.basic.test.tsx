@@ -2,20 +2,20 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 
 import { GameLogsContent } from '@/app/components/game-logs/GameLogsContent';
-import type { IGameLog } from '@/lib/types';
-import { CLASSIFICATION } from '@/lib/types';
+import type { IGameLog } from '@/types';
+import { CLASSIFICATION } from '@/types';
 
 // Mock the child components
 vi.mock('@/app/components/game-logs/GameLogCard', () => ({
-  GameLogCard: ({ log, showActions, onEdit, onDelete }: any) => (
-    <div data-testid={`game-log-card-${log.id}`}>
-      <div data-testid="game-log-card-content">{log.notes || 'No notes'}</div>
-      {showActions && (
-        <div data-testid="game-log-card-actions">
-          <button onClick={() => onEdit?.(log)} data-testid="edit-button">
+  GameLogCard: ({ gameLog, showActions, onEdit, onDelete }: any) => (
+    <div data-testid="game-log-item">
+      <div>{gameLog?.notes || 'No notes'}</div>
+      {showActions && onEdit && onDelete && (
+        <div>
+          <button onClick={() => onEdit(gameLog)} data-testid="edit-button">
             Edit
           </button>
-          <button onClick={() => onDelete?.(log)} data-testid="delete-button">
+          <button onClick={() => onDelete(gameLog)} data-testid="delete-button">
             Delete
           </button>
         </div>
@@ -63,25 +63,21 @@ const createMockGameLog = (id: string, overrides: Partial<IGameLog> = {}): IGame
     date: '2024-01-15',
     status: 'Final',
     game_type: 'Regular Season',
-    home_team_id: 'team-1',
-    away_team_id: 'team-2',
-    home_team: {
-      id: 'team-1',
-      name: 'Lakers',
-      code: 'LAL',
-      all_star: false,
-      nba_franchise: true,
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01',
-    },
-    away_team: {
-      id: 'team-2',
-      name: 'Warriors',
-      code: 'GSW',
-      all_star: false,
-      nba_franchise: true,
-      created_at: '2024-01-01',
-      updated_at: '2024-01-01',
+    teams: {
+      home: {
+        id: 'team-1',
+        name: 'Lakers',
+        nickname: 'Lakers',
+        code: 'LAL',
+        logo: null,
+      },
+      away: {
+        id: 'team-2',
+        name: 'Warriors',
+        nickname: 'Warriors',
+        code: 'GSW',
+        logo: null,
+      },
     },
     created_at: '2024-01-01',
     updated_at: '2024-01-01',
@@ -198,8 +194,8 @@ describe('GameLogsContent', () => {
       );
 
       expect(screen.getByText('Showing 2 of 2 of your game logs')).toBeInTheDocument();
-      expect(screen.getByTestId('game-log-card-1')).toBeInTheDocument();
-      expect(screen.getByTestId('game-log-card-2')).toBeInTheDocument();
+      const gameLogItems = screen.getAllByTestId('game-log-item');
+      expect(gameLogItems).toHaveLength(2);
     });
 
     it('renders correct count message for friends-logs tab', () => {
@@ -250,8 +246,8 @@ describe('GameLogsContent', () => {
       // Should show filtered count in message
       expect(screen.getByText('Showing 2 of 2 of your game logs')).toBeInTheDocument();
       // But only render filtered logs
-      expect(screen.queryByTestId('game-log-card-1')).not.toBeInTheDocument();
-      expect(screen.getByTestId('game-log-card-2')).toBeInTheDocument();
+      const gameLogItems = screen.getAllByTestId('game-log-item');
+      expect(gameLogItems).toHaveLength(1); // Only one filtered log
     });
   });
 
@@ -270,7 +266,6 @@ describe('GameLogsContent', () => {
         />
       );
 
-      expect(screen.getByTestId('game-log-card-actions')).toBeInTheDocument();
       expect(screen.getByTestId('edit-button')).toBeInTheDocument();
       expect(screen.getByTestId('delete-button')).toBeInTheDocument();
     });
@@ -287,7 +282,8 @@ describe('GameLogsContent', () => {
         />
       );
 
-      expect(screen.queryByTestId('game-log-card-actions')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('edit-button')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('delete-button')).not.toBeInTheDocument();
     });
 
     it('calls onEdit when edit button is clicked', () => {

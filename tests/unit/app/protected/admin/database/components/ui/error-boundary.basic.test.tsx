@@ -92,15 +92,17 @@ describe('ErrorBoundary', () => {
   });
 
   it('renders custom fallback when provided', () => {
-    const customFallback = <div>Custom error message</div>;
+    const CustomFallback = ({ error }: { error: Error }) => (
+      <div>Custom error message: {error.message}</div>
+    );
 
     render(
-      <ErrorBoundary componentName="TestComponent" fallback={customFallback}>
+      <ErrorBoundary componentName="TestComponent" fallback={CustomFallback}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>
     );
 
-    expect(screen.getByText('Custom error message')).toBeInTheDocument();
+    expect(screen.getByText('Custom error message: Test error message')).toBeInTheDocument();
     expect(screen.queryByText('Something went wrong')).not.toBeInTheDocument();
   });
 

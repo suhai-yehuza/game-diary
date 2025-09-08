@@ -1,6 +1,13 @@
-import type { IPlayersApiResponse } from '@/lib/types';
+import type { IPlayersApiResponse } from '@/types';
 
 export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
+  success: true,
+  timestamp: new Date().toISOString(),
+  requestId: 'mock-players-request',
+  players: [],
+  total: 1,
+  page: 1,
+  limit: 25,
   get: 'players',
   parameters: {
     league: '12',
@@ -10,9 +17,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
   results: 10,
   response: [
     {
-      id: 1,
-      firstname: 'LeBron',
-      lastname: 'James',
+      id: '1',
       birth: {
         date: '1984-12-30',
         country: 'USA',
@@ -21,15 +26,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2003,
         pro: 21,
       },
-      height: {
-        feets: '6',
-        inches: '9',
-        meters: '2.06',
-      },
-      weight: {
-        pounds: '250',
-        kilograms: '113.4',
-      },
+      height: '6-9',
+      weight: '250',
       college: 'St. Vincent-St. Mary HS (OH)',
       affiliation: 'St. Vincent-St. Mary HS (OH)',
       leagues: {
@@ -41,9 +39,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 2,
-      firstname: 'Stephen',
-      lastname: 'Curry',
+      id: '2',
       birth: {
         date: '1988-03-14',
         country: 'USA',
@@ -52,15 +48,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2009,
         pro: 15,
       },
-      height: {
-        feets: '6',
-        inches: '3',
-        meters: '1.91',
-      },
-      weight: {
-        pounds: '185',
-        kilograms: '83.9',
-      },
+      height: '6-3',
+      weight: '185',
       college: 'Davidson',
       affiliation: 'Davidson',
       leagues: {
@@ -72,9 +61,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 3,
-      firstname: 'Kevin',
-      lastname: 'Durant',
+      id: '3',
       birth: {
         date: '1988-09-29',
         country: 'USA',
@@ -83,15 +70,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2007,
         pro: 17,
       },
-      height: {
-        feets: '6',
-        inches: '10',
-        meters: '2.08',
-      },
-      weight: {
-        pounds: '240',
-        kilograms: '108.9',
-      },
+      height: '6-10',
+      weight: '240',
       college: 'Texas',
       affiliation: 'Texas',
       leagues: {
@@ -103,9 +83,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 4,
-      firstname: 'Giannis',
-      lastname: 'Antetokounmpo',
+      id: '4',
       birth: {
         date: '1994-12-06',
         country: 'Greece',
@@ -114,16 +92,9 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2013,
         pro: 11,
       },
-      height: {
-        feets: '6',
-        inches: '11',
-        meters: '2.11',
-      },
-      weight: {
-        pounds: '242',
-        kilograms: '109.8',
-      },
-      college: null,
+      height: '6-11',
+      weight: '242',
+      college: 'None',
       affiliation: 'Filathlitikos',
       leagues: {
         standard: {
@@ -134,9 +105,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 5,
-      firstname: 'Nikola',
-      lastname: 'Jokic',
+      id: '5',
       birth: {
         date: '1995-02-19',
         country: 'Serbia',
@@ -145,16 +114,9 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2015,
         pro: 9,
       },
-      height: {
-        feets: '6',
-        inches: '11',
-        meters: '2.11',
-      },
-      weight: {
-        pounds: '284',
-        kilograms: '128.8',
-      },
-      college: null,
+      height: '6-11',
+      weight: '284',
+      college: 'None',
       affiliation: 'Mega Basket',
       leagues: {
         standard: {
@@ -165,9 +127,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 6,
-      firstname: 'Luka',
-      lastname: 'Doncic',
+      id: '6',
       birth: {
         date: '1999-02-28',
         country: 'Slovenia',
@@ -176,16 +136,9 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2018,
         pro: 6,
       },
-      height: {
-        feets: '6',
-        inches: '7',
-        meters: '2.01',
-      },
-      weight: {
-        pounds: '230',
-        kilograms: '104.3',
-      },
-      college: null,
+      height: '6-7',
+      weight: '230',
+      college: 'None',
       affiliation: 'Real Madrid',
       leagues: {
         standard: {
@@ -196,9 +149,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 7,
-      firstname: 'Joel',
-      lastname: 'Embiid',
+      id: '7',
       birth: {
         date: '1994-03-16',
         country: 'Cameroon',
@@ -207,15 +158,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2016,
         pro: 8,
       },
-      height: {
-        feets: '7',
-        inches: '0',
-        meters: '2.13',
-      },
-      weight: {
-        pounds: '280',
-        kilograms: '127.0',
-      },
+      height: '7-0',
+      weight: '280',
       college: 'Kansas',
       affiliation: 'Kansas',
       leagues: {
@@ -227,9 +171,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 8,
-      firstname: 'Jayson',
-      lastname: 'Tatum',
+      id: '8',
       birth: {
         date: '1998-03-03',
         country: 'USA',
@@ -238,15 +180,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2017,
         pro: 7,
       },
-      height: {
-        feets: '6',
-        inches: '8',
-        meters: '2.03',
-      },
-      weight: {
-        pounds: '210',
-        kilograms: '95.3',
-      },
+      height: '6-8',
+      weight: '210',
       college: 'Duke',
       affiliation: 'Duke',
       leagues: {
@@ -258,9 +193,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 9,
-      firstname: 'Devin',
-      lastname: 'Booker',
+      id: '9',
       birth: {
         date: '1996-10-30',
         country: 'USA',
@@ -269,15 +202,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2015,
         pro: 9,
       },
-      height: {
-        feets: '6',
-        inches: '5',
-        meters: '1.96',
-      },
-      weight: {
-        pounds: '206',
-        kilograms: '93.4',
-      },
+      height: '6-5',
+      weight: '206',
       college: 'Kentucky',
       affiliation: 'Kentucky',
       leagues: {
@@ -289,9 +215,7 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
       },
     },
     {
-      id: 10,
-      firstname: 'Jimmy',
-      lastname: 'Butler',
+      id: '10',
       birth: {
         date: '1989-09-14',
         country: 'USA',
@@ -300,15 +224,8 @@ export const MOCK_NBA_PLAYERS: IPlayersApiResponse = {
         start: 2011,
         pro: 13,
       },
-      height: {
-        feets: '6',
-        inches: '7',
-        meters: '2.01',
-      },
-      weight: {
-        pounds: '230',
-        kilograms: '104.3',
-      },
+      height: '6-7',
+      weight: '230',
       college: 'Marquette',
       affiliation: 'Marquette',
       leagues: {

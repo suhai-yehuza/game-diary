@@ -3,14 +3,15 @@
 import { Calendar, Gamepad2, Star, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import type { IGameLogSearchResultProps } from '@/lib/types';
+import type { IGameLogSearchResultProps } from '@/types';
 
 function formatDate(dateString: string) {
   const date = new Date(dateString);
   return date.toLocaleDateString('en-US', {
-    year: 'numeric',
+    weekday: 'short',
     month: 'short',
-    day: 'numeric',
+    day: '2-digit',
+    year: 'numeric',
   });
 }
 

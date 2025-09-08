@@ -3,18 +3,18 @@
 import { CheckCircle, Loader2, RefreshCw, Database } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-import type { IDbRefreshJob, IDbRefreshProgressTrackerProps } from '@/lib/types';
+import type { IDbRefreshJob, IDbRefreshProgressTrackerProps } from '@/types';
 
 export function DbRefreshProgressTracker({
   isVisible,
   onComplete,
 }: IDbRefreshProgressTrackerProps) {
   const [jobs] = useState<IDbRefreshJob[]>([
-    { id: 'leagues', name: 'Leagues', status: 'pending' },
-    { id: 'seasons', name: 'Seasons', status: 'pending' },
-    { id: 'teams', name: 'Teams', status: 'pending' },
-    { id: 'games', name: 'Games', status: 'pending' },
-    { id: 'players', name: 'Players', status: 'pending' },
+    { id: 'leagues', name: 'Leagues', status: 'idle', progress: 0, message: 'Waiting to start' },
+    { id: 'seasons', name: 'Seasons', status: 'idle', progress: 0, message: 'Waiting to start' },
+    { id: 'teams', name: 'Teams', status: 'idle', progress: 0, message: 'Waiting to start' },
+    { id: 'games', name: 'Games', status: 'idle', progress: 0, message: 'Waiting to start' },
+    { id: 'players', name: 'Players', status: 'idle', progress: 0, message: 'Waiting to start' },
   ]);
 
   const [isCompleted, setIsCompleted] = useState(false);
@@ -70,9 +70,9 @@ export function DbRefreshProgressTracker({
     return null;
   }
 
-  const allCompleted = jobs.every(job => job.status === 'ready');
+  const allCompleted = jobs.every(job => job.status === 'completed');
   const hasErrors = jobs.some(job => job.status === 'error');
-  const isInProgress = jobs.some(job => job.status === 'loading');
+  const isInProgress = jobs.some(job => job.status === 'running');
 
   return (
     <div className="fixed bottom-4 right-4 bg-gray-800/95 backdrop-blur-sm text-white p-6 rounded-xl text-sm font-medium z-[9998] w-80 border border-gray-700/50 shadow-2xl">
@@ -91,15 +91,12 @@ export function DbRefreshProgressTracker({
           <div key={job.id} className="flex items-center justify-between">
             <span className="text-gray-300">{job.name}</span>
             <div className="flex items-center gap-2">
-              {job.status === 'pending' && <div className="w-3 h-3 bg-gray-500 rounded-full" />}
-              {job.status === 'loading' && (
+              {job.status === 'idle' && <div className="w-3 h-3 bg-gray-500 rounded-full" />}
+              {job.status === 'running' && (
                 <Loader2 className="w-3 h-3 animate-spin text-blue-400" />
               )}
-              {job.status === 'ready' && <CheckCircle className="w-4 h-4 text-green-400" />}
+              {job.status === 'completed' && <CheckCircle className="w-4 h-4 text-green-400" />}
               {job.status === 'error' && <div className="w-3 h-3 bg-red-500 rounded-full" />}
-              {job.count !== undefined && (
-                <span className="text-xs text-gray-400">{job.count}</span>
-              )}
             </div>
           </div>
         ))}

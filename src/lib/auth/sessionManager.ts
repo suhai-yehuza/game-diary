@@ -1,4 +1,4 @@
-import type { ISessionData } from '@/lib/types';
+import type { ISessionData } from '@/types';
 
 class SessionManager {
   private readonly sessions = new Map<string, ISessionData>();
@@ -19,9 +19,11 @@ class SessionManager {
 
     this.sessions.set(sessionId, {
       userId,
+      sessionId,
+      expiresAt: new Date(Date.now() + this.SESSION_TIMEOUT),
+      data: {},
       lastActivity: Date.now(),
       permissions,
-      sessionId,
       deviceInfo,
     });
 
@@ -36,7 +38,7 @@ class SessionManager {
     }
 
     // Check if session is expired
-    if (Date.now() - session.lastActivity > this.SESSION_TIMEOUT) {
+    if (Date.now() - (session.lastActivity ?? 0) > this.SESSION_TIMEOUT) {
       this.sessions.delete(sessionId);
       return null;
     }
@@ -99,7 +101,7 @@ class SessionManager {
     let cleanedCount = 0;
 
     for (const [sessionId, session] of this.sessions.entries()) {
-      if (now - session.lastActivity > this.SESSION_TIMEOUT) {
+      if (now - (session.lastActivity ?? 0) > this.SESSION_TIMEOUT) {
         this.sessions.delete(sessionId);
         cleanedCount++;
       }
@@ -119,4 +121,4 @@ class SessionManager {
 export const sessionManager = new SessionManager();
 
 // Types for external use
-export type { ISessionData as SessionData };
+export type SessionData = ISessionData;

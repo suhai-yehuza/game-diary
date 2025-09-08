@@ -6,7 +6,7 @@ import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
 import { THEME_COLORS } from '@/lib/constants/colors';
-import type { IThemeToggleProps } from '@/lib/types';
+import type { IThemeToggleProps } from '@/types';
 
 const themes = [
   {

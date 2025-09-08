@@ -35,7 +35,7 @@ describe('Apollo Client Enhanced Coverage', () => {
       // Check if default options are set
       expect(apolloClient.defaultOptions).toBeDefined();
       expect(apolloClient.defaultOptions?.watchQuery?.errorPolicy).toBe('all');
-      expect(apolloClient.defaultOptions?.watchQuery?.fetchPolicy).toBe('cache-and-network');
+      expect(apolloClient.defaultOptions?.watchQuery?.fetchPolicy).toBe('cache-first');
       expect(apolloClient.defaultOptions?.query?.errorPolicy).toBe('all');
       expect(apolloClient.defaultOptions?.query?.fetchPolicy).toBe('cache-first');
     });

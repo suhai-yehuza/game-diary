@@ -3,9 +3,7 @@
 import { Search, TrendingUp, Clock, Hash } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 
-import type { ISearchSuggestion, ISearchSuggestionsProps } from '@/lib/types';
-
-// Interfaces moved to src/lib/types/components.types.ts
+import type { ISearchSuggestion, ISearchSuggestionsProps } from '@/types';
 
 export function SearchSuggestions({
   query,

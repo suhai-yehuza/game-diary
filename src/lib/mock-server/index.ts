@@ -3,14 +3,13 @@
 
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
-import { mockDataProvider } from '@src/lib/mock';
 import type {
   MockServerConfig,
   MockServerResponse,
   HealthCheckResponse,
   StatsResponse,
-  ExternalAPIResponse,
-} from '@src/lib/types';
+} from '@/types';
+import { mockDataProvider } from '@src/lib/mock';
 
 import { DEFAULT_MOCK_SERVER_CONFIG } from './config';
 import { createMockDatabase } from './database';
@@ -36,13 +35,14 @@ class MockServer {
   // Simulate artificial latency
   private simulateLatency(): number {
     const latency =
-      Math.random() * (this.config.latency.max - this.config.latency.min) + this.config.latency.min;
+      Math.random() * ((this.config.latency?.max ?? 300) - (this.config.latency?.min ?? 50)) +
+      (this.config.latency?.min ?? 50);
     return Math.round(latency);
   }
 
   // Simulate occasional errors
   private shouldSimulateError(): boolean {
-    return Math.random() < this.config.errorRate;
+    return Math.random() < (this.config.errorRate ?? 0.05);
   }
 
   // Log messages if logging is enabled
@@ -56,8 +56,8 @@ class MockServer {
   healthCheck(): Promise<HealthCheckResponse> {
     return Promise.resolve({
       status: 'healthy',
-      timestamp: new Date().toISOString(),
-      config: this.config,
+      timestamp: new Date(),
+      version: '1.0.0',
       uptime: Date.now() - this.startTime,
     });
   }
@@ -65,16 +65,14 @@ class MockServer {
   // Get server statistics
   getStats(): Promise<StatsResponse> {
     return Promise.resolve({
+      totalUsers: 100,
+      totalGameLogs: 500,
+      totalComments: 250,
+      totalReactions: 750,
       uptime: Date.now() - this.startTime,
       memory: process.memoryUsage(),
-      config: this.config,
-      requests: {
-        total: this.requestCount,
-        successful: this.requestCount - this.errorCount,
-        failed: this.errorCount,
-        averageLatency:
-          this.config.latency.min + (this.config.latency.max - this.config.latency.min) / 2,
-      },
+      requests: this.requestCount,
+      errors: this.errorCount,
     });
   }
 
@@ -143,11 +141,11 @@ class MockServer {
     this.requestCount++;
 
     try {
-      const result: ExternalAPIResponse = await this.mockExternalAPI.call(endpoint, params);
+      const result = await this.mockExternalAPI.call(endpoint, params);
 
       return {
         success: result.success ?? false,
-        data: result.data,
+        data: result.data as unknown,
         error: result.error,
         timestamp: new Date().toISOString(),
         latency: this.simulateLatency(),

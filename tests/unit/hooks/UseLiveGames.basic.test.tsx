@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { useLiveGames } from '@/hooks/use-live-games';
 import { MOCK_LIVE_GAMES } from '@/lib/mock/liveGamesMock';
-import type { IGamesApiResponse } from '@/lib/types';
+import type { IGamesApiResponse } from '@/types';
 
 // Mock the utility functions that determine mock mode
 vi.mock('@/lib/utils/mock-mode', () => ({
@@ -83,7 +83,7 @@ describe('useLiveGames', () => {
 
       const { result } = renderHook(() => useLiveGames({ initialData }));
 
-      expect(result.current.liveGames).toEqual(initialData);
+      expect(result.current.liveGames).toEqual(initialData.response);
       expect(result.current.games).toEqual(initialData.response);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
@@ -153,7 +153,6 @@ describe('useLiveGames', () => {
       expect(result.current.error).toBeNull();
       expect(result.current.hasLiveGames).toBe(false);
       expect(typeof result.current.currentPollingInterval).toBe('number');
-      expect(result.current.lastLiveGamesFound).toBeNull();
       expect(result.current.timeSinceLastLiveGames).toBeNull();
     });
 
@@ -254,7 +253,7 @@ describe('useLiveGames', () => {
 
       const { result } = renderHook(() => useLiveGames({ initialData }));
 
-      expect(result.current.liveGames).toEqual(initialData);
+      expect(result.current.liveGames).toEqual(initialData.response);
       expect(result.current.games).toEqual(initialData.response);
       expect(result.current.games).toHaveLength(2);
       expect(result.current.hasLiveGames).toBe(true);

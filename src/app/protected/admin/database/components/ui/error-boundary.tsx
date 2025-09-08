@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import type { IErrorBoundaryState, IErrorBoundaryProps } from '@/lib/types';
+import type { IErrorBoundaryState, IErrorBoundaryProps } from '@/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 
 export class ErrorBoundary extends Component<IErrorBoundaryProps, IErrorBoundaryState> {
@@ -42,11 +42,21 @@ export class ErrorBoundary extends Component<IErrorBoundaryProps, IErrorBoundary
     this.setState({ hasError: false, error: undefined, errorInfo: undefined });
   };
 
-  render() {
+  render(): React.ReactNode {
     if (this.state.hasError) {
-      // Custom fallback UI
-      if (this.props.fallback) {
-        return this.props.fallback;
+      // Use custom fallback if provided
+      if (this.props.fallback && this.state.error) {
+        // Check if fallback is a React component (function/class) or JSX element
+        if (
+          typeof this.props.fallback === 'function' ||
+          React.isValidElement(this.props.fallback)
+        ) {
+          const FallbackComponent = this.props.fallback;
+          return <FallbackComponent error={this.state.error} />;
+        } else {
+          // If it's a JSX element, render it directly
+          return this.props.fallback;
+        }
       }
 
       // Default error UI

@@ -2,7 +2,7 @@
 
 import ClerkSignIn from '@/app/components/auth/ClerkSignIn';
 import { ClerkProviderWrapper } from '@/app/components/providers/ClerkProvider';
-import type { ISignInPageProps } from '@/lib/types';
+import type { ISignInPageProps } from '@/types';
 
 export default function SignInPage({ params: _params }: ISignInPageProps) {
   return (

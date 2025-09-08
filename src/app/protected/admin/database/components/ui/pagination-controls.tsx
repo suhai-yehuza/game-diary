@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 
-import type { IPaginationControlsProps } from '@/lib/types';
+import type { IPaginationControlsProps } from '@/types';
 import { Button } from '@src/app/protected/admin/database/components/ui/button';
 
 export function PaginationControls({
@@ -20,7 +20,7 @@ export function PaginationControls({
       <div className="flex items-center gap-1 sm:gap-2">
         <Button
           onClick={onFirst}
-          disabled={!pageInfo.hasPreviousPage || loading}
+          disabled={!pageInfo?.hasPreviousPage || loading}
           variant="outline"
           size="sm"
           className="flex items-center space-x-1 text-xs"
@@ -30,7 +30,7 @@ export function PaginationControls({
         </Button>
         <Button
           onClick={onPrev}
-          disabled={!pageInfo.hasPreviousPage || loading}
+          disabled={!pageInfo?.hasPreviousPage || loading}
           variant="outline"
           size="sm"
           className="flex items-center space-x-1 text-xs"
@@ -49,7 +49,7 @@ export function PaginationControls({
       <div className="flex items-center gap-1 sm:gap-2">
         <Button
           onClick={onNext}
-          disabled={!pageInfo.hasNextPage || loading}
+          disabled={!pageInfo?.hasNextPage || loading}
           variant="outline"
           size="sm"
           className="flex items-center space-x-1 text-xs"
@@ -59,7 +59,7 @@ export function PaginationControls({
         </Button>
         <Button
           onClick={onLast}
-          disabled={!pageInfo.hasNextPage || loading}
+          disabled={!pageInfo?.hasNextPage || loading}
           variant="outline"
           size="sm"
           className="flex items-center space-x-1 text-xs"

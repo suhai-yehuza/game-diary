@@ -2,21 +2,42 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
 import { ReactionPicker } from '@/app/components/reactions/ReactionPicker';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 // Hoisted spies to assert interactions inside the mocked hook
-const { toggleSpy } = vi.hoisted(() => ({ toggleSpy: vi.fn() }));
+const { toggleSpy } = vi.hoisted(() => ({ toggleSpy: vi.fn().mockResolvedValue(undefined) }));
 
 // Mock useReactions to return our hoisted spy and some default state
 vi.mock('@/hooks/use-reactions', () => ({
   useReactions: () => ({
-    groupedReactions: [
-      { emoji: '👍', count: 1, hasUserReacted: false, reactionIds: [] },
+    reactions: [
+      {
+        id: '1',
+        emoji: '👍',
+        user_id: 'user1',
+        target_id: 't1',
+        target_type: ParentType.GameLog,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        user: { id: 'user1', username: 'user1', first_name: 'User', last_name: 'One' },
+      },
+    ],
+    reactionGroups: [
+      { emoji: '👍', count: 1, hasUserReacted: false, reactionIds: ['1'] },
       { emoji: '❤️', count: 0, hasUserReacted: false, reactionIds: [] },
     ],
     userReactions: new Set<string>(),
     toggleReaction: toggleSpy,
     loading: false,
+  }),
+}));
+
+// Mock the useUser hook
+vi.mock('@clerk/nextjs', () => ({
+  useUser: () => ({
+    user: { id: 'user123' },
+    isLoaded: true,
+    isSignedIn: true,
   }),
 }));
 
@@ -50,7 +71,7 @@ describe('ReactionPicker interactions', () => {
   it('calls toggleReaction when clicking an existing reaction', async () => {
     render(<ReactionPicker targetId="t1" targetType={ParentType.GameLog} />);
 
-    const existing = screen.getByLabelText('React with 1 👍 emoji');
+    const existing = screen.getByTestId('reaction-👍');
     fireEvent.click(existing);
 
     await waitFor(() => {
@@ -64,12 +85,12 @@ describe('ReactionPicker interactions', () => {
     fireEvent.click(screen.getByLabelText('Add reaction'));
 
     await waitFor(() => {
-      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
+      expect(screen.getByText('Quick Reactions')).toBeInTheDocument();
       expect(screen.getAllByText('❤️').length).toBeGreaterThan(0);
     });
 
     // Click the first instance in the emoji grid
-    fireEvent.click(screen.getAllByLabelText('React with ❤️')[0]);
+    fireEvent.click(screen.getAllByTestId('reaction-❤️')[0]);
 
     await waitFor(() => {
       expect(toggleSpy).toHaveBeenCalledWith('❤️');
@@ -82,7 +103,7 @@ describe('ReactionPicker interactions', () => {
     fireEvent.click(screen.getByLabelText('Add reaction'));
 
     await waitFor(() => {
-      expect(screen.getByText('Add Reaction')).toBeInTheDocument();
+      expect(screen.getByText('Quick Reactions')).toBeInTheDocument();
     });
 
     // Press Escape to close
@@ -90,7 +111,7 @@ describe('ReactionPicker interactions', () => {
 
     await waitFor(() => {
       // The popover should close
-      expect(screen.queryByText('Add Reaction')).not.toBeInTheDocument();
+      expect(screen.queryByText('Quick Reactions')).not.toBeInTheDocument();
     });
   });
 });

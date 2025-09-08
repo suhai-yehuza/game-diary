@@ -1,6 +1,6 @@
 'use client';
 
-import { Globe, Trophy, TrendingUp, Calendar, ArrowDown } from 'lucide-react';
+import { Globe, Trophy, TrendingUp, Calendar, ArrowDown, Star } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { Suspense } from 'react';
@@ -9,6 +9,7 @@ import { CardSkeleton } from '@/app/components/common/LoadingSpinner';
 import { ContentPreviewBanner } from '@/app/components/landing/ContentPreviewBanner';
 import { IntegratedGameLogs } from '@/app/components/landing/IntegratedGameLogs';
 import { IntegratedGames } from '@/app/components/landing/IntegratedGames';
+import { PopularGames } from '@/app/components/landing/PopularGames';
 import { useMenuContext } from '@/app/components/providers';
 
 export default function HomePage() {
@@ -111,44 +112,71 @@ export default function HomePage() {
 
       {/* Content Sections - Reduced spacing for better flow */}
       <div
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8"
+        className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-6 sm:pb-8"
         data-section="trending-latest-results"
       >
         <div
-          className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12"
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10"
           data-section="main-content-grid"
         >
           {/* Trending Game Logs Section */}
-          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
-            <div className="bg-gradient-to-r from-brand-secondary to-brand-secondary-dark p-6 text-white">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="w-6 h-6" />
-                <h2 className="text-xl font-bold">Trending Game Logs</h2>
+          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
+                <h2 className="text-lg sm:text-xl font-bold">Trending Game Logs</h2>
               </div>
-              <p className="text-white/90 mt-1">See what&apos;s hot in the community</p>
+              <p className="text-white/90 mt-1 text-sm sm:text-base">
+                See what&apos;s hot in the community
+              </p>
             </div>
 
-            <div className="p-6">
-              <Suspense fallback={<CardSkeleton />}>
-                <IntegratedGameLogs />
-              </Suspense>
+            <div className="p-4 sm:p-6 flex-1 flex flex-col">
+              <div className="flex-1">
+                <Suspense fallback={<CardSkeleton />}>
+                  <IntegratedGameLogs />
+                </Suspense>
+              </div>
             </div>
           </section>
 
           {/* Finished Games Section */}
-          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
-            <div className="bg-gradient-to-r from-brand-primary to-brand-primary-light p-6 text-white">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-6 h-6" />
-                <h2 className="text-xl font-bold">Recent Games</h2>
+          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+                <h2 className="text-lg sm:text-xl font-bold">Recent Games</h2>
               </div>
-              <p className="text-white/90 mt-1">Latest results and scores</p>
+              <p className="text-white/90 mt-1 text-sm sm:text-base">Latest results and scores</p>
             </div>
 
-            <div className="p-6">
-              <Suspense fallback={<CardSkeleton />}>
-                <IntegratedGames />
-              </Suspense>
+            <div className="p-4 sm:p-6 flex-1 flex flex-col">
+              <div className="flex-1">
+                <Suspense fallback={<CardSkeleton />}>
+                  <IntegratedGames />
+                </Suspense>
+              </div>
+            </div>
+          </section>
+
+          {/* Popular Games Section */}
+          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Star className="w-5 h-5 sm:w-6 sm:h-6" />
+                <h2 className="text-lg sm:text-xl font-bold">Popular Games</h2>
+              </div>
+              <p className="text-white/90 mt-1 text-sm sm:text-base">
+                Top rated and most popular games
+              </p>
+            </div>
+
+            <div className="p-4 sm:p-6 flex-1 flex flex-col">
+              <div className="flex-1">
+                <Suspense fallback={<CardSkeleton />}>
+                  <PopularGames />
+                </Suspense>
+              </div>
             </div>
           </section>
         </div>

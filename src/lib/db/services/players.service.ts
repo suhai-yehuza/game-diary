@@ -1,9 +1,10 @@
 import { and, desc, eq, ilike, or, sql, isNull } from 'drizzle-orm';
 
+import { API_LIMITS } from '@/lib/constants';
 import { db } from '@/lib/db';
-import { nba_players } from '@/lib/db/schema/game-schemas';
-import type { IPlayerResponse, IPlayerFilters } from '@/lib/types';
+import { basketball_players } from '@/lib/db/schema/game-schemas';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IPlayerResponse, IPlayerFilters } from '@/types';
 
 /**
  * Convert database player record to API format
@@ -19,9 +20,12 @@ function convertDbPlayerToApiFormat(dbPlayer: Record<string, unknown>): IPlayerR
     const leagues = dbPlayer.leagues ? JSON.parse(dbPlayer.leagues as string) : null;
 
     return {
-      id: parseInt(dbPlayer.id as string),
+      id: String(dbPlayer.id),
       firstname: (dbPlayer.first_name as string) || (dbPlayer.firstName as string),
       lastname: (dbPlayer.last_name as string) || (dbPlayer.lastName as string),
+      name: `${(dbPlayer.first_name as string) || ''} ${(dbPlayer.last_name as string) || ''}`.trim(),
+      position: 'Guard',
+      team: {},
       birth,
       nba,
       height,
@@ -38,9 +42,12 @@ function convertDbPlayerToApiFormat(dbPlayer: Record<string, unknown>): IPlayerR
     });
     // Return basic format on error
     return {
-      id: parseInt(dbPlayer.id as string),
+      id: String(dbPlayer.id),
       firstname: (dbPlayer.first_name as string) || (dbPlayer.firstName as string) || 'Unknown',
       lastname: (dbPlayer.last_name as string) || (dbPlayer.lastName as string) || 'Player',
+      name: 'Unknown Player',
+      position: 'Guard',
+      team: {},
       birth: undefined,
       nba: undefined,
       height: undefined,
@@ -68,7 +75,7 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
       countryFilter,
       sortBy = 'name',
       sortDirection = 'asc',
-      limit = 50,
+      limit = API_LIMITS.PLAYERS.LARGE,
       offset = 0,
     } = filters;
 
@@ -80,31 +87,31 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
       const term = `%${searchTerm.trim()}%`;
       conditions.push(
         or(
-          ilike(nba_players.first_name, term),
-          ilike(nba_players.last_name, term),
-          ilike(nba_players.college, term)
+          ilike(basketball_players.first_name, term),
+          ilike(basketball_players.last_name, term),
+          ilike(basketball_players.college, term)
         )
       );
     }
 
     // College filter
     if (collegeFilter && collegeFilter !== 'all') {
-      conditions.push(ilike(nba_players.college, `%${collegeFilter}%`));
+      conditions.push(ilike(basketball_players.college, `%${collegeFilter}%`));
     }
 
     // Position filter - search in leagues JSON
     if (positionFilter && positionFilter !== 'all') {
-      conditions.push(ilike(nba_players.leagues, `%${positionFilter}%`));
+      conditions.push(ilike(basketball_players.leagues, `%${positionFilter}%`));
     }
 
     // Team filter - search in teams JSON
     if (teamFilter && teamFilter !== 'all') {
-      conditions.push(ilike(nba_players.teams, `%${teamFilter}%`));
+      conditions.push(ilike(basketball_players.teams, `%${teamFilter}%`));
     }
 
     // Country filter - search in birth JSON for country
     if (countryFilter && countryFilter !== 'all') {
-      conditions.push(ilike(nba_players.birth, `%${countryFilter}%`));
+      conditions.push(ilike(basketball_players.birth, `%${countryFilter}%`));
     }
 
     // TEMPORARILY: Remove all conditions to test if we can fetch any players
@@ -116,32 +123,29 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
       case 'name':
         orderBy =
           sortDirection === 'asc'
-            ? [nba_players.last_name, nba_players.first_name]
-            : [desc(nba_players.last_name), desc(nba_players.first_name)];
+            ? [basketball_players.last_name, basketball_players.first_name]
+            : [desc(basketball_players.last_name), desc(basketball_players.first_name)];
         break;
       case 'college':
         orderBy =
           sortDirection === 'asc'
-            ? [nba_players.college, nba_players.last_name]
-            : [desc(nba_players.college), desc(nba_players.last_name)];
+            ? [basketball_players.college, basketball_players.last_name]
+            : [desc(basketball_players.college), desc(basketball_players.last_name)];
         break;
       default:
-        orderBy = [nba_players.last_name, nba_players.first_name];
+        orderBy = [basketball_players.last_name, basketball_players.first_name];
     }
 
     // Use the same database connection method as the working endpoints
-    console.log(`[Players Service] Fetching players with limit: ${limit}, offset: ${offset}`);
-
-    const dbPlayers = await db()?.query.nba_players.findMany({
+    const dbPlayers = await db()?.query.basketball_players.findMany({
       limit,
       offset,
       orderBy: orderBy,
+      where: isNull(basketball_players.deleted_at), // Only get non-deleted players
     });
 
-    console.log(`[Players Service] Found ${dbPlayers?.length || 0} players from database`);
-
     // Get total count using raw SQL like the search endpoint
-    const countQuery = sql`SELECT COUNT(*) as count FROM nba_players`;
+    const countQuery = sql`SELECT COUNT(*) as count FROM basketball_players WHERE deleted_at IS NULL`;
     const database = db();
     if (!database) {
       throw new Error('Database not available');
@@ -180,8 +184,8 @@ export async function getPlayerById(playerId: string): Promise<IPlayerResponse |
     }
     const dbPlayer = await database
       .select()
-      .from(nba_players)
-      .where(and(eq(nba_players.id, playerId), isNull(nba_players.deleted_at)))
+      .from(basketball_players)
+      .where(and(eq(basketball_players.id, playerId), isNull(basketball_players.deleted_at)))
       .limit(1);
 
     if (dbPlayer.length === 0) {
@@ -210,9 +214,11 @@ export async function getPlayersByTeam(teamId: string): Promise<IPlayerResponse[
     }
     const dbPlayers = await database
       .select()
-      .from(nba_players)
-      .where(and(ilike(nba_players.teams, `%${teamId}%`), isNull(nba_players.deleted_at)))
-      .orderBy(nba_players.last_name, nba_players.first_name);
+      .from(basketball_players)
+      .where(
+        and(ilike(basketball_players.teams, `%${teamId}%`), isNull(basketball_players.deleted_at))
+      )
+      .orderBy(basketball_players.last_name, basketball_players.first_name);
 
     return dbPlayers.map(convertDbPlayerToApiFormat);
   } catch (error) {
@@ -235,15 +241,15 @@ export async function getUniqueColleges(): Promise<string[]> {
       throw new Error('Database not available');
     }
     const colleges = await database
-      .selectDistinct({ college: nba_players.college })
-      .from(nba_players)
+      .selectDistinct({ college: basketball_players.college })
+      .from(basketball_players)
       .where(
         and(
-          isNull(nba_players.deleted_at),
-          sql`${nba_players.college} IS NOT NULL AND ${nba_players.college} != ''`
+          isNull(basketball_players.deleted_at),
+          sql`${basketball_players.college} IS NOT NULL AND ${basketball_players.college} != ''`
         )
       )
-      .orderBy(nba_players.college);
+      .orderBy(basketball_players.college);
 
     return colleges
       .map((row: Record<string, unknown>) => row.college as string)
@@ -271,12 +277,12 @@ export async function getUniqueCountries(): Promise<string[]> {
       throw new Error('Database not available');
     }
     const players = await database
-      .select({ birth: nba_players.birth })
-      .from(nba_players)
+      .select({ birth: basketball_players.birth })
+      .from(basketball_players)
       .where(
         and(
-          isNull(nba_players.deleted_at),
-          sql`${nba_players.birth} IS NOT NULL AND ${nba_players.birth} != ''`
+          isNull(basketball_players.deleted_at),
+          sql`${basketball_players.birth} IS NOT NULL AND ${basketball_players.birth} != ''`
         )
       );
 
@@ -285,7 +291,7 @@ export async function getUniqueCountries(): Promise<string[]> {
     for (const player of players) {
       try {
         if (player.birth) {
-          const birthData = JSON.parse(player.birth);
+          const birthData = JSON.parse(player.birth as string);
           if (birthData?.country && typeof birthData.country === 'string') {
             countries.add(birthData.country.trim());
           }

@@ -1,4 +1,4 @@
-import type { IPerformanceMetrics } from '@/lib/types';
+import type { IPerformanceMetrics } from '@/types';
 
 import { analytics } from './analytics';
 
@@ -276,19 +276,16 @@ export const performanceMonitoring = {
         renderTime: 0,
         memoryUsage: 0,
         bundleSize: {
+          js: 0,
+          css: 0,
+          images: 0,
           total: 0,
-          pages: {},
-          chunks: {},
+          gzipped: 0,
         },
-        typecheck: {
-          time: 0,
-          errors: 0,
-        },
-        dependencies: {
-          production: 0,
-          development: 0,
-          total: 0,
-        },
+        duration: 0,
+        memory: 0,
+        cpu: 0,
+        timestamp: new Date().toISOString(),
         domContentLoaded: 0,
         windowLoad: 0,
       };
@@ -299,22 +296,28 @@ export const performanceMonitoring = {
       loadTime: 0,
       renderTime: 0,
       memoryUsage: 0,
+      duration: 0,
+      memory: 0,
+      cpu: 0,
+      timestamp: new Date().toISOString(),
       bundleSize: {
+        js: 0,
+        css: 0,
+        images: 0,
         total: 0,
-        pages: {},
-        chunks: {},
-      },
-      typecheck: {
-        time: 0,
-        errors: 0,
-      },
-      dependencies: {
-        production: 0,
-        development: 0,
-        total: 0,
+        gzipped: 0,
       },
       domContentLoaded: 0,
       windowLoad: 0,
+      avgCacheTime: 0,
+      avgQueryTime: 0,
+      uptime: 0,
+      totalQueries: 0,
+      averageQueryTime: 0,
+      slowQueries: [],
+      errorRate: 0,
+      recommendations: [],
+      cacheHitRate: 0,
     };
 
     if (navigation) {

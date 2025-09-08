@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { CommentReplies } from '@/app/components/comments/CommentReplies';
-import { ParentType } from '@/lib/types/generated/graphql';
+import { ParentType } from '@/types';
 
 // Mock the useCommentReplies hook
 const mockUseCommentReplies = vi.fn();

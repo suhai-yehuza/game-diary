@@ -1,5 +1,7 @@
 import { pgTable, varchar, text, timestamp, boolean, jsonb, integer } from 'drizzle-orm/pg-core';
 
+import { baseTableConfig } from '@/lib/db/schema/base-schemas';
+
 // Audit log categories
 export const AUDIT_CATEGORIES = {
   KEY_MANAGEMENT: 'key_management',
@@ -68,8 +70,6 @@ export const AUDIT_ACTIONS = {
 export const audit_logs = pgTable(
   'audit_logs',
   {
-    id: varchar('id', { length: 255 }).primaryKey(),
-
     // Core audit information
     timestamp: timestamp('timestamp').defaultNow().notNull(),
     category: varchar('category', { length: 50 }).notNull(),
@@ -109,20 +109,11 @@ export const audit_logs = pgTable(
     // Compliance
     compliance_tags: varchar('compliance_tags', { length: 500 }), // Comma-separated tags
 
-    // Standard timestamps
-    created_at: timestamp('created_at').defaultNow().notNull(),
-    updated_at: timestamp('updated_at').defaultNow().notNull(),
+    // Use base table configuration for standard fields
+    ...baseTableConfig,
   },
-  table => ({
-    // Indexes for efficient querying
-    timestampIdx: table.timestamp,
-    categoryIdx: table.category,
-    actionIdx: table.action,
-    severityIdx: table.severity,
-    userIdIdx: table.user_id,
-    resourceTypeIdx: table.resource_type,
-    resourceIdIdx: table.resource_id,
-    successIdx: table.success,
+  _table => ({
+    // Constraints and checks can be added here if needed
   })
 );
 
@@ -130,8 +121,6 @@ export const audit_logs = pgTable(
 export const key_rotation_logs = pgTable(
   'key_rotation_logs',
   {
-    id: varchar('id', { length: 255 }).primaryKey(),
-
     // Key information
     key_id: varchar('key_id', { length: 255 }).notNull(),
     key_version: varchar('key_version', { length: 100 }).notNull(),
@@ -164,16 +153,11 @@ export const key_rotation_logs = pgTable(
     details: jsonb('details'),
     error_message: text('error_message'),
 
-    // Standard timestamps
-    created_at: timestamp('created_at').defaultNow().notNull(),
-    updated_at: timestamp('updated_at').defaultNow().notNull(),
+    // Use base table configuration for standard fields
+    ...baseTableConfig,
   },
-  table => ({
-    // Indexes
-    keyIdIdx: table.key_id,
-    environmentIdx: table.environment,
-    statusIdx: table.status,
-    rotatedByIdx: table.rotated_by,
+  _table => ({
+    // Constraints and checks can be added here if needed
   })
 );
 
@@ -181,8 +165,6 @@ export const key_rotation_logs = pgTable(
 export const rls_access_logs = pgTable(
   'rls_access_logs',
   {
-    id: varchar('id', { length: 255 }).primaryKey(),
-
     // Access context
     requesting_user_id: varchar('requesting_user_id', { length: 255 }).notNull(),
     target_user_id: varchar('target_user_id', { length: 255 }).notNull(),
@@ -216,17 +198,10 @@ export const rls_access_logs = pgTable(
     details: jsonb('details'),
     error_message: text('error_message'),
 
-    // Standard timestamps
-    created_at: timestamp('created_at').defaultNow().notNull(),
-    updated_at: timestamp('updated_at').defaultNow().notNull(),
+    // Use base table configuration for standard fields
+    ...baseTableConfig,
   },
-  table => ({
-    // Indexes
-    requestingUserIdIdx: table.requesting_user_id,
-    targetUserIdIdx: table.target_user_id,
-    tableNameIdx: table.table_name,
-    operationIdx: table.operation,
-    accessGrantedIdx: table.access_granted,
-    createdAtIdx: table.created_at,
+  _table => ({
+    // Constraints and checks can be added here if needed
   })
 );

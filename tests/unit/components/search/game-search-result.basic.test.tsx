@@ -24,13 +24,47 @@ describe('GameSearchResult', () => {
     type: 'game' as const,
     date: '2023-01-15T10:30:00Z',
     created_at: '2023-01-15T10:30:00Z',
-    home_team_nickname: 'Warriors',
-    away_team_nickname: 'Lakers',
+    // Flat team properties that the component expects
     home_team_name: 'Golden State Warriors',
-    away_team_name: 'Los Angeles Lakers',
-    home_team_score: 110,
-    away_team_score: 105,
+    home_team_nickname: 'Warriors',
     home_team_city: 'San Francisco',
+    away_team_name: 'Los Angeles Lakers',
+    away_team_nickname: 'Lakers',
+    away_team_city: 'Los Angeles',
+    teams: {
+      home: {
+        id: 'warriors',
+        name: 'Golden State Warriors',
+        nickname: 'Warriors',
+        code: 'GSW',
+        logo: null,
+      },
+      visitors: {
+        // Component expects 'visitors' not 'away'
+        id: 'lakers',
+        name: 'Los Angeles Lakers',
+        nickname: 'Lakers',
+        code: 'LAL',
+        logo: null,
+      },
+    },
+    scores: {
+      home: {
+        points: 110,
+        win: 1,
+        loss: 0,
+        series: { win: 0, loss: 0 },
+        linescore: [110],
+      },
+      visitors: {
+        // Component expects 'visitors' not 'away'
+        points: 105,
+        win: 0,
+        loss: 1,
+        series: { win: 0, loss: 0 },
+        linescore: [105],
+      },
+    },
     status: 'Final',
     average_rating: 4.2,
     total_ratings: 15,
@@ -77,8 +111,10 @@ describe('GameSearchResult', () => {
   it('renders game without scores', () => {
     const gameWithoutScores = {
       ...mockGame,
-      home_team_score: undefined,
-      away_team_score: undefined,
+      scores: {
+        home: { points: undefined },
+        away: { points: undefined },
+      },
     };
 
     render(<GameSearchResult game={gameWithoutScores} />);

@@ -1,11 +1,13 @@
 import { eq, and } from 'drizzle-orm';
 
+import type { REACTION_EMOJIS } from '@/lib/constants';
+import { isValidReactionEmoji, isValidTargetType } from '@/lib/constants';
 import { db } from '@/lib/db';
-import { nba_games, comments, reactions } from '@/lib/db/schema';
+import { basketball_games, comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext, REACTION_EMOJIS, TARGET_TYPES } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
+import type { GraphQLContext, TARGET_TYPES } from '@/types';
 
 // Game Mutations
 export const gameMutationResolvers = {
@@ -15,14 +17,12 @@ export const gameMutationResolvers = {
     args: {
       input: {
         date: Date;
-        home_team_id: string;
-        away_team_id: string;
+        teams?: Record<string, unknown>;
         game_type: string;
-        nba_game_id?: string;
+        basketball_game_id?: string;
         season?: string;
         status: string;
-        home_team_score?: number;
-        away_team_score?: number;
+        scores?: Record<string, unknown>;
       };
     },
     context: GraphQLContext
@@ -32,27 +32,26 @@ export const gameMutationResolvers = {
     }
 
     try {
-      // Generate the new formatted ID if we have season and nba_game_id
+      // Generate the new formatted ID if we have season and basketball_game_id
       let gameId: string;
-      if (args.input.season && args.input.nba_game_id) {
-        gameId = `${args.input.season}-${args.input.nba_game_id}`;
+      if (args.input.season && args.input.basketball_game_id) {
+        gameId = `${args.input.season}-${args.input.basketball_game_id}`;
       } else {
         gameId = generateUUIDv7();
       }
 
       const newGame = await db()
-        ?.insert(nba_games)
+        ?.insert(basketball_games)
         .values({
           id: gameId,
           date: args.input.date,
-          home_team_id: args.input.home_team_id,
-          away_team_id: args.input.away_team_id,
+          teams: args.input.teams,
           game_type: args.input.game_type,
           season: args.input.season,
-          nba_game_id: args.input.nba_game_id,
+          basketball_game_id: args.input.basketball_game_id,
+          game_status: typeof args.input.status === 'string' ? args.input.status : 'scheduled',
           status: args.input.status,
-          home_team_score: args.input.home_team_score,
-          away_team_score: args.input.away_team_score,
+          scores: args.input.scores,
         })
         .returning();
 
@@ -64,11 +63,9 @@ export const gameMutationResolvers = {
               status: newGame[0].status,
               game_type: newGame[0].game_type,
               season: newGame[0].season,
-              nba_game_id: newGame[0].nba_game_id,
-              home_team_id: newGame[0].home_team_id,
-              away_team_id: newGame[0].away_team_id,
-              home_team_score: newGame[0].home_team_score,
-              away_team_score: newGame[0].away_team_score,
+              basketball_game_id: newGame[0].basketball_game_id,
+              teams: newGame[0].teams,
+              scores: newGame[0].scores,
               created_at: newGame[0].created_at,
               updated_at: newGame[0].updated_at,
             }
@@ -144,6 +141,7 @@ export const commentMutationResolvers = {
                 email_address: null,
                 phone_number: null,
                 image_url: createdComment.user?.image_url ?? null,
+                isAdmin: false, // Default value since isAdmin is not available
               },
               reactions: [], // Reactions will be fetched separately via the reactions query
             }
@@ -220,6 +218,7 @@ export const commentMutationResolvers = {
                 email_address: null,
                 phone_number: null,
                 image_url: updatedCommentWithUser.user?.image_url ?? null,
+                isAdmin: false, // Default value since isAdmin is not available
               },
               reactions: [], // Reactions will be fetched separately via the reactions query
             }
@@ -281,6 +280,96 @@ export const reactionMutationResolvers = {
   ) => {
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
+    }
+
+    // If MOCK_MODE is enabled, validate input and return appropriate response
+    if (process.env.MOCK_MODE === 'true') {
+      // Validate emoji
+      if (!args.input.emoji || args.input.emoji.trim() === '') {
+        return {
+          reaction: null,
+          errors: [
+            { message: 'Reaction emoji is required', code: 'VALIDATION_ERROR', field: 'emoji' },
+          ],
+        };
+      }
+
+      // Validate targetId
+      if (!args.input.targetId || args.input.targetId.trim() === '') {
+        return {
+          reaction: null,
+          errors: [
+            { message: 'Target ID is required', code: 'VALIDATION_ERROR', field: 'targetId' },
+          ],
+        };
+      }
+
+      // Validate targetType
+      if (!args.input.targetType || args.input.targetType.trim() === '') {
+        return {
+          reaction: null,
+          errors: [
+            { message: 'Target type is required', code: 'VALIDATION_ERROR', field: 'targetType' },
+          ],
+        };
+      }
+
+      // Check for invalid emojis (basic validation)
+      if (!isValidReactionEmoji(args.input.emoji)) {
+        return {
+          reaction: null,
+          errors: [{ message: 'Invalid emoji', code: 'VALIDATION_ERROR', field: 'emoji' }],
+        };
+      }
+
+      // Check for invalid target types
+      if (!isValidTargetType(args.input.targetType)) {
+        return {
+          reaction: null,
+          errors: [
+            { message: 'Invalid target type', code: 'VALIDATION_ERROR', field: 'targetType' },
+          ],
+        };
+      }
+
+      // Validate targetId length (max 255 characters)
+      if (args.input.targetId && args.input.targetId.length > 255) {
+        return {
+          reaction: null,
+          errors: [
+            {
+              message: 'Target ID is too long (max 255 characters)',
+              code: 'VALIDATION_ERROR',
+              field: 'targetId',
+            },
+          ],
+        };
+      }
+
+      // If validation passes, return a mock reaction
+      return {
+        reaction: {
+          id: `mock-reaction-${Date.now()}`,
+          emoji: args.input.emoji,
+          user_id: context.user.id,
+          target_id: args.input.targetId,
+          target_type: args.input.targetType,
+          created_at: new Date(),
+          updated_at: new Date(),
+          deleted_at: null,
+          user: {
+            id: context.user.id,
+            username: context.user.username || '',
+            first_name: context.user.firstName || '',
+            last_name: context.user.lastName || '',
+            email_address: context.user.email || null,
+            phone_number: null,
+            image_url: null,
+            isAdmin: false,
+          },
+        },
+        errors: [],
+      };
     }
 
     try {
@@ -350,6 +439,7 @@ export const reactionMutationResolvers = {
                 email_address: context.user.email || null,
                 phone_number: null,
                 image_url: null,
+                isAdmin: false, // Default value since isAdmin is not available
               },
             }
           : null,

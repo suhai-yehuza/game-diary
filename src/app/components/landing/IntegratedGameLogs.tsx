@@ -1,37 +1,32 @@
 'use client';
 
-import { MessageCircle, Heart, User, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MessageCircle, Heart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState, useEffect } from 'react';
 
-import { useTopGameLogs } from '@/hooks/use-top-game-logs';
-import { API_LIMITS } from '@/lib/constants';
-import type { IGameLog as _IGameLog } from '@/lib/types';
+import { useLandingPageData } from '@/hooks/use-landing-page-data';
+import { useScrollAnimation } from '@/hooks/use-scroll-animation';
+import type { GameLog } from '@/types';
 
 export function IntegratedGameLogs() {
-  const { topGameLogs, loading, error } = useTopGameLogs({ limit: API_LIMITS.GAME_LOGS.LARGE });
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
+  const { data, loading, error } = useLandingPageData();
+  const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
+    speed: 15, // Desktop speed
+    mobileSpeed: 8, // Mobile speed - slower for better readability
+    pauseOnHover: true,
+    autoStart: true,
+  });
 
-  // Auto-cycle through game logs every 5 seconds
-  useEffect(() => {
-    if (topGameLogs.length <= 1 || isPaused) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex(prevIndex => (prevIndex + 1) % topGameLogs.length);
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [topGameLogs.length, isPaused]);
+  // Extract trending game logs from cached data
+  const topGameLogs = (data?.trendingContent?.topGameLogs || []) as GameLog[];
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 3 }, (_, i) => `skeleton-${i}-${Date.now()}`).map(uniqueId => (
+      <div className="space-y-3 flex flex-col h-full">
+        {Array.from({ length: 5 }, (_, i) => `skeleton-${i}-${Date.now()}`).map(uniqueId => (
           <div key={uniqueId} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 animate-pulse">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full" />
+              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full" />
               <div className="flex-1">
                 <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 mb-2" />
                 <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
@@ -63,9 +58,8 @@ export function IntegratedGameLogs() {
     );
   }
 
-  const currentGameLog = topGameLogs[currentIndex];
-  const totalActivity =
-    (currentGameLog.totalCommentCount || 0) + (currentGameLog.totalReactionCount || 0);
+  // Show top 5 trending game logs
+  const displayGameLogs = topGameLogs.slice(0, 5);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -85,158 +79,154 @@ export function IntegratedGameLogs() {
     return 'text-green-600 dark:text-green-400';
   };
 
+  const formatShort = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + 'M';
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + 'K';
+    }
+    return num.toString();
+  };
+
   return (
-    <div className="space-y-4">
-      {/* Featured Game Log */}
+    <div className="space-y-3 flex flex-col h-full">
+      {/* Trending Game Logs List with Scroll Animation */}
       <div
-        className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 relative"
-        onMouseEnter={() => setIsPaused(true)}
-        onMouseLeave={() => setIsPaused(false)}
+        ref={containerRef}
+        className="h-[42rem] overflow-auto relative scroll-container animate-scroll"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
       >
-        {/* Navigation Controls */}
-        {topGameLogs.length > 1 && (
-          <div className="absolute top-2 right-2 flex gap-1">
-            <button
-              onClick={() =>
-                setCurrentIndex(prev => (prev - 1 + topGameLogs.length) % topGameLogs.length)
-              }
-              className="p-1 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              aria-label="Previous game log"
-            >
-              <ChevronLeft className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            </button>
-            <button
-              onClick={() => setCurrentIndex(prev => (prev + 1) % topGameLogs.length)}
-              className="p-1 rounded-full bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors"
-              aria-label="Next game log"
-            >
-              <ChevronRight className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-            </button>
-          </div>
-        )}
+        <div ref={contentRef} className="space-y-3 scroll-content">
+          {displayGameLogs.map((gameLog, index) => {
+            const totalActivity =
+              (gameLog.totalCommentCount || 0) + (gameLog.totalReactionCount || 0);
 
-        {/* User Info */}
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
-            {currentGameLog.user?.image_url ? (
-              <Image
-                src={currentGameLog.user.image_url}
-                alt={currentGameLog.user.username}
-                width={40}
-                height={40}
-                className="rounded-full"
-              />
-            ) : (
-              <User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
-            )}
-          </div>
-          <div className="flex-1">
-            <div className="font-semibold text-gray-900 dark:text-white">
-              {currentGameLog.user?.username || 'Anonymous'}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {formatDate(currentGameLog.created_at)}
-            </div>
-          </div>
-          <div
-            className={`text-sm font-medium flex items-center gap-1 ${getActivityColor(totalActivity)}`}
-          >
-            <div className="w-2 h-2 bg-current rounded-full" />
-            {totalActivity} activity
-          </div>
-        </div>
+            return (
+              <div
+                key={`trending-${String(gameLog.id)}`}
+                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              >
+                {/* Game Log Header with Rank and Activity */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                      #{index + 1}
+                    </span>
+                    <div
+                      className={`text-sm font-medium flex items-center gap-1 ${getActivityColor(totalActivity)}`}
+                    >
+                      <div className="w-2 h-2 bg-current rounded-full" />
+                      {formatShort(totalActivity)} activity
+                    </div>
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    {formatDate(gameLog.created_at)}
+                  </div>
+                </div>
 
-        {/* Game Info */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                {currentGameLog.game?.home_team?.logo ? (
-                  <Image
-                    src={currentGameLog.game.home_team.logo}
-                    alt={currentGameLog.game.home_team.name}
-                    width={24}
-                    height={24}
-                    className="rounded-full"
-                  />
-                ) : (
-                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                    {currentGameLog.game?.home_team?.name?.charAt(0)}
-                  </span>
-                )}
+                {/* User Info */}
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
+                    {gameLog.user?.image_url ? (
+                      <Image
+                        src={gameLog.user.image_url}
+                        alt={gameLog.user.username}
+                        width={32}
+                        height={32}
+                        className="rounded-full"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                      {gameLog.user?.username || 'Anonymous'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Game Info */}
+                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        {gameLog.game?.home_team?.logo ? (
+                          <Image
+                            src={gameLog.game.home_team.logo}
+                            alt={gameLog.game.home_team.name}
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                          />
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            {gameLog.game?.home_team?.name?.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                        {gameLog.game?.home_team?.name}
+                      </span>
+                      <span className="text-gray-500 text-sm">vs</span>
+                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                        {gameLog.game?.away_team?.name}
+                      </span>
+                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                        {gameLog.game?.away_team?.logo ? (
+                          <Image
+                            src={gameLog.game.away_team.logo}
+                            alt={gameLog.game.away_team.name}
+                            width={20}
+                            height={20}
+                            className="rounded-full"
+                            style={{ width: 'auto', height: 'auto' }}
+                          />
+                        ) : (
+                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                            {gameLog.game?.away_team?.name?.charAt(0)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                    <span>Rating: {gameLog.rating_for_game}/5 ⭐</span>
+                    <span>{gameLog.watched_setting}</span>
+                  </div>
+                </div>
+
+                {/* Activity Stats */}
+                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <MessageCircle className="w-3 h-3" />
+                      <span>{formatShort(gameLog.totalCommentCount || 0)} comments</span>
+                    </div>
+                    <span>•</span>
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-3 h-3" />
+                      <span>{formatShort(gameLog.totalReactionCount || 0)} reactions</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {currentGameLog.game?.home_team?.name}
-              </span>
-              <span className="text-gray-500">vs</span>
-              <span className="font-medium text-gray-900 dark:text-white">
-                {currentGameLog.game?.away_team?.name}
-              </span>
-              <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                {currentGameLog.game?.away_team?.logo ? (
-                  <Image
-                    src={currentGameLog.game.away_team.logo}
-                    alt={currentGameLog.game.away_team.name}
-                    width={24}
-                    height={24}
-                    className="rounded-full"
-                    style={{ width: 'auto', height: 'auto' }}
-                  />
-                ) : (
-                  <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
-                    {currentGameLog.game?.away_team?.name?.charAt(0)}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-            <span>Rating: {currentGameLog.rating_for_game}/5 ⭐</span>
-            <span>{currentGameLog.watched_setting}</span>
-          </div>
+            );
+          })}
         </div>
-
-        {/* Activity Stats */}
-        <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-          <div className="flex items-center gap-1">
-            <MessageCircle className="w-4 h-4" />
-            <span>{currentGameLog.totalCommentCount || 0} comments</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Heart className="w-4 h-4" />
-            <span>{currentGameLog.totalReactionCount || 0} reactions</span>
-          </div>
-        </div>
-
-        {/* Progress Indicators */}
-        {topGameLogs.length > 1 && (
-          <div className="flex gap-1 justify-center mt-3">
-            {topGameLogs.slice(0, 5).map((gameLog: _IGameLog, index: number) => (
-              <button
-                key={`gamelog-${gameLog.id}`}
-                onClick={() => setCurrentIndex(index)}
-                className={`w-2 h-2 rounded-full transition-colors ${
-                  index === currentIndex ? 'bg-green-600' : 'bg-gray-300 dark:bg-gray-600'
-                }`}
-                aria-label={`Go to game log ${index + 1}`}
-              />
-            ))}
-            {topGameLogs.length > 5 && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-                +{topGameLogs.length - 5} more
-              </span>
-            )}
-          </div>
-        )}
       </div>
 
       {/* View All Button */}
-      <Link
-        href="/protected/user"
-        className="block w-full text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
-      >
-        Explore Game Logs
-      </Link>
+      <div className="mt-auto pt-4">
+        <Link
+          href="/protected/user"
+          className="block w-full text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+        >
+          View All Game Logs
+        </Link>
+      </div>
     </div>
   );
 }

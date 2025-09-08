@@ -4,7 +4,7 @@ import { Plus } from 'lucide-react';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { Button } from '@/app/components/ui/button';
-import type { IGameLogsHeaderProps } from '@/lib/types';
+import type { IGameLogsHeaderProps } from '@/types';
 
 export const GameLogsHeader = ({ onCreateClick }: IGameLogsHeaderProps) => {
   const isMobile = useMobileDetection();

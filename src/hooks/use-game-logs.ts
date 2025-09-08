@@ -1,522 +1,622 @@
-import { useQuery, NetworkStatus } from '@apollo/client';
-import { useCallback, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState, useMemo } from 'react';
 
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { GameLogCacheUtils, CACHE_CONFIG } from '@/lib/cache';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { GET_FRIENDS_GAME_LOGS, GET_GAME_LOGS } from '@/lib/graphql/queries';
-import { CLASSIFICATION } from '@/lib/types';
+import { errorHandlers } from '@/lib/utils/error-handler';
+import { ErrorCategory, ErrorSeverity } from '@/types';
 import type {
+  IFriendsGameLogsResponse,
   IGameLog,
-  IGameLogsOptions,
   IGameLogsResponse,
-  IFriendsGameLogsShape,
-  GqlGameLogNoComments,
-  Query,
-  Game as GqlGame,
-  Team as GqlTeam,
-} from '@/lib/types';
+  IPaginationParams,
+  GameLogFilters,
+} from '@/types';
 
-function mapTeam(team: GqlTeam | null | undefined): NonNullable<IGameLog['game']>['home_team'] {
-  if (!team) throw new Error('Team is required');
-  return {
-    id: team.id,
-
-    name: team.name,
-
-    nickname: team.nickname ?? undefined,
-
-    code: team.code ?? undefined,
-
-    city: team.city ?? undefined,
-
-    logo: team.logo ?? undefined,
-
-    all_star: team.all_star,
-
-    nba_franchise: team.nba_franchise,
-
-    conference: team.conference ?? undefined,
-
-    created_at: team.created_at ?? undefined,
-
-    updated_at: team.updated_at ?? undefined,
-  };
-}
-
-function mapGame(game: GqlGame | null | undefined): IGameLog['game'] | undefined {
-  if (!game) return undefined;
-  return {
-    id: game.id,
-    date: game.date ?? undefined,
-    status: game.status ?? undefined,
-    game_type: game.game_type ?? undefined,
-    nba_game_id: game.nba_game_id ?? undefined,
-    home_team_id: game.home_team_id ?? undefined,
-    away_team_id: game.away_team_id ?? undefined,
-    home_team: mapTeam(game.home_team),
-    away_team: mapTeam(game.away_team),
-    home_team_score: game.home_team_score ?? undefined,
-    away_team_score: game.away_team_score ?? undefined,
-    average_rating: game.average_rating ?? undefined,
-    total_ratings: game.total_ratings ?? undefined,
-    created_at: game.created_at ?? undefined,
-    updated_at: game.updated_at ?? undefined,
-  };
-}
-
-function mapUser(user: unknown): IGameLog['user'] {
-  if (!user || typeof user !== 'object' || !('id' in user)) {
-    return { id: '', username: '' };
-  }
-  const id = (user as { id?: string }).id ?? '';
-  let username = (user as { username?: string | null }).username;
-  username ??= '';
-  const first_name = (user as { first_name?: string | null }).first_name ?? undefined;
-  const last_name = (user as { last_name?: string | null }).last_name ?? undefined;
-  const image_url = (user as { image_url?: string | null }).image_url ?? undefined;
-  return { id, username, first_name, last_name, image_url };
-}
-
-// Type guard for filtering only strings
-function isString(t: unknown): t is string {
-  return typeof t === 'string';
-}
-
-function mapGameLog(log: GqlGameLogNoComments): IGameLog {
-  return {
-    id: log.id ?? '',
-    game_id: log.game_id ?? '',
-    notes: log.notes ?? undefined,
-    tags: log.tags ? log.tags.map(t => t ?? '').filter(isString) : [],
-    watched_date: log.watched_date ?? undefined,
-    watched_setting: log.watched_setting ?? undefined,
-    watched_location: log.watched_location ?? undefined,
-    watched_scope: log.watched_scope ?? undefined,
-    classification: log.classification ?? '',
-    created_at: log.created_at ?? '',
-    updated_at: log.updated_at ?? '',
-    rating_for_game: log.rating_for_game ?? 0,
-    game: log.game ? mapGame(log.game) : undefined,
-    user: mapUser(log.user),
-    totalCommentCount: log.totalCommentCount ?? 0,
-    totalReactionCount: log.totalReactionCount ?? 0,
-  };
-}
-
-// Helper to safely map an array of edges to IGameLog[]
-function safeMapGameLogArray(edges: unknown): IGameLog[] {
-  if (Array.isArray(edges)) {
-    return edges
-      .map(e => {
-        if (e && typeof e === 'object' && 'node' in e) {
-          return mapGameLog((e as { node: GqlGameLogNoComments }).node);
-        }
-        return undefined;
-      })
-      .filter((log): log is IGameLog => !!log);
-  }
-  return [];
-}
-
-export function useGameLogs(options: IGameLogsOptions = {}) {
-  const { filters = {}, pagination = {}, skip = false } = options;
-
-  // Performance monitoring
-  const queryStartTime = useRef<number>(Date.now());
-
-  // Separate state for gameLogs and friendsGameLogs
+export function useGameLogs(
+  filtersParam: GameLogFilters = {},
+  paginationParam: IPaginationParams = { page: 1, limit: 20 },
+  options: { skip?: boolean } = {}
+) {
   const [gameLogs, setGameLogs] = useState<IGameLog[]>([]);
   const [gameLogsEndCursor, setGameLogsEndCursor] = useState<string | null>(null);
-  const [gameLogsHasNextPage, setGameLogsHasNextPage] = useState(true);
+  const [gameLogsHasNextPage, setGameLogsHasNextPage] = useState<boolean>(false);
   const [gameLogsTotalCount, setGameLogsTotalCount] = useState<number>(0);
 
-  const [friendsLogs, setFriendsLogs] = useState<IGameLog[]>([]);
-  const [friendsLogsEndCursor, setFriendsLogsEndCursor] = useState<string | null>(null);
-  const [friendsLogsHasNextPage, setFriendsLogsHasNextPage] = useState(true);
-  const [friendsLogsTotalCount, setFriendsLogsTotalCount] = useState<number>(0);
+  // Cache state
+  const [cachedGameLogs, setCachedGameLogs] = useState<IGameLog[] | null>(null);
+  const [isCacheHit, setIsCacheHit] = useState(false);
 
-  const { loading, error, refetch, fetchMore, networkStatus } = useQuery<IGameLogsResponse>(
-    GET_GAME_LOGS,
-    {
-      variables: {
-        filters,
-        pagination,
-      },
-      skip, // Skip the query if skip is true
-      fetchPolicy: 'cache-and-network',
-      errorPolicy: 'all',
-      // Add better error handling for rate limiting
-      notifyOnNetworkStatusChange: true,
-      onCompleted: data => {
-        // Performance monitoring
-        const queryDuration = Date.now() - queryStartTime.current;
+  // Add timeout state to prevent hanging
+  const [_queryTimeout, _setQueryTimeout] = useState<NodeJS.Timeout | null>(null);
 
-        // Dispatch custom events for performance monitoring
-        window.dispatchEvent(
-          new CustomEvent('query-complete', {
-            detail: { duration: queryDuration, filters, pagination },
-          })
+  // Add mounted state to prevent updates on unmounted component
+  const [isMounted, setIsMounted] = useState(true);
+
+  // Memoize filters and pagination to prevent unnecessary re-renders
+  const memoizedFilters = useMemo(() => {
+    try {
+      const safeFilters = filtersParam || {};
+      return safeFilters;
+    } catch (error) {
+      console.error('❌ useGameLogs: Error in memoizedFilters:', error);
+      return {};
+    }
+  }, [filtersParam]);
+
+  const memoizedPagination = useMemo(
+    () => paginationParam || { page: 1, limit: 20 },
+    [paginationParam]
+  );
+
+  // Track if cache has been loaded to prevent multiple loads
+  const cacheLoadedRef = useRef(false);
+
+  // Remove queryCompletedRef to allow refetches to work properly
+
+  // Cleanup effect to prevent state updates on unmounted component
+  useEffect(() => {
+    return () => {
+      setIsMounted(false);
+    };
+  }, []);
+
+  // Try to get game logs from cache first
+  useEffect(() => {
+    // Prevent multiple cache loads
+    if (cacheLoadedRef.current) {
+      return;
+    }
+
+    const loadFromCache = async () => {
+      try {
+        const cached = await GameLogCacheUtils.getCachedGameLogList(
+          memoizedFilters,
+          memoizedPagination
         );
 
-        if (queryDuration > 2000) {
-          console.warn(`Slow game logs query detected: ${queryDuration}ms`, {
-            filters,
-            pagination,
-          });
+        if (cached && isMounted) {
+          setCachedGameLogs(cached as IGameLog[]);
+          setIsCacheHit(true);
+        }
+      } catch (error) {
+        console.warn('Failed to load game logs from cache:', error);
+      } finally {
+        cacheLoadedRef.current = true;
+      }
+    };
 
-          // Dispatch slow query event
-          window.dispatchEvent(
-            new CustomEvent('slow-query', {
-              detail: { duration: queryDuration, filters, pagination },
-            })
+    void loadFromCache();
+  }, [memoizedFilters, memoizedPagination, isMounted]);
+
+  // Memoize the onCompleted callback to prevent infinite re-renders
+  const onCompleted = useCallback(
+    (data: IGameLogsResponse) => {
+      // Only update state if component is still mounted
+      if (!isMounted) return;
+
+      if (data?.gameLogs) {
+        const newGameLogs = data.gameLogs.edges.map(edge => edge.node);
+        setGameLogs(newGameLogs);
+        setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
+        setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
+        setGameLogsTotalCount(data.gameLogs.totalCount);
+
+        // Cache the game logs
+        if (!isCacheHit) {
+          void GameLogCacheUtils.cacheGameLogList(
+            memoizedFilters,
+            memoizedPagination,
+            newGameLogs,
+            {
+              ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+              tags: ['gameLogList', 'gameLogs'],
+            }
           );
         }
+      }
+    },
+    [isMounted, isCacheHit, memoizedFilters, memoizedPagination]
+  );
 
-        if (
-          data &&
-          typeof data === 'object' &&
-          'gameLogs' in data &&
-          data.gameLogs &&
-          Array.isArray(data.gameLogs.edges)
-        ) {
-          setGameLogs(safeMapGameLogArray(data.gameLogs.edges));
-          setGameLogsTotalCount(data.gameLogs.totalCount);
-          setGameLogsEndCursor(data.gameLogs.pageInfo.endCursor ?? null);
-          setGameLogsHasNextPage(!!data.gameLogs.pageInfo.hasNextPage);
-        }
-        if (
-          data &&
-          typeof data === 'object' &&
-          'friendsGameLogs' in data &&
-          data.friendsGameLogs &&
-          typeof data.friendsGameLogs === 'object' &&
-          'edges' in data.friendsGameLogs &&
-          Array.isArray((data.friendsGameLogs as IFriendsGameLogsShape).edges) &&
-          'pageInfo' in data.friendsGameLogs &&
-          typeof (data.friendsGameLogs as IFriendsGameLogsShape).pageInfo === 'object'
-        ) {
-          const friendsGameLogs = data.friendsGameLogs as unknown;
-          if (isFriendsGameLogsShape(friendsGameLogs)) {
-            setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
-            setFriendsLogsTotalCount(
-              (data.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
-            );
-            setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
-            setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
-          }
-        }
+  // Memoize the onError callback
+  const onError = useCallback(
+    (error: Error) => {
+      // Only log error if component is still mounted
+      if (!isMounted) return;
+
+      errorHandlers.api(error, {
+        component: 'useGameLogs',
+        action: 'Load game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
+    [isMounted]
+  );
+
+  // GraphQL query for game logs
+
+  const { loading, error, refetch, fetchMore, networkStatus, data } =
+    useOptimizedQuery<IGameLogsResponse>(GET_GAME_LOGS, {
+      variables: {
+        filters: memoizedFilters || {}, // Pass memoized filters as a nested object with fallback
+        pagination: { first: memoizedPagination?.limit || 20 }, // Pass memoized pagination as a nested object with fallback
+      },
+      skip: options.skip, // Re-enable now that initialization error is fixed
+      notifyOnNetworkStatusChange: true,
+      fetchPolicy: 'cache-and-network', // Force network request
+      context: {
+        component: 'useGameLogs',
+        action: 'Load game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      },
+      onCompleted: data => {
+        onCompleted(data);
       },
       onError: error => {
-        console.error('Game logs query error:', error);
-        // Handle rate limiting errors gracefully
-        if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-          console.warn('Authentication error in game logs query, user may not be authenticated');
-        }
+        onError(error);
       },
+    });
+
+  // Check if the query has data but onCompleted wasn't called
+  const onCompletedTriggeredRef = useRef(false);
+  useEffect(() => {
+    if (!loading && !error && networkStatus === 7 && data && !onCompletedTriggeredRef.current) {
+      // Manually trigger the onCompleted logic if it wasn't called
+      if (data?.gameLogs && data.gameLogs.edges?.length > 0) {
+        onCompletedTriggeredRef.current = true;
+        onCompleted(data);
+      }
     }
-  );
+    // Reset the trigger when data changes
+    if (!data) {
+      onCompletedTriggeredRef.current = false;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, error, networkStatus, data]);
 
   const loadMoreGameLogs = useCallback(async () => {
-    if (!gameLogsHasNextPage || loading) return;
-    const fetchResult = await fetchMore({
-      variables: {
-        filters,
-        pagination: {
-          first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE,
-          after: gameLogsEndCursor,
+    if (!gameLogsHasNextPage || !gameLogsEndCursor) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            ...memoizedPagination,
+            after: gameLogsEndCursor,
+          },
         },
-      },
-    });
-    const moreData = fetchResult?.data;
-    if (
-      moreData &&
-      typeof moreData === 'object' &&
-      'gameLogs' in moreData &&
-      moreData.gameLogs &&
-      Array.isArray(moreData.gameLogs.edges)
-    ) {
-      setGameLogs(prev => {
-        const existingIds = new Set(prev.map(log => log.id));
-        const newLogs = safeMapGameLogArray(moreData.gameLogs.edges).filter(
-          log => !existingIds.has(log.id)
-        );
-        return [...prev, ...newLogs];
       });
-      // Don't update totalCount in loadMore - it should remain constant
-      // The totalCount from the server is already correct and shouldn't be modified client-side
-      // setGameLogsTotalCount(moreData.gameLogs.totalCount);
 
-      setGameLogsEndCursor(moreData.gameLogs.pageInfo.endCursor ?? null);
+      if (result.data?.gameLogs) {
+        const gameLogsData = result.data.gameLogs;
+        const newGameLogs = gameLogsData.edges?.map(edge => edge.node) || [];
+        setGameLogs(prev => [...prev, ...newGameLogs]);
+        setGameLogsEndCursor(gameLogsData.pageInfo?.endCursor ?? null);
+        setGameLogsHasNextPage(!!gameLogsData.pageInfo?.hasNextPage);
 
-      setGameLogsHasNextPage(!!moreData.gameLogs.pageInfo.hasNextPage);
+        // Cache the updated game logs list
+        void GameLogCacheUtils.cacheGameLogList(
+          memoizedFilters,
+          memoizedPagination,
+          [...gameLogs, ...newGameLogs],
+          {
+            ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+            tags: ['gameLogList', 'gameLogs'],
+          }
+        );
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useGameLogs',
+        action: 'Load more game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
     }
-  }, [fetchMore, filters, gameLogsEndCursor, gameLogsHasNextPage, loading]);
+  }, [
+    gameLogsHasNextPage,
+    gameLogsEndCursor,
+    memoizedPagination,
+    fetchMore,
+    gameLogs,
+    memoizedFilters,
+  ]);
 
-  const loadMoreFriendsLogs = useCallback(async () => {
-    if (!friendsLogsHasNextPage || loading) return;
-    const fetchResult = await fetchMore({
-      variables: {
-        filters,
-        pagination: {
-          first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE,
-          after: friendsLogsEndCursor,
-        },
-      },
-    });
-    const moreData = fetchResult?.data;
-    if (
-      moreData &&
-      typeof moreData === 'object' &&
-      'friendsGameLogs' in moreData &&
-      moreData.friendsGameLogs &&
-      typeof moreData.friendsGameLogs === 'object' &&
-      'edges' in moreData.friendsGameLogs &&
-      Array.isArray((moreData.friendsGameLogs as IFriendsGameLogsShape).edges) &&
-      'pageInfo' in moreData.friendsGameLogs &&
-      typeof (moreData.friendsGameLogs as IFriendsGameLogsShape).pageInfo === 'object'
-    ) {
-      const friendsGameLogs = moreData.friendsGameLogs as IFriendsGameLogsShape;
-      if (isFriendsGameLogsShape(friendsGameLogs)) {
-        setFriendsLogs(prev => {
-          const existingIds = new Set(prev.map(log => log.id));
-          const newLogs = safeMapGameLogArray(friendsGameLogs.edges).filter(
-            log => !existingIds.has(log.id)
-          );
-          return [...prev, ...newLogs];
-        });
-        // Don't update totalCount in loadMore - it should remain constant
-        // setFriendsLogsTotalCount(
-        //   (moreData.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
-        // );
-        setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
-        setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
-      }
-    }
-  }, [fetchMore, filters, friendsLogsEndCursor, friendsLogsHasNextPage, loading]);
-
-  // Patch refetch to update both states
-  const wrappedRefetch = useCallback(
-    async (...args: Parameters<typeof refetch>) => {
-      const result = await refetch(...args);
-      const newData = result?.data;
-      if (
-        newData &&
-        typeof newData === 'object' &&
-        'gameLogs' in newData &&
-        newData.gameLogs &&
-        Array.isArray(newData.gameLogs.edges)
-      ) {
-        setGameLogs(safeMapGameLogArray(newData.gameLogs.edges));
-        setGameLogsTotalCount(newData.gameLogs.totalCount);
-
-        setGameLogsEndCursor(newData.gameLogs.pageInfo.endCursor ?? null);
-
-        setGameLogsHasNextPage(!!newData.gameLogs.pageInfo.hasNextPage);
-      }
-      if (
-        newData &&
-        typeof newData === 'object' &&
-        'friendsGameLogs' in newData &&
-        newData.friendsGameLogs &&
-        typeof newData.friendsGameLogs === 'object' &&
-        'edges' in newData.friendsGameLogs &&
-        Array.isArray((newData.friendsGameLogs as IFriendsGameLogsShape).edges) &&
-        'pageInfo' in newData.friendsGameLogs &&
-        typeof (newData.friendsGameLogs as IFriendsGameLogsShape).pageInfo === 'object'
-      ) {
-        const friendsGameLogs = newData.friendsGameLogs as unknown;
-        if (isFriendsGameLogsShape(friendsGameLogs)) {
-          setFriendsLogs(safeMapGameLogArray(friendsGameLogs.edges));
-          setFriendsLogsTotalCount(
-            (newData.friendsGameLogs as { totalCount?: number }).totalCount ?? 0
-          );
-          setFriendsLogsEndCursor(friendsGameLogs.pageInfo.endCursor ?? null);
-          setFriendsLogsHasNextPage(!!friendsGameLogs.pageInfo.hasNextPage);
-        }
-      }
+  // Force refresh from server (bypassing cache)
+  const forceRefresh = useCallback(async () => {
+    setIsCacheHit(false);
+    setCachedGameLogs(null);
+    cacheLoadedRef.current = false; // Reset cache loaded flag
+    try {
+      const result = await refetch();
       return result;
-    },
-    [refetch]
-  );
+    } catch (error) {
+      console.error('❌ useGameLogs: refetch failed:', error);
+      throw error;
+    }
+  }, [refetch]);
+
+  // Clear cache for this query
+  const clearCache = useCallback(async () => {
+    await GameLogCacheUtils.invalidateGameLogCaches();
+    setCachedGameLogs(null);
+    setIsCacheHit(false);
+    cacheLoadedRef.current = false; // Reset cache loaded flag
+  }, []);
+
+  // Use the array with data, not just truthy check
+  const returnedGameLogs = cachedGameLogs && cachedGameLogs.length > 0 ? cachedGameLogs : gameLogs;
 
   return {
-    gameLogs,
+    // Data
+    gameLogs: returnedGameLogs,
+    cachedGameLogs,
+    isCacheHit,
+
+    // Pagination
     gameLogsEndCursor,
     gameLogsHasNextPage,
     gameLogsTotalCount,
-    loadMoreGameLogs,
-    friendsLogs,
-    friendsLogsEndCursor,
-    friendsLogsHasNextPage,
-    friendsLogsTotalCount,
-    loadMoreFriendsLogs,
+
+    // State
     loading,
-    loadingMore: networkStatus === NetworkStatus.fetchMore,
-    error: error ? new Error(error.message) : null,
-    refetch: wrappedRefetch,
+    error,
+    networkStatus,
+
+    // Actions
+    loadMoreGameLogs,
+    forceRefresh,
+    clearCache,
+    refetch,
+
+    // Utilities
+    hasMoreGameLogs: gameLogsHasNextPage,
+    canLoadMore: gameLogsHasNextPage && !!gameLogsEndCursor,
   };
 }
 
-export function useMyGameLogs(userId?: string) {
-  return useGameLogs({
-    filters: { userId },
-    pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
-  });
+export function useFriendsGameLogs(pagination: IPaginationParams = { page: 1, limit: 20 }) {
+  const [friendsLogs, setFriendsLogs] = useState<IGameLog[]>([]);
+  const [friendsLogsEndCursor, setFriendsLogsEndCursor] = useState<string | null>(null);
+  const [friendsLogsHasNextPage, setFriendsLogsHasNextPage] = useState<boolean>(false);
+  const [friendsLogsTotalCount, setFriendsLogsTotalCount] = useState<number>(0);
+
+  // Cache state
+  const [cachedFriendsLogs, setCachedFriendsLogs] = useState<IGameLog[] | null>(null);
+  const [isCacheHit, setIsCacheHit] = useState(false);
+
+  // Try to get friends game logs from cache first
+  useEffect(() => {
+    const loadFromCache = async () => {
+      try {
+        const cached = await GameLogCacheUtils.getCachedGameLogList(
+          { isFriendsOnly: true },
+          pagination
+        );
+
+        if (cached) {
+          setCachedFriendsLogs(cached as IGameLog[]);
+          setIsCacheHit(true);
+        }
+      } catch (error) {
+        console.warn('Failed to load friends game logs from cache:', error);
+      }
+    };
+
+    void loadFromCache();
+  }, [pagination]);
+
+  const { loading, error, refetch, fetchMore, networkStatus } =
+    useOptimizedQuery<IFriendsGameLogsResponse>(GET_FRIENDS_GAME_LOGS, {
+      variables: {
+        pagination: { first: pagination.limit },
+      },
+      skip: isCacheHit, // Skip if we have cached data
+      notifyOnNetworkStatusChange: true,
+      context: {
+        component: 'useFriendsGameLogs',
+        action: 'Load friends game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      },
+      onCompleted: useCallback(
+        (data: IFriendsGameLogsResponse) => {
+          if (data?.friendsGameLogs) {
+            const newFriendsLogs = data.friendsGameLogs.edges.map(edge => edge.node);
+            setFriendsLogs(newFriendsLogs);
+            setFriendsLogsEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
+            setFriendsLogsHasNextPage(!!data.friendsGameLogs.pageInfo.hasNextPage);
+            setFriendsLogsTotalCount(data.friendsGameLogs.totalCount);
+
+            // Cache the friends game logs
+            if (!isCacheHit) {
+              void GameLogCacheUtils.cacheGameLogList(
+                { isFriendsOnly: true },
+                pagination,
+                newFriendsLogs,
+                {
+                  ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+                  tags: ['gameLogList', 'gameLogs', 'friends'],
+                }
+              );
+            }
+          }
+        },
+        [isCacheHit, pagination]
+      ),
+      onError: error => {
+        errorHandlers.api(error, {
+          component: 'useFriendsGameLogs',
+          action: 'Load friends game logs',
+          category: ErrorCategory.API,
+          severity: ErrorSeverity.MEDIUM,
+          timestamp: new Date().toISOString(),
+        });
+      },
+    });
+
+  const loadMoreFriendsLogs = useCallback(async () => {
+    if (!friendsLogsHasNextPage || !friendsLogsEndCursor) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            ...pagination,
+            after: friendsLogsEndCursor,
+          },
+        },
+      });
+
+      if (result.data?.friendsGameLogs) {
+        const friendsLogsData = result.data.friendsGameLogs;
+        const newFriendsLogs = friendsLogsData.edges?.map(edge => edge.node) || [];
+        setFriendsLogs(prev => [...prev, ...newFriendsLogs]);
+        setFriendsLogsEndCursor(friendsLogsData.pageInfo?.endCursor ?? null);
+        setFriendsLogsHasNextPage(!!friendsLogsData.pageInfo?.hasNextPage);
+
+        // Cache the updated friends game log list
+        void GameLogCacheUtils.cacheGameLogList(
+          { isFriendsOnly: true },
+          pagination,
+          [...friendsLogs, ...newFriendsLogs],
+          {
+            ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+            tags: ['gameLogList', 'gameLogs', 'friends'],
+          }
+        );
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useFriendsGameLogs',
+        action: 'Load more friends game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }, [friendsLogsHasNextPage, friendsLogsEndCursor, pagination, fetchMore, friendsLogs]);
+
+  // Force refresh from server (bypassing cache)
+  const forceRefresh = useCallback(async () => {
+    setIsCacheHit(false);
+    setCachedFriendsLogs(null);
+    await refetch();
+  }, [refetch]);
+
+  // Clear cache for friends game logs
+  const clearCache = useCallback(async () => {
+    await GameLogCacheUtils.invalidateGameLogCaches();
+    setCachedFriendsLogs(null);
+    setIsCacheHit(false);
+  }, []);
+
+  return {
+    // Data
+    friendsLogs: cachedFriendsLogs || friendsLogs,
+    cachedFriendsLogs,
+    isCacheHit,
+
+    // Pagination
+    friendsLogsEndCursor,
+    friendsLogsHasNextPage,
+    friendsLogsTotalCount,
+
+    // State
+    loading,
+    error,
+    networkStatus,
+
+    // Actions
+    loadMoreFriendsLogs,
+    forceRefresh,
+    clearCache,
+    refetch,
+
+    // Utilities
+    hasMoreFriendsLogs: friendsLogsHasNextPage,
+    canLoadMore: friendsLogsHasNextPage && !!friendsLogsEndCursor,
+  };
 }
 
-export function usePublicGameLogs() {
-  return useGameLogs({
-    filters: { classification: CLASSIFICATION.PUBLIC },
-    pagination: { first: API_CONFIG.pagination.DEFAULT_GAME_LOG_PAGE_SIZE },
-  });
-}
-
-export function useFriendsGameLogs() {
+export function usePublicGameLogs(pagination: IPaginationParams = { page: 1, limit: 20 }) {
   const [logs, setLogs] = useState<IGameLog[]>([]);
   const [endCursor, setEndCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  // Performance monitoring
+  // Cache state
+  const [cachedLogs, setCachedLogs] = useState<IGameLog[] | null>(null);
+  const [isCacheHit, setIsCacheHit] = useState(false);
+
+  // Try to get public game logs from cache first
+  useEffect(() => {
+    const loadFromCache = async () => {
+      try {
+        const cached = await GameLogCacheUtils.getCachedGameLogList(
+          { classification: 'PUBLIC' },
+          pagination
+        );
+
+        if (cached) {
+          setCachedLogs(cached as IGameLog[]);
+          setIsCacheHit(true);
+        }
+      } catch (error) {
+        console.warn('Failed to load public game logs from cache:', error);
+      }
+    };
+
+    void loadFromCache();
+  }, [pagination]);
+
   const queryStartTime = useRef<number>(Date.now());
 
-  const { loading, error, refetch, fetchMore, networkStatus } = useQuery<
-    Pick<Query, 'friendsGameLogs'>
-  >(GET_FRIENDS_GAME_LOGS, {
+  const { loading, error, refetch, fetchMore, networkStatus } = useOptimizedQuery<
+    Pick<IGameLogsResponse, 'gameLogs'>
+  >(GET_GAME_LOGS, {
     variables: {
-      pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE }, // Use config variable instead of hardcoded 20
+      filters: { classification: 'PUBLIC' },
+      pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
     },
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-    // Add better error handling for rate limiting
+    skip: isCacheHit, // Skip if we have cached data
     notifyOnNetworkStatusChange: true,
+    context: {
+      component: 'usePublicGameLogs',
+      action: 'Load public game logs',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
     onCompleted: data => {
       // Performance monitoring
       const queryDuration = Date.now() - queryStartTime.current;
 
-      // Dispatch custom events for performance monitoring
-      window.dispatchEvent(
-        new CustomEvent('query-complete', {
-          detail: {
-            duration: queryDuration,
-            pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
-          },
-        })
-      );
-
       if (queryDuration > 2000) {
-        console.warn(`Slow friends game logs query detected: ${queryDuration}ms`);
-
-        // Dispatch slow query event
-        window.dispatchEvent(
-          new CustomEvent('slow-query', {
-            detail: {
-              duration: queryDuration,
-              pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE },
-            },
-          })
-        );
+        console.warn(`Slow public game logs query detected: ${queryDuration}ms`);
       }
 
-      if (
-        data &&
-        typeof data === 'object' &&
-        'friendsGameLogs' in data &&
-        data.friendsGameLogs &&
-        Array.isArray(data.friendsGameLogs.edges)
-      ) {
-        setLogs(safeMapGameLogArray(data.friendsGameLogs.edges));
-        setTotalCount(data.friendsGameLogs.totalCount);
+      if (data?.gameLogs) {
+        const logsData = data.gameLogs;
+        const newLogs = logsData.edges?.map(edge => edge.node) || [];
+        setLogs(newLogs);
+        setTotalCount(logsData.totalCount || logsData.edges?.length || 0);
+        setEndCursor(logsData.pageInfo?.endCursor ?? null);
+        setHasNextPage(!!logsData.pageInfo?.hasNextPage);
 
-        setEndCursor(data.friendsGameLogs.pageInfo.endCursor ?? null);
-
-        setHasNextPage(!!data.friendsGameLogs.pageInfo.hasNextPage);
+        // Cache the public game logs
+        if (!isCacheHit) {
+          void GameLogCacheUtils.cacheGameLogList(
+            { classification: 'PUBLIC' },
+            pagination,
+            newLogs,
+            {
+              ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+              tags: ['gameLogList', 'gameLogs', 'public'],
+            }
+          );
+        }
       }
     },
     onError: error => {
-      console.error('Friends game logs query error:', error);
-      // Handle rate limiting errors gracefully
-      if (error.graphQLErrors?.some(e => e.extensions?.code === 'FORBIDDEN')) {
-        console.warn(
-          'Authentication error in friends game logs query, user may not be authenticated'
-        );
-      }
+      errorHandlers.api(error, {
+        component: 'usePublicGameLogs',
+        action: 'Query public game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
     },
   });
 
-  // Patch refetch to update both states
-  const wrappedRefetch = useCallback(
-    async (...args: Parameters<typeof refetch>) => {
-      const result = await refetch(...args);
-      const newData = result?.data;
-      if (
-        newData &&
-        typeof newData === 'object' &&
-        'friendsGameLogs' in newData &&
-        newData.friendsGameLogs &&
-        Array.isArray(newData.friendsGameLogs.edges)
-      ) {
-        setLogs(safeMapGameLogArray(newData.friendsGameLogs.edges));
-        setTotalCount(newData.friendsGameLogs.totalCount);
-
-        setEndCursor(newData.friendsGameLogs.pageInfo.endCursor ?? null);
-
-        setHasNextPage(!!newData.friendsGameLogs.pageInfo.hasNextPage);
-      }
-      return result;
-    },
-    [refetch]
-  );
-
   const loadMore = useCallback(async () => {
-    if (!hasNextPage || loading) return;
-    const fetchResult = await fetchMore({
-      variables: {
-        pagination: { first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE, after: endCursor }, // Use config variable instead of hardcoded 20
-      },
-    });
-    const moreData = fetchResult?.data;
-    if (
-      moreData &&
-      typeof moreData === 'object' &&
-      'friendsGameLogs' in moreData &&
-      moreData.friendsGameLogs &&
-      Array.isArray(moreData.friendsGameLogs.edges)
-    ) {
-      setLogs(prev => {
-        const existingIds = new Set(prev.map(log => log.id));
-        const newLogs = safeMapGameLogArray(moreData.friendsGameLogs.edges).filter(
-          log => !existingIds.has(log.id)
-        );
-        return [...prev, ...newLogs];
+    if (!hasNextPage || !endCursor) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            first: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
+            after: endCursor,
+          },
+        },
       });
 
-      setEndCursor(moreData.friendsGameLogs.pageInfo.endCursor ?? null);
+      if (result.data?.gameLogs) {
+        const logsData = result.data.gameLogs;
+        const newLogs = logsData.edges?.map(edge => edge.node) || [];
+        setLogs(prev => [...prev, ...newLogs]);
+        setEndCursor(logsData.pageInfo?.endCursor ?? null);
+        setHasNextPage(!!logsData.pageInfo?.hasNextPage);
 
-      setHasNextPage(!!moreData.friendsGameLogs.pageInfo.hasNextPage);
+        // Cache the updated public game log list
+        void GameLogCacheUtils.cacheGameLogList(
+          { classification: 'PUBLIC' },
+          pagination,
+          [...logs, ...newLogs],
+          {
+            ttl: CACHE_CONFIG.TTL.GAME_LOG_LIST,
+            tags: ['gameLogList', 'gameLogs', 'public'],
+          }
+        );
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'usePublicGameLogs',
+        action: 'Load more public game logs',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
     }
-  }, [fetchMore, endCursor, hasNextPage, loading]);
+  }, [hasNextPage, endCursor, fetchMore, logs, pagination]);
+
+  // Force refresh from server (bypassing cache)
+  const forceRefresh = useCallback(async () => {
+    setIsCacheHit(false);
+    setCachedLogs(null);
+    await refetch();
+  }, [refetch]);
+
+  // Clear cache for public game logs
+  const clearCache = useCallback(async () => {
+    await GameLogCacheUtils.invalidateGameLogCaches();
+    setCachedLogs(null);
+    setIsCacheHit(false);
+  }, []);
 
   return {
-    logs,
-    loading,
-    loadingMore: networkStatus === NetworkStatus.fetchMore,
-    error: error ? new Error(error.message) : null,
-    refetch: wrappedRefetch,
-    hasNextPage,
-    loadMore,
-    totalCount,
-  };
-}
+    // Data
+    logs: cachedLogs || logs,
+    cachedLogs,
+    isCacheHit,
 
-function isFriendsGameLogsShape(obj: unknown): obj is IFriendsGameLogsShape {
-  return (
-    typeof obj === 'object' &&
-    obj !== null &&
-    (!('message' in obj) || typeof (obj as { message?: unknown }).message !== 'string') && // not an error object
-    'edges' in obj &&
-    Array.isArray((obj as { edges: unknown[] }).edges) &&
-    'pageInfo' in obj &&
-    typeof (obj as { pageInfo: unknown }).pageInfo === 'object' &&
-    (obj as { pageInfo: unknown }).pageInfo !== null
-  );
+    // Pagination
+    endCursor,
+    hasNextPage,
+    totalCount,
+
+    // State
+    loading,
+    error,
+    networkStatus,
+
+    // Actions
+    loadMore,
+    forceRefresh,
+    clearCache,
+    refetch,
+
+    // Utilities
+    hasMoreLogs: hasNextPage,
+    canLoadMore: hasNextPage && !!endCursor,
+  };
 }

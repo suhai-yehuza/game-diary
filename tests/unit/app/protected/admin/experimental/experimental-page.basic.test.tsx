@@ -27,7 +27,7 @@ vi.mock('@/app/protected/admin/experimental/hooks', () => ({
     data: null,
     loading: false,
     error: null,
-    handleFetch: vi.fn(),
+    handleFetch: vi.fn().mockResolvedValue(undefined),
     clearData: vi.fn(),
   }),
   useFormState: () => ({
@@ -84,8 +84,8 @@ vi.mock('@/lib/config/app.config', () => ({
 }));
 
 // Mock the types
-vi.mock('@/lib/types/constant.types', () => ({
-  TABS: {
+vi.mock('@/types', () => ({
+  ADMIN_TABS: {
     SEASONS: 'seasons',
     LEAGUES: 'leagues',
     GAMES: 'games',
@@ -93,11 +93,19 @@ vi.mock('@/lib/types/constant.types', () => ({
     PLAYERS: 'players',
     STANDINGS: 'standings',
     SEARCH: 'search',
+    DATABASE: 'database',
+    CACHE: 'cache',
   },
   CLASSIFICATION: {
     PRIVATE: 'PRIVATE',
     PROTECTED: 'PROTECTED',
     PUBLIC: 'PUBLIC',
+  },
+  LogLevel: {
+    DEBUG: 'debug',
+    INFO: 'info',
+    WARN: 'warn',
+    ERROR: 'error',
   },
 }));
 

@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
-import type { IFriendshipCardProps } from '@/lib/types';
+import type { IFriendshipCardProps } from '@/types';
 
 export function FriendshipCard({
   friendship,

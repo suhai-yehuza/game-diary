@@ -1,4 +1,4 @@
-import type { IGamesApiResponse } from '@/lib/types';
+import type { IGamesApiResponse } from '@/types';
 
 // Constants for basketball scores
 const BASKETBALL_SCORES = {
@@ -37,6 +37,10 @@ const BASKETBALL_SCORES = {
 } as const;
 
 export const MOCK_NBA_GAMES: IGamesApiResponse = {
+  games: [],
+  total: 7,
+  page: 1,
+  limit: 25,
   get: 'games',
   parameters: {
     season: '2024',
@@ -46,21 +50,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
   results: 7,
   response: [
     {
-      id: 1234567,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-23T19:30:00.000Z',
-        end: '2024-12-23T22:15:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: '8:32',
-        halftime: false,
-        short: 'Q3',
-        long: '3rd Quarter',
-      },
+      id: '1234567',
+      season: '2024',
+      date: '2024-12-23T19:30:00.000Z',
+      status: 'Q3',
       periods: {
         current: 3,
         total: 4,
@@ -121,21 +114,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: 'Celtics lead by 5 in a high-scoring affair',
     },
     {
-      id: 1234568,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-22T20:00:00.000Z',
-        end: '2024-12-22T22:45:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'FT',
-        long: 'Game Finished',
-      },
+      id: '1234568',
+      season: '2024',
+      date: '2024-12-22T20:00:00.000Z',
+      status: 'FT',
       periods: {
         current: 4,
         total: 4,
@@ -201,21 +183,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: 'Lakers win by 4 in overtime thriller',
     },
     {
-      id: 1234569,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-21T18:30:00.000Z',
-        end: '2024-12-21T21:15:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'FT',
-        long: 'Game Finished',
-      },
+      id: '1234569',
+      season: '2024',
+      date: '2024-12-21T18:30:00.000Z',
+      status: 'FT',
       periods: {
         current: 4,
         total: 4,
@@ -281,21 +252,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: '76ers win by 3 in close contest',
     },
     {
-      id: 1234570,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-24T19:00:00.000Z',
-        end: '2024-12-24T21:45:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'NS',
-        long: 'Not Started',
-      },
+      id: '1234570',
+      season: '2024',
+      date: '2024-12-24T19:00:00.000Z',
+      status: 'NS',
       periods: {
         current: 0,
         total: 4,
@@ -351,21 +311,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: 'Eastern Conference showdown',
     },
     {
-      id: 1234571,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-20T20:30:00.000Z',
-        end: '2024-12-20T23:15:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'FT',
-        long: 'Game Finished',
-      },
+      id: '1234571',
+      season: '2024',
+      date: '2024-12-20T20:30:00.000Z',
+      status: 'FT',
       periods: {
         current: 4,
         total: 4,
@@ -431,21 +380,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: 'Suns win in overtime thriller',
     },
     {
-      id: 1234572,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-25T19:00:00.000Z',
-        end: '2024-12-25T21:45:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'FT',
-        long: 'Game Finished',
-      },
+      id: '1234572',
+      season: '2024',
+      date: '2024-12-25T19:00:00.000Z',
+      status: 'FT',
       periods: {
         current: 4,
         total: 4,
@@ -501,21 +439,10 @@ export const MOCK_NBA_GAMES: IGamesApiResponse = {
       nugget: 'Knicks edge Magic in Christmas Day thriller',
     },
     {
-      id: 1234573,
-      league: 'NBA',
-      season: 2024,
-      date: {
-        start: '2024-12-28T20:00:00.000Z',
-        end: '2024-12-28T22:45:00.000Z',
-        duration: '2:45',
-      },
-      stage: 2,
-      status: {
-        clock: undefined,
-        halftime: false,
-        short: 'FT',
-        long: 'Game Finished',
-      },
+      id: '1234573',
+      season: '2024',
+      date: '2024-12-28T20:00:00.000Z',
+      status: 'FT',
       periods: {
         current: 4,
         total: 4,

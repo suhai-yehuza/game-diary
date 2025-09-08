@@ -41,8 +41,8 @@ export const generateId = (prefix = 'test'): string => {
 // Test data generators
 export const createMockUser = (overrides: Partial<ITestUser> = {}): ITestUser => ({
   id: generateId('user'),
-  email: 'test@example.com',
-  username: 'testuser',
+  email: 'unit-test-basic@example.com',
+  username: 'unit-test-basic-user',
   first_name: 'Test',
   last_name: 'User',
   isAdmin: false,

@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import type { IGameResponse, IGamesApiResponse, ILatestGamesOptions } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import { logger } from '@/lib/utils/logger';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
-import { getLatestNbaSeason } from '@/lib/utils/nba-season';
+import { getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import type { IGameResponse, IGamesApiResponse, ILatestGamesOptions } from '@/types';
 
 // Helper function to detect test environment
 function isTestOrCIEnvironment(): boolean {
@@ -25,18 +26,38 @@ function isGamesApiResponse(data: unknown): data is IGamesApiResponse {
 }
 
 export function useLatestGames(options: ILatestGamesOptions = {}) {
-  const { limit: _limit = 20, skip = false, forceRealData = false, seasons } = options;
-  const latestSeason = getLatestNbaSeason();
+  const {
+    limit: _limit = 20,
+    skip = false,
+    forceRealData = false,
+    seasons,
+    forceRefresh = false,
+  } = options;
+  const latestSeason = getRecentNbaSeasons(1)[0]; // Assuming the first season is the latest
 
   const [latestGames, setLatestGames] = useState<IGameResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [cacheStatus, setCacheStatus] = useState<'cached' | 'fresh' | 'none'>('none');
   const [note] = useState<string | undefined>(
     'Loading data with rate limiting... This may take a moment.'
   );
 
+  // Memoize seasons to prevent unnecessary re-renders
+  const memoizedSeasons = useMemo(() => seasons, [seasons]);
+
+  // Track if fetch has been called to prevent multiple calls
+  const fetchCalledRef = useRef(false);
+
+  // Reset fetch flag when dependencies change
+  useEffect(() => {
+    fetchCalledRef.current = false;
+  }, [skip, forceRealData, memoizedSeasons, latestSeason, _limit, forceRefresh]);
+
   const fetchLatestGames = useCallback(async () => {
-    if (skip) return;
+    if (skip || fetchCalledRef.current) return;
+
+    fetchCalledRef.current = true;
 
     try {
       setLoading(true);
@@ -55,43 +76,78 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
           throw new Error(`API request failed: ${response.status} ${response.statusText}`);
         }
 
-        const data = (await response.json()) as unknown;
+        const data = await response.json();
         if (typeof data === 'object' && data !== null && 'data' in data) {
           const mockData = (data as { data: unknown }).data;
           if (isGamesApiResponse(mockData)) {
-            allGames = mockData.response || [];
+            allGames = (mockData.response || []) as IGameResponse[];
           }
         }
+        setCacheStatus('none');
       } else {
-        // Cache logic removed - fetch directly from database API
-        console.log('🎮 Fetching games from database API...');
-        const seasonsToFetch = seasons && seasons.length > 0 ? seasons : [latestSeason];
-
-        const seasonPromises = seasonsToFetch.map(async season => {
-          const response = await fetch(`/api/games?season=${season}`);
-          if (!response.ok) {
-            throw new Error(
-              `Database API request failed for season ${season}: ${response.status} ${response.statusText}`
-            );
-          }
-
-          const data = (await response.json()) as unknown;
-          if (isGamesApiResponse(data)) {
-            return data.response || [];
-          }
-          return [];
+        // Fetch from cached API with cache bypass option
+        const bypassParam = forceRefresh ? '&bypass-cache=true' : '';
+        logger.info('🎮 Fetching games from cached API...', {
+          seasons: memoizedSeasons,
+          forceRefresh,
+          bypassParam,
         });
 
-        const seasonResults = await Promise.all(seasonPromises);
-        allGames = seasonResults.flat();
-        console.log(`✅ Loaded ${allGames.length} games from database`);
+        const seasonsToFetch =
+          memoizedSeasons && memoizedSeasons.length > 0 ? memoizedSeasons : [latestSeason];
+
+        // Always use the merged cache for optimal performance
+        // Client-side filtering will handle season-specific views
+        logger.info('Using merged games cache for optimal performance', {
+          seasons: seasonsToFetch,
+        });
+
+        try {
+          const mergedResponse = await fetch(
+            `/api/games?season=all&limit=${_limit || 20000}${bypassParam}`
+          );
+
+          if (mergedResponse.ok) {
+            const mergedData = await mergedResponse.json();
+            if (
+              isGamesApiResponse(mergedData) &&
+              mergedData.response &&
+              mergedData.response.length > 0
+            ) {
+              allGames = mergedData.response as IGameResponse[];
+              // Loaded ${allGames.length} games from merged cache
+
+              // Determine cache status based on forceRefresh flag
+              setCacheStatus(forceRefresh ? 'fresh' : 'cached');
+
+              logger.info('Games loaded', {
+                count: allGames.length,
+                season: latestSeason,
+                cacheStatus: forceRefresh ? 'fresh' : 'cached',
+              });
+            }
+          }
+        } catch (_error) {
+          logger.info('Merged cache failed', { seasons: seasonsToFetch });
+          // Fallback to empty games array
+          allGames = [];
+        }
+
+        // Determine cache status based on forceRefresh flag
+        setCacheStatus(forceRefresh ? 'fresh' : 'cached');
+
+        logger.info('games loaded', {
+          count: allGames.length,
+          seasons: seasonsToFetch,
+          cacheStatus: forceRefresh ? 'fresh' : 'cached',
+        });
       }
 
       // Sort games by date (most recent first)
       const sortedGames = allGames.sort((a, b) => {
-        const dateA = new Date(a.date.start).getTime();
-        const dateB = new Date(b.date.start).getTime();
-        return dateB - dateA; // Descending order
+        const dateA = typeof a.date === 'string' ? new Date(a.date) : new Date(a.date.start);
+        const dateB = typeof b.date === 'string' ? new Date(b.date) : new Date(b.date.start);
+        return dateB.getTime() - dateA.getTime(); // Descending order
       });
 
       // Apply limit if specified
@@ -99,21 +155,27 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
 
       setLatestGames(limitedGames);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : String(err);
-      setError(errorMessage);
+      const error = err instanceof Error ? err : new Error(String(err));
+      setError(error.message);
       setLatestGames([]);
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      errorHandlers.api(errorObj, { component: 'useLatestGames', action: 'fetchLatestGames' });
+      setCacheStatus('none');
+      errorHandlers.api(error, { component: 'useLatestGames', action: 'fetchLatestGames' });
     } finally {
       setLoading(false);
     }
-  }, [latestSeason, skip, forceRealData, seasons, _limit]);
+  }, [skip, forceRealData, memoizedSeasons, latestSeason, _limit, forceRefresh]);
 
-  useEffect(() => {
+  const refetch = useCallback(() => {
+    fetchCalledRef.current = false; // Reset the flag to allow refetch
     void fetchLatestGames();
   }, [fetchLatestGames]);
 
-  const refetch = useCallback(() => {
+  const refreshCache = useCallback(() => {
+    fetchCalledRef.current = false; // Reset the flag to allow refresh
+    void fetchLatestGames();
+  }, [fetchLatestGames]);
+
+  useEffect(() => {
     void fetchLatestGames();
   }, [fetchLatestGames]);
 
@@ -121,8 +183,9 @@ export function useLatestGames(options: ILatestGamesOptions = {}) {
     latestGames,
     loading,
     error,
-    refetch,
-    season: latestSeason,
+    cacheStatus,
     note,
+    refetch,
+    refreshCache,
   };
 }

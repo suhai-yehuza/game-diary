@@ -22,14 +22,13 @@ vi.mock('sonner', () => {
 });
 
 // Mock Apollo Client
-const mockUseMutation = vi.fn();
-let capturedUseMutationOptions: any = null;
-vi.mock('@apollo/client', () => ({
-  useMutation: (_doc: any, options: any) => {
-    capturedUseMutationOptions = options;
-    return mockUseMutation();
+const mockUseOptimizedMutation = vi.fn();
+let capturedUseOptimizedMutationOptions: any = null;
+vi.mock('@/hooks/use-optimized-mutation', () => ({
+  useOptimizedMutation: (_doc: any, options: any) => {
+    capturedUseOptimizedMutationOptions = options;
+    return mockUseOptimizedMutation();
   },
-  gql: vi.fn(),
 }));
 
 // Mock UI components
@@ -70,8 +69,8 @@ describe('DeleteGameLogModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseMutation.mockReturnValue([vi.fn(), { loading: false }]);
-    capturedUseMutationOptions = null;
+    mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false }]);
+    capturedUseOptimizedMutationOptions = null;
   });
 
   it('renders when isOpen is true', () => {
@@ -118,7 +117,7 @@ describe('DeleteGameLogModal', () => {
       data: { deleteGameLog: { success: true, errors: [] } },
     });
 
-    mockUseMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -137,7 +136,7 @@ describe('DeleteGameLogModal', () => {
       data: { deleteGameLog: { success: true, errors: [] } },
     });
 
-    mockUseMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -165,7 +164,7 @@ describe('DeleteGameLogModal', () => {
       });
     });
 
-    mockUseMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -189,7 +188,7 @@ describe('DeleteGameLogModal', () => {
   });
 
   it('shows loading state when deletion is in progress', () => {
-    mockUseMutation.mockReturnValue([vi.fn(), { loading: true }]);
+    mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: true }]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -201,7 +200,7 @@ describe('DeleteGameLogModal', () => {
   it('handles mutation errors gracefully', async () => {
     const mockDeleteMutation = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    mockUseMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
 
     const { errorHandlers } = await import('@/lib/utils/error-handler');
     const mockErrorHandlers = vi.mocked(errorHandlers);
@@ -223,7 +222,7 @@ describe('DeleteGameLogModal', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     // Simulate Apollo calling onCompleted
-    capturedUseMutationOptions?.onCompleted?.({
+    capturedUseOptimizedMutationOptions?.onCompleted?.({
       deleteGameLog: { success: true, errors: [] },
     });
 
@@ -235,7 +234,7 @@ describe('DeleteGameLogModal', () => {
   it('shows error toast with message when deletion fails (onCompleted)', async () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    capturedUseMutationOptions?.onCompleted?.({
+    capturedUseOptimizedMutationOptions?.onCompleted?.({
       deleteGameLog: { success: false, errors: [{ message: 'Custom error' }] },
     });
 
@@ -247,7 +246,7 @@ describe('DeleteGameLogModal', () => {
   it('shows generic error toast when onError is called', async () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    capturedUseMutationOptions?.onError?.(new Error('Network error'));
+    capturedUseOptimizedMutationOptions?.onError?.(new Error('Network error'));
 
     await waitFor(() => {
       expect((toast as any).error).toHaveBeenCalledWith('Failed to delete game log');

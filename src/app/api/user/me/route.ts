@@ -13,7 +13,7 @@ export async function GET() {
     ) {
       console.log('[E2E AUTH BYPASS] Returning mock user for /api/user/me');
       return NextResponse.json({
-        id: 'test-user-id',
+        id: 'seeded_user_8768', // Use a seeded user ID that exists in the database
         email_address: 'e2e-test@example.com',
         phone_number: '+1-555-000-0000',
         username: 'e2euser',

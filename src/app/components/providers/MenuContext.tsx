@@ -1,7 +1,7 @@
 'use client';
 import React, { createContext, useContext, useState } from 'react';
 
-import type { IMenuContextType } from '@/lib/types';
+import type { IMenuContextType } from '@/types';
 
 // Menu context for global menu state
 const MenuContext = createContext<IMenuContextType | undefined>(undefined);

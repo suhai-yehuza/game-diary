@@ -1,37 +1,26 @@
-import { eq, isNull } from 'drizzle-orm';
+import { eq, isNull, sql, or, ilike, and, desc } from 'drizzle-orm';
 
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext, IUserParent, IUserArgs } from '@/lib/types';
-import { decryptField, deserializeEncryptedField } from '@/lib/utils/encryption';
+import {
+  decryptField,
+  deserializeEncryptedField,
+  isEncrypted as isEncryptedField,
+} from '@/lib/utils/encryption';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+import type { GraphQLContext, IUserParent, IUserArgs } from '@/types';
 
-// Helper function to check if a value is encrypted
-function isEncrypted(value: string | null): boolean {
-  if (!value) return false;
-  try {
-    const parsed = JSON.parse(value) as Record<string, unknown>;
-    return (
-      parsed &&
-      typeof parsed === 'object' &&
-      'iv' in parsed &&
-      'content' in parsed &&
-      'tag' in parsed
-    );
-  } catch {
-    return false;
-  }
-}
+// Use the proper encryption utility function
 
 // Helper function to safely decrypt a field
 function safeDecrypt(encryptedValue: string | null | undefined): string | null {
   if (!encryptedValue) return null;
 
   try {
-    if (isEncrypted(encryptedValue)) {
+    if (isEncryptedField(encryptedValue)) {
       return decryptField(deserializeEncryptedField(encryptedValue));
     }
     return encryptedValue; // Return as-is if not encrypted
@@ -71,6 +60,10 @@ export const userSummaryResolver = {
 
     // For other users, return null
     return null;
+  },
+
+  isAdmin: (_parent: IUserParent) => {
+    return false;
   },
 };
 
@@ -184,7 +177,7 @@ export const userQueryResolvers = {
     );
   },
 
-  // Search users (with sensitive data protection)
+  // Search users (optimized with database-level filtering)
   searchUsers: async (
     _parent: unknown,
     args: { first?: number; after?: string; searchTerm?: string; searchField?: string },
@@ -194,69 +187,78 @@ export const userQueryResolvers = {
     const searchTerm = args.searchTerm ?? '';
     const searchField = args.searchField ?? 'all';
 
-    // Get all users first (simplified approach to avoid circular dependency)
-    const allUsers =
-      (await db()?.query.users.findMany({
-        where: isNull(users.deleted_at),
-      })) ?? [];
+    // Build WHERE conditions for database-level filtering
+    const whereConditions = [isNull(users.deleted_at)];
 
-    // Filter by search term if provided
-    let filteredUsers = allUsers;
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase().trim();
+    // Add search conditions if searchTerm is provided
+    if (searchTerm?.trim()) {
+      const searchPattern = `%${searchTerm.trim()}%`;
 
-      filteredUsers = allUsers.filter(user => {
-        switch (searchField) {
-          case 'username':
-            return user.username?.toLowerCase().includes(searchLower) ?? false;
-          case 'first_name':
-            return user.first_name?.toLowerCase().includes(searchLower) ?? false;
-          case 'last_name':
-            return user.last_name?.toLowerCase().includes(searchLower) ?? false;
-          case 'email_address':
-            return user.email_address?.toLowerCase().includes(searchLower) ?? false;
-          case 'all':
-          default: {
-            // Check each field individually and return true if any match
-            const usernameMatch = user.username?.toLowerCase().includes(searchLower) ?? false;
-            const firstNameMatch = user.first_name?.toLowerCase().includes(searchLower) ?? false;
-            const lastNameMatch = user.last_name?.toLowerCase().includes(searchLower) ?? false;
-            const emailMatch = user.email_address?.toLowerCase().includes(searchLower) ?? false;
-
-            return usernameMatch || firstNameMatch || lastNameMatch || emailMatch;
+      switch (searchField) {
+        case 'username':
+          whereConditions.push(ilike(users.username, searchPattern));
+          break;
+        case 'first_name':
+          whereConditions.push(ilike(users.first_name, searchPattern));
+          break;
+        case 'last_name':
+          whereConditions.push(ilike(users.last_name, searchPattern));
+          break;
+        case 'email_address':
+          whereConditions.push(ilike(users.email_address, searchPattern));
+          break;
+        case 'all':
+        default: {
+          // Search across all fields using OR conditions
+          const orCondition = or(
+            ilike(users.username, searchPattern),
+            ilike(users.first_name, searchPattern),
+            ilike(users.last_name, searchPattern),
+            ilike(users.email_address, searchPattern)
+          );
+          if (orCondition) {
+            whereConditions.push(orCondition);
           }
+          break;
         }
-      });
-
-      // Debug logging (remove in production)
-      logger.debug(`Search: "${searchTerm}" in field "${searchField}"`);
-      logger.debug(`Total users: ${allUsers.length}, Filtered: ${filteredUsers.length}`);
-      if (filteredUsers.length > 0) {
-        logger.debug('Sample matches:', {
-          matches: filteredUsers.slice(0, 3).map(u => ({
-            username: u.username,
-            first_name: u.first_name,
-            last_name: u.last_name,
-            email: u.email_address,
-          })),
-        });
       }
     }
 
-    // Apply cursor-based pagination
-    let paginatedUsers = filteredUsers;
+    // Build the base query with proper WHERE conditions
+    const baseQuery = db()?.query.users.findMany({
+      where: and(...whereConditions),
+      orderBy: [desc(users.created_at)],
+      limit: limit + 1, // Get one extra to check if there's a next page
+    });
+
+    // Execute the query
+    const allUsers = (await baseQuery) ?? [];
+
+    // Check if there are more results (for hasNextPage)
+    const hasNextPage = allUsers.length > limit;
+    const limitedUsers = hasNextPage ? allUsers.slice(0, limit) : allUsers;
+
+    // Apply cursor-based pagination if needed
+    let paginatedUsers = limitedUsers;
     if (args.after) {
-      const afterIndex = filteredUsers.findIndex(user => user.id === args.after);
+      const afterIndex = limitedUsers.findIndex(user => user.id === args.after);
       if (afterIndex !== -1) {
-        paginatedUsers = filteredUsers.slice(afterIndex + 1);
+        paginatedUsers = limitedUsers.slice(afterIndex + 1);
       }
     }
 
-    // Apply limit
-    const hasNextPage = paginatedUsers.length > limit;
-    const limitedUsers = hasNextPage ? paginatedUsers.slice(0, limit) : paginatedUsers;
+    // Get total count for the search (only if search term is provided)
+    let totalCount = paginatedUsers.length;
+    if (searchTerm?.trim()) {
+      const countQuery = db()
+        ?.select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(and(...whereConditions));
+      const countResult = await countQuery;
+      totalCount = countResult?.[0]?.count ?? 0;
+    }
 
-    const edges = limitedUsers.map(user => {
+    const edges = paginatedUsers.map(user => {
       const requestingUserId = context.user?.id;
       const isOwnUser = requestingUserId === user.id;
 
@@ -276,6 +278,12 @@ export const userQueryResolvers = {
       };
     });
 
+    // Debug logging for performance monitoring
+    if (searchTerm?.trim()) {
+      logger.debug(`Optimized search: "${searchTerm}" in field "${searchField}"`);
+      logger.debug(`Results: ${edges.length} users found, hasNextPage: ${hasNextPage}`);
+    }
+
     return {
       edges,
       pageInfo: {
@@ -284,7 +292,7 @@ export const userQueryResolvers = {
         startCursor: edges[0]?.cursor ?? null,
         endCursor: edges[edges.length - 1]?.cursor ?? null,
       },
-      totalCount: filteredUsers.length,
+      totalCount,
     };
   },
 };

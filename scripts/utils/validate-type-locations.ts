@@ -4,7 +4,7 @@
  * Type Location Validation Script
  *
  * This script validates that all interface and type definitions in the src/* directory
- * are only allowed inside the src/lib/types/* directory to maintain clean separation
+ * are only allowed inside the types/* directory to maintain clean separation
  * and enforce the established type organization pattern.
  */
 
@@ -65,12 +65,13 @@ class TypeLocationValidator {
   async validateTypeLocations(): Promise<ValidationReport> {
     console.log('🔍 Starting type location validation...\n');
 
-    // Get all TypeScript files in src directory
+    // Get all TypeScript files in src directory and types directory
     const sourceFiles = await glob('src/**/*.{ts,tsx}');
+    const typeFiles = await glob('types/**/*.{ts,tsx}');
 
-    // Filter out allowed files (src/lib/types/*)
-    this.allowedFiles = sourceFiles.filter(
-      file => file.startsWith('src/lib/types/') || file === 'src/lib/types/index.ts'
+    // Filter out allowed files (types/*)
+    this.allowedFiles = typeFiles.filter(
+      file => file.startsWith('types/') || file === 'types/index.ts'
     );
 
     // Analyze files for type violations
@@ -277,28 +278,28 @@ class TypeLocationValidator {
     // Determine appropriate type file based on context
     if (pathParts[0] === 'app') {
       if (pathParts[1] === 'components') {
-        return `src/lib/types/components.types.ts`;
+        return `types/component.types.ts`;
       } else if (pathParts[1] === 'protected' && pathParts[2] === 'user') {
-        return `src/lib/types/hooks.types.ts`;
+        return `types/hooks.types.ts`;
       } else {
-        return `src/lib/types/core.types.ts`;
+        return `types/core.types.ts`;
       }
     } else if (pathParts[0] === 'components') {
-      return `src/lib/types/components.types.ts`;
+      return `types/component.types.ts`;
     } else if (pathParts[0] === 'hooks') {
-      return `src/lib/types/hooks.types.ts`;
+      return `types/hooks.types.ts`;
     } else if (pathParts[0] === 'lib') {
       if (pathParts[1] === 'utils') {
-        return `src/lib/types/utils.types.ts`;
+        return `types/utils.types.ts`;
       } else if (pathParts[1] === 'graphql') {
-        return `src/lib/types/graphql.types.ts`;
+        return `types/graphql.types.ts`;
       } else if (pathParts[1] === 'db') {
-        return `src/lib/types/db.types.ts`;
+        return `types/db.types.ts`;
       } else {
-        return `src/lib/types/core.types.ts`;
+        return `types/core.types.ts`;
       }
     } else {
-      return `src/lib/types/${pathParts[0]}.types.ts`;
+      return `types/${pathParts[0]}.types.ts`;
     }
   }
 
@@ -309,17 +310,17 @@ class TypeLocationValidator {
     const importPatterns = [
       // Import from specific type files (not from index.ts)
       {
-        regex: /import\s+(?:type\s+)?{[^}]*}\s+from\s+['"]@\/lib\/types\/(?!index\.ts)([^'"]+)['"]/,
+        regex: /import\s+(?:type\s+)?{[^}]*}\s+from\s+['"]@\/types\/(?!index\.ts)([^'"]+)['"]/,
         severity: 'error' as const,
       },
       // Import from specific type files with default import
       {
-        regex: /import\s+(?:type\s+)?\w+\s+from\s+['"]@\/lib\/types\/(?!index\.ts)([^'"]+)['"]/,
+        regex: /import\s+(?:type\s+)?\w+\s+from\s+['"]@\/types\/(?!index\.ts)([^'"]+)['"]/,
         severity: 'error' as const,
       },
       // Import from specific type files with namespace import
       {
-        regex: /import\s+\*\s+as\s+\w+\s+from\s+['"]@\/lib\/types\/(?!index\.ts)([^'"]+)['"]/,
+        regex: /import\s+\*\s+as\s+\w+\s+from\s+['"]@\/types\/(?!index\.ts)([^'"]+)['"]/,
         severity: 'error' as const,
       },
     ];
@@ -356,7 +357,7 @@ class TypeLocationValidator {
             line: lineNumber,
             importPath,
             severity: pattern.severity,
-            suggestion: `Import types from '@/lib/types' instead of '@/lib/types/${importPath}'`,
+            suggestion: `Import types from '@/types' instead of '@/types/${importPath}'`,
           });
         }
       }
@@ -424,42 +425,42 @@ class TypeLocationValidator {
     // Generate specific recommendations
     if (typeCounts.interface > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.interface} interface definitions found outside src/lib/types/. Move them to appropriate type files.`
+        `🔧 ${typeCounts.interface} interface definitions found outside types/. Move them to appropriate type files.`
       );
     }
 
     if (typeCounts.type > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.type} type definitions found outside src/lib/types/. Move them to appropriate type files.`
+        `🔧 ${typeCounts.type} type definitions found outside types/. Move them to appropriate type files.`
       );
     }
 
     if (typeCounts.enum > 0) {
       recommendations.push(
-        `🔧 ${typeCounts.enum} enum definitions found outside src/lib/types/. Move them to appropriate type files.`
+        `🔧 ${typeCounts.enum} enum definitions found outside types/. Move them to appropriate type files.`
       );
     }
 
     if (typeCounts.namespace > 0) {
       recommendations.push(
-        `⚠️  ${typeCounts.namespace} namespace declarations found outside src/lib/types/. Consider moving type-related namespaces.`
+        `⚠️  ${typeCounts.namespace} namespace declarations found outside types/. Consider moving type-related namespaces.`
       );
     }
 
     // Import violation recommendations
     if (this.importViolations.length > 0) {
       recommendations.push(
-        `🔧 ${this.importViolations.length} import violations found. Import types only from '@/lib/types' (index.ts).`
+        `🔧 ${this.importViolations.length} import violations found. Import types only from '@/types' (index.ts).`
       );
     }
 
     // General recommendations
     recommendations.push(
       '📋 Type organization guidelines:',
-      '  • All interfaces should be in src/lib/types/',
-      '  • All type definitions should be in src/lib/types/',
-      '  • All enums should be in src/lib/types/',
-      '  • Import types only from @/lib/types (index.ts)',
+      '  • All interfaces should be in types/',
+      '  • All type definitions should be in types/',
+      '  • All enums should be in types/',
+      '  • Import types only from @/types (index.ts)',
       '  • Use index.ts files to re-export types',
       '  • Group related types in separate files',
       '  • Use descriptive file names for type files'
@@ -585,7 +586,7 @@ class TypeLocationValidator {
     console.log("  1. Create the suggested type files (if they don't exist)");
     console.log('  2. Move type definitions to the appropriate files');
     console.log('  3. Update imports in affected files');
-    console.log('  4. Update src/lib/types/index.ts to re-export new types');
+    console.log('  4. Update types/index.ts to re-export new types');
     console.log('  5. Run this validation script again to verify');
   }
 }

@@ -14,7 +14,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
-import type { ITeamFiltersProps } from '@/lib/types';
+import type { ITeamFiltersProps } from '@/types';
 
 export function TeamFilters({
   filters,
@@ -92,7 +92,7 @@ export function TeamFilters({
             style={selectStyle}
           >
             <option value="all">All Conferences</option>
-            {filterOptions.conferences.map(conference => (
+            {filterOptions.conferences.map((conference: string) => (
               <option key={conference} value={conference}>
                 {conference}
               </option>
@@ -106,7 +106,7 @@ export function TeamFilters({
             style={selectStyle}
           >
             <option value="all">All Divisions</option>
-            {filterOptions.divisions.map(division => (
+            {filterOptions.divisions.map((division: string) => (
               <option key={division} value={division}>
                 {division}
               </option>

@@ -3,11 +3,13 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Inter } from 'next/font/google';
 import Script from 'next/script';
 
+import { CacheValidationInitializer } from '@/app/components/CacheValidationInitializer';
+import { CacheWarmingInitializer } from '@/app/components/CacheWarmingInitializer';
 import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { Footer } from '@/app/components/layout/Footer';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
-import { PerformanceMonitor } from '@/app/components/performance/PerformanceMonitor';
+import { LiveGamesMonitor } from '@/app/components/performance/LiveGamesMonitor';
 import { ClientProviders } from '@/app/components/providers';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
@@ -169,6 +171,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Initialize mock mode - runs before hydration */}
         <Script id="mock-mode-init" strategy="beforeInteractive" src="/scripts/mock-mode-init.js" />
 
+        {/* Cache Validation Initializer - runs before cache warming */}
+        <CacheValidationInitializer />
+
+        {/* Cache Warming Initializer */}
+        <CacheWarmingInitializer />
+
         {/* Live Games Banner - fixed at top */}
         <LiveGamesBanner />
         <ClientProviders>
@@ -186,7 +194,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </ClientProviders>
         <Analytics />
         <SpeedInsights />
-        <PerformanceMonitor />
+        <LiveGamesMonitor />
       </body>
     </html>
   );

@@ -172,7 +172,20 @@ run_tests_with_server_management() {
             echo "✅ Server already running on port $DEFAULT_PORT"
         else
             echo "🚀 Starting development server for integration tests..."
-            PORT=$DEFAULT_PORT pnpm dev > /tmp/integration-server.log 2>&1 &
+            # Set test environment variables
+            export NODE_ENV=test
+            export MOCK_MODE=true
+            # Load environment variables for integration tests
+            if [ -f .env.development ]; then
+                echo "📋 Loading environment variables from .env.development"
+                set -a  # automatically export all variables
+                source .env.development
+                set +a  # stop automatically exporting
+            fi
+            # Ensure test environment variables override any loaded ones
+            export NODE_ENV=test
+            export MOCK_MODE=true
+            PORT=$DEFAULT_PORT pnpm dev:test > /tmp/integration-server.log 2>&1 &
             server_pid=$!
             server_started_by_script=1
             echo "⏳ Waiting for integration server to start..."

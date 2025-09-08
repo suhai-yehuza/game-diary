@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
-import { teams } from '@/lib/db/schema';
+import { basketball_teams } from '@/lib/db/schema';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 export async function GET(
@@ -42,8 +42,8 @@ export async function GET(
     }
 
     // Fetch team from database
-    const team = await database.query.teams.findFirst({
-      where: eq(teams.id, teamId),
+    const team = await database.query.basketball_teams.findFirst({
+      where: eq(basketball_teams.id, teamId),
     });
 
     if (!team) {

@@ -1,14 +1,14 @@
 import { useCallback, useState } from 'react';
 
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IPaginationOptions, IPageInfo } from '@/lib/types';
+import type { IPaginationOptions, IPageInfo } from '@/types';
 
 export function usePagination({ query, variables, onDataReceived, onError }: IPaginationOptions) {
   const [pageInfo, setPageInfo] = useState<IPageInfo>({
     hasNextPage: false,
     hasPreviousPage: false,
-    startCursor: null,
-    endCursor: null,
+    startCursor: undefined,
+    endCursor: undefined,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +33,7 @@ export function usePagination({ query, variables, onDataReceived, onError }: IPa
             },
           }),
         });
-        const json = (await res.json()) as unknown as {
+        const json = (await res.json()) as {
           errors?: { message: string }[];
           data?: unknown;
         };
@@ -61,7 +61,7 @@ export function usePagination({ query, variables, onDataReceived, onError }: IPa
   );
 
   const handleNext = () => {
-    setAfter(pageInfo.endCursor);
+    setAfter(pageInfo.endCursor ?? null);
     setCurrentPage(prev => prev + 1);
     void fetchData({ after: pageInfo.endCursor });
   };

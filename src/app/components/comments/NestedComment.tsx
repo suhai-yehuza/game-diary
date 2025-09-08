@@ -16,8 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { INestedCommentProps } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { INestedCommentProps } from '@/types';
+import { ParentType } from '@/types';
 
 export function NestedComment({
   comment,
@@ -155,6 +155,10 @@ export function NestedComment({
               targetType={ParentType.Comment}
               size="sm"
               showCount={true}
+              onReactionSelect={(emoji: string) => {
+                // Handle reaction selection
+                console.log('Reaction selected:', emoji);
+              }}
             />
           </div>
 

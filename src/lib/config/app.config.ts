@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import { errorHandlers } from '@/lib/utils/error-handler';
 import type {
   IRangeConfig,
   IBatchSizeConfig,
@@ -7,8 +8,7 @@ import type {
   IPaginationConstants,
   IDistributionFunctions,
   IRapidAPIConfig,
-} from '@/lib/types';
-import { errorHandlers } from '@/lib/utils/error-handler';
+} from '@/types';
 
 const BASE_MULTIPLIER = 10;
 const XSMALL = BASE_MULTIPLIER;
@@ -36,18 +36,34 @@ const envSchema = z.object({
 
 // Distribution functions
 const distributions: IDistributionFunctions = {
-  natural: (rand: number) => Math.pow(rand, 2),
-  bellCurve: (u1: number, u2: number) => {
+  natural: (params: Record<string, number>) => {
+    const rand = params.rand ?? Math.random();
+    return Math.pow(rand, 2);
+  },
+  bellCurve: (params: Record<string, number>) => {
+    const u1 = params.u1 ?? Math.random();
+    const u2 = params.u2 ?? Math.random();
     const z0 =
       Math.sqrt(RATE_LIMIT_BACKOFF_MULTIPLIER * Math.log(u1)) * Math.cos(2.0 * Math.PI * u2);
     const mean = 50;
     const stdDev = 16.67;
     return z0 * stdDev + mean;
   },
-  pareto: (rand: number, alpha = RATE_LIMIT_BASE_DELAY) => Math.pow(rand, -1 / alpha),
-  exponential: (rand: number) => Math.exp(RATE_LIMIT_MIN_DELAY * rand),
-  powerLaw: (rand: number, exponent = RATE_LIMIT_MIN_DELAY) => Math.pow(rand, exponent),
-} as const satisfies IDistributionFunctions;
+  pareto: (params: Record<string, number>) => {
+    const rand = params.rand ?? Math.random();
+    const alpha = params.alpha ?? RATE_LIMIT_BASE_DELAY;
+    return Math.pow(rand, -1 / alpha);
+  },
+  exponential: (params: Record<string, number>) => {
+    const rand = params.rand ?? Math.random();
+    return Math.exp(RATE_LIMIT_MIN_DELAY * rand);
+  },
+  powerLaw: (params: Record<string, number>) => {
+    const rand = params.rand ?? Math.random();
+    const exponent = params.exponent ?? RATE_LIMIT_MIN_DELAY;
+    return Math.pow(rand, exponent);
+  },
+};
 
 // API Configuration
 export const API_CONFIG = {
@@ -91,7 +107,7 @@ export const API_CONFIG = {
       max: MEDIUM,
       getRandom: () => {
         const rand = Math.random();
-        const normalizedValue = distributions.natural(rand);
+        const normalizedValue = distributions.natural({ rand });
         return Math.floor(Math.min(MEDIUM, normalizedValue * MEDIUM));
       },
     } satisfies IRangeConfig,
@@ -102,7 +118,7 @@ export const API_CONFIG = {
       getRandom: () => {
         const u1 = Math.random();
         const u2 = Math.random();
-        const value = distributions.bellCurve(u1, u2);
+        const value = distributions.bellCurve({ u1, u2 });
         return Math.floor(Math.max(0, Math.min(SMALL, value)));
       },
     } satisfies IRangeConfig,
@@ -112,7 +128,7 @@ export const API_CONFIG = {
       max: SMALL,
       getRandom: () => {
         const rand = Math.random();
-        const paretoValue = distributions.pareto(rand);
+        const paretoValue = distributions.pareto({ rand });
         return Math.floor(Math.max(0, Math.min(SMALL, paretoValue * SMALL)));
       },
     } satisfies IRangeConfig,
@@ -122,7 +138,7 @@ export const API_CONFIG = {
       max: XSMALL,
       getRandom: () => {
         const rand = Math.random();
-        const decayedValue = distributions.exponential(rand);
+        const decayedValue = distributions.exponential({ rand });
         return Math.floor(Math.max(0, Math.min(XSMALL, decayedValue * XSMALL)));
       },
     } satisfies IRangeConfig,
@@ -132,7 +148,7 @@ export const API_CONFIG = {
       max: SMALL,
       getRandom: () => {
         const rand = Math.random();
-        const powerValue = distributions.powerLaw(rand);
+        const powerValue = distributions.powerLaw({ rand });
         return Math.floor(Math.max(0, Math.min(SMALL, powerValue * SMALL)));
       },
     } satisfies IRangeConfig,
@@ -165,12 +181,18 @@ export const API_CONFIG = {
   } as const,
 
   batchSize: {
+    default: 25,
+    min: 5,
+    max: 100,
     GAMES: 25,
     GAME_STATS: 10,
     PLAYERS: 50,
   } as const satisfies IBatchSizeConfig,
 
   pagination: {
+    defaultLimit: 20,
+    maxLimit: 100,
+    minLimit: 5,
     DEFAULT_PAGE_SIZE: 20,
     DEFAULT_GAME_LOG_PAGE_SIZE: 25, // Reduced from 100 for better performance
     DEFAULT_COMMENT_PAGE_SIZE: 10,

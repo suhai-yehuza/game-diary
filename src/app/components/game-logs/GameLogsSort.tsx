@@ -4,7 +4,7 @@ import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import React from 'react';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
-import type { IGameLogsSortProps } from '@/lib/types';
+import type { IGameLogsSortProps } from '@/types';
 
 // All sort options
 const sortOptions = [

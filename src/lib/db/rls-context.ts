@@ -28,13 +28,16 @@ export class RLSContextManager {
     try {
       await db()?.execute(sql`SELECT set_current_user_context(${userId})`);
       await auditLogger.logRLSAccess({
+        id: 'rls_' + Date.now(),
+        userId: userId,
+        timestamp: new Date().toISOString(),
+        success: true,
         requestingUserId: userId,
         targetUserId: userId,
         tableName: 'users',
         operation: 'SELECT',
         rlsContextSet: true,
         accessGranted: true,
-        details: { event: 'setUserContext' },
       });
     } catch (error) {
       // Use centralized error handling
@@ -73,13 +76,16 @@ export class RLSContextManager {
       // Log RLS context clearing for audit
       if (userId) {
         await auditLogger.logRLSAccess({
+          id: 'rls_clear_' + Date.now(),
+          userId: userId,
+          timestamp: new Date().toISOString(),
+          success: true,
           requestingUserId: userId,
           targetUserId: userId,
           tableName: 'users',
           operation: 'SELECT',
           rlsContextSet: false,
           accessGranted: true,
-          details: { event: 'clearUserContext' },
         });
       }
     } catch (error) {
@@ -150,7 +156,12 @@ export async function checkRLSConfiguration(): Promise<boolean> {
     await rlsContext.clearUserContext();
     return true;
   } catch (error) {
-    logger.error('RLS configuration check failed:', error as Error);
+    logger.error('RLS configuration check failed:', {
+      component: 'RLS Context Manager',
+      action: 'Check RLS configuration',
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return false;
   }
 }

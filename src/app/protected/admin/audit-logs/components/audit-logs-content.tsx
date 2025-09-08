@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IAuditLog, IFilters, AuditLogSearchField } from '@/lib/types';
+import type { IAuditLog, IFilters, AuditLogSearchField } from '@/types';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui/error-boundary';
 import { PaginationControls } from '@src/app/protected/admin/database/components/ui/pagination-controls';
 
@@ -104,22 +104,22 @@ export function AdminAuditLogsContent() {
     return sortedLogs.filter(log => {
       switch (searchField) {
         case 'category':
-          return log.category.toLowerCase().includes(term);
+          return log.category?.toLowerCase().includes(term) ?? false;
         case 'action':
           return log.action.toLowerCase().includes(term);
         case 'severity':
-          return log.severity.toLowerCase().includes(term);
+          return log.severity?.toLowerCase().includes(term) ?? false;
         case 'user_id':
-          return log.user_id?.toLowerCase().includes(term) ?? false;
+          return log.userId?.toLowerCase().includes(term) ?? false;
         case 'description':
           return log.description?.toLowerCase().includes(term) ?? false;
         case 'all':
         default:
           return (
-            log.category.toLowerCase().includes(term) ||
+            (log.category?.toLowerCase().includes(term) ?? false) ||
             log.action.toLowerCase().includes(term) ||
-            log.severity.toLowerCase().includes(term) ||
-            (log.user_id?.toLowerCase().includes(term) ?? false) ||
+            (log.severity?.toLowerCase().includes(term) ?? false) ||
+            (log.userId?.toLowerCase().includes(term) ?? false) ||
             (log.description?.toLowerCase().includes(term) ?? false)
           );
       }
@@ -214,7 +214,13 @@ export function AdminAuditLogsContent() {
     void fetchLogs();
   }, [fetchLogs]);
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | undefined) => {
+    if (!category) {
+      const isDark = resolvedTheme === 'dark';
+      return isDark
+        ? 'bg-neutral-800 text-neutral-200 border-neutral-700'
+        : 'bg-neutral-600 text-white border-neutral-700';
+    }
     const isDark = resolvedTheme === 'dark';
 
     switch (category.toLowerCase()) {
@@ -253,7 +259,13 @@ export function AdminAuditLogsContent() {
     }
   };
 
-  const getSeverityColor = (severity: string) => {
+  const getSeverityColor = (severity: string | undefined) => {
+    if (!severity) {
+      const isDark = resolvedTheme === 'dark';
+      return isDark
+        ? 'bg-neutral-800 text-neutral-200 border-neutral-700'
+        : 'bg-neutral-600 text-white border-neutral-700';
+    }
     const isDark = resolvedTheme === 'dark';
 
     switch (severity.toLowerCase()) {
@@ -801,7 +813,7 @@ export function AdminAuditLogsContent() {
                             </span>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground font-mono">
-                            {truncateUserId(log.user_id)}
+                            {truncateUserId(log.userId)}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
@@ -838,12 +850,16 @@ export function AdminAuditLogsContent() {
           {/* Pagination Controls */}
           <PaginationControls
             totalCount={totalCount}
+            totalPages={totalPages}
             currentPage={currentPage}
             pageInfo={{
               hasPreviousPage: currentPage > 1,
               hasNextPage: currentPage < totalPages,
+              startCursor: null,
+              endCursor: null,
             }}
             loading={loading}
+            onPageChange={(page: number) => setCurrentPage(page)}
             onFirst={handleFirst}
             onPrev={handlePrev}
             onNext={handleNext}

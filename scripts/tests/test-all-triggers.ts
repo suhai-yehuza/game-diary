@@ -3,7 +3,6 @@
 import 'dotenv-flow/config';
 
 import { sql } from 'drizzle-orm';
-import { neon } from '@neondatabase/serverless';
 
 import { logger } from '@/lib/utils/logger';
 import { createDatabaseClient } from '@/lib/db';
@@ -11,7 +10,20 @@ import { generateId } from '@/lib/utils/id-generator';
 import { isCI } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
-import { parseScriptArgs } from '../utils/script-utils';
+// 🚨 PRODUCTION DATABASE PROTECTION
+if (
+  process.env.NODE_ENV === 'production' &&
+  process.env.CI !== 'true' &&
+  process.env.ALLOW_ACCESS_TO_PRODUCTION_DB !== 'true'
+) {
+  logger.error(
+    '🚨 PRODUCTION DATABASE ACCESS BLOCKED: Trigger tests cannot run against production database'
+  );
+  logger.error(
+    '   If this is intentional, set ALLOW_ACCESS_TO_PRODUCTION_DB=true environment variable'
+  );
+  process.exit(1);
+}
 
 // Check if we're in CI and handle missing DATABASE_URL gracefully
 if (isCI() && !process.env.DATABASE_URL) {
@@ -52,60 +64,115 @@ class TriggerValidator {
 
     try {
       // Clean up all test-related data in the correct order (respecting foreign key constraints)
+      // Each cleanup operation is wrapped in try-catch to continue even if one fails
 
       // 1. Clean up reactions (depends on comments and game_logs)
-      const reactionsDeleted = await db.execute(
-        sql`DELETE FROM reactions WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
-      );
-      logger.info(`   🗑️  Deleted ${reactionsDeleted.rowCount || 0} test reactions`);
+      try {
+        const reactionsDeleted = await db.execute(
+          sql`DELETE FROM reactions WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${reactionsDeleted.rowCount || 0} test reactions`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up reactions: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 2. Clean up comments (depends on game_logs)
-      const commentsDeleted = await db.execute(
-        sql`DELETE FROM comments WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
-      );
-      logger.info(`   🗑️  Deleted ${commentsDeleted.rowCount || 0} test comments`);
+      try {
+        const commentsDeleted = await db.execute(
+          sql`DELETE FROM comments WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${commentsDeleted.rowCount || 0} test comments`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up comments: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
-      // 3. Clean up game_logs (depends on users and nba_games)
-      const gameLogsDeleted = await db.execute(
-        sql`DELETE FROM game_logs WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%'`
-      );
-      logger.info(`   🗑️  Deleted ${gameLogsDeleted.rowCount || 0} test game logs`);
+      // 3. Clean up game_logs (depends on users and basketball_games)
+      try {
+        const gameLogsDeleted = await db.execute(
+          sql`DELETE FROM game_logs WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${gameLogsDeleted.rowCount || 0} test game logs`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up game logs: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
-      // 4. Clean up game_ratings (depends on nba_games)
-      const gameRatingsDeleted = await db.execute(
-        sql`DELETE FROM game_ratings WHERE game_id LIKE 'test_%' OR game_id LIKE 'testtrig_%' OR game_id LIKE '2024-ttg_%'`
-      );
-      logger.info(`   🗑️  Deleted ${gameRatingsDeleted.rowCount || 0} test game ratings`);
+      // 4. Clean up game_ratings (depends on basketball_games)
+      try {
+        const gameRatingsDeleted = await db.execute(
+          sql`DELETE FROM game_ratings WHERE game_id LIKE 'test_%' OR game_id LIKE 'testtrig_%' OR game_id LIKE '2024-ttg_%' OR game_id LIKE 'integration-test-game-%'`
+        );
+        logger.info(`   🗑️  Deleted ${gameRatingsDeleted.rowCount || 0} test game ratings`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up game ratings: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 5. Clean up friendships (depends on users)
-      const friendshipsDeleted = await db.execute(
-        sql`DELETE FROM friendships WHERE id LIKE 'test_%' OR id LIKE 'testtrig_%' OR user_id LIKE 'testtrig_%' OR friend_id LIKE 'testtrig_%'`
-      );
-      logger.info(`   🗑️  Deleted ${friendshipsDeleted.rowCount || 0} test friendships`);
+      try {
+        const friendshipsDeleted = await db.execute(
+          sql`DELETE FROM friendships WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'testtrig_%' OR friend_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${friendshipsDeleted.rowCount || 0} test friendships`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up friendships: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 6. Clean up notifications (depends on users)
-      const notificationsDeleted = await db.execute(
-        sql`DELETE FROM notifications WHERE user_id LIKE 'testtrig_%'`
-      );
-      logger.info(`   🗑️  Deleted ${notificationsDeleted.rowCount || 0} test notifications`);
+      try {
+        const notificationsDeleted = await db.execute(
+          sql`DELETE FROM notifications WHERE user_id LIKE 'testtrig_%' OR user_id LIKE 'integration-test%'`
+        );
+        logger.info(`   🗑️  Deleted ${notificationsDeleted.rowCount || 0} test notifications`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up notifications: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
-      // 7. Clean up test NBA games (depends on teams)
-      const nbaGamesDeleted = await db.execute(
-        sql`DELETE FROM nba_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test_%' OR id LIKE 'test-game-%'`
-      );
-      logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
+      // 7. Clean up test NBA games (depends on basketball_teams)
+      try {
+        const nbaGamesDeleted = await db.execute(
+          sql`DELETE FROM basketball_games WHERE id LIKE '2024-ttg_%' OR id LIKE 'test-game-%' OR id LIKE 'integration-test-%'`
+        );
+        logger.info(`   🗑️  Deleted ${nbaGamesDeleted.rowCount || 0} test NBA games`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up NBA games: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
-      // 8. Clean up test teams
-      const teamsDeleted = await db.execute(
-        sql`DELETE FROM teams WHERE id IN ('test_team_1', 'test_team_2')`
-      );
-      logger.info(`   🗑️  Deleted ${teamsDeleted.rowCount || 0} test teams`);
+      // 8. Clean up test basketball_teams
+      try {
+        const teamsDeleted = await db.execute(
+          sql`DELETE FROM basketball_teams WHERE id IN ('test_team_1', 'test_team_2', 'integration-test-team-home', 'integration-test-team-away') OR id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%'`
+        );
+        logger.info(`   🗑️  Deleted ${teamsDeleted.rowCount || 0} test basketball_teams`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up basketball teams: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       // 9. Clean up test users (should be last as they're referenced by other tables)
-      const usersDeleted = await db.execute(
-        sql`DELETE FROM users WHERE id LIKE 'testtrig_%' OR id LIKE 'test_%'`
-      );
-      logger.info(`   🗑️  Deleted ${usersDeleted.rowCount || 0} test users`);
+      try {
+        const usersDeleted = await db.execute(
+          sql`DELETE FROM users WHERE id LIKE 'testtrig_%' OR id LIKE 'integration-test%' OR id LIKE 'perf-user-%'`
+        );
+        logger.info(`   🗑️  Deleted ${usersDeleted.rowCount || 0} test users`);
+      } catch (error) {
+        logger.warn(
+          `   ⚠️  Failed to clean up users: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
 
       logger.info('✅ Test data cleanup completed successfully');
     } catch (error) {
@@ -113,7 +180,8 @@ class TriggerValidator {
         '❌ Error during test data cleanup:',
         error instanceof Error ? error : new Error(String(error))
       );
-      throw error;
+      // Don't throw the error, just log it and continue
+      logger.warn('⚠️  Continuing despite cleanup errors...');
     }
   }
 
@@ -128,33 +196,34 @@ class TriggerValidator {
   }
 
   private async getTestGame(): Promise<string> {
-    // Always use two test teams with string IDs
-    const homeTeamId = 'test_team_1';
-    const awayTeamId = 'test_team_2';
+    // Always use two test basketball_teams with string IDs
+    const homeTeamId = 'integration-test-team-home';
+    const awayTeamId = 'integration-test-team-away';
 
-    // Insert test teams if they do not exist
+    // Insert test basketball_teams if they do not exist
     await this.db.execute(sql`
-      INSERT INTO teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
-      VALUES (${homeTeamId}, 'Test Home Team', 'THT', 'THT', 'Test City', true, NOW(), NOW())
+      INSERT INTO basketball_teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
+      VALUES (${homeTeamId}, 'Integration Test Home Team', 'ITHT', 'ITHT', 'Test City', true, NOW(), NOW())
       ON CONFLICT (id) DO NOTHING
     `);
     await this.db.execute(sql`
-      INSERT INTO teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
-      VALUES (${awayTeamId}, 'Test Away Team', 'TAT', 'TAT', 'Test City', true, NOW(), NOW())
+      INSERT INTO basketball_teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
+      VALUES (${awayTeamId}, 'Integration Test Away Team', 'ITAT', 'ITAT', 'Test City', true, NOW(), NOW())
       ON CONFLICT (id) DO NOTHING
     `);
 
     // Create a unique test NBA game id (max 20 chars)
-    const gameId = `2024-ttg_${generateId().replace(/-/g, '').slice(0, 16)}`; // Format: ${season}-${game.id}
+    const gameId = `integration-test-game-${generateId().replace(/-/g, '').slice(0, 16)}`; // Format: integration-test-game-${id}
 
     // Insert a test NBA game with error logging
     try {
+      const teamsJson = `{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}`;
       await this.db.execute(sql`
-        INSERT INTO nba_games (id, game_type, season, date, home_team_id, away_team_id, status, created_at, updated_at)
-        VALUES (${gameId}, 'nba', '2024', NOW(), ${homeTeamId}, ${awayTeamId}, 'Final', NOW(), NOW())
+        INSERT INTO basketball_games (id, game_type, season, date, teams, game_status, created_at, updated_at)
+        VALUES (${gameId}, 'nba', '2024', NOW(), ${teamsJson}, 'Final', NOW(), NOW())
       `);
     } catch (error: any) {
-      console.error('nba_games insert error:', error);
+      console.error('basketball_games insert error:', error);
       console.error('Error message:', error.message);
       console.error('Error code:', error.code);
       console.error('Error detail:', error.detail);
@@ -204,6 +273,11 @@ class TriggerValidator {
       passed = false;
       error = err instanceof Error ? err.message : String(err);
       details = `❌ Test error: ${error}`;
+
+      // Log the full error for debugging
+      if (err instanceof Error) {
+        logger.error(`   Full error: ${err.stack || err.message}`);
+      }
     }
 
     this.results.push({
@@ -223,8 +297,8 @@ class TriggerValidator {
   private async testGameRatingsInsert(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `testtrig_user_${generateId()}`;
-      const userId2 = `testtrig_user_${generateId()}`;
+      const userId1 = `integration-test-trigger-user-${generateId()}`;
+      const userId2 = `integration-test-trigger-user-${generateId()}`;
 
       // Set user context for the first user before inserting
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
@@ -261,8 +335,8 @@ class TriggerValidator {
   private async testGameRatingsUpdate(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `testtrig_user_${generateId()}`;
-      const userId2 = `testtrig_user_${generateId()}`;
+      const userId1 = `integration-test-trigger-user-${generateId()}`;
+      const userId2 = `integration-test-trigger-user-${generateId()}`;
 
       // Set user context for the first user before inserting
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
@@ -305,8 +379,8 @@ class TriggerValidator {
   private async testGameRatingsDelete(): Promise<boolean> {
     try {
       const gameId = await this.getTestGame();
-      const userId1 = `testtrig_user_${generateId()}`;
-      const userId2 = `testtrig_user_${generateId()}`;
+      const userId1 = `integration-test-trigger-user-${generateId()}`;
+      const userId2 = `integration-test-trigger-user-${generateId()}`;
 
       // Set user context for the first user before inserting
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
@@ -351,11 +425,11 @@ class TriggerValidator {
   // ============================================================================
 
   private async testCommentOnGameLog(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const commentId = `test_comment_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const commentId = `integration-test-trigger-comment-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -404,12 +478,12 @@ class TriggerValidator {
   }
 
   private async testCommentReply(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const parentCommentId = `test_parent_comment_${generateId()}`;
-    const replyId = `test_reply_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const parentCommentId = `integration-test-trigger-parent-comment-${generateId()}`;
+    const replyId = `integration-test-trigger-reply-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -464,10 +538,10 @@ class TriggerValidator {
   }
 
   private async testSelfComment(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const commentId = `test_self_comment_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const commentId = `integration-test-trigger-self-comment-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -519,11 +593,11 @@ class TriggerValidator {
   // ============================================================================
 
   private async testReactionOnGameLog(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const reactionId = `test_reaction_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const reactionId = `integration-test-trigger-reaction-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -580,12 +654,12 @@ class TriggerValidator {
   }
 
   private async testReactionOnComment(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const commentId = `test_comment_${generateId()}`;
-    const reactionId = `test_reaction_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const commentId = `integration-test-trigger-comment-${generateId()}`;
+    const reactionId = `integration-test-trigger-reaction-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -649,10 +723,10 @@ class TriggerValidator {
   }
 
   private async testSelfReaction(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
     const gameId = await this.getTestGame();
-    const gameLogId = `testtrig_gamelog_${generateId()}`;
-    const reactionId = `test_self_reaction_${generateId()}`;
+    const gameLogId = `integration-test-trigger-gamelog-${generateId()}`;
+    const reactionId = `integration-test-trigger-self-reaction-${generateId()}`;
 
     try {
       // Set user context for the first user before inserting
@@ -704,9 +778,9 @@ class TriggerValidator {
   // ============================================================================
 
   private async testFriendRequest(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
-    const friendshipId = `testtrig_friendship_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
+    const friendshipId = `integration-test-trigger-friendship-${generateId()}`;
 
     try {
       // Create test users
@@ -748,9 +822,9 @@ class TriggerValidator {
   }
 
   private async testFriendAccept(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
-    const friendshipId = `testtrig_friendship_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
+    const friendshipId = `integration-test-trigger-friendship-${generateId()}`;
 
     try {
       // Create test users
@@ -797,9 +871,9 @@ class TriggerValidator {
   }
 
   private async testFriendReject(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
-    const friendshipId = `testtrig_friendship_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
+    const friendshipId = `integration-test-trigger-friendship-${generateId()}`;
 
     try {
       // Create test users
@@ -846,9 +920,9 @@ class TriggerValidator {
   }
 
   private async testFriendRemove(): Promise<boolean> {
-    const user1Id = `testtrig_user_${generateId()}`;
-    const user2Id = `testtrig_user_${generateId()}`;
-    const friendshipId = `testtrig_friendship_${generateId()}`;
+    const user1Id = `integration-test-trigger-user-${generateId()}`;
+    const user2Id = `integration-test-trigger-user-${generateId()}`;
+    const friendshipId = `integration-test-trigger-friendship-${generateId()}`;
 
     try {
       // Create test users

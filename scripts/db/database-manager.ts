@@ -14,7 +14,7 @@ import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 loadEnvironmentVariables();
 
 import { createHash } from 'crypto';
-import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync } from 'fs';
+import { readFileSync, readdirSync, existsSync, mkdirSync, copyFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
 import { promisify } from 'util';
@@ -33,43 +33,28 @@ import {
   handleScriptError,
 } from '@scripts/utils/script-utils';
 import type { IMigration, IMigrationVerification, IMigrationVersion } from '@src/lib/types';
+import { SchemaConsistencyChecker } from './ensure-schema-consistency';
+import { syncReactionEmojis } from '@src/lib/db/seed/shared-seeding-utils';
 
-// Add canonical reset logic (from full-reset.ts)
+// Import the centralized reset function
 import { execSync } from 'child_process';
-import { config as dotenvConfig } from 'dotenv';
 
 async function runCanonicalReset(env: string) {
-  // Determine which .env file to load
-  let mainEnvFile = '.env';
-  if (env === 'dev' && existsSync('.env.development')) {
-    mainEnvFile = '.env.development';
-  } else if (env === 'staging' && existsSync('.env.staging')) {
-    mainEnvFile = '.env.staging';
-  } else if ((env === 'prod' || env === 'production') && existsSync('.env.production')) {
-    mainEnvFile = '.env.production';
-  } else if (existsSync('.env')) {
-    mainEnvFile = '.env';
-  }
-  dotenvConfig({ path: mainEnvFile });
+  // Use the centralized reset script instead of duplicating logic
+  logger.info(`🔄 Running canonical reset via centralized script for ${env} environment...`);
 
-  // Only load .env.local for development/test environments
-  if ((env === 'dev' || env === 'development' || env === 'test') && existsSync('.env.local')) {
-    dotenvConfig({ path: '.env.local', override: true });
+  try {
+    // Call the centralized reset script
+    execSync(`npx tsx scripts/db/reset-with-env.ts --env=${env}`, {
+      stdio: 'inherit',
+      encoding: 'utf8',
+      cwd: process.cwd(),
+    });
+    logger.info('✅ Canonical schema reset completed successfully via centralized script!');
+  } catch (error) {
+    logger.error('❌ Canonical reset failed:', error);
+    throw error;
   }
-
-  const databaseUrl = process.env.DATABASE_URL || '';
-  if (!databaseUrl) {
-    logger.error(`❌ No DATABASE_URL found for ${env} environment`);
-    process.exit(1);
-  }
-  const migrationFile = join(process.cwd(), 'src/lib/db/migrations/000_full_schema_reset.sql');
-  if (!existsSync(migrationFile)) {
-    throw new Error(`Migration file not found: ${migrationFile}`);
-  }
-  logger.info(`📄 Running canonical migration: ${migrationFile}`);
-  const command = `psql "${databaseUrl}" -f "${migrationFile}"`;
-  execSync(command, { stdio: 'inherit', encoding: 'utf8' });
-  logger.info('✅ Canonical schema reset completed successfully!');
 }
 
 const execAsync = promisify(exec);
@@ -355,7 +340,7 @@ async function runInteractiveCommand(command: string, description: string): Prom
  * Get all migration files from the migrations directory
  */
 async function getMigrationFiles(): Promise<string[]> {
-  const types = ['base', 'feature', 'trigger'];
+  const types = ['data', 'functions', 'rls', 'triggers'];
   const migrations: string[] = [];
   const migrationsDir = join(process.cwd(), 'src/lib/db/migrations');
 
@@ -701,6 +686,20 @@ async function applyAllMigrations(environment = 'development', dryRun = false): 
       logger.info('✅ Added indexes:', { indexes: changes.added.indexes });
     }
 
+    // Step 7: Sync reaction emojis after all migrations are complete
+    if (!dryRun) {
+      logger.info('\n🔄 Step 7: Syncing reaction emojis with application constants...');
+      try {
+        await syncReactionEmojis(db, 'Migration Process');
+        logger.info('✅ Reaction emojis synced successfully');
+      } catch (error) {
+        logger.warn(`⚠️  Warning: Could not sync reaction emojis: ${error}`);
+        logger.info('📋 This may be normal if the reaction_emojis table does not exist yet');
+      }
+    } else {
+      logger.info('\n⏭️  Step 7: Skipping reaction emoji sync (dry run mode)');
+    }
+
     logger.info(`\n🎉 Migration process completed! Applied ${appliedCount} migrations.`);
   } catch (error) {
     logger.error(
@@ -930,37 +929,145 @@ async function copyCustomMigrations(): Promise<void> {
   // Ensure target directory exists
   mkdirSync(targetDir, { recursive: true });
 
-  // Function to recursively get all SQL files from the src/lib/db/migrations directory
-  function getAllSqlFiles(dir: string): string[] {
-    const files: string[] = [];
+  // Remove any existing Drizzle-generated files to avoid conflicts
+  const existingFiles = readdirSync(targetDir).filter(f => f.endsWith('.sql'));
+  const drizzlePattern = /^0000_|^0001_/; // Pattern for Drizzle-generated files
+  existingFiles.forEach(file => {
+    if (drizzlePattern.test(file)) {
+      const filePath = join(targetDir, file);
+      unlinkSync(filePath);
+      logger.info(`Removed conflicting Drizzle file: ${file}`);
+    }
+  });
+
+  // Define migration categories and their optimal order
+  const migrationCategories = [
+    {
+      name: 'base_schema',
+      pattern: /^000_base_schema\.sql$/,
+      priority: 1,
+      description: 'Base schema (tables, constraints)',
+    },
+    {
+      name: 'performance_indexes',
+      pattern: /^00[1-9]_.*\.sql$/, // Files starting with 001-009 (performance indexes)
+      priority: 2,
+      description: 'Performance indexes (applied early for query optimization)',
+    },
+    {
+      name: 'functions',
+      pattern: /^functions\/.*\.sql$/,
+      priority: 3,
+      description: 'Database functions (business logic - must exist before triggers)',
+    },
+    {
+      name: 'triggers',
+      pattern: /^triggers\/.*\.sql$/,
+      priority: 4,
+      description: 'Database triggers (depend on functions and tables)',
+    },
+    {
+      name: 'rls_policies',
+      pattern: /^rls\/.*\.sql$/,
+      priority: 5,
+      description: 'Row Level Security policies (applied after all objects exist)',
+    },
+    {
+      name: 'data',
+      pattern: /^data\/.*\.sql$/,
+      priority: 6,
+      description: 'Reference data, seed data (applied last)',
+    },
+  ];
+
+  // Function to recursively get all SQL files from the migrations directory
+  function getAllSqlFiles(
+    dir: string,
+    basePath = ''
+  ): Array<{ path: string; relativePath: string }> {
+    const files: Array<{ path: string; relativePath: string }> = [];
     const entries = readdirSync(dir, { withFileTypes: true });
 
     for (const entry of entries) {
       const fullPath = join(dir, entry.name);
+      const relativePath = join(basePath, entry.name);
+
       if (entry.isDirectory()) {
-        files.push(...getAllSqlFiles(fullPath));
+        files.push(...getAllSqlFiles(fullPath, relativePath));
       } else if (entry.isFile() && entry.name.endsWith('.sql')) {
-        files.push(fullPath);
+        files.push({ path: fullPath, relativePath });
       }
     }
 
     return files;
   }
 
-  // Get all SQL files recursively
-  const files = getAllSqlFiles(sourceDir);
+  // Get all SQL files
+  const allFiles = getAllSqlFiles(sourceDir);
 
-  // Copy each file to target directory
-  files.forEach(file => {
-    const relativePath = file.replace(sourceDir, '').replace(/^\//, '');
-    const targetPath = join(targetDir, relativePath);
+  // Categorize files by their purpose
+  const categorizedFiles: { [key: string]: Array<{ path: string; relativePath: string }> } = {};
 
-    // Ensure the target directory exists
-    mkdirSync(join(targetDir, relativePath.split('/').slice(0, -1).join('/')), { recursive: true });
+  allFiles.forEach(file => {
+    let categorized = false;
 
-    copyFileSync(file, targetPath);
-    logger.info(`Copied ${relativePath} to drizzle directory`);
+    for (const category of migrationCategories) {
+      if (category.pattern.test(file.relativePath)) {
+        if (!categorizedFiles[category.name]) {
+          categorizedFiles[category.name] = [];
+        }
+        categorizedFiles[category.name].push(file);
+        categorized = true;
+        break;
+      }
+    }
+
+    if (!categorized) {
+      // Handle files that don't match any category
+      if (!categorizedFiles['other']) {
+        categorizedFiles['other'] = [];
+      }
+      categorizedFiles['other'].push(file);
+      logger.warn(`Uncategorized migration file: ${file.relativePath}`);
+    }
   });
+
+  // Copy files in optimal order
+  let targetCounter = 1;
+
+  migrationCategories.forEach(category => {
+    const files = categorizedFiles[category.name];
+    if (files && files.length > 0) {
+      logger.info(`Processing ${category.description} (${files.length} files)`);
+
+      // Sort files within category alphabetically for consistency
+      files.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+
+      files.forEach(file => {
+        const targetName = `${String(targetCounter).padStart(4, '0')}_${file.relativePath.replace(/\//g, '_')}`;
+        const targetPath = join(targetDir, targetName);
+
+        copyFileSync(file.path, targetPath);
+        logger.info(`Copied ${file.relativePath} to drizzle directory as ${targetName}`);
+        targetCounter++;
+      });
+    }
+  });
+
+  // Handle any uncategorized files
+  if (categorizedFiles['other']) {
+    logger.warn(`Found ${categorizedFiles['other'].length} uncategorized migration files:`);
+    categorizedFiles['other'].forEach(file => {
+      const targetName = `${String(targetCounter).padStart(4, '0')}_${file.relativePath.replace(/\//g, '_')}`;
+      const targetPath = join(targetDir, targetName);
+
+      copyFileSync(file.path, targetPath);
+      logger.info(`Copied ${file.relativePath} to drizzle directory as ${targetName}`);
+      targetCounter++;
+    });
+  }
+
+  logger.info(`✅ Migration copy completed. Total files processed: ${targetCounter - 1}`);
 }
 
 /**
@@ -1288,29 +1395,56 @@ async function truncateAllExternalTables() {
     logger.info(`Table leagues after: ${afterLeagues[0]?.count ?? 'unknown'} rows`);
     logger.info('✅ Truncated leagues');
 
-    logger.info('Truncating teams table...');
-    const beforeTeams = await sqlClient`SELECT COUNT(*) as count FROM "teams"`;
-    logger.info(`Table teams before: ${beforeTeams[0]?.count ?? 'unknown'} rows`);
-    await sqlDirect`TRUNCATE TABLE "teams" CASCADE`;
-    const afterTeams = await sqlClient`SELECT COUNT(*) as count FROM "teams"`;
-    logger.info(`Table teams after: ${afterTeams[0]?.count ?? 'unknown'} rows`);
-    logger.info('✅ Truncated teams');
+    logger.info('Truncating basketball_teams table...');
+    const beforeTeams = await sqlClient`SELECT COUNT(*) as count FROM "basketball_teams"`;
+    logger.info(`Table basketball_teams before: ${beforeTeams[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "basketball_teams" CASCADE`;
+    const afterTeams = await sqlClient`SELECT COUNT(*) as count FROM "basketball_teams"`;
+    logger.info(`Table basketball_teams after: ${afterTeams[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated basketball_teams');
 
-    logger.info('Truncating nba_games table...');
-    const beforeGames = await sqlClient`SELECT COUNT(*) as count FROM "nba_games"`;
-    logger.info(`Table nba_games before: ${beforeGames[0]?.count ?? 'unknown'} rows`);
-    await sqlDirect`TRUNCATE TABLE "nba_games" CASCADE`;
-    const afterGames = await sqlClient`SELECT COUNT(*) as count FROM "nba_games"`;
-    logger.info(`Table nba_games after: ${afterGames[0]?.count ?? 'unknown'} rows`);
-    logger.info('✅ Truncated nba_games');
+    // Invalidate NBA Hub counts cache since basketball_teams count changed
+    try {
+      const { NBAHubCacheUtils } = await import('@/lib/cache');
+      await NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
+      logger.info('✅ Invalidated NBA Hub basketball_teams count cache');
+    } catch (cacheError) {
+      logger.warn('Failed to invalidate NBA Hub basketball_teams count cache:', cacheError);
+    }
 
-    logger.info('Truncating nba_players table...');
-    const beforePlayers = await sqlClient`SELECT COUNT(*) as count FROM "nba_players"`;
-    logger.info(`Table nba_players before: ${beforePlayers[0]?.count ?? 'unknown'} rows`);
-    await sqlDirect`TRUNCATE TABLE "nba_players" CASCADE`;
-    const afterPlayers = await sqlClient`SELECT COUNT(*) as count FROM "nba_players"`;
-    logger.info(`Table nba_players after: ${afterPlayers[0]?.count ?? 'unknown'} rows`);
-    logger.info('✅ Truncated nba_players');
+    logger.info('Truncating basketball_games table...');
+    const beforeGames = await sqlClient`SELECT COUNT(*) as count FROM "basketball_games"`;
+    logger.info(`Table basketball_games before: ${beforeGames[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "basketball_games" CASCADE`;
+    const afterGames = await sqlClient`SELECT COUNT(*) as count FROM "basketball_games"`;
+    logger.info(`Table basketball_games after: ${afterGames[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated basketball_games');
+
+    // Invalidate NBA Hub counts cache since games count changed
+    try {
+      const { NBAHubCacheUtils } = await import('@/lib/cache');
+      await NBAHubCacheUtils.invalidateSpecificCountCaches('games');
+      logger.info('✅ Invalidated NBA Hub games count cache');
+    } catch (cacheError) {
+      logger.warn('Failed to invalidate NBA Hub games count cache:', cacheError);
+    }
+
+    logger.info('Truncating basketball_players table...');
+    const beforePlayers = await sqlClient`SELECT COUNT(*) as count FROM "basketball_players"`;
+    logger.info(`Table basketball_players before: ${beforePlayers[0]?.count ?? 'unknown'} rows`);
+    await sqlDirect`TRUNCATE TABLE "basketball_players" CASCADE`;
+    const afterPlayers = await sqlClient`SELECT COUNT(*) as count FROM "basketball_players"`;
+    logger.info(`Table basketball_players after: ${afterPlayers[0]?.count ?? 'unknown'} rows`);
+    logger.info('✅ Truncated basketball_players');
+
+    // Invalidate NBA Hub counts cache since players count changed
+    try {
+      const { NBAHubCacheUtils } = await import('@/lib/cache');
+      await NBAHubCacheUtils.invalidateSpecificCountCaches('players');
+      logger.info('✅ Invalidated NBA Hub players count cache');
+    } catch (cacheError) {
+      logger.warn('Failed to invalidate NBA Hub players count cache:', cacheError);
+    }
   } catch (error) {
     logger.error(
       '❌ Error truncating external tables:',
@@ -1379,17 +1513,17 @@ async function dropAllInternalTables() {
 async function dropAllExternalTables() {
   try {
     // Drop each table individually with hardcoded statements
-    logger.info('Dropping nba_players table...');
-    await sqlDirect`DROP TABLE IF EXISTS "nba_players" CASCADE`;
-    logger.info('✅ Dropped nba_players');
+    logger.info('Dropping basketball_players table...');
+    await sqlDirect`DROP TABLE IF EXISTS "basketball_players" CASCADE`;
+    logger.info('✅ Dropped basketball_players');
 
-    logger.info('Dropping nba_games table...');
-    await sqlDirect`DROP TABLE IF EXISTS "nba_games" CASCADE`;
-    logger.info('✅ Dropped nba_games');
+    logger.info('Dropping basketball_games table...');
+    await sqlDirect`DROP TABLE IF EXISTS "basketball_games" CASCADE`;
+    logger.info('✅ Dropped basketball_games');
 
-    logger.info('Dropping teams table...');
-    await sqlDirect`DROP TABLE IF EXISTS "teams" CASCADE`;
-    logger.info('✅ Dropped teams');
+    logger.info('Dropping basketball_teams table...');
+    await sqlDirect`DROP TABLE IF EXISTS "basketball_teams" CASCADE`;
+    logger.info('✅ Dropped basketball_teams');
 
     logger.info('Dropping leagues table...');
     await sqlDirect`DROP TABLE IF EXISTS "leagues" CASCADE`;
@@ -1409,6 +1543,117 @@ async function dropAllExternalTables() {
 // ============================================================================
 // MAIN CLI INTERFACE
 // ============================================================================
+
+/**
+ * Migrate with schema consistency checks
+ */
+async function migrateWithSchemaConsistency(
+  environment: string,
+  dryRun: boolean,
+  skipSchemaCheck: boolean
+): Promise<void> {
+  logger.info(
+    `🚀 Starting migration with schema consistency checks for ${environment} environment...`
+  );
+
+  if (!skipSchemaCheck) {
+    logger.info('🔍 Pre-migration: Checking schema consistency...');
+    try {
+      const checker = new SchemaConsistencyChecker();
+      const consistencyResult = await checker.check();
+
+      if (!consistencyResult.success) {
+        logger.warn('⚠️  Schema consistency issues detected:');
+        consistencyResult.issues.forEach(issue => logger.warn(`  • ${issue}`));
+
+        if (consistencyResult.recommendations.length > 0) {
+          logger.info('💡 Recommendations:');
+          consistencyResult.recommendations.forEach(rec => logger.info(`  • ${rec}`));
+        }
+
+        logger.info('🔄 Attempting to fix schema consistency issues...');
+        try {
+          await checker.generateQuickFix();
+          logger.info('✅ Schema consistency issues resolved');
+        } catch (fixError) {
+          logger.warn(`⚠️  Could not auto-fix schema issues: ${fixError}`);
+          logger.info('📋 You may need to manually resolve these issues before proceeding');
+          logger.info('💡 Run: pnpm db:workflow:full to resolve schema issues');
+
+          if (!dryRun) {
+            logger.error('❌ Migration aborted due to schema consistency issues');
+            throw new Error('Schema consistency issues must be resolved before migration');
+          } else {
+            logger.warn('⚠️  Proceeding with dry run despite schema issues');
+          }
+        }
+      } else {
+        logger.info('✅ Schema consistency check passed');
+      }
+    } catch (error) {
+      logger.warn(`⚠️  Schema consistency check failed: ${error}`);
+      if (!dryRun) {
+        logger.error('❌ Migration aborted due to schema consistency check failure');
+        throw error;
+      } else {
+        logger.warn('⚠️  Proceeding with dry run despite schema check failure');
+      }
+    }
+  } else {
+    logger.info('⏭️  Skipping schema consistency check (--skip-schema-check flag)');
+  }
+
+  // Copy custom migrations to drizzle directory to ensure they're included in Drizzle migrations
+  if (!dryRun) {
+    logger.info('📋 Copying custom migrations to drizzle directory...');
+    try {
+      await copyCustomMigrations();
+      logger.info('✅ Custom migrations copied to drizzle directory');
+    } catch (error) {
+      logger.warn(`⚠️  Warning: Could not copy custom migrations: ${error}`);
+      logger.info('📋 This may be normal if no custom migrations exist');
+    }
+  } else {
+    logger.info('⏭️  Skipping custom migration copy (dry run mode)');
+  }
+
+  // Run the actual migration
+  await applyAllMigrations(environment, dryRun);
+
+  // Sync reaction emojis after migrations (ensures all emojis from constants are in database)
+  if (!dryRun) {
+    logger.info('🔄 Syncing reaction emojis with application constants...');
+    try {
+      const db = createDatabaseClient({ env: environment });
+      await syncReactionEmojis(db, 'Database Migration Manager');
+      logger.info('✅ Reaction emojis synced successfully');
+    } catch (error) {
+      logger.warn(`⚠️  Warning: Could not sync reaction emojis: ${error}`);
+      logger.info('📋 This may be normal if the reaction_emojis table does not exist yet');
+    }
+  } else {
+    logger.info('⏭️  Skipping reaction emoji sync (dry run mode)');
+  }
+
+  // Post-migration schema validation
+  if (!skipSchemaCheck && !dryRun) {
+    logger.info('🔍 Post-migration: Validating schema consistency...');
+    try {
+      const checker = new SchemaConsistencyChecker();
+      const validationResult = await checker.check();
+
+      if (validationResult.success) {
+        logger.info('✅ Post-migration schema validation passed');
+      } else {
+        logger.warn('⚠️  Post-migration schema validation issues:');
+        validationResult.issues.forEach(issue => logger.warn(`  • ${issue}`));
+        logger.info('💡 Run: pnpm db:workflow:full to resolve remaining issues');
+      }
+    } catch (error) {
+      logger.warn(`⚠️  Post-migration schema validation failed: ${error}`);
+    }
+  }
+}
 
 /**
  * Main CLI interface for database operations
@@ -1445,7 +1690,11 @@ async function main(): Promise<void> {
   try {
     switch (command) {
       case 'migrate':
-        await applyAllMigrations(options.environment, args.includes('--dry-run'));
+        await migrateWithSchemaConsistency(
+          options.environment,
+          args.includes('--dry-run'),
+          args.includes('--skip-schema-check')
+        );
         break;
 
       case 'migrate-file':

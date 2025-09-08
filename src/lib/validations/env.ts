@@ -1,3 +1,3 @@
-import { envSchema, type IEnv } from '@/lib/types';
+import { envSchema, type IEnv } from '@/types';
 
 export { envSchema, type IEnv };

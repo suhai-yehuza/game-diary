@@ -1,11 +1,13 @@
 import React from 'react';
 
-import type { IErrorDisplayProps } from '@/lib/types';
+import type { IErrorDisplayProps } from '@/types';
 
 const variantClasses = {
   default:
     'bg-semantic-error/10 border-semantic-error/20 text-semantic-error dark:bg-semantic-error/20 dark:border-semantic-error/30 dark:text-semantic-error',
   danger:
+    'bg-semantic-error/10 border-semantic-error/20 text-semantic-error dark:bg-semantic-error/20 dark:border-semantic-error/30 dark:text-semantic-error',
+  destructive:
     'bg-semantic-error/10 border-semantic-error/20 text-semantic-error dark:bg-semantic-error/20 dark:border-semantic-error/30 dark:text-semantic-error',
   warning:
     'bg-semantic-warning/10 border-semantic-warning/20 text-semantic-warning dark:bg-semantic-warning/20 dark:border-semantic-warning/30 dark:text-semantic-warning',

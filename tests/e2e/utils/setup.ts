@@ -6,6 +6,7 @@ import {
   cleanupMockDataAfterTest,
   isMockModeEnabled,
 } from '@tests/e2e/utils/mock-config';
+import { enhancedE2ECleanup } from '@tests/e2e/utils/test-database';
 import { waitForNetworkIdle, clearTestData } from '@tests/e2e/utils/test-utils';
 
 /**
@@ -93,12 +94,8 @@ export async function setupAuthenticatedTest(page: Page, testName?: string): Pro
  * Cleanup after tests
  */
 export async function cleanupAfterTest(page: Page): Promise<void> {
-  // Clear any test data or state
-  await page.evaluate(() => {
-    // Clear localStorage and sessionStorage
-    localStorage.clear();
-    sessionStorage.clear();
-  });
+  // Use enhanced cleanup that includes database cleanup
+  await enhancedE2ECleanup(page);
 
   // Cleanup mock data if enabled
   if (isMockModeEnabled()) {

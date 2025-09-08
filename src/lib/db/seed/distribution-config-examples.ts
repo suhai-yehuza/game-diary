@@ -5,10 +5,7 @@
  * for different seeding scenarios.
  */
 
-import type {
-  IStatisticalSeedingConfig,
-  DistributionConfigPreset,
-} from '@/lib/types/seeding.types';
+import type { IStatisticalSeedingConfig, DistributionConfigPreset } from '@/types';
 import {
   getDistributionConfig,
   createCustomDistributionConfig,
@@ -97,7 +94,7 @@ export const PERFORMANCE_CONFIG: IStatisticalSeedingConfig = {
 /**
  * Example 4: Demo Environment
  * - Showcase realistic social media patterns
- * - Engaging data for demonstrations
+ * - Engaging data for demonstrations and presentations
  */
 export const DEMO_CONFIG: IStatisticalSeedingConfig = {
   ...DEFAULT_DISTRIBUTION_CONFIG,
@@ -118,7 +115,7 @@ export const DEMO_CONFIG: IStatisticalSeedingConfig = {
     type: 'beta',
     parameters: { alpha: 3.0, beta: 2.0, min: 1, max: 5 },
   },
-  // Enable viral content for demo impact
+  // Enable viral content for demo and presentation impact
   enableRealisticPatterns: true,
   enableViralContent: true,
   enablePowerUsers: true,
@@ -338,6 +335,7 @@ export function getConfigByEnvironment(environment: string): IStatisticalSeeding
       return PERFORMANCE_CONFIG;
     case 'demo':
     case 'presentation':
+    case 'showcase':
       return DEMO_CONFIG;
     case 'custom':
       return CUSTOM_CONFIG;
@@ -372,20 +370,26 @@ export function createConfigWithOverrides(
  */
 export function validateConfigForUseCase(
   config: IStatisticalSeedingConfig,
-  useCase: 'development' | 'testing' | 'performance' | 'demo' | 'pareto-demo'
+  useCase: 'development' | 'testing' | 'performance' | 'demo' | 'presentation' | 'pareto-demo'
 ): boolean {
   switch (useCase) {
     case 'development':
-      return !config.enableRealisticPatterns && !config.enableViralContent;
+      return !(config.enableRealisticPatterns ?? false) && !(config.enableViralContent ?? false);
 
     case 'testing':
-      return config.enableRealisticPatterns && config.enableViralContent;
+      return (config.enableRealisticPatterns ?? false) && (config.enableViralContent ?? false);
 
     case 'performance':
-      return !config.enableRealisticPatterns && config.gameLogsPerUser.parameters.mean > 20;
+      return (
+        !(config.enableRealisticPatterns ?? false) &&
+        (config.gameLogsPerUser?.parameters.mean ?? 0) > 20
+      );
 
     case 'demo':
-      return config.enableViralContent && config.userEngagement.parameters.mean > 0.5;
+    case 'presentation':
+      return (
+        (config.enableViralContent ?? false) && (config.userEngagement?.parameters.mean ?? 0) > 0.5
+      );
 
     case 'pareto-demo':
       return !!(
@@ -430,18 +434,22 @@ export function exampleUsage() {
 export function exampleSeedingWithConfig(config: IStatisticalSeedingConfig) {
   // Generate data using configuration
   const userEngagement =
-    config.userEngagement.type === 'custom' && config.userEngagement.customFunction
-      ? config.userEngagement.customFunction()
+    config.userEngagement?.type === 'custom' && config.userEngagement?.customFunction
+      ? config.userEngagement.customFunction(config.userEngagement)
       : Math.random() *
-          (config.userEngagement.parameters.max - config.userEngagement.parameters.min) +
-        config.userEngagement.parameters.min;
+          ((config.userEngagement?.parameters.max ?? 1) -
+            (config.userEngagement?.parameters.min ?? 0)) +
+        (config.userEngagement?.parameters.min ?? 0);
 
   const gameRating =
-    config.gameRating.type === 'custom' && config.gameRating.customFunction
-      ? config.gameRating.customFunction()
+    config.gameRating?.type === 'custom' && config.gameRating?.customFunction
+      ? config.gameRating.customFunction(config.gameRating)
       : Math.floor(
-          Math.random() * (config.gameRating.parameters.max - config.gameRating.parameters.min + 1)
-        ) + config.gameRating.parameters.min;
+          Math.random() *
+            ((config.gameRating?.parameters.max ?? 10) -
+              (config.gameRating?.parameters.min ?? 1) +
+              1)
+        ) + (config.gameRating?.parameters.min ?? 1);
 
   return {
     userEngagement,
@@ -469,14 +477,14 @@ export function compareConfigurations() {
 
   const comparison = Object.entries(configs).map(([name, config]) => ({
     name,
-    enableRealisticPatterns: config.enableRealisticPatterns,
-    enableViralContent: config.enableViralContent,
-    enablePowerUsers: config.enablePowerUsers,
-    enableTimeDecay: config.enableTimeDecay,
-    userEngagementType: config.userEngagement.type,
-    gameRatingType: config.gameRating.type,
-    commentCountType: config.commentCount.type,
-    reactionCountType: config.reactionCount.type,
+    enableRealisticPatterns: config.enableRealisticPatterns ?? false,
+    enableViralContent: config.enableViralContent ?? false,
+    enablePowerUsers: config.enablePowerUsers ?? false,
+    enableTimeDecay: config.enableTimeDecay ?? false,
+    userEngagementType: config.userEngagement?.type ?? 'uniform',
+    gameRatingType: config.gameRating?.type ?? 'uniform',
+    commentCountType: config.commentCount?.type ?? 'uniform',
+    reactionCountType: config.reactionCount?.type ?? 'uniform',
   }));
 
   return comparison;

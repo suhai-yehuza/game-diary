@@ -2,7 +2,7 @@
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { Tabs, TabsList, TabsTrigger } from '@/app/components/ui/Tabs';
-import type { IGameLogsTabsProps } from '@/lib/types';
+import type { IGameLogsTabsProps } from '@/types';
 
 export const GameLogsTabs = ({ selectedTab, onTabChange, children }: IGameLogsTabsProps) => {
   const isMobile = useMobileDetection();

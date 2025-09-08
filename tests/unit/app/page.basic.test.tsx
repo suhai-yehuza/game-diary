@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { ClientProviders } from '@src/app/components/providers';
+import { TestProviders } from '@src/app/components/providers/TestProviders';
 import HomePage from '@src/app/page';
 
 // Mock CacheProgressTracker component
@@ -55,6 +55,9 @@ vi.mock('lucide-react', () => ({
   MessageCircle: ({ className, ...props }: any) => (
     <div className={className} data-testid="message-circle" {...props} />
   ),
+  Star: ({ className, ...props }: any) => (
+    <div className={className} data-testid="star" {...props} />
+  ),
   Heart: ({ className, ...props }: any) => (
     <div className={className} data-testid="heart" {...props} />
   ),
@@ -85,9 +88,9 @@ vi.mock('@/hooks/use-live-games', () => ({
 }));
 
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <ClientProviders>
+  <TestProviders>
     <div data-testid="test-wrapper">{children}</div>
-  </ClientProviders>
+  </TestProviders>
 );
 
 describe('HomePage', () => {

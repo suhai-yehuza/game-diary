@@ -9,7 +9,7 @@ import React, { useState, useEffect } from 'react';
 import { PageLoadingSpinner, PageErrorDisplay, NoDataEmptyState } from '@/app/components/common';
 import { Button } from '@/app/components/ui/button';
 import { useLiveGames } from '@/hooks/use-live-games';
-import type { IGamesApiResponse } from '@/lib/types';
+import type { IGamesApiResponse } from '@/types';
 
 export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
   const { games, loading, error, refetch } = useLiveGames({
@@ -133,7 +133,7 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
             key={game.id}
             className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200"
             role="article"
-            aria-label={`${game.teams.visitors.name} vs ${game.teams.home.name} - ${game.status.long}`}
+            aria-label={`${game.teams?.visitors?.name || 'Unknown'} vs ${game.teams?.home?.name || 'Unknown'} - ${typeof game.status === 'object' ? game.status.long || game.status.short : game.status}`}
           >
             {/* Game Status */}
             <div className="flex items-center justify-between mb-4">
@@ -142,7 +142,9 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                 <span className="text-sm font-semibold text-red-600 dark:text-red-400">LIVE</span>
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
-                {game.status.long}
+                {typeof game.status === 'object'
+                  ? game.status.long || game.status.short
+                  : game.status}
               </div>
             </div>
 
@@ -153,8 +155,8 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams.visitors.logo}
-                      alt={game.teams.visitors.name}
+                      src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                      alt={game.teams?.visitors?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
                       sizes="40px"
@@ -163,15 +165,15 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">
-                      {game.teams.visitors.name}
+                      {game.teams?.visitors?.name || 'Unknown Team'}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {game.teams.visitors.nickname}
+                      {game.teams?.visitors?.nickname || game.teams?.visitors?.code || ''}
                     </div>
                   </div>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {game.scores.visitors.points}
+                  {game.scores?.visitors?.points || 0}
                 </div>
               </div>
 
@@ -183,8 +185,8 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams.home.logo}
-                      alt={game.teams.home.name}
+                      src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                      alt={game.teams?.home?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
                       sizes="40px"
@@ -193,15 +195,15 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold text-gray-900 dark:text-white">
-                      {game.teams.home.name}
+                      {game.teams?.home?.name || 'Unknown Team'}
                     </div>
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      {game.teams.home.nickname}
+                      {game.teams?.home?.nickname || game.teams?.home?.code || ''}
                     </div>
                   </div>
                 </div>
                 <div className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {game.scores.home.points}
+                  {game.scores?.home?.points || 0}
                 </div>
               </div>
             </div>
@@ -214,10 +216,12 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   <MapPin className="w-4 h-4 text-gray-500 dark:text-gray-400 mt-0.5 flex-shrink-0" />
                   <div className="text-sm">
                     <div className="font-medium text-gray-900 dark:text-white">
-                      {game.arena.name}
+                      {game.arena?.name || game.venue || 'Unknown Venue'}
                     </div>
                     <div className="text-gray-600 dark:text-gray-400">
-                      {game.arena.city}, {game.arena.state}
+                      {game.arena
+                        ? `${game.arena.city}, ${game.arena.state}`
+                        : 'Location not available'}
                     </div>
                   </div>
                 </div>
@@ -227,10 +231,14 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   <div>
                     <span className="text-gray-600 dark:text-gray-400">Period:</span>
                     <span className="ml-1 font-medium text-gray-900 dark:text-white">
-                      {game.periods.current} of {game.periods.total}
+                      {game.periods
+                        ? `${game.periods.current} of ${game.periods.total}`
+                        : game.period
+                          ? `Period ${game.period}`
+                          : 'Period not available'}
                     </span>
                   </div>
-                  {game.status.clock && (
+                  {typeof game.status === 'object' && game.status.clock && (
                     <div className="text-gray-600 dark:text-gray-400">
                       Time: <span className="font-medium">{game.status.clock}</span>
                     </div>

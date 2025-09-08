@@ -1,5 +1,5 @@
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
-import type { IPaginationInfoProps } from '@/lib/types';
+import type { IPaginationInfoProps } from '@/types';
 
 export function PaginationInfo({
   totalCount,

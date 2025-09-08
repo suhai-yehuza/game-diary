@@ -3,9 +3,9 @@ import { resolve } from 'path';
 
 import { config } from 'dotenv';
 
-import type { DistributionConfigPreset, ScenarioKey } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+import type { DistributionConfigPreset, ScenarioKey } from '@/types';
 import {
   getConfigByEnvironment,
   getConfigByPreset,
@@ -19,22 +19,22 @@ import { formatDuration } from '@src/lib/utils/format-duration';
 /**
  * Main seeding orchestrator for the Game Diary database
  *
- * This script provides functions to seed all database tables with mock data:
+ * This script provides functions to seed all database tables with development data:
  *
- * External API Data (seasons, leagues, teams, nba_games, nba_players):
+ * External API Data (seasons, leagues, basketball_teams, basketball_games, basketball_players):
  * - Leagues: NBA
  * - Seasons: 2022, 2023, 2024
  * - Teams: Lakers, Celtics, Warriors, Heat, Bulls
  * - Players: LeBron James, Stephen Curry, Kevin Durant
- * - Games: 4 sample NBA games with different statuses
+ * - Games: 4 development NBA games with different statuses
  *
  * User Data (users, friendships, game_logs, comments, reactions, notifications):
- * - Users: 4 sample users with different team preferences
+ * - Users: 4 development users with different team preferences
  * - Friendships: Various friendship statuses (accepted, pending)
- * - Game Logs: Sample game logs with different classifications and settings
+ * - Game Logs: Development game logs with different classifications and settings
  * - Comments: Parent and child comments on game logs
  * - Reactions: Various emoji reactions on game logs and comments
- * - Notifications: Sample notifications for different events
+ * - Notifications: Development notifications for different events
  *
  * Game Ratings and Notifications are automatically populated by database triggers
  * when game logs are created.
@@ -85,7 +85,7 @@ const SEEDING_SCENARIOS = {
     ...generateSeedingConfig(100, 0.5, 1, 1, 1),
   },
   MEDIUM: {
-    description: 'Medium dataset for staging/demo (10x SMALL)',
+    description: 'Medium dataset for staging and demonstrations (10x SMALL)',
     ...generateSeedingConfig(1000, 0.5, 1, 1, 1), // 10x users, same multipliers as SMALL
   },
   LARGE: {
@@ -163,7 +163,7 @@ Examples:
   pnpm run seed --users 50                         # Seed with 50 custom users
   pnpm run seed --distribution realistic           # Use realistic distribution patterns
   pnpm run seed --distribution=high-engagement     # Use high engagement patterns
-  pnpm run seed --scenario=large --distribution=demo # Large dataset with demo patterns
+  pnpm run seed --scenario=large --distribution=demo # Large dataset with demonstration patterns
   pnpm run seed --env=staging --scenario=medium    # Staging environment with medium dataset
   pnpm run seed --env=production --scenario=large --distribution=realistic # Production with realistic data
   pnpm run seed --external                         # Seed only NBA data
@@ -269,7 +269,9 @@ function parseArguments() {
           const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS).map(p => p.toLowerCase());
           const matchedIndex = validPresets.indexOf(distribution);
           if (matchedIndex !== -1) {
-            options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[matchedIndex];
+            options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[
+              matchedIndex
+            ] as DistributionConfigPreset;
           } else {
             console.error(`❌ Unknown distribution preset: ${distributionInput}`);
             console.log('Available presets:', validPresets.join(', '));
@@ -348,7 +350,9 @@ function handleOptionWithValue(
       const validPresets = Object.keys(DISTRIBUTION_CONFIG_PRESETS).map(p => p.toLowerCase());
       const matchedIndex = validPresets.indexOf(distribution);
       if (matchedIndex !== -1) {
-        options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[matchedIndex];
+        options.distribution = Object.keys(DISTRIBUTION_CONFIG_PRESETS)[
+          matchedIndex
+        ] as DistributionConfigPreset;
       } else {
         console.error(`❌ Unknown distribution preset: ${value}`);
         console.log('Available presets:', validPresets.join(', '));
@@ -517,7 +521,7 @@ async function main() {
         console.log('\n🔍 Validating external data exists before internal seeding...');
         const { neon } = await import('@neondatabase/serverless');
         const { drizzle } = await import('drizzle-orm/neon-http');
-        const { nba_games } = await import('@src/lib/db/schema');
+        const { basketball_games } = await import('@src/lib/db/schema');
 
         const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL ?? '';
         if (!databaseUrl) {
@@ -527,7 +531,7 @@ async function main() {
         const sql = neon(databaseUrl);
         const db = drizzle(sql);
 
-        const validGames = await db.select({ id: nba_games.id }).from(nba_games);
+        const validGames = await db.select({ id: basketball_games.id }).from(basketball_games);
         if (validGames.length === 0) {
           throw new Error(
             '❌ No external data found. Please run external seeding first or use --all to seed both external and internal data.'
@@ -567,6 +571,15 @@ async function main() {
         `${emoji} ${operation}: ${formatDuration(stats.avg)} avg (${stats.count} operations)`
       );
     });
+
+    // Clean up cache service to prevent hanging processes
+    try {
+      const { hybridCacheService } = await import('@/lib/cache');
+      hybridCacheService.destroy();
+      console.log('🧹 Cache service cleaned up successfully');
+    } catch (cleanupError) {
+      console.warn('⚠️ Failed to cleanup cache service:', cleanupError);
+    }
   } catch (error) {
     // Use centralized error handling
     errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
@@ -574,6 +587,15 @@ async function main() {
       action: 'Main seeding process',
     });
     console.error('\n❌ Database seeding failed:', error);
+
+    // Clean up cache service even on error
+    try {
+      const { hybridCacheService } = await import('@/lib/cache');
+      hybridCacheService.destroy();
+    } catch (cleanupError) {
+      console.warn('⚠️ Failed to cleanup cache service after error:', cleanupError);
+    }
+
     process.exit(1);
   }
 }

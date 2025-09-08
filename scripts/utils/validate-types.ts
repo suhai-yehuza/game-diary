@@ -52,8 +52,8 @@ interface IValidationResult {
 
 class TypeValidator {
   private readonly allowedDirectories = [
-    'src/lib/types',
-    'src/lib/types/generated', // Allow generated types
+    'types',
+    'types/generated', // Allow generated types
   ];
 
   private readonly ignoredDirectories = [
@@ -192,7 +192,7 @@ class TypeValidator {
       const line = lines[i];
 
       // Skip if this is a re-export from index.ts
-      if (line.includes("from '@/lib/types'") || line.includes("from '@/lib/types/index'")) {
+      if (line.includes("from '@/types'") || line.includes("from '@/lib/types/index'")) {
         continue;
       }
 
@@ -219,7 +219,7 @@ class TypeValidator {
                 file: filePath,
                 line: i + 1,
                 importPath: importPath,
-                suggestedPath: "from '@/lib/types'",
+                suggestedPath: "from '@/types'",
                 typeName: typeName,
               });
             }
@@ -327,12 +327,7 @@ class TypeValidator {
         .filter(Boolean)
         .filter(line => {
           // Exclude imports from index.ts
-          return (
-            !line.includes("from '@/lib/types'") &&
-            !line.includes("from '@/lib/types/index'") &&
-            !line.includes('from "@/lib/types"') &&
-            !line.includes('from "@/lib/types/index"')
-          );
+          return !line.includes("from '@/types'") && !line.includes('from "@/types/index"');
         });
     } catch (error) {
       if (error instanceof Error && 'status' in error && error.status === 1) {
@@ -443,7 +438,7 @@ class TypeValidator {
             file: normalizedPath,
             line: lineNumber,
             importPath: `from '${importPath}'`,
-            suggestedPath: "from '@/lib/types'",
+            suggestedPath: "from '@/types'",
             typeName: typeName,
           });
         }
@@ -642,14 +637,14 @@ class TypeValidator {
     logger.error('   2. Create appropriate type files (e.g., component.types.ts)');
     logger.error('   3. Export them from src/lib/types/index.ts');
     logger.error('   4. Update imports to use @/lib/types instead of specific type files');
-    logger.error("   5. Use: import type { TypeName } from '@/lib/types'");
+    logger.error("   5. Use: import type { TypeName } from '@/types'");
     logger.error('');
 
     logger.error('🎯 Allowed directories:');
     this.allowedDirectories.forEach(dir => logger.error(`   - ${dir}`));
 
     logger.error('📦 Centralized import pattern:');
-    logger.error("   import type { TypeName1, TypeName2 } from '@/lib/types'");
+    logger.error("   import type { TypeName1, TypeName2 } from '@/types'");
   }
 }
 

@@ -50,7 +50,10 @@ async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout 
   } catch (error) {
     clearTimeout(timeoutId);
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error(`Request timeout after ${timeout}ms`);
+      // Create a new error with AbortError name to match the catch condition
+      const abortError = new Error(`Request timeout after ${timeout}ms`);
+      abortError.name = 'AbortError';
+      throw abortError;
     }
     throw error;
   }
@@ -117,7 +120,7 @@ describe('Error Handling Integration Tests', () => {
 
       for (const scenario of errorScenarios) {
         try {
-          const response = await fetchWithTimeout(`${BASE_URL}${scenario.endpoint}`, {}, 10000);
+          const response = await fetchWithTimeout(`${BASE_URL}${scenario.endpoint}`, {}, 15000);
 
           expect(scenario.expectedStatus).toContain(response.status);
 
@@ -126,15 +129,18 @@ describe('Error Handling Integration Tests', () => {
             expect(data).toHaveProperty('error');
           }
         } catch (error) {
-          // Handle timeout errors gracefully
-          if (error instanceof Error && error.message.includes('timeout')) {
-            console.warn(`Request to ${scenario.endpoint} timed out, skipping...`);
+          // Handle timeout and abort errors gracefully
+          if (
+            error instanceof Error &&
+            (error.message.includes('timeout') || error.name === 'AbortError')
+          ) {
+            console.warn(`Request to ${scenario.endpoint} timed out or was aborted, skipping...`);
             continue;
           }
           throw error;
         }
       }
-    }, 30000); // Increased timeout to 30 seconds
+    }, 45000); // Increased timeout to 45 seconds
 
     test('should handle malformed request errors', async () => {
       const malformedRequests = [

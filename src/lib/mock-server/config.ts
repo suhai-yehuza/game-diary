@@ -1,14 +1,17 @@
-import type { MockServerConfig } from '@src/lib/types';
+import type { MockServerConfig } from '@/types';
 
 // Default configuration
 export const DEFAULT_MOCK_SERVER_CONFIG: MockServerConfig = {
   port: 3001,
+  host: 'localhost',
+  cors: true,
   latency: {
     min: 50, // 50ms minimum latency
     max: 300, // 300ms maximum latency
   },
   errorRate: 0.05, // 5% error rate for realistic testing
   enableLogging: true,
+  delay: 0,
 };
 
 // Development configuration
@@ -114,6 +117,8 @@ export function mergeMockServerConfig(
     ...baseConfig,
     ...overrides,
     latency: {
+      min: 50,
+      max: 300,
       ...baseConfig.latency,
       ...overrides.latency,
     },

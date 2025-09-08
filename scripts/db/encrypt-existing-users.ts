@@ -38,6 +38,10 @@ async function encryptExistingUsers() {
 
   logger.info('🔐 Starting encryption of existing user data...');
 
+  // Track original data for potential rollback
+  const originalData: Array<{ id: string; email_address?: string; phone_number?: string }> = [];
+  let processedUsers: string[] = [];
+
   try {
     // Get all users with their current email and phone data
     const allUsers = await db
@@ -57,6 +61,13 @@ async function encryptExistingUsers() {
       let needsUpdate = false;
       const updates: { email_address?: string; phone_number?: string } = {};
 
+      // Store original data for potential rollback
+      originalData.push({
+        id: user.id,
+        email_address: user.email_address,
+        phone_number: user.phone_number,
+      });
+
       // Check if email needs encryption
       if (user.email_address && !isEncrypted(user.email_address)) {
         const encryptedEmail = serializeEncryptedField(encryptField(user.email_address));
@@ -75,6 +86,7 @@ async function encryptExistingUsers() {
 
       if (needsUpdate) {
         await db.update(users).set(updates).where(eq(users.id, user.id));
+        processedUsers.push(user.id);
         encryptedCount++;
       } else {
         skippedCount++;
@@ -92,6 +104,9 @@ async function encryptExistingUsers() {
       '❌ Error during encryption:',
       error instanceof Error ? error : new Error(String(error))
     );
+
+    // Attempt to rollback changes
+    await rollbackEncryption(db, originalData, processedUsers);
     throw error;
   }
 }
@@ -108,6 +123,42 @@ function isEncrypted(value: string): boolean {
     );
   } catch {
     return false;
+  }
+}
+
+async function rollbackEncryption(
+  db: any,
+  originalData: Array<{ id: string; email_address?: string; phone_number?: string }>,
+  processedUsers: string[]
+) {
+  logger.warn('🔄 Attempting to rollback encryption changes...');
+
+  try {
+    let rollbackCount = 0;
+
+    for (const userData of originalData) {
+      if (processedUsers.includes(userData.id)) {
+        const updates: { email_address?: string; phone_number?: string } = {};
+
+        if (userData.email_address) {
+          updates.email_address = userData.email_address;
+        }
+        if (userData.phone_number) {
+          updates.phone_number = userData.phone_number;
+        }
+
+        await db.update(users).set(updates).where(eq(users.id, userData.id));
+        rollbackCount++;
+      }
+    }
+
+    logger.info(`✅ Rollback completed: ${rollbackCount} users restored to original state`);
+  } catch (rollbackError) {
+    logger.error(
+      '❌ Rollback failed:',
+      rollbackError instanceof Error ? rollbackError : new Error(String(rollbackError))
+    );
+    logger.error('⚠️  Manual intervention may be required to restore data integrity');
   }
 }
 

@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 
 import { logger } from '@/lib/utils/logger';
-import type { IOutdatedPackage } from '@/lib/types';
+import type { IOutdatedPackage } from '@/types';
 
 import { parseScriptArgs } from './script-utils';
 

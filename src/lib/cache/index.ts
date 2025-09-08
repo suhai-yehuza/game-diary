@@ -1,0 +1,165 @@
+import { errorHandlers } from '@/lib/utils/error-handler';
+
+// Main cache exports
+export { hybridCacheService, HybridCacheService } from './hybrid-cache-service';
+
+// Cache decorators
+export {
+  CacheMethod,
+  CacheProperty,
+  CacheAPI,
+  CacheGraphQL,
+  CacheDatabase,
+  InvalidateCache,
+  WarmCache,
+} from './cache-decorators';
+
+// Cache utilities
+export {
+  GameCacheUtils,
+  UserCacheUtils,
+  CommentCacheUtils,
+  ReactionCacheUtils,
+  SearchCacheUtils,
+  CacheWarmingUtils,
+  CacheMonitoringUtils,
+  NBAHubCacheUtils,
+  NotificationCacheUtils,
+} from './cache-utilities';
+
+// Enhanced game log cache utilities
+export { GameLogCacheUtils } from './game-log-cache.utils';
+
+// Cache configuration
+export const CACHE_CONFIG = {
+  // Default TTL values (in seconds)
+  TTL: {
+    GAME: 1800, // 30 minutes
+    GAME_LIST: 900, // 15 minutes
+    USER: 3600, // 1 hour
+    USER_FRIENDSHIPS: 1800, // 30 minutes
+    GAME_LOG: 900, // 15 minutes
+    GAME_LOG_LIST: 600, // 10 minutes
+    COMMENT: 600, // 10 minutes
+    COMMENT_LIST: 300, // 5 minutes
+    REACTION: 300, // 5 minutes
+    SEARCH: 1800, // 30 minutes
+    NBA_HUB_COUNTS: 3600, // 1 hour - counts don't change frequently
+    PLAYERS: 1800, // 30 minutes - players data changes infrequently
+    TEAMS: 3600, // 1 hour - teams data changes very infrequently
+  },
+
+  // Cache strategies
+  STRATEGIES: {
+    MEMORY: 'memory' as const,
+    REDIS: 'redis' as const,
+    HYBRID: 'hybrid' as const,
+    DATABASE: 'database' as const,
+  },
+
+  // Cache priorities
+  PRIORITIES: {
+    HIGH: 'high' as const,
+    MEDIUM: 'medium' as const,
+    LOW: 'low' as const,
+  },
+
+  // Namespaces
+  NAMESPACES: {
+    GAMES: 'games',
+    USERS: 'users',
+    GAME_LOGS: 'gameLogs',
+    COMMENTS: 'comments',
+    REACTIONS: 'reactions',
+    SEARCH: 'search',
+    SYSTEM: 'system',
+    NBA_HUB: 'nbaHub',
+  },
+
+  // Cache tags
+  TAGS: {
+    GAME: 'game',
+    USER: 'user',
+    GAME_LOG: 'gameLog',
+    COMMENT: 'comment',
+    REACTION: 'reaction',
+    SEARCH: 'search',
+    LIST: 'list',
+    STATS: 'stats',
+    NBA_HUB: 'nbaHub',
+    COUNTS: 'counts',
+  },
+
+  // Memory limits
+  MEMORY: {
+    MAX_ENTRIES: 10000,
+    MAX_SIZE_MB: 100,
+    CLEANUP_INTERVAL_MS: 60000, // 1 minute
+  },
+
+  // Redis limits
+  REDIS: {
+    MAX_KEY_LENGTH: 512,
+    MAX_VALUE_SIZE_MB: 512,
+    CONNECTION_TIMEOUT_MS: 5000,
+  },
+
+  // Performance thresholds
+  THRESHOLDS: {
+    SLOW_QUERY_MS: 2000,
+    SLOW_MUTATION_MS: 1000,
+    LOW_HIT_RATE: 0.5,
+    HIGH_RESPONSE_TIME_MS: 100,
+  },
+};
+
+// Cache initialization function
+export function initializeCache() {
+  try {
+    console.log('🚀 Cache system initialized successfully');
+    return true;
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Cache System',
+      action: 'Initialize cache',
+      timestamp: new Date().toISOString(),
+    });
+    return false;
+  }
+}
+
+// Cache cleanup function
+export function cleanupCache() {
+  try {
+    console.log('🧹 Cache cleanup completed');
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Cache System',
+      action: 'Cleanup cache',
+      timestamp: new Date().toISOString(),
+    });
+  }
+}
+
+// Cache health check function
+export function checkCacheHealth() {
+  try {
+    return {
+      healthy: true,
+      health: { redis: false, memory: true },
+      stats: {},
+      timestamp: new Date().toISOString(),
+    };
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: 'Cache System',
+      action: 'Check cache health',
+      timestamp: new Date().toISOString(),
+    });
+    return {
+      healthy: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString(),
+    };
+  }
+}

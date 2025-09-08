@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
-import type { IGamesApiResponse, IUseLiveGamesOptions, IUseLiveGamesReturn } from '@/lib/types';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
+import type { IGamesApiResponse, IUseLiveGamesOptions, IUseLiveGamesReturn } from '@/types';
 
 // Constants for adaptive polling
 const FREQUENT_POLLING_INTERVAL_MS = 30000; // 30 seconds when games are live
@@ -63,7 +63,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
   const { autoRefresh = true, refreshInterval, initialData } = options;
 
   const [liveGames, setLiveGames] = useState<IGamesApiResponse | null>(initialData ?? null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!initialData && autoRefresh);
   const [error, setError] = useState<string | null>(null);
   const [lastLiveGamesFound, setLastLiveGamesFound] = useState<number | null>(null);
 
@@ -85,7 +85,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
-      const data = (await response.json()) as unknown;
+      const data = await response.json();
 
       // Handle mock server response format
       if (useMockData && typeof data === 'object' && data !== null && 'data' in data) {
@@ -205,15 +205,14 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
   }, [lastLiveGamesFound]);
 
   return {
-    liveGames,
-    games,
+    liveGames: liveGames?.response ?? null,
+    games: liveGames?.response ?? games,
     loading,
     error,
     refetch: fetchLiveGames,
     // Additional info for adaptive polling
-    hasLiveGames: games.length > 0,
+    hasLiveGames: (liveGames?.response ?? games).length > 0,
     currentPollingInterval: getAdaptivePollingInterval,
-    lastLiveGamesFound,
     timeSinceLastLiveGames: getTimeSinceLastLiveGames(),
   };
 }

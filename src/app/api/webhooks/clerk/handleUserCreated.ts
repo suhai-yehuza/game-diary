@@ -1,9 +1,9 @@
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
-import type { IClerkUserData } from '@/lib/types';
 import { encryptField, serializeEncryptedField } from '@/lib/utils/encryption';
 import { webhookLogger } from '@/lib/utils/logger';
 import { extractEmail, extractPhoneNumber, validateUserContact } from '@/lib/utils/validation';
+import type { IClerkUserData } from '@/types';
 
 // Helper function
 const createResponse = (message: string, status: number) => new Response(message, { status });

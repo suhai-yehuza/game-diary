@@ -1,6 +1,6 @@
 import { Heart } from 'lucide-react';
 
-import type { IReactionCountProps } from '@/lib/types';
+import type { IReactionCountProps } from '@/types';
 
 export function ReactionCount({ count = 0, className, size = 'md' }: IReactionCountProps) {
   const sizeClasses = {

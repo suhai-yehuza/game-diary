@@ -3,9 +3,9 @@ import type { NextRequest } from 'next/server';
 
 import { handleUserCreated, handleUserUpdated, handleUserDeleted } from '@/app/api/webhooks/clerk';
 import { db } from '@/lib/db';
-import type { IClerkDeletedUserData, IClerkUserData } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { webhookLogger } from '@/lib/utils/logger';
+import type { IClerkDeletedUserData, IClerkUserData } from '@/types';
 
 // NOTE:
 // - This route must receive the raw request body for signature verification to work.
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
       case 'user.updated':
         return await handleUserUpdated(evt.data as unknown as IClerkUserData);
       case 'user.deleted':
-        return await handleUserDeleted(evt.data as IClerkDeletedUserData);
+        return await handleUserDeleted(evt.data as unknown as IClerkDeletedUserData);
       default:
         webhookLogger.info(`Unhandled webhook event type: ${eventType}`);
         return createResponse('Unhandled event type', 200);

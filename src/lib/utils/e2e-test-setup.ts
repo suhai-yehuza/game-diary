@@ -10,10 +10,8 @@ export function isCI(): boolean {
 /**
  * Extended Window interface for E2E test environment variables
  */
-interface IExtendedWindow extends Window {
-  __PLAYWRIGHT_TEST__?: boolean;
-  __MOCK_MODE__?: boolean;
-}
+
+import type { IExtendedWindow } from '@/types';
 
 import { isMockModeEnabled, setupMockModeEnvironment } from './mock-mode';
 

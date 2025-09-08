@@ -1,11 +1,11 @@
 'use client';
 
-// import { useUser } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
 import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
@@ -17,16 +17,16 @@ import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handle
 import { useGameLogs } from '@/hooks/use-game-logs';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
-import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/lib/types';
+import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
 
 export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
-  const { handleClerkUser } = useCentralizedErrorHandler();
+  // Use proper Clerk authentication
+  const { user, isLoaded, isSignedIn } = useUser();
 
-  // Handle case where Clerk is not configured (e.g., during SSR or in test environment)
-  const userData = handleClerkUser();
-  const user = userData.user as { id?: string } | null;
+  // Use params directly since it's already resolved
+  const resolvedParams = params;
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,36 +45,158 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     (() => Promise<unknown>) | undefined
   >(undefined);
 
-  // Always call useGameLogs but skip when we don't have valid data
-  const gameLogsData = useGameLogs({
-    filters: {
+  // Test the simplified useGameLogs hook
+  const shouldSkip = !isLoaded || !isSignedIn || !user?.id || !game?.id?.toString();
+
+  // Debug the parameters being passed to useGameLogs
+  const filtersForUseGameLogs = {
+    userId: user?.id,
+    gameId: game?.id?.toString(),
+  };
+
+  setTimeout(() => {
+    console.log('🔍 [PAGE] useGameLogs call parameters:', {
+      user,
       userId: user?.id,
-      gameId: game?.id?.toString(),
-    },
-    pagination: { first: 1 },
-    skip: !game?.id?.toString() || !user?.id, // Skip until we have both gameId and userId
+      game,
+      gameId: game?.id,
+      gameIdString: game?.id?.toString(),
+      filtersForUseGameLogs,
+      shouldSkip,
+      timestamp: new Date().toISOString(),
+    });
+  }, 50);
+
+  const gameLogsData = useGameLogs(
+    filtersForUseGameLogs,
+    { page: 1, limit: 1 },
+    { skip: shouldSkip }
+  );
+
+  // Debug game ID format
+  console.log('🔍 Game ID format check:', {
+    gameId: game?.id,
+    gameIdString: game?.id?.toString(),
+    gameIdType: typeof game?.id,
+    resolvedParamsGameId: resolvedParams?.gameId,
   });
 
-  // Update state when gameLogsData changes
+  // Use useMemo for stable references that trigger re-renders when data changes
+  const memoizedGameLogs = useMemo(() => {
+    const result = gameLogsData?.gameLogs || [];
+    setTimeout(() => {
+      console.log('🔍 [MEMO] Memoizing game logs:', {
+        gameLogsData,
+        gameLogs: gameLogsData?.gameLogs,
+        loading: gameLogsData?.loading,
+        error: gameLogsData?.error,
+        gameLogsLength: gameLogsData?.gameLogs?.length,
+        resultLength: result.length,
+        result: result,
+        timestamp: new Date().toISOString(),
+      });
+    }, 200);
+    return result;
+  }, [gameLogsData]);
+
+  const memoizedForceRefresh = useMemo(() => {
+    console.log('🔍 Memoizing force refresh:', gameLogsData?.forceRefresh);
+    return gameLogsData?.forceRefresh;
+  }, [gameLogsData?.forceRefresh]);
+
+  // Update userGameLogs when memoized data changes
   useEffect(() => {
-    if (gameLogsData) {
-      setUserGameLogs(gameLogsData.gameLogs || []);
-      setRefetchUserGameLogs(() => gameLogsData.refetch);
+    setTimeout(() => {
+      console.log('🔍 [EFFECT] Game logs data updated:', {
+        gameLogs: memoizedGameLogs,
+        gameLogsLength: memoizedGameLogs?.length,
+        userId: user?.id,
+        gameId: game?.id?.toString(),
+        isLoaded,
+        isSignedIn,
+        timestamp: new Date().toISOString(),
+      });
+    }, 300);
+
+    console.log('🔍 [EFFECT] useEffect triggered with:', {
+      memoizedGameLogsLength: memoizedGameLogs?.length,
+      memoizedGameLogs: memoizedGameLogs,
+      currentUserGameLogsLength: userGameLogs?.length,
+      willSetUserGameLogs: memoizedGameLogs && memoizedGameLogs.length > 0,
+    });
+
+    if (memoizedGameLogs && memoizedGameLogs.length > 0) {
+      setTimeout(() => {
+        console.log('📝 [EFFECT] Setting userGameLogs:', memoizedGameLogs);
+      }, 400);
+      setUserGameLogs(memoizedGameLogs);
+      setRefetchUserGameLogs(() => memoizedForceRefresh);
     } else {
+      setTimeout(() => {
+        console.log('📝 [EFFECT] Clearing userGameLogs');
+      }, 400);
       setUserGameLogs([]);
       setRefetchUserGameLogs(undefined);
     }
-  }, [gameLogsData]);
+  }, [
+    memoizedGameLogs,
+    memoizedForceRefresh,
+    user?.id,
+    game?.id,
+    isLoaded,
+    isSignedIn,
+    userGameLogs?.length,
+  ]);
+
+  // Debug when userGameLogs state changes
+  useEffect(() => {
+    setTimeout(() => {
+      console.log('🔍 [STATE_CHANGE] userGameLogs state changed:', {
+        userGameLogs,
+        userGameLogsLength: userGameLogs?.length,
+        timestamp: new Date().toISOString(),
+      });
+    }, 500);
+  }, [userGameLogs, userGameLogs?.length]);
+
+  const errorHandlerContext = useMemo(
+    () => ({
+      component: 'NBAGameDetailPage',
+      action: 'Load game',
+    }),
+    []
+  );
 
   const { handleAsync } = useCentralizedErrorHandler({
-    context: { component: 'NBAGameDetailPage', action: 'Load game' },
+    context: errorHandlerContext,
   });
 
   useEffect(() => {
     const loadGame = async () => {
+      if (!resolvedParams?.gameId) {
+        return; // Wait for params to be resolved
+      }
+
       const result = await handleAsync(async () => {
-        const { gameId } = await params;
-        const foundGame = latestGames.find(g => g.id.toString() === gameId);
+        // First try to find the game in the latest games array
+        let foundGame = latestGames.find(g => g.id.toString() === resolvedParams?.gameId);
+
+        // If not found in latest games, try to fetch it directly from the API
+        if (!foundGame) {
+          try {
+            const response = await fetch(`/api/games?season=all&limit=20000`);
+            if (response.ok) {
+              const data = await response.json();
+              if (data.response && Array.isArray(data.response)) {
+                foundGame = data.response.find(
+                  (g: IGameResponse) => g.id.toString() === resolvedParams?.gameId
+                );
+              }
+            }
+          } catch (error) {
+            console.warn('Failed to fetch game from API:', error);
+          }
+        }
 
         if (!foundGame) {
           throw new Error('Game not found');
@@ -91,10 +213,10 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
       setLoading(false);
     };
 
-    if (latestGames.length > 0) {
+    if (latestGames.length > 0 && resolvedParams?.gameId) {
       void loadGame();
     }
-  }, [params, latestGames, handleAsync]);
+  }, [resolvedParams, latestGames, handleAsync]);
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -154,6 +276,20 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
   const existingGameLog = userGameLogs?.[0] || null;
   const hasExistingGameLog = !!existingGameLog;
 
+  setTimeout(() => {
+    console.log('🎯 [BUTTON] Game log detection:', {
+      userGameLogs,
+      userGameLogsLength: userGameLogs?.length,
+      existingGameLog,
+      hasExistingGameLog,
+      gameId: game?.id?.toString(),
+      userId: user?.id,
+      timestamp: new Date().toISOString(),
+    });
+  }, 500);
+
+  // Debug logging (removed to prevent infinite re-renders)
+
   const handleGameLogAction = () => {
     if (hasExistingGameLog) {
       setEditingGameLog(existingGameLog);
@@ -184,8 +320,8 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
 
   return (
     <SportsPageLayout
-      title={`${game.teams.visitors.name} @ ${game.teams.home.name}`}
-      description={`NBA Game - ${formatGameDate(game.date.start)}`}
+      title={`${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
+      description={`NBA Game - ${formatGameDate(typeof game.date === 'string' ? game.date : game.date?.start || '')}`}
       showLiveGamesButton={false}
     >
       {/* Back Button and Game Log Actions */}
@@ -196,7 +332,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
             Back to Games
           </Button>
         </Link>
-        {user && (
+        {isLoaded && user && (
           <div className="flex items-center gap-2">
             {hasExistingGameLog && (
               <Link href={`/protected/user/game-logs/${existingGameLog.id}`}>
@@ -215,8 +351,23 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               size="sm"
               className={`flex items-center gap-2 ${getButtonVariant('primary')}`}
             >
-              {hasExistingGameLog ? <Edit className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
-              {hasExistingGameLog ? 'Edit Game Log' : 'Create Game Log'}
+              {(() => {
+                console.log(
+                  '🎯 [RENDER] Button render - hasExistingGameLog:',
+                  hasExistingGameLog,
+                  'userGameLogs length:',
+                  userGameLogs?.length
+                );
+                return hasExistingGameLog ? (
+                  <Edit className="w-4 h-4" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                );
+              })()}
+              {(() => {
+                console.log('🎯 [RENDER] Button text - hasExistingGameLog:', hasExistingGameLog);
+                return hasExistingGameLog ? 'Edit Game Log' : 'Create Game Log';
+              })()}
             </Button>
           </div>
         )}
@@ -227,12 +378,14 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">
-              {game.teams.visitors.name} @ {game.teams.home.name}
+              {game.teams?.visitors?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
             </CardTitle>
             <Badge
-              className={`px-3 py-1 text-sm font-medium ${getStatusColor(game.status?.short)}`}
+              className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'SCHEDULED')}`}
             >
-              {game.status?.long ?? game.status?.short ?? 'Unknown'}
+              {typeof game.status === 'string'
+                ? game.status
+                : (game.status?.long ?? game.status?.short ?? 'Unknown')}
             </Badge>
           </div>
         </CardHeader>
@@ -240,11 +393,11 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-neutral-700 dark:text-neutral-400">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4" />
-              {formatGameDate(game.date.start)}
+              {formatGameDate(typeof game.date === 'string' ? game.date : game.date?.start || '')}
             </div>
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4" />
-              {formatGameTime(game.date.start)}
+              {formatGameTime(typeof game.date === 'string' ? game.date : game.date?.start || '')}
             </div>
             {game.arena?.name && (
               <div className="flex items-center gap-2">
@@ -270,17 +423,19 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               }`}
             >
               <div className="mb-4">
-                {game.teams.visitors.logo && (
+                {game.teams?.visitors?.logo && (
                   <Image
-                    src={game.teams.visitors.logo}
-                    alt={`${game.teams.visitors.name} logo`}
+                    src={game.teams?.visitors?.logo}
+                    alt={`${game.teams?.visitors?.name || 'Team'} logo`}
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
                   />
                 )}
-                <h3 className="text-xl font-bold score-text">{game.teams.visitors.name}</h3>
-                <p className="nba-team-nickname">{game.teams.visitors.nickname}</p>
+                <h3 className="text-xl font-bold score-text">
+                  {game.teams?.visitors?.name || 'Unknown'}
+                </h3>
+                <p className="nba-team-nickname">{game.teams?.visitors?.nickname || ''}</p>
               </div>
               <div className="text-4xl font-bold score-text">
                 {game.scores?.visitors?.points ?? '-'}
@@ -301,18 +456,20 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               }`}
             >
               <div className="mb-4">
-                {game.teams.home.logo && (
+                {game.teams?.home?.logo && (
                   <Image
-                    src={game.teams.home.logo}
-                    alt={`${game.teams.home.name} logo`}
+                    src={game.teams?.home?.logo}
+                    alt={`${game.teams?.home?.name || 'Team'} logo`}
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
                     style={{ width: 'auto', height: 'auto' }}
                   />
                 )}
-                <h3 className="text-xl font-bold score-text">{game.teams.home.name}</h3>
-                <p className="nba-team-nickname">{game.teams.home.nickname}</p>
+                <h3 className="text-xl font-bold score-text">
+                  {game.teams?.home?.name || 'Unknown'}
+                </h3>
+                <p className="nba-team-nickname">{game.teams?.home?.nickname || ''}</p>
               </div>
               <div className="text-4xl font-bold score-text">
                 {game.scores?.home?.points ?? '-'}
@@ -326,67 +483,80 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           </div>
 
           {/* Game Status Details */}
-          {game.status?.clock && (
-            <div className="mt-6 text-center">
-              <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                {game.status.clock} - {game.status.long}
-              </div>
-              {game.periods && (
-                <div className="text-sm nba-game-details-text mt-1">
-                  Period {game.periods.current} of {game.periods.total}
+          {typeof game.status === 'string'
+            ? false
+            : game.status?.clock && (
+                <div className="mt-6 text-center">
+                  <div className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                    {game.status.clock} - {game.status.long}
+                  </div>
+                  {game.periods && (
+                    <div className="text-sm nba-game-details-text mt-1">
+                      Period {game.periods.current} of {game.periods.total}
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
         </CardContent>
       </Card>
 
       {/* Game Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Quarter Scores */}
-        {game.scores?.home?.linescore && game.scores?.visitors?.linescore && (
-          <Card>
-            <CardHeader>
-              <CardTitle>Quarter Scores</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">Team</th>
-                      <th className="text-center py-2">Q1</th>
-                      <th className="text-center py-2">Q2</th>
-                      <th className="text-center py-2">Q3</th>
-                      <th className="text-center py-2">Q4</th>
-                      <th className="text-center py-2 font-bold">Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr className="border-b">
-                      <td className="py-2 font-medium">{game.teams.visitors.nickname}</td>
-                      {game.scores.visitors.linescore.map((score, index) => (
-                        <td key={`visitors-q${index + 1}`} className="text-center py-2">
-                          {score}
+        {(game.scores?.home as { points: number; linescore?: number[] })?.linescore &&
+          (game.scores?.visitors as { points: number; linescore?: number[] })?.linescore && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Quarter Scores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2">Team</th>
+                        <th className="text-center py-2">Q1</th>
+                        <th className="text-center py-2">Q2</th>
+                        <th className="text-center py-2">Q3</th>
+                        <th className="text-center py-2">Q4</th>
+                        <th className="text-center py-2 font-bold">Total</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="border-b">
+                        <td className="py-2 font-medium">
+                          {game.teams?.visitors?.nickname || 'Visitors'}
                         </td>
-                      ))}
-                      <td className="text-center py-2 font-bold">{game.scores.visitors.points}</td>
-                    </tr>
-                    <tr>
-                      <td className="py-2 font-medium">{game.teams.home.nickname}</td>
-                      {game.scores.home.linescore.map((score, index) => (
-                        <td key={`home-q${index + 1}`} className="text-center py-2">
-                          {score}
+                        {(
+                          game.scores?.visitors as { points: number; linescore?: number[] }
+                        )?.linescore?.map((score: number, index: number) => (
+                          <td key={`visitors-q${index + 1}`} className="text-center py-2">
+                            {score}
+                          </td>
+                        )) || []}
+                        <td className="text-center py-2 font-bold">
+                          {game.scores?.visitors?.points ?? '-'}
                         </td>
-                      ))}
-                      <td className="text-center py-2 font-bold">{game.scores.home.points}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+                      </tr>
+                      <tr>
+                        <td className="py-2 font-medium">{game.teams?.home?.nickname || 'Home'}</td>
+                        {(
+                          game.scores?.home as { points: number; linescore?: number[] }
+                        )?.linescore?.map((score: number, index: number) => (
+                          <td key={`home-q${index + 1}`} className="text-center py-2">
+                            {score}
+                          </td>
+                        )) || []}
+                        <td className="text-center py-2 font-bold">
+                          {game.scores?.home?.points ?? '-'}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Game Details */}
         <Card>
@@ -397,15 +567,15 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
             <div className="space-y-3">
               <div className="flex justify-between">
                 <span className="nba-game-details-text">Season:</span>
-                <span className="font-medium">{game.season}</span>
+                <span className="font-medium">{game.season || 'N/A'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="nba-game-details-text">League:</span>
-                <span className="font-medium">{game.league}</span>
+                <span className="font-medium">{(game as { league?: string }).league || 'NBA'}</span>
               </div>
               <div className="flex justify-between">
                 <span className="nba-game-details-text">Stage:</span>
-                <span className="font-medium">{game.stage}</span>
+                <span className="font-medium">{game.stage || 'Regular Season'}</span>
               </div>
               {game.timesTied !== undefined && (
                 <div className="flex justify-between">
@@ -443,7 +613,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {game.officials.map(official => (
+              {game.officials.map((official: string) => (
                 <div
                   key={`official-${official}`}
                   className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
@@ -461,20 +631,45 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         isOpen={isCreateGameLogModalOpen}
         onClose={() => setIsCreateGameLogModalOpen(false)}
         onSuccess={() => {
+          console.log('🎉 Game log created successfully, refetching data...');
+          console.log('🔍 Current state before refetch:', {
+            userGameLogs,
+            userGameLogsLength: userGameLogs?.length,
+            hasExistingGameLog,
+            refetchUserGameLogs: !!refetchUserGameLogs,
+          });
           setIsCreateGameLogModalOpen(false);
           if (refetchUserGameLogs) {
-            void refetchUserGameLogs();
+            console.log('🔄 Calling refetchUserGameLogs...');
+            refetchUserGameLogs()
+              .then(result => {
+                console.log('✅ Refetch completed with result:', result);
+                console.log('🔍 State after refetch:', {
+                  userGameLogs,
+                  userGameLogsLength: userGameLogs?.length,
+                  hasExistingGameLog,
+                });
+              })
+              .catch(error => {
+                console.error('❌ Refetch failed:', error);
+              });
+          } else {
+            console.warn('⚠️ refetchUserGameLogs is not available');
           }
         }}
         preSelectedGame={
           game
-            ? {
-                id: game.id.toString(),
-                name: `${game.teams.visitors.name} @ ${game.teams.home.name}`,
-                date: game.date.start,
-                homeTeam: game.teams.home.name,
-                awayTeam: game.teams.visitors.name,
-              }
+            ? (() => {
+                const preSelectedGame = {
+                  id: game.id,
+                  name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
+                  date: typeof game.date === 'string' ? game.date : game.date?.start || '',
+                  homeTeam: game.teams?.home?.name || 'Unknown',
+                  awayTeam: game.teams?.visitors?.name || 'Unknown',
+                };
+                console.log('🔍 preSelectedGame for modal:', preSelectedGame);
+                return preSelectedGame;
+              })()
             : undefined
         }
       />
@@ -486,9 +681,13 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           isOpen={!!editingGameLog}
           onClose={() => setEditingGameLog(null)}
           onSuccess={() => {
+            console.log('🎉 Game log updated successfully, refetching data...');
             setEditingGameLog(null);
             if (refetchUserGameLogs) {
+              console.log('🔄 Calling refetchUserGameLogs...');
               void refetchUserGameLogs();
+            } else {
+              console.warn('⚠️ refetchUserGameLogs is not available');
             }
           }}
         />

@@ -6,8 +6,8 @@ import { useState } from 'react';
 import { Comment } from '@/app/components/comments/Comment';
 import { CommentForm } from '@/app/components/comments/CommentForm';
 import { Button } from '@/app/components/ui/button';
-import type { ICommentListProps } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { ICommentListProps, IComment } from '@/types';
+import { ParentType } from '@/types';
 
 export function CommentList({
   comments,
@@ -69,7 +69,7 @@ export function CommentList({
 
       {/* Comments List */}
       <div className="space-y-4">
-        {comments.map(comment => (
+        {comments.map((comment: IComment) => (
           <Comment
             key={comment.id}
             comment={comment}

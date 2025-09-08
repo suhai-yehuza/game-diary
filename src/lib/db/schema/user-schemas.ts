@@ -1,7 +1,17 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, varchar, text, timestamp, boolean, unique, integer } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  varchar,
+  text,
+  timestamp,
+  boolean,
+  unique,
+  integer,
+  jsonb,
+} from 'drizzle-orm/pg-core';
 
-import { FRIENDSHIP_STATUS, TARGET_TYPES } from '@/lib/constants';
+// Note: Constants are not imported here to avoid circular dependencies
+// Using string literals instead
 import { baseTableConfig } from '@/lib/db/schema/base-schemas';
 
 // Users table - minimal schema focusing on app-specific data and relationships
@@ -77,22 +87,15 @@ export const friendships = pgTable(
     user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
-    status: varchar('status', { length: 50 })
-      .notNull()
-      .default(FRIENDSHIP_STATUS.PENDING)
-      .$type<(typeof FRIENDSHIP_STATUS)[keyof typeof FRIENDSHIP_STATUS]>(),
+    status: varchar('status', { length: 50 }).notNull().default('PENDING'),
+    // Canonical ID for bidirectional uniqueness (will be added via migration)
+    canonical_id: varchar('canonical_id', { length: 512 }),
     ...baseTableConfig,
   },
   table => ({
-    friendUserUnique: unique().on(table.friend_id, table.user_id),
-    statusCheck: sql`CHECK (status IN ('${sql.join(Object.values(FRIENDSHIP_STATUS), "','")}'))`,
-    // Performance indexes for friendship queries
-    friendshipStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_status ON friendships (status)`,
-    friendshipUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_user_id ON friendships (user_id)`,
-    friendshipFriendIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend_id ON friendships (friend_id)`,
-    // Composite index for the most common query pattern
-    friendshipUserFriendStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_user_friend_status ON friendships (user_id, friend_id, status)`,
-    friendshipFriendUserStatusIndex: sql`CREATE INDEX IF NOT EXISTS idx_friendships_friend_user_status ON friendships (friend_id, user_id, status)`,
+    // Bidirectional uniqueness constraint using canonical ID
+    canonicalUnique: unique().on(table.canonical_id),
+    statusCheck: sql`CHECK (status IN ('ACCEPTED','BLOCKED','PENDING','REJECTED'))`,
   })
 );
 
@@ -104,20 +107,14 @@ export const comments = pgTable(
       onDelete: 'cascade',
     }),
     parent_id: varchar('parent_id', { length: 255 }).notNull(),
-    parent_type: varchar('parent_type', { length: 50 })
-      .notNull()
-      .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
+    parent_type: varchar('parent_type', { length: 50 }).notNull().$type<string>(),
     content: text('content').notNull(),
+    childComments: jsonb('childComments').array().default([]), // Store as JSONB for better performance
     depth: integer('depth').notNull().default(0), // Track comment nesting depth (0-10)
     ...baseTableConfig,
   },
   _table => ({
-    commentIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_parent ON comments (parent_id, parent_type)`,
-    commentUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_user ON comments (user_id)`,
-    commentCreatedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_created ON comments (created_at)`,
-    commentDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deleted_at)`,
-    commentDepthIndex: sql`CREATE INDEX IF NOT EXISTS idx_comments_depth ON comments (depth)`,
-    parentTypeCheck: sql`CHECK (parent_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    parentTypeCheck: sql`CHECK (parent_type IN ('GAME_LOG','COMMENT','REACTION'))`,
     depthCheck: sql`CHECK (depth >= 0 AND depth <= 10)`, // Enforce max depth of 10
   })
 );
@@ -134,9 +131,7 @@ export const reactions = pgTable(
     user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
       onDelete: 'cascade',
     }),
-    target_type: varchar('target_type', { length: 50 })
-      .notNull()
-      .$type<(typeof TARGET_TYPES)[keyof typeof TARGET_TYPES]>(),
+    target_type: varchar('target_type', { length: 50 }).notNull().$type<string>(),
     target_id: varchar('target_id', { length: 255 }).notNull(),
     emoji: varchar('emoji', { length: 10 })
       .notNull()
@@ -144,12 +139,8 @@ export const reactions = pgTable(
     ...baseTableConfig,
   },
   _table => ({
-    reactionIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target ON reactions (target_id, target_type)`,
-    reactionUserIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_user ON reactions (user_id)`,
-    reactionEmojiIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_emoji ON reactions (emoji)`,
-    reactionTargetDeletedIndex: sql`CREATE INDEX IF NOT EXISTS idx_reactions_target_deleted ON reactions (target_id, target_type, deleted_at) WHERE deleted_at IS NULL`,
     uniqueReaction: unique().on(_table.user_id, _table.target_type, _table.target_id, _table.emoji),
-    targetTypeCheck: sql`CHECK (target_type IN ('${sql.join(Object.values(TARGET_TYPES), "','")}'))`,
+    targetTypeCheck: sql`CHECK (target_type IN ('GAME_LOG','COMMENT','REACTION'))`,
   })
 );
 

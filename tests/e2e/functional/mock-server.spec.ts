@@ -188,6 +188,7 @@ export async function testMockServerExternalApi(page: any) {
 
 export async function testMockServerDatabase(page: any) {
   const runner = new MockServerTestRunner('database-operations');
+  let insertedUserId: string | null = null;
 
   await runner.runTest(page, async () => {
     // Test SELECT operations for each table
@@ -226,7 +227,30 @@ export async function testMockServerDatabase(page: any) {
     expect(insertResponse.success).toBe(true);
     expect(insertResponse.data).toHaveProperty('id');
     expect(insertResponse.data.email).toBe('test@example.com');
+
+    // Store the inserted user ID for cleanup
+    insertedUserId = insertResponse.data.id;
   });
+
+  // Cleanup: Delete the test user if it was created
+  if (insertedUserId) {
+    try {
+      console.log(`🧹 Cleaning up test user: ${insertedUserId}`);
+      const deleteData = {
+        operation: 'DELETE',
+        table: 'users',
+        where: { id: insertedUserId },
+      };
+
+      await page.request.post(
+        `${MOCK_SERVER_CONFIG.baseUrl}${MOCK_SERVER_CONFIG.endpoints.database}`,
+        { data: deleteData }
+      );
+      console.log(`✅ Test user cleanup completed: ${insertedUserId}`);
+    } catch (error) {
+      console.warn(`⚠️ Failed to cleanup test user ${insertedUserId}:`, error);
+    }
+  }
 }
 
 export async function testMockServerMockData(page: any) {

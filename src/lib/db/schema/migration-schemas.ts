@@ -1,5 +1,7 @@
 import { pgTable, serial, varchar, timestamp, integer, text, boolean } from 'drizzle-orm/pg-core';
 
+// import { baseTableConfig } from '@/lib/db/schema/base-schemas'; // Currently unused
+
 // Migration versions table for tracking executed migrations
 export const migrationVersions = pgTable('migration_versions', {
   id: serial('id').primaryKey(),
@@ -11,4 +13,5 @@ export const migrationVersions = pgTable('migration_versions', {
   error_message: text('error_message'),
   rollback_script: text('rollback_script'),
   rollback_executed: boolean('rollback_executed').default(false),
+  // Note: Not using baseTableConfig here as this table has its own timestamp strategy
 });

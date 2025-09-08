@@ -3,8 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { Comment } from '@/app/components/comments/Comment';
-import type { IComment } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { IComment } from '@/types';
+import { ParentType } from '@/types';
 
 // Mock the useUser hook
 const mockUseUser = vi.fn();

@@ -3,7 +3,7 @@ import React from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import TableWithSearch from '@/app/protected/admin/database/components/TableWithSearch';
-import type { ITestItem } from '@/lib/types/admin.types';
+import type { ITestItem } from '@/types';
 
 // Mock fetch
 global.fetch = vi.fn();

@@ -1,7 +1,4 @@
-export type RateLimitConfig = {
-  tokensPerInterval: number;
-  intervalMs: number;
-};
+import type { RateLimitConfig } from '@/types';
 
 class TokenBucket {
   private tokens: number;

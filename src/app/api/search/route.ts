@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 // import { cache } from '@/lib/cache'; // DISABLED: Using only NBA API cache now
 import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
-// import { CacheNamespace } from '@/lib/types'; // Unused import
+// import { CacheNamespace } from '@/types'; // Unused import
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Data sanitization function to remove sensitive/encrypted fields
@@ -228,26 +228,28 @@ export async function GET(request: NextRequest) {
       SELECT
         id,
         date,
-        home_team_id,
-        away_team_id,
-        home_team_score,
-        away_team_score,
+        teams,
+        scores,
         status,
         created_at
-      FROM nba_games
+      FROM basketball_games
       WHERE
-        LOWER(home_team_id) LIKE LOWER(${searchPattern}) OR
-        LOWER(away_team_id) LIKE LOWER(${searchPattern})
+        LOWER(teams->>'home'->>'name') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'away'->>'name') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'home'->>'nickname') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'away'->>'nickname') LIKE LOWER(${searchPattern})
       ORDER BY date DESC
       LIMIT ${limit} OFFSET ${offset}
     `;
 
     const gamesCountQuery = sql`
       SELECT COUNT(*) as count
-      FROM nba_games
+      FROM basketball_games
       WHERE
-        LOWER(home_team_id) LIKE LOWER(${searchPattern}) OR
-        LOWER(away_team_id) LIKE LOWER(${searchPattern})
+        LOWER(teams->>'home'->>'name') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'away'->>'name') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'home'->>'nickname') LIKE LOWER(${searchPattern}) OR
+        LOWER(teams->>'away'->>'nickname') LIKE LOWER(${searchPattern})
     `;
 
     // Search teams with parameterized query
@@ -258,7 +260,7 @@ export async function GET(request: NextRequest) {
         city,
         conference,
         created_at
-      FROM teams
+      FROM basketball_teams
       WHERE
         LOWER(name) LIKE LOWER(${searchPattern}) OR
         LOWER(city) LIKE LOWER(${searchPattern}) OR
@@ -269,7 +271,7 @@ export async function GET(request: NextRequest) {
 
     const teamsCountQuery = sql`
       SELECT COUNT(*) as count
-      FROM teams
+      FROM basketball_teams
       WHERE
         LOWER(name) LIKE LOWER(${searchPattern}) OR
         LOWER(city) LIKE LOWER(${searchPattern}) OR
@@ -292,7 +294,7 @@ export async function GET(request: NextRequest) {
         leagues,
         image_url,
         created_at
-      FROM nba_players
+      FROM basketball_players
       WHERE
         LOWER(first_name) LIKE LOWER(${searchPattern}) OR
         LOWER(last_name) LIKE LOWER(${searchPattern}) OR
@@ -306,7 +308,7 @@ export async function GET(request: NextRequest) {
 
     const playersCountQuery = sql`
       SELECT COUNT(*) as count
-      FROM nba_players
+      FROM basketball_players
       WHERE
         LOWER(first_name) LIKE LOWER(${searchPattern}) OR
         LOWER(last_name) LIKE LOWER(${searchPattern}) OR

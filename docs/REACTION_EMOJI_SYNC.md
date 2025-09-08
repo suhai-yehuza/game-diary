@@ -7,7 +7,7 @@ This document explains how to maintain synchronization between reaction emojis a
 Reaction emojis are defined in multiple locations and must be kept in sync:
 
 1. **Source of Truth**: `src/lib/constants/index.ts` - `REACTION_EMOJIS` constant
-2. **Database Migration**: `src/lib/db/migrations/000_full_schema_reset.sql` - `reaction_emojis` table
+2. **Database Migration**: `src/lib/db/migrations/data/001_reaction_emojis.sql` - `reaction_emojis` table
 3. **Setup Script**: `scripts/db/setup-complete-database.ts` - emoji population
 
 ## Current Emojis
@@ -50,7 +50,7 @@ export const REACTION_EMOJIS = {
 
 ### 2. Update Database Migration
 
-Add the new emoji to `src/lib/db/migrations/000_full_schema_reset.sql`:
+Add the new emoji to `src/lib/db/migrations/data/001_reaction_emojis.sql`:
 
 ```sql
 -- Populate allowed emojis (keep in sync with REACTION_EMOJIS in src/lib/constants/index.ts)

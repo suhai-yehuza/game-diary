@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 import { useLiveGames } from './use-live-games';
@@ -23,8 +24,9 @@ export function useBannerVisibility() {
     isClient &&
     // Real live games
     ((games && games.length > 0) ||
-      // Mock mode (consolidated)
-      isMockModeEnabled());
+      // Mock mode (consolidated) or test environment
+      isMockModeEnabled() ||
+      isTestOrCIEnvironment());
 
   return {
     shouldDisplayBanner,

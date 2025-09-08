@@ -1,7 +1,7 @@
 'use client';
 
 import { Button } from '@/app/components/ui/button';
-import type { IGameLogsPaginationProps } from '@/lib/types';
+import type { IGameLogsPaginationProps } from '@/types';
 
 export const GameLogsPagination = ({
   hasNextPage,

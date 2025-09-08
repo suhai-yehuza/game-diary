@@ -1,0 +1,51 @@
+@import 'tailwindcss/preflight';
+@tailwind utilities;
+
+/* Custom scrollbar styles for better UX */
+.scroll-container {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  scroll-behavior: smooth;
+}
+
+.scroll-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 3px;
+}
+
+.scroll-container::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.5);
+  border-radius: 3px;
+  transition: background-color 0.2s ease;
+}
+
+.scroll-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.8);
+}
+
+/* Auto-scroll animation */
+.animate-scroll {
+  animation: none; /* Remove any conflicting animations */
+}
+
+.scroll-content {
+  /* Ensure content flows properly */
+  min-height: 100%;
+}
+
+/* Mobile touch scrolling improvements */
+@media (max-width: 768px) {
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none; /* Hide scrollbar on mobile for cleaner look */
+  }
+
+  .scroll-container::-webkit-scrollbar {
+    display: none; /* Hide scrollbar on mobile */
+  }
+}

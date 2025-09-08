@@ -1,5 +1,5 @@
 import { API_CONFIG } from '@/lib/config/app.config';
-import type { IRapidAPIConfig } from '@/lib/types';
+import type { IRapidAPIConfig } from '@/types';
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 

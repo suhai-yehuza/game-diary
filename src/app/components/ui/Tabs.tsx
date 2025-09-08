@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 
-import type { ITabsProps, ITabsListProps, ITabsTriggerProps, ITabsContentProps } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import type { ITabsProps, ITabsListProps, ITabsTriggerProps, ITabsContentProps } from '@/types';
 
 const TabsContext = React.createContext<{
   value: string;

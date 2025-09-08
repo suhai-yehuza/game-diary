@@ -1,6 +1,8 @@
-import type { ISeasonsApiResponse } from '@/lib/types';
+import type { ISeasonsApiResponse } from '@/types';
 
 export const MOCK_NBA_SEASONS: ISeasonsApiResponse = {
+  seasons: [{ season: 2024 }],
+  total: 1,
   get: 'seasons',
   parameters: {},
   errors: [],
@@ -12,4 +14,7 @@ export const MOCK_NBA_SEASONS: ISeasonsApiResponse = {
     { season: 2021 },
     { season: 2020 },
   ],
+  success: true,
+  timestamp: new Date().toISOString(),
+  requestId: 'mock-seasons-request-id',
 };

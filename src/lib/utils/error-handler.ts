@@ -3,13 +3,13 @@
  * Eliminates duplication of error handling patterns and provides consistent error management
  */
 
+import { logError, logWarn, logInfo } from '@/lib/utils/logger';
 import {
   ErrorCategory,
   ErrorSeverity,
   type IErrorContext,
   type IErrorHandlerConfig,
-} from '@/lib/types';
-import { logError, logWarn, logInfo } from '@/lib/utils/logger';
+} from '@/types';
 
 // Default configuration
 const DEFAULT_CONFIG: IErrorHandlerConfig = {
@@ -19,6 +19,7 @@ const DEFAULT_CONFIG: IErrorHandlerConfig = {
   maxRetries: 3,
   retryDelay: 1000,
   showUserFriendlyMessages: true,
+  logLevel: 'error',
 };
 
 // Error handler class
@@ -55,7 +56,7 @@ export class ErrorHandler {
     const fullContext: IErrorContext = {
       category: ErrorCategory.UNKNOWN,
       severity: ErrorSeverity.MEDIUM,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       ...context,
     };
 
@@ -93,8 +94,8 @@ export class ErrorHandler {
     } = {}
   ): Promise<T | undefined> {
     const enableRetry = options.enableRetry ?? this.config.enableRetry;
-    const maxRetries = options.maxRetries ?? this.config.maxRetries;
-    const retryDelay = options.retryDelay ?? this.config.retryDelay;
+    const maxRetries = options.maxRetries ?? this.config.maxRetries ?? 3;
+    const retryDelay = options.retryDelay ?? this.config.retryDelay ?? 1000;
 
     let lastError: Error | undefined;
 
@@ -157,6 +158,9 @@ export class ErrorHandler {
       [ErrorCategory.AUTHENTICATION]: 'Authentication required. Please sign in to continue.',
       [ErrorCategory.AUTHORIZATION]:
         "Access denied. You don't have permission to perform this action.",
+      [ErrorCategory.BUSINESS_LOGIC]:
+        'Business rule violation. Please check your request and try again.',
+      [ErrorCategory.SYSTEM]: 'System error. Please try again later.',
       [ErrorCategory.DATABASE]: 'Database error. Please try again later.',
       [ErrorCategory.API]: 'Service temporarily unavailable. Please try again later.',
       [ErrorCategory.UI]: 'Something went wrong. Please refresh the page and try again.',
@@ -400,7 +404,7 @@ export const errorBoundaryUtils = {
     message: ErrorHandler.getInstance().createUserMessage(error, {
       category: ErrorCategory.UI,
       severity: ErrorSeverity.MEDIUM,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
     }),
   }),
 

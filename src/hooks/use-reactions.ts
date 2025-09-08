@@ -1,168 +1,269 @@
-import { useMutation, useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
-import { useCallback, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
+import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { ReactionCacheUtils, CACHE_CONFIG } from '@/lib/cache';
 import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
-import type { IReaction, IReactionGroup, IReactionOptions, ParentType } from '@/lib/types';
-import { REACTION_EMOJIS } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type {
+  IReaction,
+  IReactionGroup,
+  IReactionOptions,
+  GetReactionsQuery,
+  ReactionFragmentFragment,
+  CreateReactionMutation,
+  Reaction,
+} from '@/types';
+import { REACTION_EMOJIS, ErrorCategory, ErrorSeverity, ParentType } from '@/types';
+
+// Adapter function to convert GraphQL reaction to IReaction
+function adaptGraphQLReaction(graphqlReaction: ReactionFragmentFragment): IReaction {
+  return {
+    id: graphqlReaction.id,
+    emoji: graphqlReaction.emoji,
+    user_id: graphqlReaction.user_id,
+    target_id: graphqlReaction.target_id,
+    target_type: graphqlReaction.target_type,
+    created_at: graphqlReaction.created_at,
+    updated_at: graphqlReaction.created_at, // Use created_at as fallback since fragment doesn't include updated_at
+    user: {
+      id: graphqlReaction.user.id,
+      username: graphqlReaction.user.username,
+      first_name: graphqlReaction.user.first_name,
+      last_name: graphqlReaction.user.last_name,
+      image_url: null, // Fragment doesn't include image_url
+      isAdmin: false, // Default value, should be fetched from user data
+    },
+  };
+}
 
 export function useReactions(options: IReactionOptions) {
   const { user } = useUser();
   const [optimisticReactions, setOptimisticReactions] = useState<IReaction[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [lastActionTime, setLastActionTime] = useState<number>(0);
 
-  const { data, loading, error, refetch } = useQuery(GET_REACTIONS, {
+  // Cache state
+  const [cachedReactions, setCachedReactions] = useState<IReaction[] | null>(null);
+  const [isCacheHit, setIsCacheHit] = useState(false);
+
+  // Try to get reactions from cache first
+  useEffect(() => {
+    const loadFromCache = async () => {
+      if (!options.targetId || !options.targetType) return;
+
+      try {
+        const cached = await ReactionCacheUtils.getCachedReactions(
+          options.targetId,
+          options.targetType
+        );
+
+        if (cached && cached.length > 0) {
+          setCachedReactions(cached as unknown as IReaction[]);
+          setIsCacheHit(true);
+        } else {
+          setIsCacheHit(false);
+        }
+      } catch (error) {
+        console.warn('Failed to load reactions from cache:', error);
+        setIsCacheHit(false);
+      }
+    };
+
+    void loadFromCache();
+  }, [options.targetId, options.targetType]);
+
+  const { data, loading, error, refetch } = useOptimizedQuery<GetReactionsQuery>(GET_REACTIONS, {
     variables: {
       targetId: options.targetId,
       targetType: options.targetType,
     },
-    skip: !options.targetId,
+    skip: Boolean(
+      (options.skip ?? false) ||
+        !options.targetId ||
+        (isCacheHit && cachedReactions && cachedReactions.length > 0)
+    ), // Skip if explicitly requested, no targetId, or we have valid cached data
+    context: {
+      component: 'useReactions',
+      action: 'Load reactions',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+    onCompleted: data => {
+      if (data?.reactions) {
+        const newReactions = (data.reactions || []).map(adaptGraphQLReaction);
+
+        // Update cached reactions state
+        setCachedReactions(newReactions);
+
+        // Cache the reactions (convert IReaction[] to Reaction[] for cache compatibility)
+        if (!isCacheHit) {
+          const reactionsForCache = newReactions.map(reaction => ({
+            ...reaction,
+            user: {
+              ...reaction.user,
+              isAdmin: false, // Default value since GraphQL fragment doesn't include isAdmin
+            },
+          }));
+
+          if (options.targetId && options.targetType) {
+            void ReactionCacheUtils.cacheReactions(
+              options.targetId,
+              options.targetType,
+              reactionsForCache as unknown as Reaction[], // Type assertion to handle the conversion
+              {
+                ttl: CACHE_CONFIG.TTL.REACTION,
+                tags: [`target:${options.targetType}:${options.targetId}`],
+              }
+            );
+          }
+        }
+      }
+    },
+    onError: (error: import('@apollo/client').ApolloError) => {
+      errorHandlers.api(error, {
+        component: 'useReactions',
+        action: 'Load reactions',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+    },
   });
 
-  const [createReaction] = useMutation(CREATE_REACTION);
-  const [deleteReaction] = useMutation(DELETE_REACTION);
+  const [createReactionMutation, createReactionResult] = useOptimizedMutation(CREATE_REACTION, {
+    context: {
+      component: 'useReactions',
+      action: 'Create reaction',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+  });
+
+  const createReaction = createReactionMutation;
+  const { loading: createLoading, error: createError } = createReactionResult;
+
+  const [deleteReactionMutation, deleteReactionResult] = useOptimizedMutation(DELETE_REACTION, {
+    context: {
+      component: 'useReactions',
+      action: 'Delete reaction',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    },
+  });
+
+  const deleteReaction = deleteReactionMutation;
+  const { loading: deleteLoading, error: deleteError } = deleteReactionResult;
 
   const reactions = useMemo(() => {
-    // If we have optimistic reactions, use them entirely to avoid Apollo cache invalidation
-    // This gives us full control over when reactions update
-    if (optimisticReactions.length > 0) {
-      return optimisticReactions.filter(
-        (reaction: IReaction) =>
-          reaction?.id && reaction?.emoji && reaction?.user_id && !reaction.deleted_at
-      );
-    }
+    // Use cached reactions if available, otherwise use server data
+    const baseReactions =
+      cachedReactions || (data?.reactions ? (data.reactions || []).map(adaptGraphQLReaction) : []);
 
-    // Otherwise use server data as fallback
-    const serverReactions = data?.reactions || [];
-    return serverReactions.filter(
-      (reaction: IReaction) =>
-        reaction?.id && reaction?.emoji && reaction?.user_id && !reaction.deleted_at
-    );
-  }, [data?.reactions, optimisticReactions]);
+    // Merge optimistic reactions with base data
+    const optimisticIds = new Set(optimisticReactions.map(r => r.id));
+    const filteredBaseReactions = baseReactions.filter((r: IReaction) => !optimisticIds.has(r.id));
 
-  // Use a ref to store the previous grouped reactions for stable references
-  const previousGroupsRef = useRef<Map<string, IReactionGroup>>(new Map());
+    return [...optimisticReactions, ...filteredBaseReactions];
+  }, [cachedReactions, data?.reactions, optimisticReactions]);
 
-  const groupedReactions = useMemo(() => {
-    const groups: Record<string, IReactionGroup> = {};
-    const userReactions = new Set<string>();
-    const newGroupsMap = new Map<string, IReactionGroup>();
+  const reactionGroups = useMemo(() => {
+    if (!reactions.length) return [];
 
-    // Create a stable map of emoji to reactions
+    const groups: IReactionGroup[] = [];
     const emojiMap = new Map<string, IReaction[]>();
 
-    // Process all reactions
-    reactions.forEach((reaction: IReaction) => {
-      if (!reaction.emoji || !reaction.user_id) return;
-
-      if (!emojiMap.has(reaction.emoji)) {
-        emojiMap.set(reaction.emoji, []);
+    reactions.forEach(reaction => {
+      const emoji = reaction.emoji;
+      if (!emojiMap.has(emoji)) {
+        emojiMap.set(emoji, []);
       }
-      const emojiReactions = emojiMap.get(reaction.emoji);
-      if (emojiReactions) {
-        emojiReactions.push(reaction);
+      const reactions = emojiMap.get(emoji);
+      if (reactions) {
+        reactions.push(reaction);
       }
     });
 
-    // Create stable group objects with reference preservation
-    emojiMap.forEach((emojiReactions, emoji) => {
-      const count = emojiReactions.length;
-      const reactionIds = emojiReactions.map(r => r.id);
-      const userReaction = emojiReactions.find(r => r.user_id === user?.id);
-      const hasUserReacted = Boolean(userReaction);
-
-      if (hasUserReacted) {
-        userReactions.add(emoji);
-      }
-
-      // Check if we can reuse the previous group object (for stable references)
-      const previousGroup = previousGroupsRef.current.get(emoji);
-
-      if (
-        previousGroup &&
-        previousGroup.count === count &&
-        previousGroup.hasUserReacted === hasUserReacted &&
-        JSON.stringify(previousGroup.reactionIds.sort()) === JSON.stringify(reactionIds.sort())
-      ) {
-        // Reuse the previous group object to maintain stable references
-        groups[emoji] = previousGroup;
-        newGroupsMap.set(emoji, previousGroup);
-      } else {
-        // Create a new group object only when necessary
-        const newGroup: IReactionGroup = {
-          emoji,
-          count,
-          hasUserReacted,
-          reactionIds,
-        };
-        groups[emoji] = newGroup;
-        newGroupsMap.set(emoji, newGroup);
-      }
+    emojiMap.forEach((reactions, emoji) => {
+      groups.push({
+        emoji,
+        count: reactions.length,
+        hasUserReacted: reactions.some(r => r.user_id === user?.id),
+        users: reactions.map(r => r.user),
+      });
     });
 
-    // Update the ref with the new groups map
-    previousGroupsRef.current = newGroupsMap;
-
-    // Only return a new array if the groups have actually changed
-    const groupValues = Object.values(groups);
-
-    return {
-      groups: groupValues,
-      userReactions,
-    };
+    return groups.sort((a, b) => b.count - a.count);
   }, [reactions, user?.id]);
 
-  const addReaction = useCallback(
+  const userReactions = useMemo(() => {
+    if (!user?.id || !reactions.length) return [];
+    return reactions.filter(reaction => reaction.user_id === user.id);
+  }, [reactions, user?.id]);
+
+  const hasUserReacted = useCallback(
+    (emoji: string) => {
+      return userReactions.some(reaction => reaction.emoji === emoji);
+    },
+    [userReactions]
+  );
+
+  const getReactionCount = useCallback(
+    (emoji: string) => {
+      return reactions.filter(reaction => reaction.emoji === emoji).length;
+    },
+    [reactions]
+  );
+
+  const handleCreateReaction = useCallback(
     async (emoji: string) => {
-      if (!user?.id) return;
-
-      // Check if user already has this reaction (including optimistic ones)
-      const currentReactions =
-        optimisticReactions.length > 0 ? optimisticReactions : data?.reactions || [];
-      const existingReaction = currentReactions.find(
-        (reaction: IReaction) =>
-          reaction.user_id === user.id && reaction.emoji === emoji && !reaction.deleted_at
+      console.log(
+        '🚀 CREATE REACTION CALLED:',
+        emoji,
+        'user:',
+        user?.id,
+        'target:',
+        options.targetId
       );
+      if (!user?.id || !options.targetId) return;
 
-      if (existingReaction) {
-        // If reaction already exists and is not deleted, don't add it again
+      // Debounce rapid successive calls
+      const now = Date.now();
+      if (now - lastActionTime < 500) {
+        console.warn('Reaction action too frequent, skipping');
         return;
       }
+      setLastActionTime(now);
 
-      // Create optimistic reaction
-      const optimisticReaction: IReaction = {
-        id: `optimistic-${Date.now()}`,
-        emoji,
-        user_id: user.id,
-        target_id: options.targetId,
-        target_type: options.targetType,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user: {
-          id: user.id,
-          username: user.username || '',
-          first_name: user.firstName || '',
-          last_name: user.lastName || '',
-          email_address: user.emailAddresses?.[0]?.emailAddress || null,
-          phone_number: null,
-          image_url: null,
-        },
-      };
-
-      // Add optimistic reaction, initializing with server data if needed
-      setOptimisticReactions(prev => {
-        // If we don't have optimistic state yet, start with server data
-        const baseReactions = prev.length === 0 ? data?.reactions || [] : prev;
-        const filtered = baseReactions.filter(
-          (r: IReaction) => !(r.user_id === user.id && r.emoji === emoji)
-        );
-        return [...filtered, optimisticReaction];
-      });
-
+      setIsProcessing(true);
       try {
-        await createReaction({
+        // Add optimistic reaction
+        const optimisticReaction: IReaction = {
+          id: `temp-${Date.now()}`,
+          emoji,
+          user_id: user.id,
+          target_id: options.targetId,
+          target_type: options.targetType || ParentType.GameLog,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user: {
+            id: user.id,
+            username: user.username || '',
+            first_name: user.firstName || '',
+            last_name: user.lastName || '',
+            image_url: user.imageUrl || null,
+            isAdmin: false, // Default value, should be fetched from user data
+          },
+        };
+
+        setOptimisticReactions(prev => [...prev, optimisticReaction]);
+
+        const result = await createReaction({
           variables: {
             input: {
               emoji,
@@ -170,133 +271,171 @@ export function useReactions(options: IReactionOptions) {
               targetType: options.targetType,
             },
           },
-          update: (cache, { data: mutationData }) => {
-            if (mutationData?.createReaction?.reaction) {
-              const newReaction = mutationData.createReaction.reaction;
-
-              // Instead of modifying Apollo cache, just update optimistic state directly
-              // This prevents Apollo from invalidating the entire reactions query
-              setOptimisticReactions(prev => {
-                // Remove the temporary optimistic reaction and add the real one
-                const withoutOptimistic = prev.filter(r => r.id !== optimisticReaction.id);
-                return [...withoutOptimistic, newReaction];
-              });
-            } else {
-              // Clear only this specific optimistic reaction if mutation failed
-              setOptimisticReactions(prev => prev.filter(r => r.id !== optimisticReaction.id));
-            }
-          },
         });
-      } catch (error) {
-        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-          component: 'useReactions',
-          action: 'Add reaction',
-        });
-        // Remove optimistic reaction on error
-        setOptimisticReactions(prev => prev.filter(r => r.id !== optimisticReaction.id));
-      }
-    },
-    [
-      createReaction,
-      user,
-      data?.reactions,
-      optimisticReactions,
-      options.targetId,
-      options.targetType,
-    ]
-  );
 
-  const removeReaction = useCallback(
-    async (emoji: string) => {
-      if (!user?.id) return;
+        if ((result as { data?: CreateReactionMutation }).data?.createReaction) {
+          // Invalidate cache
+          await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
 
-      // Find the reaction to delete from current reactions (including optimistic ones)
-      const currentReactions =
-        optimisticReactions.length > 0 ? optimisticReactions : data?.reactions || [];
-      const userReaction = currentReactions.find(
-        (reaction: IReaction) =>
-          reaction.user_id === user.id && reaction.emoji === emoji && !reaction.deleted_at
-      );
+          // Refetch to get the updated data immediately
+          await refetch();
 
-      if (!userReaction) return;
-
-      // Optimistically remove the reaction by marking it as deleted
-      setOptimisticReactions(prev => {
-        // If we don't have optimistic state yet, start with server data
-        const baseReactions = prev.length === 0 ? data?.reactions || [] : prev;
-        const filtered = baseReactions.filter((r: IReaction) => r.id !== userReaction.id);
-        return [...filtered, { ...userReaction, deleted_at: new Date().toISOString() }];
-      });
-
-      try {
-        await deleteReaction({
-          variables: {
-            id: userReaction.id,
-          },
-          update: (_cache, _mutationData) => {
-            // Instead of modifying Apollo cache, just update optimistic state directly
-            // The optimistic reaction is already marked as deleted, so just keep it that way
-            // This prevents Apollo from invalidating the entire reactions query
-            // No need to modify cache or clear optimistic state since the soft delete
-            // is already handled optimistically and we want to maintain that state
-          },
-        });
-      } catch (error) {
-        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-          component: 'useReactions',
-          action: 'Remove reaction',
-        });
-        // Remove only this specific optimistic reaction on error
-        setOptimisticReactions(prev => prev.filter(r => r.id !== userReaction.id));
-      }
-    },
-    [deleteReaction, data?.reactions, optimisticReactions, user?.id]
-  );
-
-  const toggleReaction = useCallback(
-    async (emoji: string) => {
-      if (!user?.id || isProcessing) return;
-
-      setIsProcessing(true);
-
-      try {
-        // Get the most current state, prioritizing optimistic updates
-        const currentReactions =
-          optimisticReactions.length > 0 ? optimisticReactions : data?.reactions || [];
-
-        // Look for a non-deleted reaction from the current user for this emoji
-        const hasReacted = currentReactions.some(
-          (reaction: IReaction) =>
-            reaction?.user_id === user?.id && reaction?.emoji === emoji && !reaction?.deleted_at
-        );
-
-        if (hasReacted) {
-          await removeReaction(emoji);
-        } else {
-          await addReaction(emoji);
+          // Remove optimistic reaction after refetch completes
+          setOptimisticReactions(prev => prev.filter(r => r.id !== optimisticReaction.id));
         }
       } catch (error) {
+        // Remove optimistic reaction on error
+        setOptimisticReactions(prev => prev.filter(r => r.id !== `temp-${Date.now()}`));
+
         errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
           component: 'useReactions',
-          action: 'Toggle reaction',
+          action: 'Create reaction',
+          metadata: {
+            targetId: options.targetId,
+            targetType: options.targetType,
+            emoji,
+          },
         });
       } finally {
         setIsProcessing(false);
       }
     },
-    [addReaction, removeReaction, optimisticReactions, data?.reactions, user?.id, isProcessing]
+    [
+      user?.id,
+      user?.firstName,
+      user?.lastName,
+      user?.username,
+      user?.imageUrl,
+      options.targetId,
+      options.targetType,
+      createReaction,
+      lastActionTime,
+      refetch,
+    ]
   );
 
+  const handleDeleteReaction = useCallback(
+    async (emoji: string) => {
+      console.log(
+        '🗑️ DELETE REACTION CALLED:',
+        emoji,
+        'user:',
+        user?.id,
+        'target:',
+        options.targetId
+      );
+      if (!user?.id || !options.targetId) return;
+
+      // Debounce rapid successive calls
+      const now = Date.now();
+      if (now - lastActionTime < 500) {
+        console.warn('Reaction action too frequent, skipping');
+        return;
+      }
+      setLastActionTime(now);
+
+      setIsProcessing(true);
+      try {
+        const userReaction = userReactions.find(r => r.emoji === emoji);
+        if (!userReaction) return;
+
+        await deleteReaction({
+          variables: {
+            id: userReaction.id,
+          },
+        });
+
+        // Invalidate cache
+        await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
+
+        // Refetch to get the updated data immediately
+        await refetch();
+
+        // Remove optimistic reaction after refetch completes
+        setOptimisticReactions(prev => prev.filter(r => r.id !== userReaction.id));
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useReactions',
+          action: 'Delete reaction',
+          metadata: {
+            targetId: options.targetId,
+            targetType: options.targetType,
+            emoji,
+          },
+        });
+      } finally {
+        setIsProcessing(false);
+      }
+    },
+    [
+      user?.id,
+      options.targetId,
+      options.targetType,
+      userReactions,
+      deleteReaction,
+      lastActionTime,
+      refetch,
+    ]
+  );
+
+  const toggleReaction = useCallback(
+    async (emoji: string) => {
+      console.log('🔄 TOGGLE REACTION:', emoji, 'hasUserReacted:', hasUserReacted(emoji));
+      if (hasUserReacted(emoji)) {
+        console.log('🗑️ DELETING REACTION:', emoji);
+        await handleDeleteReaction(emoji);
+      } else {
+        console.log('➕ CREATING REACTION:', emoji);
+        await handleCreateReaction(emoji);
+      }
+    },
+    [hasUserReacted, handleCreateReaction, handleDeleteReaction]
+  );
+
+  const clearOptimisticReactions = useCallback(() => {
+    setOptimisticReactions([]);
+  }, []);
+
+  const forceRefresh = useCallback(async () => {
+    setIsCacheHit(false);
+    setCachedReactions(null);
+    await refetch();
+  }, [refetch]);
+
+  const finalLoading = loading || createLoading || deleteLoading || isProcessing;
+
   return {
-    reactions,
-    groupedReactions: groupedReactions.groups,
-    userReactions: groupedReactions.userReactions,
-    loading,
-    error: error?.message || null,
-    addReaction,
-    removeReaction,
+    // Data
+    reactions: reactions || [],
+    reactionGroups: reactionGroups || [],
+    cachedReactions,
+    isCacheHit,
+
+    // State
+    loading: finalLoading,
+    error: error || createError || deleteError,
+
+    // Performance
+    queryTime: 0,
+    isSlowQuery: false,
+
+    // Actions
+    createReaction: handleCreateReaction,
+    deleteReaction: handleDeleteReaction,
+    addReaction: handleCreateReaction, // Alias for backward compatibility
+    removeReaction: handleDeleteReaction, // Alias for backward compatibility
     toggleReaction,
+    clearOptimisticReactions,
+    forceRefresh,
     refetch,
+
+    // Utilities
+    hasUserReacted,
+    getReactionCount,
+    userReactions,
+
+    // Available emojis
+    availableEmojis: REACTION_EMOJIS,
   };
 }
 

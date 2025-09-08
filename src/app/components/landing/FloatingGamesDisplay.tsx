@@ -370,9 +370,9 @@ export function FloatingGamesDisplay() {
                       </span>
                     )}
                   </div>
-                  {currentGame.arena.country && (
+                  {(currentGame.arena as { country?: string })?.country && (
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 z-50">
-                      {currentGame.arena.country}
+                      {(currentGame.arena as { country?: string })?.country}
                     </div>
                   )}
                 </div>
@@ -410,11 +410,17 @@ export function FloatingGamesDisplay() {
                 <div className="text-center mx-2 sm:mx-3 flex-shrink-0">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">VS</div>
                   <div
-                    className={`text-xs font-medium flex items-center gap-1 justify-center ${getStatusColor(currentGame.status?.short || 'SCHEDULED')}`}
+                    className={`text-xs font-medium flex items-center gap-1 justify-center ${getStatusColor(typeof currentGame.status === 'string' ? currentGame.status : currentGame.status?.short || 'SCHEDULED')}`}
                   >
-                    {getStatusIcon(currentGame.status?.short || 'SCHEDULED')}
+                    {getStatusIcon(
+                      typeof currentGame.status === 'string'
+                        ? currentGame.status
+                        : currentGame.status?.short || 'SCHEDULED'
+                    )}
                     <span className="hidden sm:inline">
-                      {currentGame.status?.short || 'SCHEDULED'}
+                      {typeof currentGame.status === 'string'
+                        ? currentGame.status
+                        : currentGame.status?.short || 'SCHEDULED'}
                     </span>
                   </div>
                 </div>
@@ -461,24 +467,29 @@ export function FloatingGamesDisplay() {
               </div>
 
               {/* Game Progress */}
-              {currentGame.status?.short === 'LIVE' && currentGame.periods && (
-                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-3 border border-red-200 dark:border-red-800">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                      <span className="text-sm font-medium text-red-700 dark:text-red-300">
-                        LIVE - Q{currentGame.periods.current}
-                      </span>
+              {typeof currentGame.status === 'string'
+                ? currentGame.status === 'LIVE'
+                : currentGame.status?.short === 'LIVE' &&
+                  currentGame.periods && (
+                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-3 border border-red-200 dark:border-red-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                          <span className="text-sm font-medium text-red-700 dark:text-red-300">
+                            LIVE - Q{currentGame.periods.current}
+                          </span>
+                        </div>
+                        <span className="text-xs text-red-600 dark:text-red-400">
+                          {currentGame.periods.total} periods
+                        </span>
+                      </div>
+                      {(currentGame.periods as { endOfPeriod?: boolean })?.endOfPeriod && (
+                        <div className="text-xs text-red-600 dark:text-red-400 mt-1">
+                          End of period
+                        </div>
+                      )}
                     </div>
-                    <span className="text-xs text-red-600 dark:text-red-400">
-                      {currentGame.periods.total} periods
-                    </span>
-                  </div>
-                  {currentGame.periods.endOfPeriod && (
-                    <div className="text-xs text-red-600 dark:text-red-400 mt-1">End of period</div>
                   )}
-                </div>
-              )}
 
               {/* Navigation Controls */}
               <div className="flex items-center justify-between mb-12">

@@ -7,7 +7,7 @@ import { NavItem } from '@/app/components/layout/components/navigation/NavItem';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
 import { useMounted } from '@/hooks/use-mounted';
-import type { INavigationLinksProps } from '@/lib/types';
+import type { INavigationLinksProps } from '@/types';
 
 export function NavigationLinks({
   isActive,

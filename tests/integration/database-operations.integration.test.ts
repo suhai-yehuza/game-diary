@@ -1,9 +1,9 @@
 import { neon } from '@neondatabase/serverless';
 import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
-import { test, expect, describe, beforeAll, afterAll } from 'vitest';
+import { test, expect, describe, beforeAll, afterAll, afterEach } from 'vitest';
 
-import { errorHandlers } from '@/lib/utils/error-handler';
+import { errorHandlers } from '../../src/lib/utils/error-handler';
 
 // Load environment variables
 config();
@@ -68,7 +68,8 @@ const createMockDatabase = () => {
     return m ? m[1] : null;
   };
 
-  const likePerfUsers = (query: string) => /WHERE\s+id\s+LIKE\s+'perf-user-%'/i.test(query);
+  const likePerfUsers = (query: string) =>
+    /WHERE\s+id\s+LIKE\s+'integration-test-perf-user-%'/i.test(query);
 
   const mockDb = {
     execute: async (query: string) => {
@@ -77,11 +78,11 @@ const createMockDatabase = () => {
         const ins = parseInsert(query);
         const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
         const rows = inserts.map((row, idx) => {
-          const id = row?.id || `test-user-id${idx ? `-${idx}` : ''}`;
+          const id = row?.id || `integration-test-user-basic-${Date.now()}${idx ? `-${idx}` : ''}`;
           const user: User = {
             id,
-            username: row?.username || 'testuser',
-            email_address: row?.email_address || 'test@example.com',
+            username: row?.username || 'integration-test-basic-user',
+            email_address: row?.email_address || 'integration-test-basic@example.com',
             first_name: row?.first_name,
             last_name: row?.last_name,
             created_at: nowIso(),
@@ -97,11 +98,12 @@ const createMockDatabase = () => {
         const ins = parseInsert(query);
         const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
         const rows = inserts.map((row, idx) => {
-          const id = row?.id || `test-gamelog-id${idx ? `-${idx}` : ''}`;
+          const id =
+            row?.id || `integration-test-gamelog-basic-${Date.now()}${idx ? `-${idx}` : ''}`;
           const gl: GameLog = {
             id,
-            user_id: row?.user_id || 'test-user-id',
-            game_id: 'test-game-id',
+            user_id: row?.user_id || 'integration-test-user-basic',
+            game_id: 'integration-test-game-basic',
             classification: 'PROTECTED',
             watched_setting: 'TV',
             watched_scope: 'FULL_GAME',
@@ -122,11 +124,12 @@ const createMockDatabase = () => {
         const ins = parseInsert(query);
         const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
         const rows = inserts.map((row, idx) => {
-          const id = row?.id || `test-friendship-id${idx ? `-${idx}` : ''}`;
+          const id =
+            row?.id || `integration-test-friendship-pending-${Date.now()}${idx ? `-${idx}` : ''}`;
           const fr: Friendship = {
             id,
-            user_id: row?.user_id || 'test-user-id',
-            friend_id: row?.friend_id || 'friend-user-id',
+            user_id: row?.user_id || 'integration-test-user-basic',
+            friend_id: row?.friend_id || 'integration-test-user-friend',
             status: (row?.status as Friendship['status']) || 'PENDING',
             created_at: nowIso(),
             updated_at: nowIso(),
@@ -141,10 +144,12 @@ const createMockDatabase = () => {
         const ins = parseInsert(query);
         const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
         const rows = inserts.map((row, idx) => {
-          const id = row?.id || `test-notification-${notifications.length + idx + 1}`;
+          const id =
+            row?.id ||
+            `integration-test-notification-gamelog-${Date.now()}-${notifications.length + idx + 1}`;
           const n: Notification = {
             id,
-            user_id: row?.user_id || 'test-user-id',
+            user_id: row?.user_id || 'integration-test-user-basic',
             type: row?.type || 'game_log_created',
             title: row?.title || 'Test',
             message: row?.message || 'Test message',
@@ -242,12 +247,16 @@ const createMockDatabase = () => {
       ) {
         if (likePerfUsers(query)) {
           const rows = Array.from(users.values())
-            .filter(u => u.id.startsWith('perf-user-'))
+            .filter(u => u.id.startsWith('integration-test-perf-user-'))
             .map(u => ({ id: u.id, username: u.username, email_address: u.email_address }));
           return { rows };
         }
         const id = extractWhereIdEq(query) as string;
-        const u = users.get(id) || { id, username: 'testuser', email: 'test@example.com' };
+        const u = users.get(id) || {
+          id,
+          username: 'integration-test-basic-user',
+          email: 'integration-test-basic@example.com',
+        };
         return { rows: [u] };
       }
 
@@ -410,6 +419,9 @@ describe('Database Operations Integration Tests', () => {
     await cleanupTestData();
   });
 
+  // Remove afterEach cleanup to prevent premature data deletion
+  // Tests within describe blocks share data and should only be cleaned up after all tests complete
+
   afterAll(async () => {
     if (usingRealDatabase) {
       await cleanupTestData();
@@ -419,10 +431,25 @@ describe('Database Operations Integration Tests', () => {
   async function cleanupTestData() {
     try {
       if (usingRealDatabase) {
-        await db.execute(`DELETE FROM notifications WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM friendships WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM game_logs WHERE user_id LIKE 'test-%'`);
-        await db.execute(`DELETE FROM users WHERE id LIKE 'test-%'`);
+        // Clean up in reverse dependency order to avoid foreign key constraint issues
+        await db.execute(
+          `DELETE FROM notifications WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM friendships WHERE user_id LIKE 'test-%' OR friend_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM game_logs WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%'`
+        );
+        await db.execute(
+          `DELETE FROM basketball_games WHERE id LIKE 'test-%' OR id LIKE 'integration-test-%' OR id LIKE 'integration-test-game-%'`
+        );
+        await db.execute(
+          `DELETE FROM basketball_teams WHERE id LIKE 'test-%' OR id LIKE 'home-%' OR id LIKE 'away-%' OR id LIKE 'integration-test-%' OR id IN ('integration-test-team-home', 'integration-test-team-away')`
+        );
+        await db.execute(
+          `DELETE FROM users WHERE id LIKE 'test-%' OR id LIKE 'integration-test%' OR id LIKE 'perf-user-%'`
+        );
       }
     } catch (error) {
       // Use centralized error handling
@@ -436,18 +463,18 @@ describe('Database Operations Integration Tests', () => {
 
   describe('User Operations', () => {
     test('should create a new user', async () => {
-      testUserId = `test-user-${Date.now()}`;
+      testUserId = `integration-test-user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
       const result = (await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'testuser', 'test@example.com', 'Test', 'User', NOW(), NOW())
+        VALUES ('${testUserId}', 'integration-test-basic-user', 'integration-test-basic@example.com', 'Test', 'User', NOW(), NOW())
         RETURNING id, username, email_address
       `)) as unknown as { rows: Array<{ id: string; username: string; email_address: string }> };
 
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0].id).toBe(testUserId);
-      expect(result.rows[0].username).toBe('testuser');
-      expect(result.rows[0].email_address).toBe('test@example.com');
+      expect(result.rows[0].username).toBe('integration-test-basic-user');
+      expect(result.rows[0].email_address).toBe('integration-test-basic@example.com');
     });
 
     test('should retrieve user by ID', async () => {
@@ -467,7 +494,7 @@ describe('Database Operations Integration Tests', () => {
 
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0].id).toBe(testUserId);
-      expect(result.rows[0].username).toBe('testuser');
+      expect(result.rows[0].username).toBe('integration-test-basic-user');
     });
 
     test('should update user information', async () => {
@@ -483,6 +510,13 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test('should handle user deletion', async () => {
+      // First, ensure the user has proper name fields to avoid notification trigger issues
+      await db.execute(`
+        UPDATE users
+        SET first_name = 'Test', last_name = 'User'
+        WHERE id = '${testUserId}'
+      `);
+
       const result = (await db.execute(`
         DELETE FROM users
         WHERE id = '${testUserId}'
@@ -497,19 +531,19 @@ describe('Database Operations Integration Tests', () => {
   describe('Game Log Operations', () => {
     beforeAll(async () => {
       // Recreate test user for game log tests
-      testUserId = `test-user-${Date.now()}`;
+      testUserId = `integration-test-user-${Date.now()}`;
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'testuser', 'test@example.com', 'Test', 'User', NOW(), NOW())
+        VALUES ('${testUserId}', 'integration-test-basic-user', 'integration-test-basic@example.com', 'Test', 'User', NOW(), NOW())
       `);
     });
 
     test.skip('should create a new game log', async () => {
-      testGameLogId = `test-gamelog-${Date.now()}`;
+      testGameLogId = `integration-test-gamelog-${Date.now()}`;
 
       const result = (await db.execute(`
         INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-        VALUES ('${testGameLogId}', '${testUserId}', 'test-game-${Date.now()}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'This is a test game log content', NOW(), NOW())
+        VALUES ('${testGameLogId}', '${testUserId}', 'integration-test-game-${Date.now()}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'This is a test game log content', NOW(), NOW())
         RETURNING id, user_id, notes
       `)) as unknown as {
         rows: Array<{ id: string; user_id: string; notes: string }>;
@@ -569,19 +603,19 @@ describe('Database Operations Integration Tests', () => {
 
     beforeAll(async () => {
       // Create two users for friendship tests
-      testUserId = `test-user-${Date.now()}`;
-      friendUserId = `test-friend-${Date.now()}`;
+      testUserId = `integration-test-user-${Date.now()}`;
+      friendUserId = `integration-test-friend-${Date.now()}`;
 
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES
-          ('${testUserId}', 'testuser', 'test${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
-          ('${friendUserId}', 'frienduser', 'friend${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
+          ('${testUserId}', 'integration-test-basic-user', 'integration-test-basic-${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
+          ('${friendUserId}', 'integration-test-friend-user', 'integration-test-friend-${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
       `);
     });
 
     test('should create a friendship request', async () => {
-      testFriendshipId = `test-friendship-${Date.now()}`;
+      testFriendshipId = `integration-test-friendship-pending-${Date.now()}`;
 
       const result = (await db.execute(`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
@@ -636,15 +670,17 @@ describe('Database Operations Integration Tests', () => {
   describe('Notification Operations', () => {
     beforeAll(async () => {
       // Ensure test user exists
-      testUserId = `test-gamelog-user-${Date.now()}`;
+      const timestamp = Date.now();
+      testUserId = `integration-test-gamelog-user-${timestamp}`;
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'gameloguser', 'gamelog${Date.now()}@example.com', 'GameLog', 'User', NOW(), NOW())
+        VALUES ('${testUserId}', 'integration-test-gamelog-user', 'integration-test-gamelog-${timestamp}@example.com', 'GameLog', 'User', NOW(), NOW())
       `);
     });
 
     test('should create a notification', async () => {
-      testNotificationId = `test-notification-${Date.now()}`;
+      const timestamp = Date.now();
+      testNotificationId = `integration-test-notification-gamelog-${timestamp}`;
 
       const result = (await db.execute(`
         INSERT INTO notifications (id, user_id, type, title, message, created_at)
@@ -711,14 +747,14 @@ describe('Database Operations Integration Tests', () => {
       // Create first user
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('test-user-1', 'user1', '${duplicateEmail}', 'User', 'One', NOW(), NOW())
+        VALUES ('integration-test-user-1', 'user1', '${duplicateEmail}', 'User', 'One', NOW(), NOW())
       `);
 
       // Try to create second user with same email
       try {
         await db.execute(`
           INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-          VALUES ('test-user-2', 'user2', '${duplicateEmail}', 'User', 'Two', NOW(), NOW())
+          VALUES ('integration-test-user-2', 'user2', '${duplicateEmail}', 'User', 'Two', NOW(), NOW())
         `);
         throw new Error('Should have failed due to unique constraint');
       } catch (error) {
@@ -733,13 +769,14 @@ describe('Database Operations Integration Tests', () => {
 
     test('should enforce foreign key constraints', async () => {
       const invalidUserId = 'non-existent-user-id';
-      const gameId = `test-game-${Date.now()}`;
-      const homeTeamId = `home-${Date.now()}`;
-      const awayTeamId = `away-${Date.now()}`;
+      const timestamp = new Date().toISOString();
+      const gameId = `integration-test-game-${timestamp}`;
+      const homeTeamId = `integration-test-home-team-${timestamp}`;
+      const awayTeamId = `integration-test-away-team-${timestamp}`;
 
       // Create test teams first
       await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
+        INSERT INTO basketball_teams (id, name, created_at, updated_at)
         VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
@@ -747,14 +784,14 @@ describe('Database Operations Integration Tests', () => {
 
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
+        INSERT INTO basketball_games (id, teams, date, season, game_status, created_at, updated_at)
+        VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       try {
         await db.execute(`
           INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-          VALUES ('test-gamelog', '${invalidUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
+          VALUES ('integration-test-gamelog-invalid', '${invalidUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content', NOW(), NOW())
         `);
         throw new Error('Should have failed due to foreign key constraint');
       } catch (error) {
@@ -768,22 +805,37 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test('should handle cascading deletes', async () => {
-      const userId = `test-cascade-${Date.now()}`;
-      const gameLogId = `test-cascade-gamelog-${Date.now()}`;
-      const gameId = `test-game-${Date.now()}`;
+      const timestamp = Date.now();
+      const userId = `integration-test-cascade-${timestamp}`;
+      const gameLogId = `integration-test-cascade-gamelog-${timestamp}`;
+      const gameId = `integration-test-game-${timestamp}`;
 
       // Create user, game, and game log
-      await db.execute(`
-        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
-      `);
+      try {
+        await db.execute(`
+          INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
+          VALUES ('${userId}', 'cascadeuser', 'cascade@example.com', 'Cascade', 'User', NOW(), NOW())
+        `);
+
+        // Verify user was created
+        const userCheck = (await db.execute(`
+          SELECT id FROM users WHERE id = '${userId}'
+        `)) as unknown as { rows: Array<{ id: string }> };
+
+        if (userCheck.rows.length === 0) {
+          throw new Error(`User ${userId} was not created successfully`);
+        }
+      } catch (error) {
+        console.error('Failed to create user:', error);
+        throw error;
+      }
 
       // Create test teams first
-      const homeTeamId = `home-${Date.now()}`;
-      const awayTeamId = `away-${Date.now()}`;
+      const homeTeamId = 'integration-test-home-team';
+      const awayTeamId = 'integration-test-away-team';
 
       await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
+        INSERT INTO basketball_teams (id, name, created_at, updated_at)
         VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
@@ -791,8 +843,8 @@ describe('Database Operations Integration Tests', () => {
 
       // Create a test game first
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
+        INSERT INTO basketball_games (id, teams, date, season, game_status, created_at, updated_at)
+        VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       await db.execute(`
@@ -815,8 +867,9 @@ describe('Database Operations Integration Tests', () => {
   describe('Complex Queries and Relationships', () => {
     beforeAll(async () => {
       // Set up test data for complex queries
-      testUserId = `test-complex-${Date.now()}`;
-      const friendId = `test-complex-friend-${Date.now()}`;
+      const timestamp = Date.now();
+      testUserId = `integration-test-complex-${timestamp}`;
+      const friendId = `integration-test-complex-friend-${timestamp}`;
 
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
@@ -826,21 +879,21 @@ describe('Database Operations Integration Tests', () => {
       `);
 
       // Create test teams first
-      const homeTeamId = `home-${Date.now()}`;
-      const awayTeamId = `away-${Date.now()}`;
+      const homeTeamId = `integration-test-home-team-${timestamp}`;
+      const awayTeamId = `integration-test-away-team-${timestamp}`;
 
       await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
+        INSERT INTO basketball_teams (id, name, created_at, updated_at)
         VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);
 
       // Create a test game first
-      const gameId = `test-game-${Date.now()}`;
+      const gameId = `integration-test-game-${timestamp}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
+        INSERT INTO basketball_games (id, teams, date, season, game_status, created_at, updated_at)
+        VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       // Create game logs
@@ -916,11 +969,12 @@ describe('Database Operations Integration Tests', () => {
 
   describe('Performance and Optimization', () => {
     test('should handle large result sets', async () => {
+      const timestamp = Date.now();
       // Create multiple test users
       const promises = Array.from({ length: 10 }, (_, i) =>
         db.execute(`
           INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-          VALUES ('perf-user-${Date.now()}-${i}', 'perfuser${Date.now()}-${i}', 'perf${Date.now()}-${i}@example.com', 'Perf', 'User${i}', NOW(), NOW())
+          VALUES ('integration-test-perf-user-${timestamp}-${i}', 'integration-test-perf-user-${timestamp}-${i}', 'integration-test-perf-${timestamp}-${i}@example.com', 'Perf', 'User${i}', NOW(), NOW())
         `)
       );
 
@@ -930,7 +984,7 @@ describe('Database Operations Integration Tests', () => {
       const result = (await db.execute(`
         SELECT id, username, email_address
         FROM users
-        WHERE id LIKE 'perf-user-%'
+        WHERE id LIKE 'integration-test-perf-user-%'
         ORDER BY created_at DESC
       `)) as unknown as { rows: Array<{ id: string; username: string; email_address: string }> };
 
@@ -938,28 +992,29 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test.skip('should handle concurrent operations', async () => {
+      const timestamp = Date.now();
       // Create test teams first
-      const homeTeamId = `home-${Date.now()}`;
-      const awayTeamId = `away-${Date.now()}`;
+      const homeTeamId = `integration-test-home-team-${timestamp}`;
+      const awayTeamId = `integration-test-away-team-${timestamp}`;
 
       await db.execute(`
-        INSERT INTO teams (id, name, created_at, updated_at)
+        INSERT INTO basketball_teams (id, name, created_at, updated_at)
         VALUES
           ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
           ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
       `);
 
       // Create a test game first
-      const gameId = `test-game-${Date.now()}`;
+      const gameId = `integration-test-game-${timestamp}`;
       await db.execute(`
-        INSERT INTO nba_games (id, home_team_id, away_team_id, date, season, status, created_at, updated_at)
-        VALUES ('${gameId}', '${homeTeamId}', '${awayTeamId}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
+        INSERT INTO basketball_games (id, teams, date, season, game_status, created_at, updated_at)
+        VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', 'scheduled', NOW(), NOW())
       `);
 
       const promises = Array.from({ length: 5 }, (_, i) =>
         db.execute(`
           INSERT INTO game_logs (id, user_id, game_id, classification, watched_setting, watched_scope, watched_date, watched_location, rating_for_game, notes, created_at, updated_at)
-          VALUES ('concurrent-${Date.now()}-${i}', '${testUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content ${i}', NOW(), NOW())
+          VALUES ('concurrent-${timestamp}-${i}', '${testUserId}', '${gameId}', 'PROTECTED', 'TV', 'FULL_GAME', NOW(), 'Home', 5, 'Content ${i}', NOW(), NOW())
         `)
       );
 

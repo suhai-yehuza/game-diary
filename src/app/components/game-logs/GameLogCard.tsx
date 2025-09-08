@@ -1,6 +1,5 @@
 'use client';
 
-import { format } from 'date-fns';
 import {
   Edit,
   Trash2,
@@ -22,8 +21,8 @@ import { useMobileDetection } from '@/app/components/layout/components/SearchBar
 import { ReactionPicker } from '@/app/components/reactions';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/app/components/ui/Card';
-import type { IGameLogCardProps } from '@/lib/types';
-import { ParentType } from '@/lib/types/generated/graphql';
+import type { IGameLogCardProps } from '@/types';
+import { ParentType } from '@/types';
 
 // Utility function to generate distinct colors for tags
 const getTagColor = (tag: string) => {
@@ -56,9 +55,8 @@ const getTagColor = (tag: string) => {
 };
 
 export const GameLogCard = ({
-  log,
+  gameLog,
   showActions = false,
-  idx,
   onEdit,
   onDelete,
 }: IGameLogCardProps) => {
@@ -67,7 +65,7 @@ export const GameLogCard = ({
   const [showComments, setShowComments] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  const gameLogUrl = `/protected/user/game-logs/${log.id}`;
+  const gameLogUrl = `/protected/user/game-logs/${gameLog?.id || 'unknown'}`;
 
   const handleCardClick = useCallback(
     (e: React.MouseEvent) => {
@@ -105,7 +103,7 @@ export const GameLogCard = ({
   );
 
   return (
-    <div key={`${log.id}-${idx ?? ''}`} className={isMobile ? 'mb-4' : 'mb-6'}>
+    <div key={gameLog?.id || 'unknown'} className={isMobile ? 'mb-4' : 'mb-6'}>
       <Card
         className={`
           game-log-card-enhanced group relative border-2 border-gray-100 dark:border-gray-700 rounded-xl
@@ -119,7 +117,7 @@ export const GameLogCard = ({
         tabIndex={0}
         role="article"
         data-testid="game-log-item"
-        aria-label={`Game log for ${getTeamDisplay(log.game)} - Click to view details`}
+        aria-label={`Game log for ${getTeamDisplay(gameLog?.game)} - Click to view details`}
       >
         <CardHeader
           className={`flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-white ${
@@ -127,33 +125,33 @@ export const GameLogCard = ({
           }`}
         >
           <div className="flex items-center gap-2 flex-1">
-            <ClassificationIcon classification={log.classification} />
+            <ClassificationIcon classification={gameLog?.classification || 'PRIVATE'} />
             <div className="flex flex-col flex-1">
               <CardTitle
                 className={`font-bold ${isMobile ? 'text-sm' : 'text-lg'} text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}
               >
-                {log.game?.id ? (
+                {gameLog?.game?.id ? (
                   <Link
-                    href={`/games/${log.game.id}`}
+                    href={`/games/${gameLog?.game?.id}`}
                     className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     onClick={e => e.stopPropagation()}
                   >
-                    {getTeamDisplay(log.game)}
+                    {getTeamDisplay(gameLog?.game)}
                   </Link>
                 ) : (
-                  getTeamDisplay(log.game)
+                  getTeamDisplay(gameLog?.game)
                 )}
               </CardTitle>
               <span
                 className={`text-gray-500 dark:text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
               >
-                {log.user?.id ? (
+                {gameLog?.user?.id ? (
                   <Link
-                    href={`/users/${log.user.id}`}
+                    href={`/users/${gameLog?.user?.id}`}
                     className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
                     onClick={e => e.stopPropagation()}
                   >
-                    @{log.user.first_name || log.user.username || 'Unknown User'}
+                    @{gameLog?.user?.first_name || gameLog?.user?.username || 'Unknown User'}
                   </Link>
                 ) : (
                   '@Unknown User'
@@ -166,7 +164,7 @@ export const GameLogCard = ({
               <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100" />
             )}
           </div>
-          <RatingStars rating={log.rating_for_game} />
+          <RatingStars rating={gameLog?.rating_for_game || 0} />
         </CardHeader>
 
         <CardContent className="pt-0">
@@ -176,33 +174,33 @@ export const GameLogCard = ({
               className={`flex flex-wrap gap-2 ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'text-xs' : 'text-sm'}`}
             >
               <span className="bg-brand-primary text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-brand-primary">
-                {log.classification}
+                {gameLog?.classification || 'Unknown'}
               </span>
-              {log.watched_setting && (
+              {gameLog?.watched_setting && (
                 <span className="bg-semantic-success/10 dark:bg-semantic-success/20 text-semantic-success dark:text-semantic-success px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-semantic-success/20 dark:border-semantic-success/30">
-                  {log.watched_setting}
+                  {gameLog?.watched_setting}
                 </span>
               )}
-              {log.watched_scope && (
+              {gameLog?.watched_scope && (
                 <span className="bg-accent-purple/10 dark:bg-accent-purple/20 text-accent-purple dark:text-accent-purple px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-accent-purple/20 dark:border-accent-purple/30">
-                  {log.watched_scope}
+                  {gameLog?.watched_scope}
                 </span>
               )}
             </div>
 
             {/* Notes */}
-            {log.notes && (
+            {gameLog?.notes && (
               <div className="text-gray-700 dark:text-gray-300">
-                <p className={isMobile ? 'text-xs' : 'text-sm'}>{log.notes}</p>
+                <p className={isMobile ? 'text-xs' : 'text-sm'}>{gameLog?.notes}</p>
               </div>
             )}
 
             {/* Tags - Enhanced with Industry Best Practices */}
-            {log.tags && log.tags.length > 0 && (
+            {gameLog?.tags && gameLog?.tags.length > 0 && (
               <div className={`flex flex-wrap gap-1 ${isMobile ? 'gap-1' : 'gap-1'}`}>
-                {log.tags.map(tag => (
+                {gameLog?.tags?.map((tag: string) => (
                   <span
-                    key={`${log.id}-tag-${tag}`}
+                    key={`${gameLog?.id || 'unknown'}-tag-${tag}`}
                     className={`${getTagColor(tag)} px-2 py-1 rounded-md font-medium border border-emerald-300 dark:border-emerald-700 text-xs shadow-sm`}
                   >
                     #{tag}
@@ -212,11 +210,17 @@ export const GameLogCard = ({
             )}
 
             {/* Watched Date */}
-            {log.watched_date && (
+            {gameLog?.watched_date && (
               <div
                 className={`text-neutral-500 dark:text-neutral-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
               >
-                Watched: {format(new Date(log.watched_date), 'MMM dd, yyyy')}
+                Watched:{' '}
+                {new Date(gameLog?.watched_date).toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: '2-digit',
+                  year: 'numeric',
+                })}
               </div>
             )}
           </div>
@@ -234,7 +238,7 @@ export const GameLogCard = ({
                   variant="outline"
                   size={isMobile ? 'sm' : 'sm'}
                   onClick={() => {
-                    onEdit(log);
+                    onEdit(gameLog);
                   }}
                   className={`bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
                     isMobile ? 'p-2 min-h-[44px]' : ''
@@ -249,7 +253,7 @@ export const GameLogCard = ({
                   variant="outline"
                   size={isMobile ? 'sm' : 'sm'}
                   onClick={() => {
-                    onDelete(log);
+                    onDelete(gameLog);
                   }}
                   className={`bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
                     isMobile ? 'p-2 min-h-[44px]' : ''
@@ -265,10 +269,14 @@ export const GameLogCard = ({
           {/* Game Log Reactions */}
           <div onClick={e => e.stopPropagation()}>
             <ReactionPicker
-              targetId={log.id}
+              targetId={gameLog?.id || 'unknown'}
               targetType={ParentType.GameLog}
               size="sm"
               showCount={true}
+              onReactionSelect={(emoji: string) => {
+                // Handle reaction selection
+                console.log('Reaction selected:', emoji);
+              }}
             />
           </div>
         </CardFooter>
@@ -282,14 +290,14 @@ export const GameLogCard = ({
             }}
             className="w-full flex items-center justify-between px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
             aria-expanded={showComments}
-            aria-controls={`comments-${log.id}`}
+            aria-controls={`comments-${gameLog?.id || 'unknown'}`}
           >
             <div className="flex items-center gap-2">
               <MessageCircle className="w-4 h-4" />
               <span className="text-sm font-medium">
                 Comments{' '}
-                {log.totalCommentCount && log.totalCommentCount > 0
-                  ? `(${log.totalCommentCount})`
+                {gameLog?.totalCommentCount && gameLog?.totalCommentCount > 0
+                  ? `(${gameLog?.totalCommentCount})`
                   : ''}
               </span>
             </div>
@@ -297,8 +305,8 @@ export const GameLogCard = ({
           </button>
 
           {showComments && (
-            <div id={`comments-${log.id}`} data-testid="game-log-comments">
-              <GameLogComments gameLog={log} showComments={showComments} />
+            <div id={`comments-${gameLog?.id || 'unknown'}`} data-testid="game-log-comments">
+              <GameLogComments gameLog={gameLog} showComments={showComments} />
             </div>
           )}
         </div>

@@ -3,7 +3,7 @@
 /**
  * Validation script to ensure reaction emojis are in sync across:
  * 1. src/lib/constants/index.ts (REACTION_EMOJIS)
- * 2. src/lib/db/migrations/000_full_schema_reset.sql
+ * 2. src/lib/db/migrations/data/001_reaction_emojis.sql
  * 3. scripts/db/setup-complete-database.ts
  *
  * Run with: pnpm tsx scripts/validate-reaction-emoji-sync.ts
@@ -66,7 +66,7 @@ function validateReactionEmojiSync(): ValidationResult {
   const projectRoot = process.cwd();
 
   const constantsPath = join(projectRoot, 'src/lib/constants/index.ts');
-  const migrationPath = join(projectRoot, 'src/lib/db/migrations/000_full_schema_reset.sql');
+  const migrationPath = join(projectRoot, 'src/lib/db/migrations/data/001_reaction_emojis.sql');
   const setupScriptPath = join(projectRoot, 'scripts/db/setup-complete-database.ts');
 
   const constants = extractEmojisFromConstants(constantsPath);

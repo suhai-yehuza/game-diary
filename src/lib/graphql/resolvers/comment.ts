@@ -4,8 +4,8 @@ import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { comments, reactions } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import type { GraphQLContext } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { GraphQLContext } from '@/types';
 
 // Comment Query Resolvers
 export const commentQueryResolvers = {
@@ -189,6 +189,7 @@ export const commentResolver = {
             email_address: null,
             phone_number: null,
             image_url: comment.user?.image_url ?? null,
+            isAdmin: comment.user?.isAdmin ?? false, // Ensure isAdmin is always present
           },
           reactions: [], // Reactions will be fetched separately via the reactions query
         },
@@ -238,7 +239,7 @@ export const commentResolver = {
       errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
         component: 'GraphQL Resolver',
         action: 'Fetch child comment count',
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       });
       return 0;
     }
@@ -278,7 +279,7 @@ export const commentResolver = {
       errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
         component: 'GraphQL Resolver',
         action: 'Fetch reaction count',
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
       });
       return 0;
     }

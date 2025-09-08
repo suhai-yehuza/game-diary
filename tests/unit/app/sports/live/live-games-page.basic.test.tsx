@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { ClientProviders } from '@src/app/components/providers';
+import { TestProviders } from '@src/app/components/providers/TestProviders';
 import LiveGamesPage from '@src/app/sports/live/page';
 
 // Mock CacheProgressTracker component
@@ -72,9 +72,9 @@ describe('LiveGamesPage', () => {
 
   it('renders the live games page with correct structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for main heading
@@ -87,9 +87,9 @@ describe('LiveGamesPage', () => {
 
   it('applies correct CSS classes for layout', () => {
     const { container } = render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for main container
@@ -103,9 +103,9 @@ describe('LiveGamesPage', () => {
 
   it('has proper semantic structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for heading hierarchy
@@ -116,16 +116,16 @@ describe('LiveGamesPage', () => {
 
   it('renders consistently', () => {
     const { rerender } = render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Re-render and check consistency
     rerender(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -134,9 +134,9 @@ describe('LiveGamesPage', () => {
 
   it('displays live game information', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for live game elements
@@ -150,9 +150,9 @@ describe('LiveGamesPage', () => {
 
   it('displays game details correctly', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Check for arena information
@@ -168,17 +168,17 @@ describe('LiveGamesPage', () => {
 
   it('handles multiple renders without issues', () => {
     const { rerender } = render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     // Multiple re-renders
     for (let i = 0; i < 3; i++) {
       rerender(
-        <ClientProviders>
+        <TestProviders>
           <LiveGamesPage />
-        </ClientProviders>
+        </TestProviders>
       );
     }
 
@@ -188,9 +188,9 @@ describe('LiveGamesPage', () => {
 
   it('has proper content structure', () => {
     render(
-      <ClientProviders>
+      <TestProviders>
         <LiveGamesPage />
-      </ClientProviders>
+      </TestProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();

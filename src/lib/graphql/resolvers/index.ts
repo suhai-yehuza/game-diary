@@ -3,17 +3,20 @@ import { join } from 'path';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
+import { gameQueryResolvers, gameResolver } from '@/lib/graphql/resolvers/basketball-game';
+import {
+  nbaPlayerQueryResolvers,
+  nbaPlayerResolver,
+} from '@/lib/graphql/resolvers/basketball-player';
+import { teamQueryResolvers, teamResolver } from '@/lib/graphql/resolvers/basketball-team';
 import { commentQueryResolvers, commentResolver } from '@/lib/graphql/resolvers/comment';
 import {
   friendshipMutationResolvers,
   friendshipQueryResolvers,
 } from '@/lib/graphql/resolvers/friendship';
-import { gameQueryResolvers, gameResolver } from '@/lib/graphql/resolvers/game';
-import {
-  gameLogQueryResolvers,
-  gameLogMutationResolvers,
-  gameLogResolver,
-} from '@/lib/graphql/resolvers/game-log';
+import { gameLogMutationResolvers, gameLogResolver } from '@/lib/graphql/resolvers/game-log';
+import { adaptiveGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-adaptive';
+import { optimizedGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-optimized';
 import {
   gameMutationResolvers,
   commentMutationResolvers,
@@ -23,6 +26,15 @@ import {
   notificationQueryResolvers,
   notificationMutationResolvers,
 } from '@/lib/graphql/resolvers/notification';
+import {
+  publicCommentQueryResolvers,
+  publicCommentResolver,
+} from '@/lib/graphql/resolvers/public-comments';
+import {
+  publicCommentMutationResolvers,
+  publicReactionMutationResolvers,
+} from '@/lib/graphql/resolvers/public-mutations';
+import { publicReactionQueryResolvers } from '@/lib/graphql/resolvers/public-reactions';
 import { reactionQueryResolvers, reactionResolver } from '@/lib/graphql/resolvers/reaction';
 import { ErrorResult } from '@/lib/graphql/resolvers/scalars';
 import {
@@ -30,6 +42,7 @@ import {
   userSummaryResolver,
   dbUserResolver,
 } from '@/lib/graphql/resolvers/user';
+import type { GraphQLContext } from '@/types';
 
 // Read the GraphQL schema
 const typeDefs = readFileSync(join(process.cwd(), 'src/lib/graphql/schema.graphql'), 'utf8');
@@ -39,9 +52,20 @@ const resolvers = {
   Query: {
     ...userQueryResolvers,
     ...gameQueryResolvers,
-    ...gameLogQueryResolvers,
+    ...nbaPlayerQueryResolvers,
+    ...teamQueryResolvers,
+    ...adaptiveGameLogQueryResolvers, // Use adaptive resolver for gameLogs (fixing user field issue)
+    // Add friendsGameLogs from optimized resolver since adaptive doesn't have it
+    friendsGameLogs: (parent: unknown, args: unknown, context: unknown) =>
+      optimizedGameLogQueryResolvers.friendsGameLogs(
+        parent,
+        args as { pagination?: { first?: number; after?: string } },
+        context as GraphQLContext
+      ),
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
+    ...publicCommentQueryResolvers,
+    ...publicReactionQueryResolvers,
     ...friendshipQueryResolvers,
     ...notificationQueryResolvers,
   },
@@ -50,15 +74,27 @@ const resolvers = {
     ...gameLogMutationResolvers,
     ...commentMutationResolvers,
     ...reactionMutationResolvers,
+    ...publicCommentMutationResolvers,
+    ...publicReactionMutationResolvers,
     ...friendshipMutationResolvers,
     ...notificationMutationResolvers,
   },
   UserSummary: userSummaryResolver,
   DBUser: dbUserResolver,
   Game: gameResolver,
-  GameLog: gameLogResolver,
+  NBAPlayer: nbaPlayerResolver,
+  Team: teamResolver,
+  GameLog: {
+    // Only use the game resolver to resolve team names, let optimized query handle user data
+    game: gameLogResolver.game,
+    comments: gameLogResolver.comments,
+    reactions: gameLogResolver.reactions,
+    totalCommentCount: gameLogResolver.totalCommentCount,
+    totalReactionCount: gameLogResolver.totalReactionCount,
+  },
   Comment: commentResolver,
   Reaction: reactionResolver,
+  PublicComment: publicCommentResolver,
   ErrorResult,
 };
 

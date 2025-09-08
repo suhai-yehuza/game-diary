@@ -81,25 +81,10 @@ describe('SearchResults Component', () => {
     const minimalProps = {
       query: 'test',
       results: {
-        success: true,
-        data: {
-          users: [],
-          games: [],
-          gameLogs: [],
-          teams: [],
-          players: [],
-          totalUsers: 0,
-          totalGames: 0,
-          totalGameLogs: 0,
-          totalTeams: 0,
-          totalPlayers: 0,
-        },
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          pages: 1,
-        },
+        results: [],
+        total: 0,
+        page: 1,
+        limit: 20,
       },
     };
 
@@ -110,25 +95,10 @@ describe('SearchResults Component', () => {
     const minimalProps = {
       query: 'test query',
       results: {
-        success: true,
-        data: {
-          users: [],
-          games: [],
-          gameLogs: [],
-          teams: [],
-          players: [],
-          totalUsers: 0,
-          totalGames: 0,
-          totalGameLogs: 0,
-          totalTeams: 0,
-          totalPlayers: 0,
-        },
-        pagination: {
-          page: 1,
-          limit: 20,
-          total: 0,
-          pages: 1,
-        },
+        results: [],
+        total: 0,
+        page: 1,
+        limit: 20,
       },
     };
 

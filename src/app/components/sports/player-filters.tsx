@@ -14,7 +14,7 @@ import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
-import type { IPlayerFiltersProps } from '@/lib/types';
+import type { IPlayerFiltersProps } from '@/types';
 
 export function PlayerFilters({
   filters,
@@ -92,7 +92,7 @@ export function PlayerFilters({
             style={selectStyle}
           >
             <option value="all">All Positions</option>
-            {filterOptions.positions?.map(position => (
+            {filterOptions.positions?.map((position: string) => (
               <option key={position} value={position}>
                 {position}
               </option>
@@ -120,7 +120,7 @@ export function PlayerFilters({
               <option value="name">Name</option>
               <option value="position">Position</option>
               <option value="age">Age</option>
-              <option value="team">Team</option>
+
               <option value="experience">Experience</option>
             </select>
             <Button
@@ -142,25 +142,6 @@ export function PlayerFilters({
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-slate-100 dark:text-gray-700 mb-2">
-                  Team
-                </label>
-                <select
-                  value={filters.teamFilter}
-                  onChange={e => onUpdateFilter('teamFilter', e.target.value)}
-                  className="w-full h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-                  style={selectStyle}
-                >
-                  <option value="all">All Teams</option>
-                  {filterOptions.teams?.map(team => (
-                    <option key={team} value={team}>
-                      {team}
-                    </option>
-                  )) || []}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-100 dark:text-gray-700 mb-2">
                   Country
                 </label>
                 <select
@@ -170,7 +151,7 @@ export function PlayerFilters({
                   style={selectStyle}
                 >
                   <option value="all">All Countries</option>
-                  {filterOptions.countries?.map(country => (
+                  {filterOptions.countries?.map((country: string) => (
                     <option key={country} value={country}>
                       {country}
                     </option>
@@ -189,7 +170,7 @@ export function PlayerFilters({
                   style={selectStyle}
                 >
                   <option value="all">All Colleges</option>
-                  {filterOptions.colleges?.map(college => (
+                  {filterOptions.colleges?.map((college: string) => (
                     <option key={college} value={college}>
                       {college}
                     </option>

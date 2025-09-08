@@ -1,4 +1,4 @@
-import type { IErrorDisplayProps } from '@/lib/types';
+import type { IErrorDisplayProps } from '@/types';
 
 export function ErrorDisplay({ error }: IErrorDisplayProps) {
   if (!error) return null;

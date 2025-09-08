@@ -5,7 +5,7 @@ import React, { useState, useCallback } from 'react';
 import { useDebounce } from 'use-debounce';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
-import type { IGameLogsSearchProps } from '@/lib/types';
+import type { IGameLogsSearchProps } from '@/types';
 
 const searchFields = [
   { value: 'all', label: 'All Fields' },

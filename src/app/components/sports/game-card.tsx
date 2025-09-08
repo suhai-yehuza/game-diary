@@ -4,9 +4,7 @@ import { Calendar, Clock, Building2, Trophy, Star, CalendarDays, X } from 'lucid
 import Image from 'next/image';
 
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IGameResponse, IGameCardProps } from '@/lib/types';
-
-// Interface moved to src/lib/types/components.types.ts
+import type { IGameCardProps, IGameResponse } from '@/types';
 
 export function GameCard({ game }: IGameCardProps) {
   const formatGameDate = (dateString: string) => {
@@ -56,9 +54,9 @@ export function GameCard({ game }: IGameCardProps) {
   };
 
   const getDisplayStatus = (game: IGameResponse) => {
-    const status = game.status?.short;
-    const statusLong = game.status?.long;
-    const gameDate = new Date(game.date.start);
+    const status = typeof game.status === 'string' ? game.status : game.status?.short;
+    const statusLong = typeof game.status === 'string' ? game.status : game.status?.long;
+    const gameDate = new Date(typeof game.date === 'string' ? game.date : game.date.start);
     const now = new Date();
 
     // Handle both string and number status values
@@ -117,7 +115,7 @@ export function GameCard({ game }: IGameCardProps) {
   return (
     <div
       onClick={handleCardClick}
-      className="cursor-pointer transition-transform duration-200 hover:scale-[1.02]"
+      className="cursor-pointer transition-transform duration-200 hover:scale-[1.02] h-full"
       role="button"
       tabIndex={0}
       onKeyDown={e => {
@@ -127,13 +125,14 @@ export function GameCard({ game }: IGameCardProps) {
         }
       }}
       aria-label={`View details for ${game.teams.visitors.name} vs ${game.teams.home.name}`}
+      data-testid="game-card"
     >
-      <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced">
-        <CardContent className="p-3 sm:p-4 lg:p-6">
-          <div className="flex flex-col gap-3 sm:gap-4">
+      <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced h-full flex flex-col">
+        <CardContent className="p-3 sm:p-4 lg:p-6 flex flex-col h-full">
+          <div className="flex flex-col gap-3 sm:gap-4 h-full">
             {/* Teams and Score */}
-            <div className="flex-1">
-              <div className="flex items-center justify-center mb-2 sm:mb-3">
+            <div className="flex-1 flex flex-col">
+              <div className="flex items-center justify-center mb-2 sm:mb-3 flex-1">
                 <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 w-full">
                   <div className="text-center min-w-0 flex-1">
                     {/* Away Team Logo */}
@@ -153,7 +152,7 @@ export function GameCard({ game }: IGameCardProps) {
                         />
                       </div>
                     </div>
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[3.5rem] flex items-center justify-center">
                       {game.teams.visitors.name ?? 'Away Team'}
                     </div>
                     <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
@@ -177,11 +176,11 @@ export function GameCard({ game }: IGameCardProps) {
                             // Next.js Image handles fallbacks automatically
                           }}
                           placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
+                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </div>
                     </div>
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight">
+                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[3.5rem] flex items-center justify-center">
                       {game.teams.home.name ?? 'Home Team'}
                     </div>
                     <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
@@ -192,7 +191,7 @@ export function GameCard({ game }: IGameCardProps) {
               </div>
 
               {/* Game Details */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 lg:gap-4 text-xs sm:text-sm game-details-text">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-1 sm:gap-2 lg:gap-4 text-xs sm:text-sm game-details-text mt-auto">
                 <div className="flex items-center gap-1 min-w-0">
                   <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="truncate">{formatGameDate(game.date.start)}</span>
@@ -210,14 +209,16 @@ export function GameCard({ game }: IGameCardProps) {
                 <div className="flex items-center gap-1 min-w-0">
                   <Trophy className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                   <span className="truncate">
-                    {game.season ? `${game.season}-${game.season + 1} Season` : 'Unknown Season'}
+                    {game.season
+                      ? `${game.season}-${parseInt(game.season) + 1} Season`
+                      : 'Unknown Season'}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Status */}
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end mt-auto">
               <div className="flex items-center gap-1 sm:gap-2 min-w-0">
                 {getStatusIcon(game.status?.short)}
                 <div

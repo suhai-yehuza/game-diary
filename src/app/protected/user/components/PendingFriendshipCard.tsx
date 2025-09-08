@@ -7,8 +7,8 @@ import { toast } from 'sonner';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent } from '@/app/components/ui/Card';
-import type { IPendingFriendshipCardProps } from '@/lib/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
+import type { IPendingFriendshipCardProps } from '@/types';
 
 export function PendingFriendshipCard({
   pending,
