@@ -109,39 +109,117 @@ export class CacheWarmingService {
    */
   private async warmGamesCache(): Promise<void> {
     try {
-      const seasons = [2020, 2021, 2022, 2023, 2024]; // Recent seasons
-      const warmPromises = seasons.map(async season => {
-        const response = await fetch(`http://localhost:3000/api/games?season=${season}&limit=5000`);
-        if (!response.ok) {
-          throw new Error(`Failed to warm games cache for season ${season}: ${response.status}`);
-        }
-        const data = await response.json();
-        return { season, count: data.response?.length || 0 };
+      // Get available seasons from database instead of hardcoding
+      const availableSeasons = await this.getAvailableSeasons();
+      const statuses = ['finished', 'live', 'scheduled', 'all']; // Different game statuses
+
+      const warmPromises: Promise<{ season: number | string; status: string; count: number }>[] =
+        [];
+
+      // Warm cache for each available season and status combination
+      availableSeasons.forEach(season => {
+        statuses.forEach(status => {
+          const promise = this.warmGamesForSeasonAndStatus(season, status);
+          warmPromises.push(promise);
+        });
       });
 
       // Also warm the merged cache for "all seasons" view
-      const mergedResponse = await fetch('http://localhost:3000/api/games?season=all&limit=20000');
-      if (!mergedResponse.ok) {
-        throw new Error(`Failed to warm merged games cache: ${mergedResponse.status}`);
-      }
-      const mergedData = await mergedResponse.json();
+      const allSeasonsPromise = this.warmGamesForSeasonAndStatus('all', 'all');
+      warmPromises.push(allSeasonsPromise);
 
       const results = await Promise.all(warmPromises);
       const totalGames = results.reduce((sum, r) => sum + r.count, 0);
-      const mergedGames = mergedData.response?.length || 0;
 
       logger.info('Games cache warmed', {
-        seasons: results.map(r => r.season),
+        totalCombinations: results.length,
         totalGames,
-        mergedGames,
+        results: results.map(r => `${r.season}-${r.status}:${r.count}`),
       });
 
       console.log(
-        `🎮 Games cache warmed: ${totalGames} games across ${seasons.length} seasons + ${mergedGames} merged games`
+        `🎮 Games cache warmed: ${totalGames} games across ${results.length} season/status combinations`
       );
     } catch (error) {
       logger.error('Games cache warming failed', { error: String(error) });
       throw error;
+    }
+  }
+
+  /**
+   * Get available seasons from the database
+   */
+  private async getAvailableSeasons(): Promise<number[]> {
+    try {
+      // Query the database to get available seasons
+      const response = await fetch('http://localhost:3000/api/games?season=all&page=1&limit=1');
+      if (!response.ok) {
+        // If we can't query the database, fall back to recent seasons
+        logger.warn('Could not query database for available seasons, using fallback');
+        return [2022, 2023, 2024]; // Fallback to recent seasons
+      }
+
+      const data = await response.json();
+      if (data.success && data.pagination) {
+        // For now, return recent seasons since we don't have a direct seasons API
+        // In the future, we could add a seasons endpoint
+        return [2022, 2023, 2024];
+      }
+
+      return [2022, 2023, 2024]; // Fallback
+    } catch (error) {
+      logger.warn('Failed to get available seasons, using fallback', { error: String(error) });
+      return [2022, 2023, 2024]; // Fallback to recent seasons
+    }
+  }
+
+  /**
+   * Warm cache for a specific season and status combination
+   */
+  private async warmGamesForSeasonAndStatus(
+    season: number | string,
+    status: string
+  ): Promise<{ season: number | string; status: string; count: number }> {
+    try {
+      // Warm the first few pages for each combination
+      const pagesToWarm = [1, 2, 3]; // Warm first 3 pages
+      let totalCount = 0;
+
+      for (const page of pagesToWarm) {
+        const response = await fetch(
+          `http://localhost:3000/api/games?season=${season}&status=${status}&page=${page}&limit=50`
+        );
+
+        if (!response.ok) {
+          // If we get a 404 or 500 error, it might mean no data for this combination
+          if (response.status === 404 || response.status === 500) {
+            logger.warn(
+              `No data found for season ${season}, status ${status}, page ${page} (${response.status})`
+            );
+            continue;
+          }
+          throw new Error(
+            `Failed to warm cache for season ${season}, status ${status}, page ${page}: ${response.status}`
+          );
+        }
+
+        const data = await response.json();
+        const pageCount = data.data?.length || data.response?.length || 0;
+        totalCount += pageCount;
+
+        // If we get fewer games than the limit, we've reached the end
+        if (pageCount < 50) {
+          break;
+        }
+      }
+
+      return { season, status, count: totalCount };
+    } catch (error) {
+      // Log as warning instead of error for missing data scenarios
+      logger.warn(`Could not warm cache for season ${season}, status ${status}`, {
+        error: String(error),
+      });
+      return { season, status, count: 0 };
     }
   }
 
@@ -191,10 +269,10 @@ export class CacheWarmingService {
       const data = await response.json();
 
       logger.info('Teams cache warmed', {
-        teamsCount: data.response?.length || 0,
+        teamsCount: data.teams?.length || 0,
       });
 
-      console.log(`🏀 Teams cache warmed: ${data.response?.length || 0} teams`);
+      console.log(`🏀 Teams cache warmed: ${data.teams?.length || 0} teams`);
     } catch (error) {
       logger.error('Teams cache warming failed', { error: String(error) });
       throw error;

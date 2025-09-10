@@ -27,12 +27,17 @@ vi.mock('@/app/components/layout/components/SearchBar', () => ({
   ),
 }));
 
-vi.mock('@/app/components/search', () => ({
+vi.mock('@/app/components/search/SearchEmptyState', () => ({
   SearchEmptyState: ({ hasQuery }: any) => (
-    <div data-testid="search-empty-state" data-has-query={hasQuery}>
-      Empty State
+    <div data-testid="empty" data-has-query={hasQuery}>
+      <div data-testid="search-icon">Search</div>
+      <h3>Start searching</h3>
+      <p>Enter a search term above to find users and game logs.</p>
     </div>
   ),
+}));
+
+vi.mock('@/app/components/search/SearchResults', () => ({
   SearchResults: ({ results, query }: any) => (
     <div data-testid="search-results" data-query={query}>
       Search Results: {results?.total || 0} results
@@ -45,6 +50,16 @@ vi.mock('lucide-react', () => ({
   AlertCircle: ({ className }: any) => (
     <div data-testid="alert-circle" className={className}>
       Alert Circle
+    </div>
+  ),
+  Search: ({ className }: any) => (
+    <div data-testid="search-icon" className={className}>
+      Search
+    </div>
+  ),
+  Settings: ({ className }: any) => (
+    <div data-testid="settings-icon" className={className}>
+      Settings
     </div>
   ),
 }));
@@ -63,8 +78,8 @@ describe('SearchPage', () => {
     render(<SearchPage />);
 
     expect(screen.getByTestId('search-bar')).toBeInTheDocument();
-    expect(screen.getByTestId('search-empty-state')).toBeInTheDocument();
-    expect(screen.getByTestId('search-empty-state')).toHaveAttribute('data-has-query', 'false');
+    expect(screen.getByTestId('empty')).toBeInTheDocument();
+    expect(screen.getByTestId('empty')).toHaveAttribute('data-has-query', 'false');
   });
 
   it('renders search results when query is provided', async () => {
@@ -157,7 +172,7 @@ describe('SearchPage', () => {
     mockGet.mockReturnValue('');
     rerender(<SearchPage />);
 
-    expect(screen.getByTestId('search-empty-state')).toBeInTheDocument();
+    expect(screen.getByTestId('empty')).toBeInTheDocument();
     expect(screen.queryByTestId('search-results')).not.toBeInTheDocument();
   });
 

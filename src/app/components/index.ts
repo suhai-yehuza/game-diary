@@ -6,3 +6,7 @@
 
 // Export live games components (used in sports/live/page.tsx)
 export { LiveGamesDetail } from '@/app/components/LiveGamesDetail';
+
+// Export optimized components
+export { GameLogCard } from '@/app/components/game-logs/GameLogCard';
+export { PerformanceMonitor } from '@/app/components/performance/PerformanceMonitor';

@@ -4,21 +4,21 @@ import { Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useLandingPageData } from '@/hooks/use-landing-page-data';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
-import type { IRecentGame } from '@/types';
+import type { IRecentGame, IIntegratedGamesProps } from '@/types';
 
-export function IntegratedGames() {
-  const { data, loading, error } = useLandingPageData();
+export function IntegratedGames({ data }: IIntegratedGamesProps) {
+  const loading = !data;
+  const error = null; // No error handling needed for server-side data
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 15, // Desktop speed
-    mobileSpeed: 8, // Mobile speed - slower for better readability
+    speed: 4, // Desktop speed - slowed down
+    mobileSpeed: 2, // Mobile speed - slower for better readability
     pauseOnHover: true,
     autoStart: true,
   });
 
   // Extract recent games from cached data
-  const latestGames = data?.recentGames || [];
+  const latestGames = data || [];
 
   if (loading) {
     return (
@@ -57,7 +57,7 @@ export function IntegratedGames() {
           href="/sports/all-sports"
           className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Browse All Sports
+          Browse All Games
         </Link>
       </div>
     );

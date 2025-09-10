@@ -131,8 +131,13 @@ test.describe('Search Functionality', () => {
       await searchNavItem.click();
       await page.waitForLoadState('domcontentloaded');
 
+      // Verify we're on the search page
+      await expect(page).toHaveURL(/\/search/);
+
       // Now we should be on the search page with the search input visible
-      const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+      const searchInput = page.locator(
+        'input[type="search"], input[placeholder*="search"], [data-testid="search"]'
+      );
       await expect(searchInput.first()).toBeVisible();
       await expect(searchInput.first()).toBeEnabled();
 

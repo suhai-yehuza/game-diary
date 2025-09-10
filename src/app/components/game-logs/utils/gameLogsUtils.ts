@@ -1,5 +1,111 @@
 import type { IGameLog } from '@/types';
 
+// Helper function to format watched setting values with proper capitalization
+export const formatWatchedSetting = (setting: string | null | undefined): string => {
+  if (!setting) return 'Not specified';
+
+  // Convert to proper capitalization
+  const formatted = setting.toLowerCase().replace(/_/g, ' ');
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
+
+// Helper function to generate distinct colors for tags
+export const generateDistinctTagColors = (tags: string[]): Record<string, string> => {
+  // Define a palette of vibrant, distinct colors
+  const colorPalette = [
+    'bg-red-500 text-white border-red-600',
+    'bg-blue-500 text-white border-blue-600',
+    'bg-green-500 text-white border-green-600',
+    'bg-yellow-500 text-black border-yellow-600',
+    'bg-purple-500 text-white border-purple-600',
+    'bg-pink-500 text-white border-pink-600',
+    'bg-indigo-500 text-white border-indigo-600',
+    'bg-orange-500 text-white border-orange-600',
+    'bg-teal-500 text-white border-teal-600',
+    'bg-cyan-500 text-white border-cyan-600',
+    'bg-emerald-500 text-white border-emerald-600',
+    'bg-rose-500 text-white border-rose-600',
+    'bg-violet-500 text-white border-violet-600',
+    'bg-amber-500 text-black border-amber-600',
+    'bg-lime-500 text-black border-lime-600',
+    'bg-sky-500 text-white border-sky-600',
+    'bg-fuchsia-500 text-white border-fuchsia-600',
+    'bg-slate-500 text-white border-slate-600',
+  ];
+
+  // Create a mapping of tags to colors
+  const tagColorMap: Record<string, string> = {};
+
+  // Sort tags to ensure consistent color assignment
+  const sortedTags = [...tags].sort();
+
+  // Assign colors to tags deterministically, ensuring no duplicates
+  sortedTags.forEach((tag, index) => {
+    tagColorMap[tag] = colorPalette[index % colorPalette.length];
+  });
+
+  return tagColorMap;
+};
+
+// Helper function to get team objects with logo and name
+export const getTeamObjects = (
+  game: IGameLog['game']
+): { homeTeam: { name: string; logo: string }; awayTeam: { name: string; logo: string } } => {
+  if (!game || typeof game !== 'object') {
+    return {
+      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+    };
+  }
+
+  // Handle multiple data formats: home_team/away_team, teams.home/teams.away, and teams.visitors/teams.home
+  let homeTeam, awayTeam;
+  if ('home_team' in game && 'away_team' in game) {
+    const gameData = game as {
+      home_team?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+      away_team?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+    };
+    homeTeam = gameData.home_team;
+    awayTeam = gameData.away_team;
+  } else if ('teams' in game) {
+    const gameData = game as {
+      teams?: {
+        home?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+        away?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+        visitors?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+      } | null;
+    };
+    // Handle both away/visitors naming conventions
+    homeTeam = gameData.teams?.home;
+    awayTeam = gameData.teams?.away || gameData.teams?.visitors;
+  } else {
+    return {
+      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+    };
+  }
+
+  // Check if teams are valid objects
+  if (!homeTeam || !awayTeam || typeof homeTeam !== 'object' || typeof awayTeam !== 'object') {
+    return {
+      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+    };
+  }
+
+  const homeTeamName = homeTeam.name ?? homeTeam.nickname ?? homeTeam.code ?? 'Unknown Team';
+  const awayTeamName = awayTeam.name ?? awayTeam.nickname ?? awayTeam.code ?? 'Unknown Team';
+  const homeTeamLogo =
+    homeTeam.logo && homeTeam.logo.trim() !== '' ? homeTeam.logo : '/defaults/team-logo.svg';
+  const awayTeamLogo =
+    awayTeam.logo && awayTeam.logo.trim() !== '' ? awayTeam.logo : '/defaults/team-logo.svg';
+
+  return {
+    homeTeam: { name: homeTeamName, logo: homeTeamLogo },
+    awayTeam: { name: awayTeamName, logo: awayTeamLogo },
+  };
+};
+
 // Helper function to get team display from game data
 export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): string => {
   if (!game || typeof game !== 'object') {

@@ -9,7 +9,7 @@ import { NBANews } from '@/app/components/sports/nba-news';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
-import { useNBAHubCounts } from '@/hooks/use-nba-hub-counts';
+import { useOptimizedNBAHubCounts } from '@/hooks/use-nba-hub-counts';
 import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { API_LIMITS } from '@/lib/constants';
@@ -29,7 +29,7 @@ const NavigationCardSkeleton = () => (
 );
 
 export default function NBAPage() {
-  // Use the new NBA Hub counts hook with caching
+  // Use the optimized NBA Hub counts hook with GraphQL
   const {
     counts: totalCounts,
     loading: countsLoading,
@@ -37,7 +37,7 @@ export default function NBAPage() {
     refresh: refreshCounts,
     lastUpdated: _countsLastUpdated,
     source: countsSource,
-  } = useNBAHubCounts();
+  } = useOptimizedNBAHubCounts();
 
   // Fetch data for navigation cards
   const {
@@ -82,10 +82,10 @@ export default function NBAPage() {
   useEffect(() => {
     if (totalCounts && countsSource) {
       console.log(`📊 NBA Hub counts loaded from ${countsSource}:`, totalCounts);
-      if (countsSource === 'cache') {
-        console.log('⚡ Cache hit - fast response!');
+      if (countsSource === 'optimized-graphql') {
+        console.log('⚡ Optimized GraphQL query - fast response!');
       } else {
-        console.log('🐌 Cache miss - database query executed');
+        console.log('🐌 Standard query - database query executed');
       }
     }
   }, [totalCounts, countsSource]);

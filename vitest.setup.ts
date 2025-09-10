@@ -15,6 +15,7 @@ vi.mock('next/navigation', () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => '/',
+  useParams: () => ({ userId: 'test-user-id' }),
 }));
 
 // Mock Next.js Image component
@@ -63,6 +64,46 @@ vi.mock('next-themes', () => ({
   ThemeProvider: ({ children }: any) =>
     React.createElement('div', { 'data-testid': 'theme-provider' }, children),
 }));
+
+// Mock Apollo Client
+vi.mock('@apollo/client', () => ({
+  ApolloProvider: ({ children }: any) =>
+    React.createElement('div', { 'data-testid': 'apollo-provider' }, children),
+  useQuery: vi.fn(() => ({
+    data: null,
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+    fetchMore: vi.fn(),
+  })),
+  useMutation: vi.fn(() => [
+    vi.fn(),
+    {
+      data: null,
+      loading: false,
+      error: null,
+    },
+  ]),
+  useApolloClient: vi.fn(() => ({
+    query: vi.fn(),
+    mutate: vi.fn(),
+    cache: {
+      readQuery: vi.fn(),
+      writeQuery: vi.fn(),
+      readFragment: vi.fn(),
+      writeFragment: vi.fn(),
+    },
+  })),
+  gql: vi.fn(strings => strings.join('')),
+  createHttpLink: vi.fn(() => ({})),
+  InMemoryCache: vi.fn(() => ({})),
+  ApolloClient: vi.fn(() => ({})),
+  from: vi.fn(() => ({})),
+  onError: vi.fn(() => ({})),
+  setContext: vi.fn(() => ({})),
+}));
+
+// Note: gameLogsUtils functions are used as-is in tests since they're pure functions
 
 // Mock lucide-react icons globally with better isolation
 vi.mock('lucide-react', async importOriginal => {
@@ -131,6 +172,7 @@ vi.mock('lucide-react', async importOriginal => {
     Key: createMockIcon('Key'),
     RotateCcw: createMockIcon('RotateCcw'),
     RefreshCw: createMockIcon('RefreshCw'),
+    Loader2: createMockIcon('Loader2'),
     Download: createMockIcon('Download'),
     Upload: createMockIcon('Upload'),
     Filter: createMockIcon('Filter'),
@@ -150,6 +192,7 @@ vi.mock('lucide-react', async importOriginal => {
     Ruler: createMockIcon('Ruler'),
     AtSign: createMockIcon('AtSign'),
     Mail: createMockIcon('Mail'),
+    Check: createMockIcon('Check'),
   };
 
   return {

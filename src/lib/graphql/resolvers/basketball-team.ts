@@ -4,6 +4,7 @@ import { API_CONFIG } from '@/lib/config/app.config';
 import { TARGET_TYPES } from '@/lib/constants';
 import { db } from '@/lib/db';
 import { basketball_teams, publicComments, publicReactions } from '@/lib/db/schema';
+import { mapUserForGraphQL } from '@/lib/graphql/resolvers/utils/user-mapping';
 import type { GraphQLContext } from '@/types';
 
 // Team Query Resolvers
@@ -215,15 +216,7 @@ export const teamResolver = {
         node: {
           id: comment.id,
           content: comment.content,
-          user: comment.user
-            ? {
-                id: comment.user.id,
-                username: comment.user.username,
-                first_name: comment.user.first_name,
-                last_name: comment.user.last_name,
-                image_url: comment.user.image_url,
-              }
-            : null,
+          user: mapUserForGraphQL(comment.user),
           user_id: comment.user_id,
           anonymous_name: comment.anonymous_name,
           anonymous_email: comment.anonymous_email,

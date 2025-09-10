@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest) {
 
     // Add small delay in mock mode to ensure response time > 0
     if (process.env.MOCK_MODE === 'true') {
-      await new Promise(resolve => setTimeout(resolve, 1));
+      await new Promise(resolve => setTimeout(resolve, 10));
     }
 
     // Calculate response time

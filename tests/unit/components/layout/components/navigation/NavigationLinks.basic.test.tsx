@@ -250,7 +250,7 @@ describe('NavigationLinks', () => {
     });
 
     it('handles active state for dashboard link', () => {
-      const isActive = vi.fn((path: string) => path === '/protected/user');
+      const isActive = vi.fn((path: string) => path === '/protected/dashboard');
 
       render(<NavigationLinks {...defaultProps} isActive={isActive} />);
 
@@ -270,7 +270,7 @@ describe('NavigationLinks', () => {
       expect(screen.getByText('NHL')).toHaveAttribute('href', '/sports/nhl');
       expect(screen.getByText('MLS')).toHaveAttribute('href', '/sports/mls');
       expect(screen.getByText('All Sports')).toHaveAttribute('href', '/sports/all-sports');
-      expect(screen.getByText('Dashboard')).toHaveAttribute('href', '/protected/user');
+      expect(screen.getByText('Dashboard')).toHaveAttribute('href', '/protected/dashboard');
     });
 
     it('passes correct props to NavItem components', () => {

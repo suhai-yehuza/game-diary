@@ -3,7 +3,7 @@
 import { ArrowLeft, Building2, MapPin, Target, Trophy, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
@@ -16,12 +16,10 @@ import type { ITeamResponse, IPlayerResponse, ITeamDetailPageProps } from '@/typ
 
 // Interface moved to src/lib/types/page.types.ts
 
-export default function NBATeamDetailPage({ params }: ITeamDetailPageProps) {
-  const [teamId, setTeamId] = useState<string>('');
-
-  useEffect(() => {
-    setTeamId((params as { teamId: string }).teamId);
-  }, [params]);
+export default function NBATeamDetailPage({ params: _params }: ITeamDetailPageProps) {
+  // Get params using useParams hook
+  const routeParams = useParams();
+  const teamId = routeParams?.teamId as string;
 
   // Fetch team data from database
   const [team, setTeam] = useState<ITeamResponse | null>(null);

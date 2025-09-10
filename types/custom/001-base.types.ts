@@ -21,7 +21,13 @@ import type {
   Friendship,
   FriendshipStatus,
   ParentType,
+  PublicComment,
+  PublicReaction,
 } from '../generated/graphql';
+
+// Create type aliases for consistency
+export type IPublicComment = PublicComment;
+export type IPublicReaction = PublicReaction;
 
 import {
   CLASSIFICATION,
@@ -37,8 +43,7 @@ import {
   GAME_STATUS_VALUES,
 } from '@/lib/constants';
 
-// Import core types
-import type { IFriendshipStatusType } from '../core.types';
+// Import core types - now consolidated in this file
 
 // Generated from constants
 export type IClassificationType = (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION];
@@ -99,6 +104,15 @@ export interface IUser extends Omit<UserSummary, 'first_name' | 'last_name' | 'i
   isAdmin?: boolean;
 }
 
+// User data mapping interface for GraphQL resolvers
+export interface UserData {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  image_url: string | null;
+}
+
 export interface IUserPreferences {
   notifications: {
     email: boolean;
@@ -124,7 +138,7 @@ export interface IUserProfile extends IUser {
 }
 
 export interface IFriendshipStatus {
-  status: IFriendshipStatusType;
+  status: string;
   friendshipId?: string;
   isInitiator?: boolean;
 }
@@ -159,7 +173,11 @@ export interface IArena {
 // ========================================
 // GAME LOG TYPES
 // ========================================
-export interface IGameLog extends Omit<GameLog, 'classification' | 'game_id' | 'rating_for_game'> {
+export interface IGameLog
+  extends Omit<
+    GameLog,
+    'classification' | 'game_id' | 'rating_for_game' | 'totalCommentCount' | 'totalReactionCount'
+  > {
   // Override classification with our union type
   classification: IClassificationType;
   // Additional application-specific properties
@@ -169,6 +187,9 @@ export interface IGameLog extends Omit<GameLog, 'classification' | 'game_id' | '
   game_id?: string;
   rating_for_game?: number;
   user_id?: string;
+  // Count fields for comments and reactions
+  totalCommentCount?: number;
+  totalReactionCount?: number;
   // Index signature for compatibility with Record<string, unknown>
   [key: string]: unknown;
 }
@@ -257,6 +278,7 @@ export interface IReaction extends Reaction {
 export interface IReactionGroup {
   emoji: string;
   count: number;
+  reactions: IReaction[];
   users: Array<{
     id: string;
     username: string;
@@ -673,17 +695,6 @@ export enum Role {
   ADMIN = 'ADMIN',
 }
 
-// Database configuration interface
-export interface IDatabaseConfig {
-  connectionString: string;
-  ssl?: boolean;
-  poolSize?: number;
-  timeout?: number;
-  connectionTimeout?: number;
-  retryAttempts?: number;
-  retryDelay?: number;
-}
-
 // ========================================
 // PAGE TYPES
 // ========================================
@@ -931,58 +942,11 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
 // ========================================
 // COMPONENT TYPES
 // ========================================
-export interface IButtonProps {
-  children: React.ReactNode;
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
-  size?: 'default' | 'sm' | 'md' | 'lg';
-  disabled?: boolean;
-  onClick?: () => void;
-  className?: string;
-  type?: 'button' | 'submit' | 'reset';
-}
-
-export interface IInputProps {
-  type?:
-    | 'text'
-    | 'email'
-    | 'password'
-    | 'number'
-    | 'tel'
-    | 'url'
-    | 'date'
-    | 'textarea'
-    | 'checkbox'
-    | 'radio';
-  placeholder?: string;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
-  disabled?: boolean;
-  required?: boolean;
-  className?: string;
-  name?: string;
-  id?: string;
-}
-
 export interface ILabelProps {
   htmlFor?: string;
   children: React.ReactNode;
   className?: string;
   required?: boolean;
-}
-
-export interface ISelectProps {
-  options: Array<{ value: string; label: string }>;
-  value?: string;
-  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  onValueChange?: (value: string) => void;
-  placeholder?: string;
-  disabled?: boolean;
-  className?: string;
-  id?: string;
-  required?: boolean;
-  children?: React.ReactNode;
 }
 
 export interface IBadgeProps {
@@ -1259,6 +1223,8 @@ export interface ISportsPaginationProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   className?: string;
+  totalCount?: number;
+  pageSize?: number;
 }
 
 export interface IPlayerCardProps {
@@ -1286,7 +1252,7 @@ export interface IPlayerFilters {
   search?: string;
   searchTerm?: string;
   team?: string;
-  teamFilter?: string;
+  yearFilter?: string;
   position?: string;
   positionFilter?: string;
   collegeFilter?: string;
@@ -1659,11 +1625,25 @@ export interface IPlayersApiResponse {
   results: number;
   response: any[];
   timestamp: string;
-  requestId: string;
-  players: any[];
-  total: number;
-  page: number;
-  limit: number;
+  // Pagination fields
+  players?: IPlayerResponse[];
+  total?: number;
+  page?: number;
+  limit?: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  cacheInfo?: {
+    hit: boolean;
+    ttl?: number;
+    key?: string;
+  };
+  requestId?: string;
 }
 
 export interface ITeamResponse {
@@ -2057,16 +2037,6 @@ export interface DataDisplayProps {
 
 export interface IDataDisplayProps extends DataDisplayProps {
   // Alias for consistency with naming convention
-}
-
-// ========================================
-// MISSING TYPES
-// ========================================
-export interface GraphQLContext {
-  user?: IUser;
-  userId?: string;
-  req?: any;
-  res?: any;
 }
 
 // Mock Server Types
@@ -2465,10 +2435,10 @@ export interface ICacheStats {
 }
 
 export interface IPerformanceMetrics {
-  duration: number;
-  memory: number;
-  cpu: number;
-  timestamp: string;
+  duration?: number;
+  memory?: number;
+  cpu?: number;
+  timestamp?: string;
   loadTime?: number;
   domContentLoaded?: number;
   windowLoad?: number;
@@ -2477,6 +2447,8 @@ export interface IPerformanceMetrics {
   avgCacheTime?: number;
   avgQueryTime?: number;
   uptime?: number;
+  componentCount?: number;
+  reRenderCount?: number;
   bundleSize?: {
     total: number;
     gzipped: number;
@@ -2494,6 +2466,10 @@ export interface IPerformanceMetrics {
   errorRate?: number;
   recommendations?: string[];
   cacheHitRate?: number;
+  // Additional performance metrics
+  apiResponseTime?: number;
+  dataSize?: number;
+  queryComplexity?: number;
 }
 
 export interface IQueryMetrics {
@@ -2502,9 +2478,13 @@ export interface IQueryMetrics {
   rows: number;
   timestamp: string | number;
   success?: boolean;
-  queryName?: string;
+  queryName: string;
   variables?: any;
   errorMessage?: string;
+  executionTime: number;
+  cacheHit: boolean;
+  resultCount: number;
+  errorCount: number;
 }
 
 export interface IPerformanceReport {
@@ -2559,11 +2539,6 @@ export interface IUserArgs {
   id: string;
   limit?: number;
   after?: string;
-}
-
-export interface IPaginationParams {
-  page: number;
-  limit: number;
 }
 
 export interface IAdminAuthContext {
@@ -2900,33 +2875,11 @@ export interface IClassificationIconProps {
   className?: string;
 }
 
-export interface ICreateGameLogModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  preSelectedGame?: any;
-  onSuccess?: (gameLog: any) => void;
-}
-
-export interface IEditGameLogModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  gameLog: any;
-  onSuccess?: (gameLog: any) => void;
-}
-
 export interface IDeleteGameLogModalProps {
   isOpen: boolean;
   onClose: () => void;
   gameLog: any;
   onSuccess?: () => void;
-}
-
-export interface IGameLogCardProps {
-  gameLog: any;
-  className?: string;
-  showActions?: boolean;
-  onEdit?: (gameLog: any) => void;
-  onDelete?: (gameLog: any) => void;
 }
 
 export interface IGameLogModalProps {
@@ -2954,18 +2907,32 @@ export interface IGameLogsContentProps {
   filteredAndSortedLogs?: any[];
 }
 
+export interface IGameLogsFiltersState {
+  teamName: string;
+  username: string;
+  tags: string;
+  watchedDateFrom: string;
+  watchedDateTo: string;
+  gameDateFrom: string;
+  gameDateTo: string;
+  rating: string;
+  watchedSetting: string;
+  watchedScope: string;
+}
+
 export interface IGameLogsFiltersProps {
-  searchTerm: string;
-  searchField: string;
-  sortConfig: any;
-  displayedCount: number;
-  totalCount: number;
-  classification: any;
-  onSearchChange: (term: string, field: string) => void;
-  onSearchClear: () => void;
-  onSort: (key: string, direction: 'asc' | 'desc' | null) => void;
+  searchTerm?: string;
+  searchField?: string;
+  sortConfig?: any;
+  displayedCount?: number;
+  totalCount?: number;
+  classification?: any;
+  onSearchChange?: (term: string, field: string) => void;
+  onSearchClear?: () => void;
+  onSort?: (key: string, direction: 'asc' | 'desc' | null) => void;
   filters?: any;
   onFiltersChange?: (filters: any) => void;
+  initialFilters?: Partial<IGameLogsFiltersState>;
   className?: string;
 }
 
@@ -3329,12 +3296,12 @@ export interface ICacheOptions {
 export interface ICacheEntry<T = unknown> {
   key: string;
   value: T;
-  data?: T;
+  data: T;
   ttl: number;
   createdAt: Date;
   accessedAt: Date;
   lastAccessed?: number;
-  timestamp?: number;
+  timestamp: number;
   hitCount: number;
   accessCount?: number;
   size?: number;
@@ -3354,7 +3321,7 @@ export interface IUseLandingPageDataReturn {
   data: ILandingPageData | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<any>;
 }
 
 export interface ILatestGamesOptions {
@@ -3377,7 +3344,7 @@ export interface IUseLiveGamesReturn {
   liveGames: IGameResponse[] | null;
   loading: boolean;
   error: string | null;
-  refetch: () => Promise<void>;
+  refetch: () => Promise<any>;
   hasLiveGames?: boolean;
   currentPollingInterval?: number;
   timeSinceLastLiveGames?: string | null;
@@ -3413,9 +3380,9 @@ export interface IUseNBATeamsOptions {
   season?: string;
 }
 
-export interface IOptimizedMutationOptions<TData = unknown, TVariables = Record<string, unknown>> {
+export interface IMutationOptions<TData = unknown, TVariables = Record<string, unknown>> {
   enableOptimisticUpdates?: boolean;
-  refetchQueries?: boolean;
+  refetchQueries?: import('@apollo/client').InternalRefetchQueriesInclude;
   awaitRefetchQueries?: boolean;
   context?: Record<string, unknown>;
   onSuccess?: (data: TData, variables?: TVariables) => void;
@@ -3546,6 +3513,7 @@ export type SeasonType = 'regular' | 'playoffs' | 'preseason';
 // COLOR TYPES
 // ========================================
 export type SportKey = 'basketball' | 'football' | 'baseball' | 'hockey' | 'soccer';
+export type SportsConfigKey = keyof typeof import('@/lib/constants/colors').SPORTS_CONFIG;
 export type StatusType = 'success' | 'warning' | 'error' | 'info';
 export type BrandColor = 'primary' | 'secondary' | 'accent';
 export type ThemeColor = 'light' | 'dark';
@@ -3567,7 +3535,6 @@ export type ButtonVariant =
 // ========================================
 // UI COMPONENT TYPES
 // ========================================
-export type ITextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 // ========================================
 // DATABASE TYPES
@@ -3793,7 +3760,6 @@ export interface IRemoveFriendResponse {
 // Database Game Types (from games API route)
 export interface IDatabaseGame {
   id: string;
-  game_status: string;
   season: string | null;
   date: Date;
   status: unknown;
@@ -4042,3 +4008,1628 @@ export interface IPaginationState<T> {
 // ========================================
 // END OF APPLICATION-SPECIFIC TYPES
 // ========================================
+
+// ========================================
+// COMPONENT TYPES (from component.types.ts)
+// ========================================
+
+import { ReactNode } from 'react';
+
+// Base component types
+export interface IBaseComponentProps {
+  className?: string;
+  children?: ReactNode;
+  id?: string;
+  'data-testid'?: string;
+}
+
+export interface IBaseSearchResultProps {
+  children: ReactNode;
+  onClick: () => void;
+  gradient?: string;
+  badgeColor?: string;
+  badgeText?: string;
+  badgeIcon?: ReactNode;
+}
+
+export interface IBaseFormComponentProps extends IBaseComponentProps {
+  name?: string;
+  value?: any;
+  onChange?: (value: any) => void;
+  onBlur?: () => void;
+  error?: string;
+  required?: boolean;
+  disabled?: boolean;
+  placeholder?: string;
+}
+
+// Modal component types
+export interface IModalProps extends IBaseComponentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  closable?: boolean;
+  backdrop?: boolean;
+}
+
+export interface IModalHeaderProps extends IBaseComponentProps {
+  title?: string;
+  subtitle?: string;
+  onClose?: () => void;
+  closable?: boolean;
+}
+
+export interface IModalBodyProps extends IBaseComponentProps {
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+export interface IModalFooterProps extends IBaseComponentProps {
+  align?: 'left' | 'center' | 'right';
+  gap?: 'sm' | 'md' | 'lg';
+}
+
+// Button component types
+export interface IButtonProps extends IBaseComponentProps {
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'default' | 'destructive';
+  size?: 'sm' | 'md' | 'lg' | 'default';
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+  loading?: boolean;
+  fullWidth?: boolean;
+  onClick?: (e?: React.MouseEvent) => void;
+  href?: string;
+  target?: string;
+}
+
+// Input component types
+export interface IInputProps extends IBaseFormComponentProps {
+  type?:
+    | 'text'
+    | 'email'
+    | 'password'
+    | 'number'
+    | 'tel'
+    | 'url'
+    | 'search'
+    | 'date'
+    | 'textarea'
+    | 'checkbox'
+    | 'radio';
+  min?: number;
+  max?: number;
+  step?: number;
+  pattern?: string;
+  autoComplete?: string;
+  autoFocus?: boolean;
+  readOnly?: boolean;
+}
+
+export interface ITextareaProps extends IBaseFormComponentProps {
+  rows?: number;
+  cols?: number;
+  resize?: 'none' | 'both' | 'horizontal' | 'vertical';
+  maxLength?: number;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void;
+}
+
+export interface ISelectProps extends IBaseFormComponentProps {
+  options: ISelectOption[];
+  multiple?: boolean;
+  searchable?: boolean;
+  clearable?: boolean;
+  placeholder?: string;
+  onValueChange?: (value: string) => void;
+}
+
+export interface ICustomSelectProps {
+  options: ISelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+  disabled?: boolean;
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'default' | 'outline' | 'ghost';
+}
+
+export interface ISelectOption {
+  value: any;
+  label: string;
+  disabled?: boolean;
+  group?: string;
+  icon?: ReactNode;
+}
+
+// Card component types
+export interface ICardProps extends IBaseComponentProps {
+  variant?: 'default' | 'outlined' | 'elevated' | 'flat';
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  hoverable?: boolean;
+  clickable?: boolean;
+  onClick?: (e: React.MouseEvent) => void;
+}
+
+export interface ICardHeaderProps extends IBaseComponentProps {
+  title?: string;
+  subtitle?: string;
+  action?: ReactNode;
+}
+
+export interface ICardBodyProps extends IBaseComponentProps {
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+export interface ICardFooterProps extends IBaseComponentProps {
+  align?: 'left' | 'center' | 'right';
+  gap?: 'sm' | 'md' | 'lg';
+}
+
+// Table component types
+export interface ITableProps extends IBaseComponentProps {
+  data: any[];
+  columns: ITableColumn[];
+  loading?: boolean;
+  empty?: ReactNode;
+  pagination?: ITablePagination;
+  sortable?: boolean;
+  selectable?: boolean;
+  onSort?: (column: string, direction: 'asc' | 'desc') => void;
+  onSelect?: (selectedRows: any[]) => void;
+}
+
+export interface ITableColumn {
+  key: string;
+  title: string;
+  dataIndex?: string;
+  render?: (value: any, record: any, index: number) => ReactNode;
+  sortable?: boolean;
+  width?: number | string;
+  align?: 'left' | 'center' | 'right';
+  fixed?: 'left' | 'right';
+}
+
+export interface ITablePagination {
+  current: number;
+  pageSize: number;
+  total: number;
+  showSizeChanger?: boolean;
+  showQuickJumper?: boolean;
+  onChange?: (page: number, pageSize: number) => void;
+}
+
+// Loading component types
+export interface ILoadingProps extends IBaseComponentProps {
+  size?: 'sm' | 'md' | 'lg';
+  variant?: 'spinner' | 'dots' | 'pulse' | 'skeleton';
+  text?: string;
+  overlay?: boolean;
+}
+
+// Alert component types
+export interface IAlertProps extends IBaseComponentProps {
+  type?: 'success' | 'warning' | 'error' | 'info';
+  title?: string;
+  message?: string;
+  closable?: boolean;
+  onClose?: () => void;
+  action?: ReactNode;
+}
+
+// Tooltip component types
+export interface ITooltipProps extends IBaseComponentProps {
+  content: ReactNode;
+  placement?: 'top' | 'bottom' | 'left' | 'right';
+  trigger?: 'hover' | 'click' | 'focus';
+  delay?: number;
+  disabled?: boolean;
+}
+
+// Dropdown component types
+export interface IDropdownProps extends IBaseComponentProps {
+  trigger: ReactNode;
+  menu: IDropdownMenuItem[];
+  placement?: 'top' | 'bottom' | 'left' | 'right';
+  triggerType?: 'hover' | 'click' | 'contextMenu';
+  disabled?: boolean;
+}
+
+export interface IDropdownMenuItem {
+  key: string;
+  label: ReactNode;
+  icon?: ReactNode;
+  disabled?: boolean;
+  divider?: boolean;
+  onClick?: () => void;
+  children?: IDropdownMenuItem[];
+}
+
+// Game Log Modal types
+export interface IBaseGameLogModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (gameLog: unknown) => void;
+}
+
+export interface ICreateGameLogModalProps extends IBaseGameLogModalProps {
+  mode?: 'create';
+  preSelectedGame?: unknown;
+  gameLog?: never;
+}
+
+export interface IEditGameLogModalProps extends IBaseGameLogModalProps {
+  mode?: 'edit';
+  gameLog: unknown;
+  preSelectedGame?: never;
+}
+
+export type UnifiedGameLogModalProps = ICreateGameLogModalProps | IEditGameLogModalProps;
+
+// Skeleton component types
+export interface ISkeletonProps {
+  className?: string;
+  children?: ReactNode;
+}
+
+export interface ISkeletonLoaderProps {
+  count?: number;
+  className?: string;
+  variant?: 'card' | 'list' | 'table';
+}
+
+// Filter component types
+export interface IFilterOption {
+  value: string;
+  label: string;
+  icon: ReactNode;
+}
+
+export interface IQuickFiltersProps {
+  title: string;
+  icon: ReactNode;
+  totalCount: number;
+  filters: Array<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: IFilterOption[];
+    className?: string;
+  }>;
+}
+
+// NBA Page Layout types
+export interface INBAPageLayoutProps<T> {
+  title: string;
+  description: string;
+  items: T[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  cacheInfo: {
+    cached?: boolean;
+    source?: string;
+    hit?: boolean;
+    key?: string;
+    ttl?: number;
+    status?: string;
+  } | null;
+  pageSize: number;
+  onPageSizeChange: (newPageSize: string) => void;
+  onForceRefresh: () => void;
+  forceRefresh: boolean;
+  onPageChange: (page: number) => void;
+  renderItem: (item: T, index: number) => ReactNode;
+  renderEmptyState?: () => ReactNode;
+  gridClassName?: string;
+  showPagination?: boolean;
+  cacheTitle: string;
+  cacheTTL: string;
+  pageSizeOptions: Array<{
+    value: string;
+    label: string;
+    icon: ReactNode;
+  }>;
+  filtersTitle: string;
+  filtersIcon: ReactNode;
+  filters: Array<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: Array<{
+      value: string;
+      label: string;
+      icon: ReactNode;
+    }>;
+    className?: string;
+  }>;
+  onBackClick?: () => void;
+  // Navigation props
+  showGamesButton?: boolean;
+  showPlayersButton?: boolean;
+  showTeamsButton?: boolean;
+  backButtonText?: string;
+  showBackButton?: boolean;
+  className?: string;
+}
+
+// Cache Status Dashboard types
+export interface ICacheStatusDashboardProps {
+  title: string;
+  cacheInfo: {
+    cached?: boolean;
+    source?: string;
+    hit?: boolean;
+    key?: string;
+    ttl?: number;
+    status?: string;
+  } | null;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  pageSize: number;
+  onPageSizeChange: (newPageSize: string) => void;
+  onForceRefresh: () => void;
+  forceRefresh: boolean;
+  pageSizeOptions: Array<{
+    value: string;
+    label: string;
+    icon: ReactNode;
+  }>;
+  cacheTTL: string;
+}
+
+// Game Logs Filters types - already defined above
+
+// ========================================
+// CORE TYPES (from core.types.ts)
+// ========================================
+
+// Re-export types from constants to maintain the same interface
+// These types are defined in src/lib/constants/index.ts to avoid circular dependencies
+export type {
+  IReactionEmojiKey,
+  IReactionEmojiValue,
+  IGraphQLReactionEmojiType,
+  IFriendshipStatusType,
+  IWatchedSettingType,
+} from '@/lib/constants';
+
+// Game status information
+export interface IGameStatusInfo {
+  status: string;
+  isFinished: boolean;
+  isLive: boolean;
+  isScheduled: boolean;
+}
+
+// ========================================
+// DATABASE TYPES (from db.types.ts)
+// ========================================
+
+// Database connection types
+export interface IDatabaseConfig {
+  host?: string;
+  port?: number;
+  database?: string;
+  username?: string;
+  password?: string;
+  connectionString?: string;
+  ssl?: boolean;
+  poolSize?: number;
+  timeout?: number;
+  connectionTimeout?: number;
+  retryAttempts?: number;
+  retryDelay?: number;
+  pool?: {
+    min: number;
+    max: number;
+    idleTimeoutMillis: number;
+  };
+}
+
+// Query types
+export interface IQueryOptions {
+  limit?: number;
+  offset?: number;
+  orderBy?: string;
+  orderDirection?: 'asc' | 'desc';
+  where?: Record<string, any>;
+  select?: string[];
+  include?: string[];
+}
+
+export interface IQueryResult<T = any> {
+  data: T[];
+  count: number;
+  total: number;
+  page: number;
+  limit: number;
+}
+
+// Migration types
+export interface IMigration {
+  version: string;
+  name: string;
+  up: string;
+  down: string;
+  timestamp: number;
+}
+
+export interface IMigrationStatus {
+  version: string;
+  applied: boolean;
+  appliedAt?: Date;
+  checksum?: string;
+}
+
+// Seed data types
+export interface ISeedData {
+  table: string;
+  data: any[];
+  dependencies?: string[];
+  order?: number;
+}
+
+export interface ISeedConfig {
+  tables: ISeedData[];
+  truncate?: boolean;
+  resetSequences?: boolean;
+}
+
+// Transaction types
+export interface ITransaction {
+  id: string;
+  startTime: Date;
+  queries: string[];
+  rollback?: () => Promise<void>;
+}
+
+export interface ITransactionOptions {
+  isolation?: 'read-uncommitted' | 'read-committed' | 'repeatable-read' | 'serializable';
+  timeout?: number;
+  retries?: number;
+}
+
+// Index types
+export interface IIndexDefinition {
+  name: string;
+  table: string;
+  columns: string[];
+  unique?: boolean;
+  partial?: string;
+  concurrent?: boolean;
+}
+
+// Constraint types
+export interface IConstraintDefinition {
+  name: string;
+  table: string;
+  type: 'primary-key' | 'foreign-key' | 'unique' | 'check' | 'not-null';
+  columns: string[];
+  references?: {
+    table: string;
+    columns: string[];
+  };
+  onDelete?: 'cascade' | 'restrict' | 'set-null' | 'no-action';
+  onUpdate?: 'cascade' | 'restrict' | 'set-null' | 'no-action';
+}
+
+// Database utility types
+export interface IDatabaseStats {
+  connections: number;
+  activeQueries: number;
+  slowQueries: number;
+  cacheHitRatio: number;
+  uptime: number;
+}
+
+export interface IQueryPerformance {
+  query: string;
+  duration: number;
+  rows: number;
+  timestamp: Date;
+  slow?: boolean;
+}
+
+// Service-specific types
+export interface IGameLogsServiceOptions {
+  page?: number;
+  limit?: number;
+  search?: string;
+  classification?: string;
+  userId?: string;
+  sortBy?: any;
+  sortDirection?: any;
+  teamName?: string;
+  username?: string;
+  tags?: string;
+  watchedDateFrom?: string;
+  watchedDateTo?: string;
+  gameDateFrom?: string;
+  gameDateTo?: string;
+  rating?: string;
+  watchedSetting?: string;
+  watchedScope?: string;
+}
+
+export interface IGameLogsServiceResult {
+  gameLogs: any[];
+  totalCount: number;
+  hasNextPage: boolean;
+  hasPreviousPage: boolean;
+}
+
+// ========================================
+// HOOK TYPES (from hooks.types.ts)
+// ========================================
+
+// Pagination hook interfaces
+export interface IPaginatedTeamsOptions {
+  search?: string;
+  conference?: string;
+  division?: string;
+  sortBy?: 'name' | 'city' | 'conference';
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+  skip?: boolean;
+  forceRefresh?: boolean;
+}
+
+export interface IPaginatedTeamsReturn {
+  teams: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  cacheInfo: {
+    cached: boolean;
+    timestamp: number;
+    ttl: number;
+  } | null;
+  refetch: () => Promise<any>;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  setSearch: (search: string) => void;
+  setSortBy: (sortBy: 'name' | 'city' | 'conference') => void;
+  setSortDirection: (direction: 'asc' | 'desc') => void;
+  setConference: (conference: string) => void;
+  setDivision: (division: string) => void;
+}
+
+export interface IPaginatedPlayersOptions {
+  search?: string;
+  position?: string;
+  year?: string;
+  college?: string;
+  country?: string;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+  skip?: boolean;
+  forceRefresh?: boolean;
+}
+
+export interface IPaginatedPlayersResponse {
+  success: boolean;
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: string[];
+  results: number;
+  response: any[];
+  timestamp: string;
+  requestId: string;
+  players: any[];
+  total: number;
+  page: number;
+  limit: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalCount: number;
+  };
+  cacheInfo?: {
+    hit: boolean;
+    ttl?: number;
+    key?: string;
+  };
+}
+
+export interface IPaginatedPlayersReturn {
+  players: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: IPaginatedPlayersResponse['pagination'] | null;
+  cacheInfo: IPaginatedPlayersResponse['cacheInfo'] | null;
+  refetch: () => Promise<any>;
+  setPage: (page: number) => void;
+  setSearch: (search: string) => void;
+  setPosition: (position: string) => void;
+  setYear: (year: string) => void;
+  setCollege: (college: string) => void;
+  setCountry: (country: string) => void;
+  setSortBy: (sortBy: string) => void;
+  setSortDirection: (direction: 'asc' | 'desc') => void;
+  setLimit: (limit: number) => void;
+}
+
+export interface IPaginatedGamesOptions {
+  season?: string;
+  status?: 'all' | 'finished' | 'live' | 'scheduled' | 'cancelled';
+  page?: number;
+  limit?: number;
+  skip?: boolean;
+  forceRefresh?: boolean;
+}
+
+export interface IPaginatedGamesResponse {
+  success: boolean;
+  response: any[];
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+  filters: {
+    season: string;
+    status: string;
+  };
+  cacheInfo: {
+    hit: boolean;
+    key: string;
+    ttl: number;
+    status: string;
+  };
+}
+
+export interface IPaginatedGamesReturn {
+  games: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: IPaginatedGamesResponse['pagination'] | null;
+  cacheInfo: IPaginatedGamesResponse['cacheInfo'] | null;
+  refetch: () => Promise<any>;
+  setPage: (page: number) => void;
+  setStatus: (status: 'all' | 'finished' | 'live' | 'scheduled' | 'cancelled') => void;
+  setSeason: (season: string) => void;
+  setLimit: (limit: number) => void;
+}
+
+export interface IPaginatedGameLogsOptions {
+  userId?: string;
+  tab: 'my-logs' | 'friends-logs' | 'public-logs';
+  page?: number;
+  limit?: number;
+}
+
+export interface IPaginatedGameLogsReturn {
+  gameLogs: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+  } | null;
+  cacheInfo: {
+    cached?: boolean;
+    source?: string;
+    hit?: boolean;
+    key?: string;
+    ttl?: number;
+    status?: string;
+  } | null;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  setTab: (tab: 'my-logs' | 'friends-logs' | 'public-logs') => void;
+  refetch: () => void;
+}
+
+// REST API Game Logs interfaces
+export interface IPaginatedGameLogsRestOptions {
+  userId?: string;
+  tab: 'my-logs' | 'friends-logs' | 'public-logs';
+  page?: number;
+  limit?: number;
+  search?: string;
+  classification?: string;
+  sortBy?: any;
+  sortDirection?: any;
+  forceRefresh?: boolean;
+  teamName?: string;
+  username?: string;
+  tags?: string;
+  watchedDateFrom?: string;
+  watchedDateTo?: string;
+  gameDateFrom?: string;
+  gameDateTo?: string;
+  rating?: string;
+  watchedSetting?: string;
+  watchedScope?: string;
+}
+
+export interface IPaginatedGameLogsRestReturn {
+  gameLogs: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  } | null;
+  cacheInfo: {
+    cached?: boolean;
+    source?: string;
+    hit?: boolean;
+    key?: string;
+    ttl?: number;
+    status?: string;
+  } | null;
+  setPage: (page: number) => void;
+  setLimit: (limit: number) => void;
+  setTab: (tab: 'my-logs' | 'friends-logs' | 'public-logs') => void;
+  setSearch: (search: string) => void;
+  setClassification: (classification: string) => void;
+  setSortBy: (sortBy: any) => void;
+  setSortDirection: (sortDirection: any) => void;
+  refetch: () => void;
+}
+
+// Optimized Paginated Players interfaces
+export interface IOptimizedPaginatedPlayersOptions {
+  search?: string;
+  position?: string;
+  year?: string;
+  college?: string;
+  country?: string;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+  skip?: boolean;
+  forceRefresh?: boolean;
+  useOptimizedAPI?: boolean;
+}
+
+export interface IOptimizedPaginatedPlayersResponse {
+  success: boolean;
+  get: string;
+  parameters: Record<string, unknown>;
+  errors: string[];
+  results: number;
+  response: any[];
+  timestamp: string;
+  requestId: string;
+  players: any[];
+  total: number;
+  page: number;
+  limit: number;
+  pagination?: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    totalCount: number;
+    hasNextPage?: boolean;
+    hasPrevPage?: boolean;
+  };
+  cacheInfo?: {
+    hit: boolean;
+    ttl?: number;
+    key?: string;
+  };
+}
+
+export interface IOptimizedPaginatedPlayersReturn {
+  players: any[];
+  loading: boolean;
+  error: string | null;
+  pagination: IOptimizedPaginatedPlayersResponse['pagination'] | null;
+  cacheInfo: IOptimizedPaginatedPlayersResponse['cacheInfo'] | null;
+  refetch: () => Promise<any>;
+  setPage: (page: number) => void;
+  setSearch: (search: string) => void;
+  setPosition: (position: string) => void;
+  setYear: (year: string) => void;
+  setCollege: (college: string) => void;
+  setCountry: (country: string) => void;
+  setSortBy: (sortBy: string) => void;
+  setSortDirection: (direction: 'asc' | 'desc') => void;
+  setLimit: (limit: number) => void;
+  performanceMetrics: {
+    apiResponseTime: number;
+    renderTime: number;
+    cacheHitRate: number;
+    dataSize: number;
+    queryComplexity: number;
+  } | null;
+}
+
+// NBA Page State interfaces
+export interface INBAPageState {
+  forceRefresh: boolean;
+  pageSize: number;
+  currentPage: number;
+}
+
+export interface INBAPageActions {
+  setForceRefresh: (refresh: boolean) => void;
+  setPageSize: React.Dispatch<React.SetStateAction<number>>;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+  handlePageChange: (newPage: number) => void;
+  handlePageSizeChange: (newPageSize: string) => void;
+  handleForceRefresh: () => void;
+}
+
+// Debounced Search interface
+export interface IUseDebouncedSearchOptions {
+  delay?: number;
+  minLength?: number;
+  onSearch?: (query: string) => void;
+}
+
+// ========================================
+// UTILITY TYPES (from utils.types.ts)
+// ========================================
+
+// Generic utility types
+export interface IApiResponse<T = any> {
+  data: T;
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
+export interface ISortParams {
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+}
+
+export interface IFilterParams {
+  search?: string;
+  status?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  [key: string]: any;
+}
+
+// Error handling types
+export interface IErrorDetails {
+  message: string;
+  code?: string;
+  field?: string;
+  stack?: string;
+}
+
+export interface IValidationError {
+  field: string;
+  message: string;
+  value?: any;
+}
+
+// Cache-related types
+export interface ICacheOptions {
+  ttl?: number;
+  key?: string;
+  tags?: string[];
+  namespace?: string;
+  strategy?: 'memory' | 'redis' | 'database' | 'hybrid';
+  priority?: 'low' | 'medium' | 'high';
+}
+
+// Form utility types
+export interface IFormField {
+  name: string;
+  value: any;
+  error?: string;
+  touched: boolean;
+  required?: boolean;
+}
+
+export interface IFormState {
+  fields: Record<string, IFormField>;
+  isValid: boolean;
+  isSubmitting: boolean;
+  errors: Record<string, string>;
+}
+
+// Date/time utility types
+export interface IDateRange {
+  start: Date;
+  end: Date;
+}
+
+export interface ITimeFormat {
+  format: '12h' | '24h';
+  timezone?: string;
+}
+
+// String utility types
+export interface IStringTransform {
+  toLowerCase?: boolean;
+  toUpperCase?: boolean;
+  trim?: boolean;
+  replace?: Array<{ from: string; to: string }>;
+}
+
+// Object utility types
+export interface IObjectPath {
+  path: string;
+  value: any;
+}
+
+export interface IDeepMergeOptions {
+  arrays?: 'replace' | 'merge' | 'concat';
+  objects?: 'replace' | 'merge';
+  primitives?: 'replace' | 'keep-first' | 'keep-last';
+}
+
+// Performance monitoring types - merged with the main IPerformanceMetrics interface above
+
+// ============================================================================
+// COMPONENT-RELATED TYPE DEFINITIONS
+// ============================================================================
+
+// Public Game Comments Component Props
+export interface IPublicGameCommentsProps {
+  gameId: string;
+  showComments?: boolean;
+}
+
+// Public Comment Viewer Component Props
+export interface IPublicCommentViewerProps {
+  commentId: string;
+  className?: string;
+}
+
+// Comment Viewer Component Props
+export interface ICommentViewerProps {
+  commentId: string;
+  className?: string;
+}
+
+// Public Reaction Picker Component Props
+export interface IPublicReactionPickerProps {
+  targetId: string;
+  targetType: string;
+  size?: 'sm' | 'md' | 'lg';
+  showCount?: boolean;
+  showPicker?: boolean;
+  onReactionSelect: (emoji: string) => void;
+}
+
+// ============================================================================
+// DATABASE-RELATED TYPE DEFINITIONS
+// ============================================================================
+
+// Query Performance Monitoring Types
+export interface QueryMetrics {
+  queryName: string;
+  executionTime: number;
+  resultCount: number;
+  timestamp: Date;
+  success: boolean;
+  error?: string;
+}
+
+export interface PerformanceStats {
+  totalQueries: number;
+  averageExecutionTime: number;
+  minExecutionTime: number;
+  maxExecutionTime: number;
+  successRate: number;
+  totalResultCount: number;
+}
+
+// ============================================================================
+// GRAPHQL-RELATED TYPE DEFINITIONS
+// ============================================================================
+
+import DataLoader from 'dataloader';
+import { FetchMoreQueryOptions } from '@apollo/client';
+
+// DataLoader Context Type moved to 002-graphql.types.ts to avoid circular dependencies
+
+// ============================================================================
+// HOOK-RELATED TYPE DEFINITIONS
+// ============================================================================
+
+// Optimized Reactions Hook Types
+export interface IUseOptimizedReactionsOptions {
+  skip?: boolean;
+}
+
+export interface IUseOptimizedReactionsReturn {
+  reactions: IReaction[];
+  reactionGroups: IReactionGroup[];
+  loading: boolean;
+  error: any;
+  refetch: () => Promise<any>;
+}
+
+// Optimized Public Reactions Hook Types
+export interface IUseOptimizedPublicReactionsOptions {
+  skip?: boolean;
+}
+
+export interface IUseOptimizedPublicReactionsReturn {
+  reactions: IPublicReaction[];
+  reactionGroups: IPublicReactionGroup[];
+  loading: boolean;
+  error: any;
+  refetch: () => Promise<any>;
+}
+
+// Optimized Public Comments Hook Types
+export interface IUseOptimizedPublicCommentsOptions {
+  limit?: number;
+  skip?: boolean;
+  useCountsOnly?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedPublicCommentsReturn {
+  comments: IPublicComment[];
+  totalCommentCount: number;
+  totalReactionCount: number;
+  loading: boolean;
+  error: any;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  commentCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized Public Comment Replies Hook Types
+export interface IUseOptimizedPublicCommentRepliesOptions {
+  commentId?: string;
+  limit?: number;
+  skip?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedPublicCommentRepliesReturn {
+  replies: IPublicComment[];
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+  loading: boolean;
+  error: any;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  replyCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized NBA Hub Counts Hook Types
+export interface IUseOptimizedNBAHubCountsOptions {
+  skip?: boolean;
+}
+
+export interface IUseOptimizedNBAHubCountsReturn {
+  counts: {
+    totalGames: number;
+    totalTeams: number;
+    totalPlayers: number;
+  };
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  performanceMetrics?: {
+    queryTime: number;
+    dataSize: number;
+  };
+}
+
+// Optimized Landing Page Data Hook Types
+export interface IUseOptimizedLandingPageDataOptions {
+  limit?: number;
+  skip?: boolean;
+}
+
+export interface IUseOptimizedLandingPageDataReturn {
+  data: {
+    trendingContent: any[];
+    latestGames: any[];
+    popularGames: any[];
+  };
+  loading: boolean;
+  error: Error | null;
+  refetch: () => void;
+  performanceMetrics?: {
+    queryTime: number;
+    dataSize: number;
+  };
+}
+
+// Optimized Game Log Comments Hook Types
+export interface IUseGameLogCommentsOptions {
+  limit?: number;
+  skip?: boolean;
+  useCountsOnly?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseGameLogCommentsReturn {
+  comments: IComment[];
+  totalCommentCount: number;
+  totalReactionCount: number;
+  loading: boolean;
+  error: any;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  commentCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized Comment Replies Hook Types
+export interface IUseOptimizedCommentRepliesOptions {
+  limit?: number;
+  skip?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedCommentRepliesReturn {
+  replies: IComment[];
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+  loading: boolean;
+  error: any;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  replyCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized Comment Hook Types
+export interface IUseCommentOptions {
+  commentId?: string;
+  limit?: number;
+  skip?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseCommentReturn {
+  replies: IComment[];
+  reactions: IReaction[];
+  reactionGroups: IReactionGroup[];
+  totalReplyCount: number;
+  totalReactionCount: number;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  loading: boolean;
+  error: any;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  replyCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized Public Comment Hook Types
+export interface IUsePublicCommentOptions {
+  commentId: string;
+  limit?: number;
+  skip?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUsePublicCommentReturn {
+  replies: IPublicComment[];
+  reactions: IPublicReaction[];
+  reactionGroups: IPublicReactionGroup[];
+  totalReplyCount: number;
+  totalReactionCount: number;
+  hasNextPage: boolean;
+  endCursor: string | null;
+  loading: boolean;
+  error: any;
+  refetch: () => Promise<any>;
+  loadMore: () => Promise<any>;
+  replyCounts: Map<string, { totalChildCommentCount: number; totalReactionCount: number }>;
+}
+
+// Optimized Friendships Hook Types
+export interface IUseOptimizedFriendshipsOptions {
+  limit?: number;
+  skip?: boolean;
+  useCountsOnly?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedFriendshipsReturn {
+  friendships: IFriendship[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<any>;
+  hasNextPage: boolean;
+  loadMore: () => Promise<void>;
+  totalCount: number;
+  queryTime: boolean;
+  isSlowQuery: boolean;
+}
+
+// Optimized Friendship Requests Hook Types
+export interface IUseOptimizedFriendshipRequestsOptions {
+  limit?: number;
+  skip?: boolean;
+  useCountsOnly?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedFriendshipRequestsReturn {
+  requests: IFriendship[];
+  loading: boolean;
+  error: Error | null;
+  refetch: () => Promise<any>;
+  hasNextPage: boolean;
+  loadMore: () => Promise<void>;
+  totalCount: number;
+  queryTime: boolean;
+  isSlowQuery: boolean;
+}
+
+// Optimized User Search Hook Types
+export interface IUseOptimizedUserSearchOptions {
+  limit?: number;
+  skip?: boolean;
+  useCountsOnly?: boolean;
+  useDetailed?: boolean;
+}
+
+export interface IUseOptimizedUserSearchReturn {
+  users: UserSummary[];
+  loading: boolean;
+  error: Error | null;
+  search: (searchTerm: string) => Promise<void>;
+  hasNextPage: boolean;
+  loadMore: () => Promise<void>;
+  totalCount: number;
+  queryTime: boolean;
+  isSlowQuery: boolean;
+}
+
+// Public Reaction Group Type (extends the base IReactionGroup)
+export interface IPublicReactionGroup {
+  emoji: string;
+  count: number;
+  reactions: IPublicReaction[];
+  users: Array<{
+    id: string;
+    username: string;
+    imageUrl?: string | null;
+  }>;
+  hasUserReacted: boolean;
+}
+
+// ========================================
+// SEARCH DATA PARSER TYPES
+// ========================================
+
+// Type definitions for player data used in search parsing
+export interface IPlayerData {
+  feets?: number;
+  inches?: number;
+  meters?: number;
+  pounds?: number;
+  kilograms?: number;
+  // Allow additional properties for compatibility with IPlayerResponse
+  [key: string]: unknown;
+}
+
+// ========================================
+// COMPONENT PROPS INTERFACES
+// ========================================
+
+// Popular Games interfaces
+export interface IPopularGamesData {
+  topRated: IPopularGame[];
+  mostRated: IPopularGame[];
+  mostPopular: IPopularGame[];
+}
+
+export interface IPopularGamesProps {
+  data?: IPopularGamesData;
+}
+
+// Trending Content interfaces
+export interface ITrendingContentData {
+  topGameLogs: GameLog[];
+  mostActiveGameLog: GameLog | null;
+}
+
+export interface IIntegratedGameLogsProps {
+  data?: ITrendingContentData;
+}
+
+export interface IIntegratedGamesProps {
+  data?: IRecentGame[];
+}
+
+export interface ILandingPageClientFallbackProps {
+  serverData?: {
+    trendingContent?: ITrendingContentData;
+    recentGames?: IRecentGame[];
+    popularGames?: IPopularGamesData;
+  } | null;
+}
+
+// Database result interfaces
+export interface IDatabaseGameResult {
+  id: string;
+  date: Date;
+  status: unknown; // JSONB field
+  teams: unknown; // JSONB field
+  scores: unknown; // JSONB field
+  arena: unknown; // JSONB field
+  periods: unknown; // JSONB field
+  season: string | null;
+  stage: number | null;
+  nugget: string | null;
+  average_rating: string;
+  total_ratings: number;
+}
+
+// ============================================================================
+// OPTIMIZATION & PERFORMANCE INTERFACES
+// ============================================================================
+
+/**
+ * Optimized query options interface
+ */
+export interface IOptimizedQueryOptions {
+  fetchPolicy?: 'cache-first' | 'cache-only' | 'network-only' | 'no-cache';
+  errorPolicy?: 'none' | 'ignore' | 'all';
+  notifyOnNetworkStatusChange?: boolean;
+  pollInterval?: number;
+  skip?: boolean;
+  debounceMs?: number;
+  retryCount?: number;
+  retryDelay?: number;
+  context?: Record<string, any>;
+  onCompleted?: (data: any) => void;
+  onError?: (error: any) => void;
+}
+
+/**
+ * Cache options interface
+ */
+export interface ICacheOptions {
+  ttl?: number;
+  tags?: string[];
+  namespace?: string;
+  strategy?: 'memory' | 'redis' | 'database' | 'hybrid';
+  pattern?: string;
+}
+
+/**
+ * Query optimization options interface
+ */
+export interface IQueryOptimizationOptions {
+  useCache?: boolean;
+  cacheTTL?: number;
+  batchSize?: number;
+  forceRefresh?: boolean;
+  maxRetries?: number;
+  retryDelay?: number;
+  enableExplain?: boolean;
+  logSlowQueries?: boolean;
+  slowQueryThreshold?: number;
+  enableQueryCache?: boolean;
+  maxCacheSize?: number;
+}
+
+/**
+ * Performance monitor props interface
+ */
+export interface IPerformanceMonitorProps {
+  componentName: string;
+  threshold?: number;
+  onPerformanceIssue?: (metrics: IPerformanceMetrics) => void;
+  enabled?: boolean;
+  showDetails?: boolean;
+  className?: string;
+}
+
+/**
+ * Optimized game log card props interface
+ */
+export interface IGameLogCardProps {
+  gameLog: IGameLog;
+  showComments?: boolean;
+  showReactions?: boolean;
+  onComment?: (gameLogId: string, content: string) => void;
+  onReaction?: (gameLogId: string, emoji: string) => void;
+  onDelete?: (gameLog: IGameLog) => void;
+  onEdit?: (gameLog: IGameLog) => void;
+  className?: string;
+  isOwner?: boolean;
+  showUserInfo?: boolean;
+  compact?: boolean;
+  showActions?: boolean;
+}
+
+/**
+ * Popular team interface
+ */
+export interface IPopularTeam {
+  id: string;
+  name: string;
+  code: string;
+  logo?: string;
+  city: string;
+  gameLogCount?: number;
+  commentCount?: number;
+  reactionCount?: number;
+  popularityScore?: number;
+  engagement?: {
+    total: number;
+    public: number;
+    private: number;
+  };
+}
+
+/**
+ * Popular teams data interface
+ */
+export interface IPopularTeamsData {
+  teams: IPopularTeam[];
+  totalCount: number;
+  lastUpdated: string;
+  cacheKey: string;
+  mostPopular: IPopularTeam[];
+}
+
+/**
+ * Popular player interface
+ */
+export interface IPopularPlayer {
+  id: string;
+  name: string;
+  position: string;
+  team: {
+    id: string;
+    name: string;
+    code: string;
+    logo?: string;
+  };
+  gameLogCount?: number;
+  commentCount?: number;
+  reactionCount?: number;
+  popularityScore?: number;
+  engagement?: {
+    total: number;
+    public: number;
+    private: number;
+  };
+}
+
+/**
+ * Popular players data interface
+ */
+export interface IPopularPlayersData {
+  players: IPopularPlayer[];
+  totalCount: number;
+  lastUpdated: string;
+  cacheKey: string;
+  mostPopular: IPopularPlayer[];
+}
+
+/**
+ * Active fan interface
+ */
+export interface IActiveFan {
+  id: string;
+  username: string;
+  imageUrl?: string;
+  gameLogCount: number;
+  commentCount: number;
+  reactionCount: number;
+  receivedEngagement: number;
+  activityScore: number;
+  engagement: {
+    created: number;
+    received: number;
+    public: number;
+    private: number;
+  };
+}
+
+/**
+ * Active fans data interface
+ */
+export interface IActiveFansData {
+  fans: IActiveFan[];
+  totalCount: number;
+  lastUpdated: string;
+  cacheKey: string;
+  mostActive: IActiveFan[];
+}
+
+/**
+ * Trending content interface
+ */
+export interface ITrendingContent {
+  id: string;
+  type: ContentType;
+  content: string;
+  author: string;
+  engagementScore: number;
+  timestamp: string;
+}
+
+/**
+ * Trending content data interface
+ */
+export interface ITrendingContentData {
+  content: ITrendingContent[];
+  totalCount: number;
+  lastUpdated: string;
+  cacheKey: string;
+}
+
+/**
+ * Content preview data interface
+ */
+export interface IContentPreviewData {
+  mostActiveGameLog: any;
+  latestFinishedGame: any;
+}
+
+export interface DataLoaderContext {
+  userLoader: any; // Will be properly typed when used
+  commentCountLoader: any;
+  reactionCountLoader: any;
+  publicCommentCountLoader: any;
+  publicReactionCountLoader: any;
+  gameLoader: any;
+  teamLoader: any;
+  playerLoader: any;
+}
+
+// GraphQL Context Type
+export interface GraphQLContext {
+  user?: {
+    id: string;
+    email: string;
+    username?: string;
+    firstName?: string;
+    lastName?: string;
+  };
+  userId?: string;
+  dataLoaders: DataLoaderContext;
+  req: any;
+  res: any;
+}
+
+export interface IOptimizedQueryResult<T> {
+  data: T | undefined;
+  loading: boolean;
+  error: Error | undefined;
+  refetch: () => Promise<unknown>;
+  fetchMore: (options: FetchMoreQueryOptions<unknown, unknown>) => Promise<unknown>;
+  networkStatus: number;
+  called: boolean;
+}

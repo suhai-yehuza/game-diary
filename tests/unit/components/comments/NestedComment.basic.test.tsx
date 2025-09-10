@@ -122,7 +122,7 @@ describe('NestedComment', () => {
     expect(screen.getByText('johndoe')).toBeInTheDocument();
   });
 
-  it('should show "Unknown User" when no name is available', () => {
+  it('should show "Anonymous" when no name is available', () => {
     const commentWithoutName = {
       ...mockComment,
       user: {

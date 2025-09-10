@@ -3,7 +3,7 @@ import React from 'react';
 import { toast } from 'sonner';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { GameLogModal } from '@/app/components/game-logs/GameLogModal';
+import { GameLogModal } from '@/app/components/game-logs/BaseGameLogModal';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
@@ -39,23 +39,77 @@ vi.mock('sonner', () => ({
   },
 }));
 
-// Apollo mocks
-let capturedCreateOptions: any = null;
-let capturedUpdateOptions: any = null;
+// Mock react-hook-form
+vi.mock('react-hook-form', () => ({
+  useForm: () => ({
+    register: vi.fn(),
+    handleSubmit: vi.fn(fn => fn),
+    formState: { errors: {}, isSubmitting: false, isValid: true },
+    reset: vi.fn(),
+    setValue: vi.fn(),
+  }),
+}));
+
+// Mock @hookform/resolvers/zod
+vi.mock('@hookform/resolvers/zod', () => ({
+  zodResolver: vi.fn(),
+}));
+
+// Mock useOptimizedMutation
 const mockCreateFn = vi.fn();
 const mockUpdateFn = vi.fn();
 
-vi.mock('@apollo/client', () => ({
-  useMutation: (_doc: any, options: any) => {
-    // Distinguish by presence of id in variables shape when invoked
-    if (!capturedCreateOptions) {
-      capturedCreateOptions = { ...options, result: [mockCreateFn, { loading: false }] };
-      return [mockCreateFn, { loading: false }];
+let createMutationOptions: any = null;
+let updateMutationOptions: any = null;
+
+vi.mock('@/hooks/use-optimized-mutation', () => ({
+  useOptimizedMutation: vi.fn((_doc: any, options: any) => {
+    // Store options so tests can trigger callbacks
+    if (_doc === 'CREATE_GAME_LOG') {
+      createMutationOptions = options;
+      return [mockCreateFn, { loading: false, error: undefined }];
+    } else if (_doc === 'UPDATE_GAME_LOG') {
+      updateMutationOptions = options;
+      return [mockUpdateFn, { loading: false, error: undefined }];
     }
-    capturedUpdateOptions = { ...options, result: [mockUpdateFn, { loading: false }] };
-    return [mockUpdateFn, { loading: false }];
+    return [vi.fn(), { loading: false, error: undefined }];
+  }),
+}));
+
+// Mock other dependencies
+vi.mock('@/lib/constants', () => ({
+  CLASSIFICATION: { PROTECTED: 'PROTECTED' },
+  WATCHED_SETTING: { TV: 'TV' },
+  WATCHED_SCOPE: { FULL_GAME: 'FULL_GAME' },
+}));
+
+vi.mock('@/lib/graphql/mutations', () => ({
+  CREATE_GAME_LOG: 'CREATE_GAME_LOG',
+  UPDATE_GAME_LOG: 'UPDATE_GAME_LOG',
+}));
+
+vi.mock('@/lib/utils/error-handler', () => ({
+  errorHandlers: {
+    api: vi.fn(),
   },
-  gql: vi.fn(),
+}));
+
+vi.mock('@/lib/utils/nba-season', () => ({
+  getLatestNbaSeason: vi.fn(() => 2024),
+  getRecentNbaSeasons: vi.fn(() => [2024, 2023, 2022]),
+}));
+
+vi.mock('@/app/components/game-logs/utils/gameLogsUtils', () => ({
+  generateDistinctTagColors: vi.fn(() => []),
+}));
+
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+  }),
 }));
 
 // Minimal fetch mock for game list requests during create mode
@@ -68,59 +122,85 @@ describe('GameLogModal toasts', () => {
     vi.clearAllMocks();
     mockToast.success.mockClear();
     mockToast.error.mockClear();
-    capturedCreateOptions = null;
-    capturedUpdateOptions = null;
+    createMutationOptions = null;
+    updateMutationOptions = null;
   });
 
-  it.skip('shows success toast on create success', async () => {
+  it('shows success toast on create success', async () => {
     // Arrange modal in create mode
     render(<GameLogModal mode="create" isOpen={true} onClose={vi.fn()} onSuccess={vi.fn()} />);
 
-    // Wait for component to render and mutations to be set up
+    // Wait for component to render
     await waitFor(() => {
-      expect(capturedCreateOptions).toBeDefined();
+      expect(document.querySelector('form')).toBeInTheDocument();
     });
 
-    // Get the mutation function from the captured options
-    const [createFn] = capturedCreateOptions?.result || [];
-    if (createFn) {
-      // Trigger the mutation directly
-      await createFn();
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(createMutationOptions).toBeTruthy();
+    });
 
-      // Simulate onCompleted from create mutation
-      capturedCreateOptions?.onCompleted?.({
-        createGameLog: { gameLog: { id: 'test-log' }, errors: [] },
-      });
-    }
+    // Simulate successful mutation completion
+    createMutationOptions.onCompleted({
+      createGameLog: { gameLog: { id: 'test-log' }, errors: [] },
+    });
 
+    // The success toast should be shown
     await waitFor(() => {
       expect(mockToast.success).toHaveBeenCalledWith('Game log created!');
     });
   });
 
   it('shows error toast with API message on create failure', async () => {
+    // Arrange modal in create mode
     render(<GameLogModal mode="create" isOpen={true} onClose={vi.fn()} onSuccess={vi.fn()} />);
 
-    capturedCreateOptions?.onCompleted?.({
+    // Wait for component to render
+    await waitFor(() => {
+      expect(document.querySelector('form')).toBeInTheDocument();
+    });
+
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(createMutationOptions).toBeTruthy();
+    });
+
+    // Simulate mutation completion with error
+    createMutationOptions.onCompleted({
       createGameLog: { gameLog: null, errors: [{ message: 'Creation failed' }] },
     });
 
+    // The error toast should be shown
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Game log creation failed');
+      expect(mockToast.error).toHaveBeenCalledWith('Creation failed');
     });
   });
 
   it('shows generic error toast on create onError', async () => {
+    // Arrange modal in create mode
     render(<GameLogModal mode="create" isOpen={true} onClose={vi.fn()} onSuccess={vi.fn()} />);
 
-    capturedCreateOptions?.onError?.(new Error('Boom'));
+    // Wait for component to render
+    await waitFor(() => {
+      expect(document.querySelector('form')).toBeInTheDocument();
+    });
 
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(createMutationOptions).toBeTruthy();
+    });
+
+    // Simulate mutation error
+    createMutationOptions.onError(new Error('Boom'));
+
+    // The error toast should be shown
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith('Failed to create game log.');
     });
   });
 
   it('shows success toast on update success', async () => {
+    // Arrange modal in edit mode
     render(
       <GameLogModal
         mode="edit"
@@ -131,16 +211,29 @@ describe('GameLogModal toasts', () => {
       />
     );
 
-    capturedUpdateOptions?.onCompleted?.({
+    // Wait for component to render
+    await waitFor(() => {
+      expect(document.querySelector('form')).toBeInTheDocument();
+    });
+
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(updateMutationOptions).toBeTruthy();
+    });
+
+    // Simulate successful mutation completion
+    updateMutationOptions.onCompleted({
       updateGameLog: { gameLog: { id: 'log-1' }, errors: [] },
     });
 
+    // The success toast should be shown
     await waitFor(() => {
       expect(mockToast.success).toHaveBeenCalledWith('Game log updated!');
     });
   });
 
   it('shows error toast with backend message on update failure (errors array)', async () => {
+    // Arrange modal in edit mode
     render(
       <GameLogModal
         mode="edit"
@@ -151,16 +244,29 @@ describe('GameLogModal toasts', () => {
       />
     );
 
-    capturedUpdateOptions?.onCompleted?.({
+    // Wait for component to render
+    await waitFor(() => {
+      expect(document.querySelector('form')).toBeInTheDocument();
+    });
+
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(updateMutationOptions).toBeTruthy();
+    });
+
+    // Simulate mutation completion with error
+    updateMutationOptions.onCompleted({
       updateGameLog: { gameLog: null, errors: [{ message: 'Update failed' }] },
     });
 
+    // The error toast should be shown
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith('Update failed');
     });
   });
 
   it('shows generic error toast on update onError', async () => {
+    // Arrange modal in edit mode
     render(
       <GameLogModal
         mode="edit"
@@ -171,8 +277,20 @@ describe('GameLogModal toasts', () => {
       />
     );
 
-    capturedUpdateOptions?.onError?.(new Error('Boom'));
+    // Wait for component to render
+    await waitFor(() => {
+      expect(document.querySelector('form')).toBeInTheDocument();
+    });
 
+    // Wait for mutation options to be set
+    await waitFor(() => {
+      expect(updateMutationOptions).toBeTruthy();
+    });
+
+    // Simulate mutation error
+    updateMutationOptions.onError(new Error('Boom'));
+
+    // The error toast should be shown
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith('Failed to update game log: Boom');
     });

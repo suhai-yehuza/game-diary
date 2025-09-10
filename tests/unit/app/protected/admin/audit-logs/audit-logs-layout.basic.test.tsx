@@ -91,7 +91,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles missing session claims gracefully', async () => {
@@ -104,7 +104,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles missing metadata gracefully', async () => {
@@ -117,7 +117,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles missing role array gracefully', async () => {
@@ -132,7 +132,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles empty role array gracefully', async () => {
@@ -149,7 +149,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles malformed session claims gracefully', async () => {
@@ -166,7 +166,7 @@ describe('AdminAuditLogsLayout', () => {
 
     await AdminAuditLogsLayout({ children: <TestComponent /> });
 
-    expect(mockRedirect).toHaveBeenCalledWith('/protected/user');
+    expect(mockRedirect).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('logs audit events for unauthorized access attempts', async () => {

@@ -15,17 +15,19 @@ const hasUserReacted = (reactions: IReaction[], emoji: string, userId: string) =
 export const ReactionPicker = memo(function ReactionPicker({
   targetId,
   targetType,
-}: IReactionPickerProps) {
+  skip = false,
+}: IReactionPickerProps & { skip?: boolean }) {
   const { user } = useUser();
   const currentUserId = user?.id;
 
   const [isOpen, setIsOpen] = useState(false);
   const [showMoreReactions, setShowMoreReactions] = useState(false);
 
-  // Use the useReactions hook
+  // Use the full reactions hook with mutation capabilities
   const { reactions, reactionGroups, loading, toggleReaction } = useReactions({
     targetId,
     targetType: targetType as ParentType,
+    skip,
   });
 
   // Toggle picker - no need to fetch, just show/hide
@@ -39,6 +41,7 @@ export const ReactionPicker = memo(function ReactionPicker({
       if (!currentUserId) return;
 
       try {
+        // Use the actual toggle reaction functionality
         await toggleReaction(emoji);
         // Auto-close picker after reaction
         setIsOpen(false);
@@ -46,7 +49,7 @@ export const ReactionPicker = memo(function ReactionPicker({
         console.error('Error toggling reaction:', error);
       }
     },
-    [currentUserId, toggleReaction]
+    [currentUserId, toggleReaction, setIsOpen]
   );
 
   // Close picker
@@ -110,7 +113,7 @@ export const ReactionPicker = memo(function ReactionPicker({
         {/* Enhanced Reaction Picker Dropdown */}
         {isOpen && (
           <div
-            className="absolute top-full left-0 mt-2 w-80 bg-white dark:bg-gray-50 border border-gray-200 dark:border-gray-300 rounded-xl shadow-2xl z-[9999] backdrop-blur-sm"
+            className="absolute bottom-full left-0 mb-2 w-80 bg-white dark:bg-gray-50 border border-gray-200 dark:border-gray-300 rounded-xl shadow-2xl z-[9999] backdrop-blur-sm"
             style={{
               boxShadow:
                 '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.05)',
@@ -165,8 +168,15 @@ export const ReactionPicker = memo(function ReactionPicker({
               {/* Collapsible More Reactions */}
               <div>
                 <button
-                  onClick={() => setShowMoreReactions(!showMoreReactions)}
-                  className="flex items-center justify-between w-full mb-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-200 rounded-lg transition-colors"
+                  onClick={e => {
+                    e.stopPropagation();
+                    console.log('More reactions button clicked, current state:', showMoreReactions);
+                    setShowMoreReactions(!showMoreReactions);
+                  }}
+                  className="flex items-center justify-between w-full mb-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                  type="button"
+                  aria-expanded={showMoreReactions}
+                  aria-label={showMoreReactions ? 'Hide more reactions' : 'Show more reactions'}
                 >
                   <h4 className="text-xs font-medium text-gray-600 dark:text-gray-500 uppercase tracking-wide">
                     More Reactions
@@ -177,7 +187,7 @@ export const ReactionPicker = memo(function ReactionPicker({
                 </button>
 
                 {showMoreReactions && (
-                  <div className="grid grid-cols-8 gap-1.5 animate-in slide-in-from-top-2 duration-200">
+                  <div className="grid grid-cols-8 gap-1.5 animate-in slide-in-from-top-2 duration-200 border-t border-gray-200 dark:border-gray-300 pt-3">
                     {[...SPORTS_REACTIONS, ...EMOTIONS_REACTIONS, ...ACTION_REACTIONS].map(
                       emoji => {
                         const userHasReacted =

@@ -1,35 +1,32 @@
-import type { DocumentNode, MutationHookOptions } from '@apollo/client';
-import { useMutation } from '@apollo/client';
+import type { DocumentNode, MutationHookOptions, MutationFunctionOptions } from '@apollo/client';
+import { useMutation as apolloUseMutation } from '@apollo/client';
 import { useCallback, useRef, useMemo } from 'react';
 
 import { errorHandlers } from '@/lib/utils/error-handler';
-import type { IOptimizedMutationOptions } from '@/types';
+import type { IMutationOptions } from '@/types';
 
 /**
  * Optimized GraphQL mutation hook with performance monitoring and caching strategies
  */
 export function useOptimizedMutation<TData = unknown, TVariables = Record<string, unknown>>(
   mutation: DocumentNode,
-  options: IOptimizedMutationOptions<TData, TVariables> = {}
+  options: IMutationOptions<TData, TVariables> = {}
 ): [
-  (options?: { variables?: TVariables; [key: string]: unknown }) => Promise<TData | undefined>,
+  (options?: MutationFunctionOptions<TData, TVariables>) => Promise<TData | undefined>,
   {
     loading: boolean;
     error?: Error;
     data: TData | undefined;
     called: boolean;
     client: unknown;
-    mutate: (options?: {
-      variables?: TVariables;
-      [key: string]: unknown;
-    }) => Promise<TData | undefined>;
-    mutateAsync: (options?: { variables?: TVariables; [key: string]: unknown }) => Promise<TData>;
+    mutate: (options?: MutationFunctionOptions<TData, TVariables>) => Promise<TData | undefined>;
+    mutateAsync: (options?: MutationFunctionOptions<TData, TVariables>) => Promise<TData>;
     reset: () => void;
   },
 ] {
   const {
     enableOptimisticUpdates = false,
-    refetchQueries = true,
+    refetchQueries = 'active',
     awaitRefetchQueries = false,
     context = {},
     onSuccess,
@@ -38,12 +35,13 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
   } = options;
 
   // Type assertion for mutationOptions to access variables
-  const mutationOpts = mutationOptions as MutationHookOptions<TData, TVariables>;
+  const _mutationOpts = mutationOptions as MutationHookOptions<TData, TVariables>;
 
   // Performance monitoring
   const mutationStartTime = useRef<number>(0);
   const mutationTime = useRef<number>(0);
   const isSlowMutation = useRef<boolean>(false);
+  const lastMutationVariables = useRef<TVariables | undefined>(undefined);
 
   // Determine optimal error policy
   const errorPolicy = useMemo(() => {
@@ -56,7 +54,7 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
     ...mutationOptions,
     errorPolicy,
     // Optimize refetch behavior
-    refetchQueries: refetchQueries ? 'active' : undefined,
+    refetchQueries,
     awaitRefetchQueries,
     // Performance monitoring callbacks
     onCompleted: data => {
@@ -67,7 +65,7 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
       if (isSlowMutation.current) {
         console.warn(`Slow mutation detected: ${mutationTime.current}ms`, {
           mutation: mutation?.loc?.source?.body || 'Unknown mutation',
-          variables: mutationOpts.variables,
+          variables: lastMutationVariables.current,
           context,
         });
 
@@ -77,53 +75,49 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
             detail: {
               duration: mutationTime.current,
               mutation: mutation?.loc?.source?.body || 'Unknown mutation',
-              variables: mutationOpts.variables,
+              variables: lastMutationVariables.current,
               context,
             },
           })
         );
       }
 
-      // Call success callback
-      if (onSuccess) {
-        onSuccess(data);
-      }
-
-      // Call original onCompleted if provided
+      // Call original onCompleted if provided (this handles the component's toast logic)
       if (mutationOptions.onCompleted) {
         mutationOptions.onCompleted(data);
+      }
+      // Only call onSuccess if no onCompleted was provided to avoid duplicate callbacks
+      else if (onSuccess) {
+        onSuccess(data);
       }
     },
     onError: error => {
       // Use centralized error handling
       errorHandlers.api(error, {
-        component: 'useOptimizedMutation',
+        component: 'useMutation',
         action: 'Execute GraphQL mutation',
         ...context,
       });
 
-      // Call error callback
-      if (onError) {
-        onError(error);
-      }
-
-      // Call original onError if provided
+      // Call original onError if provided (this handles the component's toast logic)
       if (options.onError) {
         options.onError(error);
+      }
+      // Only call onError if no original onError was provided to avoid duplicate callbacks
+      else if (onError) {
+        onError(error);
       }
     },
   };
 
   // Execute the mutation
-  const [mutate, mutationResult] = useMutation<TData, TVariables>(mutation, optimizedOptions);
+  const [mutate, mutationResult] = apolloUseMutation<TData, TVariables>(mutation, optimizedOptions);
 
   // Create optimized mutation function
   const optimizedMutate = useCallback(
-    async (options?: {
-      variables?: TVariables;
-      [key: string]: unknown;
-    }): Promise<TData | undefined> => {
+    async (options?: MutationFunctionOptions<TData, TVariables>): Promise<TData | undefined> => {
       mutationStartTime.current = Date.now();
+      lastMutationVariables.current = options?.variables;
 
       const result = await mutate(options);
       return result.data || undefined;
@@ -133,7 +127,7 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
 
   // Create async mutation function
   const _mutateAsync = useCallback(
-    async (options?: { variables?: TVariables; [key: string]: unknown }): Promise<TData> => {
+    async (options?: MutationFunctionOptions<TData, TVariables>): Promise<TData> => {
       const result = await optimizedMutate(options);
       if (!result) {
         throw new Error('Mutation failed - no data returned');
@@ -171,7 +165,7 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
         return result;
       } catch (error) {
         errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-          component: 'useOptimizedMutation',
+          component: 'useMutation',
           action: 'Execute mutation with optimistic update',
           ...context,
         });
@@ -192,7 +186,7 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
         return results;
       } catch (error) {
         errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-          component: 'useOptimizedMutation',
+          component: 'useMutation',
           action: 'Execute batch mutations',
           ...context,
         });
@@ -221,12 +215,18 @@ export function useOptimizedMutation<TData = unknown, TVariables = Record<string
  */
 export function useOptimisticMutation<TData = unknown, TVariables = Record<string, unknown>>(
   mutation: DocumentNode,
-  options: IOptimizedMutationOptions<TData, TVariables> = {}
+  options: IMutationOptions<TData, TVariables> = {}
 ) {
-  return useOptimizedMutation(mutation, {
-    ...options,
-    enableOptimisticUpdates: true,
-    refetchQueries: false, // Don't refetch for optimistic updates
+  const {
+    enableOptimisticUpdates: _enableOptimisticUpdates,
+    context: _context,
+    onSuccess: _onSuccess,
+    onError: _onError,
+    ...apolloOptions
+  } = options;
+  return apolloUseMutation(mutation, {
+    ...apolloOptions,
+    refetchQueries: undefined, // Don't refetch for optimistic updates
   });
 }
 
@@ -235,11 +235,18 @@ export function useOptimisticMutation<TData = unknown, TVariables = Record<strin
  */
 export function useRefetchMutation<TData = unknown, TVariables = Record<string, unknown>>(
   mutation: DocumentNode,
-  options: IOptimizedMutationOptions<TData, TVariables> = {}
+  options: IMutationOptions<TData, TVariables> = {}
 ) {
-  return useOptimizedMutation(mutation, {
-    ...options,
-    refetchQueries: true,
+  const {
+    enableOptimisticUpdates: _enableOptimisticUpdates,
+    context: _context,
+    onSuccess: _onSuccess,
+    onError: _onError,
+    ...apolloOptions
+  } = options;
+  return apolloUseMutation(mutation, {
+    ...apolloOptions,
+    refetchQueries: 'active',
     awaitRefetchQueries: true,
   });
 }
@@ -249,11 +256,18 @@ export function useRefetchMutation<TData = unknown, TVariables = Record<string, 
  */
 export function useBackgroundMutation<TData = unknown, TVariables = Record<string, unknown>>(
   mutation: DocumentNode,
-  options: IOptimizedMutationOptions<TData, TVariables> = {}
+  options: IMutationOptions<TData, TVariables> = {}
 ) {
-  return useOptimizedMutation(mutation, {
-    ...options,
-    refetchQueries: false,
+  const {
+    enableOptimisticUpdates: _enableOptimisticUpdates,
+    context: _context,
+    onSuccess: _onSuccess,
+    onError: _onError,
+    ...apolloOptions
+  } = options;
+  return apolloUseMutation(mutation, {
+    ...apolloOptions,
+    refetchQueries: undefined,
     awaitRefetchQueries: false,
   });
 }

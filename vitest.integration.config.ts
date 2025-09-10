@@ -6,7 +6,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     environment: 'jsdom',
-    setupFiles: ['./vitest.setup.ts'],
+    setupFiles: ['./vitest.setup.ts', './tests/integration/setup.ts'],
     globals: true,
     isolate: true,
     pool: 'forks',
@@ -19,8 +19,8 @@ export default defineConfig({
       'tests/e2e/**',
       'tests/unit/**',
     ],
-    testTimeout: 2 * 60 * 1000,
-    hookTimeout: 2 * 60 * 1000,
+    testTimeout: 60 * 1000,
+    hookTimeout: 60 * 1000,
     environmentOptions: {
       jsdom: {
         resources: 'usable',

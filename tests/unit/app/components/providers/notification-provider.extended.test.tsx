@@ -29,7 +29,7 @@ vi.mock('sonner', () => ({
   toast: { info: vi.fn(), error: vi.fn() },
 }));
 
-// Mock useOptimizedMutation hook
+// Mock useMutation hook
 vi.mock('@/hooks/use-optimized-mutation', () => ({
   useOptimizedMutation: () => [
     vi.fn().mockResolvedValue({}),

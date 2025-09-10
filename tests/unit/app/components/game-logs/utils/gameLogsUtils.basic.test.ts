@@ -13,8 +13,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: '2024-01-15',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 'lakers',
@@ -44,8 +43,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: '2024-01-15',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 'lakers',
@@ -74,8 +72,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: '2024-01-15',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 'lakers',
@@ -105,8 +102,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: '2024-01-15',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 'lakers',
@@ -138,8 +134,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: 'invalid-date',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 'lakers',
@@ -187,8 +182,7 @@ describe('gameLogsUtils', () => {
       const game = {
         id: 'game-1',
         date: '2024-01-15',
-        status: 'Final',
-        game_type: 'Regular Season',
+        status: { short: '', long: 'Finished' },
         teams: {
           home: {
             id: 25,
@@ -232,8 +226,7 @@ describe('gameLogsUtils', () => {
         game: {
           id: 'game-1',
           date: '2024-01-15',
-          status: 'Final',
-          game_type: 'Regular Season',
+          status: { short: '', long: 'Finished' },
           teams: {
             home: {
               id: 'lakers',
@@ -276,8 +269,7 @@ describe('gameLogsUtils', () => {
         game: {
           id: 'game-2',
           date: '2024-01-16',
-          status: 'Final',
-          game_type: 'Regular Season',
+          status: { short: '', long: 'Finished' },
           teams: {
             home: {
               id: 'celtics',

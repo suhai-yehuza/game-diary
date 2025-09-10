@@ -77,12 +77,14 @@ describe('AdminNav', () => {
       expect(screen.getByText('Database Management')).toBeInTheDocument();
       expect(screen.getByText('Audit Logs')).toBeInTheDocument();
       expect(screen.getByText('Experimental')).toBeInTheDocument();
+      expect(screen.getByText('Demos')).toBeInTheDocument();
 
       const links = screen.getAllByTestId('nav-link');
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(4);
       expect(links[0]).toHaveAttribute('href', '/protected/admin/database');
       expect(links[1]).toHaveAttribute('href', '/protected/admin/audit-logs');
       expect(links[2]).toHaveAttribute('href', '/protected/admin/experimental');
+      expect(links[3]).toHaveAttribute('href', '/protected/admin/demos');
     });
 
     it('applies active styles when admin route is active', () => {

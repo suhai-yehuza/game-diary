@@ -1,316 +1,349 @@
 'use client';
 
 import {
+  MessageCircle,
+  Eye,
+  Calendar,
+  MapPin,
   Edit,
   Trash2,
-  MessageCircle,
   ChevronDown,
   ChevronUp,
-  ExternalLink,
   Loader2,
+  Users,
+  Clock,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useCallback } from 'react';
+import React, { memo, useCallback, useState } from 'react';
 
 import { GameLogComments } from '@/app/components/comments/GameLogComments';
 import { ClassificationIcon } from '@/app/components/game-logs/ClassificationIcon';
 import { RatingStars } from '@/app/components/game-logs/RatingStars';
-import { getTeamDisplay } from '@/app/components/game-logs/utils/gameLogsUtils';
+import {
+  getTeamDisplay,
+  formatWatchedSetting,
+  generateDistinctTagColors,
+} from '@/app/components/game-logs/utils/gameLogsUtils';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { ReactionPicker } from '@/app/components/reactions';
+import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
-import { Card, CardHeader, CardContent, CardFooter, CardTitle } from '@/app/components/ui/Card';
+import { Card, CardContent, CardHeader, CardFooter } from '@/app/components/ui/Card';
 import type { IGameLogCardProps } from '@/types';
 import { ParentType } from '@/types';
 
-// Utility function to generate distinct colors for tags
-const getTagColor = (tag: string) => {
-  const colors = [
-    // Emerald - green
-    'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
-    // Blue
-    'bg-blue-100 dark:bg-blue-900/60 text-blue-900 dark:text-blue-100 border-blue-300 dark:border-blue-700',
-    // Orange
-    'bg-orange-100 dark:bg-orange-900/60 text-orange-900 dark:text-orange-100 border-orange-300 dark:border-orange-700',
-    // Purple
-    'bg-purple-100 dark:bg-purple-900/60 text-purple-900 dark:text-purple-100 border-purple-300 dark:border-purple-700',
-    // Red
-    'bg-red-100 dark:bg-red-900/60 text-red-900 dark:text-red-100 border-red-300 dark:border-red-700',
-    // Teal
-    'bg-teal-100 dark:bg-teal-900/60 text-teal-900 dark:text-teal-100 border-teal-300 dark:border-teal-700',
-    // Indigo
-    'bg-indigo-100 dark:bg-indigo-900/60 text-indigo-900 dark:text-indigo-100 border-indigo-300 dark:border-indigo-700',
-    // Amber
-    'bg-amber-100 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100 border-amber-300 dark:border-amber-700',
-  ];
+// Memoized component to prevent unnecessary re-renders
+export const GameLogCard = memo<IGameLogCardProps>(
+  ({ gameLog, className, showActions = false, onEdit, onDelete }) => {
+    const isMobile = useMobileDetection();
+    const router = useRouter();
+    const [expandedComments, setExpandedComments] = useState(false);
+    const [_expandedReactions, setExpandedReactions] = useState(false);
+    const [isNavigating, setIsNavigating] = useState(false);
 
-  // Use tag hash for consistent colors
-  const hash = tag.split('').reduce((a, b) => {
-    a = (a << 5) - a + b.charCodeAt(0);
-    return a & a;
-  }, 0);
+    const gameLogUrl = `/protected/dashboard/game-logs/${gameLog?.id || 'unknown'}`;
 
-  return colors[Math.abs(hash) % colors.length];
-};
+    // Memoized callbacks to prevent child re-renders
+    const handleCardClick = useCallback(
+      (e: React.MouseEvent) => {
+        // Don't navigate if clicking on interactive elements
+        const target = e.target as HTMLElement;
+        const isInteractiveElement = target.closest('button, a, [role="button"]');
 
-export const GameLogCard = ({
-  gameLog,
-  showActions = false,
-  onEdit,
-  onDelete,
-}: IGameLogCardProps) => {
-  const isMobile = useMobileDetection();
-  const router = useRouter();
-  const [showComments, setShowComments] = useState(false);
-  const [isNavigating, setIsNavigating] = useState(false);
+        if (isInteractiveElement) {
+          return;
+        }
 
-  const gameLogUrl = `/protected/user/game-logs/${gameLog?.id || 'unknown'}`;
+        // Handle different click types
+        if (e.ctrlKey || e.metaKey || e.button === 1) {
+          // Ctrl+click or Cmd+click or middle click - open in new tab
+          window.open(gameLogUrl, '_blank');
+          return;
+        }
 
-  const handleCardClick = useCallback(
-    (e: React.MouseEvent) => {
-      // Don't navigate if clicking on interactive elements
-      const target = e.target as HTMLElement;
-      const isInteractiveElement = target.closest('button, a, [role="button"]');
-
-      if (isInteractiveElement) {
-        return;
-      }
-
-      // Handle different click types
-      if (e.ctrlKey || e.metaKey || e.button === 1) {
-        // Ctrl+click or Cmd+click or middle click - open in new tab
-        window.open(gameLogUrl, '_blank');
-        return;
-      }
-
-      // Regular click - navigate in same tab
-      setIsNavigating(true);
-      router.push(gameLogUrl);
-    },
-    [gameLogUrl, router]
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
+        // Regular click - navigate in same tab
         setIsNavigating(true);
         router.push(gameLogUrl);
-      }
-    },
-    [gameLogUrl, router]
-  );
+      },
+      [gameLogUrl, router]
+    );
 
-  return (
-    <div key={gameLog?.id || 'unknown'} className={isMobile ? 'mb-4' : 'mb-6'}>
-      <Card
-        className={`
-          game-log-card-enhanced group relative border-2 border-gray-100 dark:border-gray-700 rounded-xl
-          cursor-pointer transition-all duration-300 bg-white dark:bg-gray-900
-          hover:shadow-xl hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10
-          focus-within:ring-4 focus-within:ring-blue-500/20 focus-within:border-blue-500
-          ${isNavigating ? 'opacity-75 scale-[0.98]' : 'hover:scale-[1.02]'}
-        `}
-        onClick={handleCardClick}
-        onKeyDown={handleKeyDown}
-        tabIndex={0}
-        role="article"
-        data-testid="game-log-item"
-        aria-label={`Game log for ${getTeamDisplay(gameLog?.game)} - Click to view details`}
-      >
-        <CardHeader
-          className={`flex flex-row justify-between items-start pb-2 text-gray-900 dark:text-white ${
-            isMobile ? 'pb-2' : 'pb-2'
-          }`}
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          setIsNavigating(true);
+          router.push(gameLogUrl);
+        }
+      },
+      [gameLogUrl, router]
+    );
+
+    const _handleCommentToggle = useCallback(() => {
+      setExpandedComments(prev => !prev);
+    }, []);
+
+    const _handleReactionToggle = useCallback(() => {
+      setExpandedReactions(prev => !prev);
+    }, []);
+
+    const handleEdit = useCallback(() => {
+      onEdit?.(gameLog);
+    }, [gameLog, onEdit]);
+
+    const handleDelete = useCallback(() => {
+      onDelete?.(gameLog);
+    }, [gameLog, onDelete]);
+
+    return (
+      <div className={`${className || ''} ${isMobile ? 'mb-3' : 'mb-4'}`}>
+        <Card
+          className={`transition-all duration-200 hover:shadow-lg ${
+            isMobile ? 'text-sm' : 'text-base'
+          } ${isNavigating ? 'opacity-75' : ''}`}
+          data-testid="game-log-item"
         >
-          <div className="flex items-center gap-2 flex-1">
-            <ClassificationIcon classification={gameLog?.classification || 'PRIVATE'} />
-            <div className="flex flex-col flex-1">
-              <CardTitle
-                className={`font-bold ${isMobile ? 'text-sm' : 'text-lg'} text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors`}
-              >
-                {gameLog?.game?.id ? (
-                  <Link
-                    href={`/games/${gameLog?.game?.id}`}
-                    className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                    onClick={e => e.stopPropagation()}
+          <CardHeader
+            className={`cursor-pointer transition-all duration-200 hover:bg-muted/30 ${isMobile ? 'pb-2' : 'pb-3'}`}
+            onClick={handleCardClick}
+            onKeyDown={handleKeyDown}
+            tabIndex={0}
+            role="button"
+            aria-label={`View game log for ${getTeamDisplay(gameLog?.game)}`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center space-x-3">
+                <div
+                  className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center`}
+                >
+                  <span
+                    className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-600 dark:text-gray-300`}
                   >
-                    {getTeamDisplay(gameLog?.game)}
-                  </Link>
-                ) : (
-                  getTeamDisplay(gameLog?.game)
-                )}
-              </CardTitle>
-              <span
-                className={`text-gray-500 dark:text-gray-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
-              >
-                {gameLog?.user?.id ? (
-                  <Link
-                    href={`/users/${gameLog?.user?.id}`}
-                    className="hover:underline text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    @{gameLog?.user?.first_name || gameLog?.user?.username || 'Unknown User'}
-                  </Link>
-                ) : (
-                  '@Unknown User'
-                )}
-              </span>
+                    {gameLog?.user?.username?.charAt(0).toUpperCase() || 'U'}
+                  </span>
+                </div>
+                <div>
+                  <h3 className={`font-semibold ${isMobile ? 'text-sm' : 'text-base'}`}>
+                    {gameLog?.user?.id ? (
+                      <a
+                        href={`/users/${gameLog.user.id}`}
+                        className="hover:underline"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        @{gameLog?.user?.first_name || gameLog?.user?.username || 'Anonymous'}
+                      </a>
+                    ) : (
+                      <>
+                        @
+                        {!gameLog?.user?.id
+                          ? 'Anonymous'
+                          : gameLog?.user?.first_name || gameLog?.user?.username || 'Anonymous'}
+                      </>
+                    )}
+                  </h3>
+                  <p className={`text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}>
+                    {gameLog?.watched_date
+                      ? new Date(gameLog.watched_date).toLocaleDateString('en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : 'Unknown date'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RatingStars rating={gameLog?.rating_for_game || 0} size={isMobile ? 'sm' : 'md'} />
+                <ClassificationIcon
+                  classification={gameLog?.classification}
+                  size={isMobile ? 'sm' : 'md'}
+                />
+              </div>
             </div>
-            {isNavigating ? (
-              <Loader2 className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-spin" />
-            ) : (
-              <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors opacity-0 group-hover:opacity-100" />
-            )}
-          </div>
-          <RatingStars rating={gameLog?.rating_for_game || 0} />
-        </CardHeader>
+          </CardHeader>
 
-        <CardContent className="pt-0">
-          <div className={`space-y-3 ${isMobile ? 'space-y-2' : 'space-y-3'}`}>
-            {/* Game Details - Enhanced with Industry Best Practices */}
-            <div
-              className={`flex flex-wrap gap-2 ${isMobile ? 'gap-1' : 'gap-2'} ${isMobile ? 'text-xs' : 'text-sm'}`}
-            >
-              <span className="bg-brand-primary text-white px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-brand-primary">
-                {gameLog?.classification || 'Unknown'}
-              </span>
-              {gameLog?.watched_setting && (
-                <span className="bg-semantic-success/10 dark:bg-semantic-success/20 text-semantic-success dark:text-semantic-success px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-semantic-success/20 dark:border-semantic-success/30">
-                  {gameLog?.watched_setting}
-                </span>
-              )}
-              {gameLog?.watched_scope && (
-                <span className="bg-accent-purple/10 dark:bg-accent-purple/20 text-accent-purple dark:text-accent-purple px-3 py-1.5 rounded-md font-semibold text-xs shadow-sm border border-accent-purple/20 dark:border-accent-purple/30">
-                  {gameLog?.watched_scope}
-                </span>
-              )}
+          <CardContent className={`${isMobile ? 'pt-0 pb-2' : 'pt-0 pb-3'}`}>
+            {/* Game Info */}
+            <div className={`mb-4 p-3 bg-muted/50 rounded-lg ${isMobile ? 'p-2' : 'p-3'}`}>
+              <h4 className={`font-medium mb-2 ${isMobile ? 'text-sm' : 'text-base'}`}>
+                <a
+                  href={`/games/${gameLog?.game?.id}`}
+                  className="hover:underline"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {getTeamDisplay(gameLog?.game)}
+                </a>
+              </h4>
+              <div
+                className={`flex items-center space-x-4 text-muted-foreground ${isMobile ? 'text-xs' : 'text-sm'}`}
+              >
+                <div className="flex items-center space-x-1">
+                  <Calendar className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <span>
+                    {gameLog?.game?.date
+                      ? new Date(gameLog.game.date).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: '2-digit',
+                          year: 'numeric',
+                        })
+                      : 'Unknown date'}
+                  </span>
+                </div>
+                {gameLog?.watched_location && (
+                  <div className="flex items-center space-x-1">
+                    <MapPin className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                    <span>{gameLog.watched_location}</span>
+                  </div>
+                )}
+                <div className="flex items-center space-x-1">
+                  <Eye className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <span className="bg-semantic-success/10 dark:bg-semantic-success/20 px-2 py-1 rounded text-xs">
+                    {formatWatchedSetting(gameLog?.watched_setting)}
+                  </span>
+                </div>
+                {gameLog?.watched_scope && (
+                  <div className="flex items-center space-x-1">
+                    <Users className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                    <span className="bg-accent-purple/10 dark:bg-accent-purple/20 px-2 py-1 rounded text-xs">
+                      {gameLog.watched_scope}
+                    </span>
+                  </div>
+                )}
+                {gameLog?.watched_date && (
+                  <div className="flex items-center space-x-1">
+                    <Clock className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                    <span className="text-neutral-500">
+                      Watched:{' '}
+                      {new Date(gameLog.watched_date).toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Notes */}
             {gameLog?.notes && (
-              <div className="text-gray-700 dark:text-gray-300">
-                <p className={isMobile ? 'text-xs' : 'text-sm'}>{gameLog?.notes}</p>
+              <div className="mb-4">
+                <p className={`leading-relaxed ${isMobile ? 'text-sm' : 'text-base'}`}>
+                  {gameLog.notes}
+                </p>
               </div>
             )}
 
-            {/* Tags - Enhanced with Industry Best Practices */}
-            {gameLog?.tags && gameLog?.tags.length > 0 && (
-              <div className={`flex flex-wrap gap-1 ${isMobile ? 'gap-1' : 'gap-1'}`}>
-                {gameLog?.tags?.map((tag: string) => (
-                  <span
-                    key={`${gameLog?.id || 'unknown'}-tag-${tag}`}
-                    className={`${getTagColor(tag)} px-2 py-1 rounded-md font-medium border border-emerald-300 dark:border-emerald-700 text-xs shadow-sm`}
-                  >
-                    #{tag}
-                  </span>
-                ))}
+            {/* Tags */}
+            {gameLog?.tags && gameLog.tags.length > 0 && (
+              <div className="mb-4 flex flex-wrap gap-1">
+                {(() => {
+                  const tagColors = generateDistinctTagColors(gameLog.tags);
+                  return gameLog.tags.map((tag: string) => (
+                    <Badge
+                      key={`${gameLog.id}-tag-${tag}`}
+                      variant="secondary"
+                      className={`${isMobile ? 'text-xs px-2 py-1' : 'text-sm px-3 py-1'} ${tagColors[tag]}`}
+                    >
+                      {tag === '' ? '#' : `#${tag}`}
+                    </Badge>
+                  ));
+                })()}
               </div>
             )}
 
-            {/* Watched Date */}
-            {gameLog?.watched_date && (
-              <div
-                className={`text-neutral-500 dark:text-neutral-400 ${isMobile ? 'text-xs' : 'text-xs'}`}
-              >
-                Watched:{' '}
-                {new Date(gameLog?.watched_date).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  month: 'short',
-                  day: '2-digit',
-                  year: 'numeric',
-                })}
-              </div>
-            )}
-          </div>
-        </CardContent>
-
-        <CardFooter
-          className={`flex items-center justify-between mt-3 text-gray-900 dark:text-white ${
-            isMobile ? 'mt-2' : 'mt-3'
-          }`}
-        >
-          <div className="flex items-center gap-2">
-            {showActions && onEdit && onDelete && (
-              <>
+            {/* Action Buttons */}
+            {showActions && (
+              <div className="flex items-center justify-end space-x-2 mb-4">
                 <Button
                   variant="outline"
-                  size={isMobile ? 'sm' : 'sm'}
-                  onClick={() => {
-                    onEdit(gameLog);
+                  size={isMobile ? 'sm' : 'default'}
+                  onClick={(e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    handleEdit();
                   }}
-                  className={`bg-white dark:bg-gray-800 border-2 border-blue-200 dark:border-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
-                    isMobile ? 'p-2 min-h-[44px]' : ''
-                  }`}
-                  aria-label="Edit game log"
+                  className="flex items-center space-x-1"
+                  data-testid="edit-button"
                 >
-                  <Edit
-                    className={`text-blue-600 dark:text-blue-400 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`}
-                  />
+                  <Edit className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Edit</span>
                 </Button>
                 <Button
                   variant="outline"
-                  size={isMobile ? 'sm' : 'sm'}
-                  onClick={() => {
-                    onDelete(gameLog);
+                  size={isMobile ? 'sm' : 'default'}
+                  onClick={(e?: React.MouseEvent) => {
+                    e?.stopPropagation();
+                    handleDelete();
                   }}
-                  className={`bg-white dark:bg-gray-800 border-2 border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 shadow-sm hover:shadow-md rounded-lg ${
-                    isMobile ? 'p-2 min-h-[44px]' : ''
-                  }`}
-                  aria-label="Delete game log"
+                  className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                  data-testid="delete-button"
                 >
-                  <Trash2 className={`${isMobile ? 'w-4 h-4' : 'w-4 h-4'}`} />
+                  <Trash2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
+                  <span className={isMobile ? 'text-xs' : 'text-sm'}>Delete</span>
                 </Button>
-              </>
+              </div>
             )}
-          </div>
+          </CardContent>
 
-          {/* Game Log Reactions */}
-          <div onClick={e => e.stopPropagation()}>
-            <ReactionPicker
-              targetId={gameLog?.id || 'unknown'}
-              targetType={ParentType.GameLog}
-              size="sm"
-              showCount={true}
-              onReactionSelect={(emoji: string) => {
-                // Handle reaction selection
-                console.log('Reaction selected:', emoji);
-              }}
-            />
-          </div>
-        </CardFooter>
-
-        {/* Comments Section - Enhanced with Industry Best Practices */}
-        <div className="border-t-2 border-gray-100 dark:border-gray-700">
-          <button
-            onClick={e => {
-              e.stopPropagation();
-              setShowComments(!showComments);
-            }}
-            className="w-full flex items-center justify-between px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
-            aria-expanded={showComments}
-            aria-controls={`comments-${gameLog?.id || 'unknown'}`}
-          >
-            <div className="flex items-center gap-2">
-              <MessageCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Comments{' '}
-                {gameLog?.totalCommentCount && gameLog?.totalCommentCount > 0
-                  ? `(${gameLog?.totalCommentCount})`
-                  : ''}
-              </span>
+          <CardFooter className={`${isMobile ? 'pt-2 pb-3' : 'pt-3 pb-4'}`}>
+            {/* Game Log Reactions and Comments */}
+            <div onClick={e => e.stopPropagation()}>
+              <ReactionPicker
+                targetId={gameLog?.id || 'unknown'}
+                targetType={ParentType.GameLog}
+                size="sm"
+                showCount={true}
+              />
             </div>
-            {showComments ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
+          </CardFooter>
 
-          {showComments && (
-            <div id={`comments-${gameLog?.id || 'unknown'}`} data-testid="game-log-comments">
-              <GameLogComments gameLog={gameLog} showComments={showComments} />
+          {/* Comments Section - Enhanced with Industry Best Practices */}
+          <div className="border-t-2 border-gray-100 dark:border-gray-700">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                setExpandedComments(!expandedComments);
+              }}
+              className="w-full flex items-center justify-between px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
+              aria-expanded={expandedComments}
+              aria-controls={`comments-${gameLog?.id || 'unknown'}`}
+            >
+              <div className="flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" />
+                <span className="text-sm font-medium">
+                  Comments{' '}
+                  {gameLog?.totalCommentCount && gameLog?.totalCommentCount > 0
+                    ? `(${gameLog?.totalCommentCount})`
+                    : ''}
+                </span>
+              </div>
+              {expandedComments ? (
+                <ChevronUp className="w-4 h-4" />
+              ) : (
+                <ChevronDown className="w-4 h-4" />
+              )}
+            </button>
+
+            {expandedComments && (
+              <div id={`comments-${gameLog?.id || 'unknown'}`} data-testid="game-log-comments">
+                <div data-game-log-id={gameLog?.id}>
+                  <GameLogComments gameLog={gameLog} showComments={expandedComments} />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Loading indicator */}
+          {isNavigating && (
+            <div className="absolute top-0 left-0 right-0 h-20 bg-white/50 dark:bg-black/50 flex items-center justify-center rounded-t-lg">
+              <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           )}
-        </div>
-      </Card>
-    </div>
-  );
-};
+        </Card>
+      </div>
+    );
+  }
+);
+
+GameLogCard.displayName = 'GameLogCard';

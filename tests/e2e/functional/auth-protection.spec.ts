@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 import { TIMEOUTS } from '@tests/e2e/utils/test-utils';
 
-const protectedRoutes = ['/protected/user'];
+const protectedRoutes = ['/protected/dashboard'];
 
 test.describe('Protected Route Clerk Sign-In Modal', () => {
   for (const route of protectedRoutes) {

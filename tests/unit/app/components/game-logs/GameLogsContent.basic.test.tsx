@@ -6,7 +6,7 @@ import type { IGameLog } from '@/types';
 import { CLASSIFICATION } from '@/types';
 
 // Mock the child components
-vi.mock('@/app/components/game-logs/GameLogCard', () => ({
+vi.mock('@/app/components/optimized/GameLogCard', () => ({
   GameLogCard: ({ gameLog, showActions, onEdit, onDelete }: any) => (
     <div data-testid="game-log-item">
       <div>{gameLog?.notes || 'No notes'}</div>
@@ -61,8 +61,7 @@ const createMockGameLog = (id: string, overrides: Partial<IGameLog> = {}): IGame
   game: {
     id: `game-${id}`,
     date: '2024-01-15',
-    status: 'Final',
-    game_type: 'Regular Season',
+    status: { short: '', long: 'Finished' },
     teams: {
       home: {
         id: 'team-1',

@@ -45,7 +45,8 @@ describe('SearchPage submit behavior', () => {
   it('submits the form and navigates with query param', () => {
     render(<SearchPage />);
     // The search input is in the header layout, not on this page
-    // Just verify the empty state is rendered (using mocked component)
-    expect(screen.getByTestId('empty')).toHaveTextContent('no-query');
+    // Just verify the empty state is rendered
+    expect(screen.getByTestId('empty')).toBeInTheDocument();
+    expect(screen.getByText('Start searching')).toBeInTheDocument();
   });
 });

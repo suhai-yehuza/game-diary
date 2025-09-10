@@ -4,6 +4,7 @@ import { drizzle } from 'drizzle-orm/neon-http';
 import { test, expect, describe, beforeAll, afterAll, afterEach } from 'vitest';
 
 import { errorHandlers } from '../../src/lib/utils/error-handler';
+import { enableNotificationTriggers } from '@scripts/seeding-notification-bypass';
 
 // Load environment variables
 config({ path: '.env.development' });
@@ -346,6 +347,10 @@ describe('Notification Triggers Integration Tests', () => {
       db = realDb;
       usingRealDatabase = true;
       console.log('[Integration Tests] Using Neon database for notification trigger tests');
+
+      // Ensure notification triggers are enabled for notification tests
+      console.log('🔄 Ensuring notification triggers are enabled for tests...');
+      await enableNotificationTriggers();
     } catch (err) {
       console.warn(
         '[Integration Tests] Failed to connect to Neon database. Falling back to mock database.',
@@ -476,7 +481,18 @@ describe('Notification Triggers Integration Tests', () => {
       expect(notification.rows[0].title).toContain('Friend Removed');
     });
 
-    test.skip('should not create notification when friendship is pending', async () => {
+    test('should not create notification when friendship is pending', async () => {
+      // Create test users for this specific test
+      const testUserId = `integration-test-pending-user-${Date.now()}`;
+      const friendUserId = `integration-test-pending-friend-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
+        VALUES
+          ('${testUserId}', 'integration-test-pending-user', 'integration-test-pending-${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
+          ('${friendUserId}', 'integration-test-pending-friend', 'integration-test-pending-friend-${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
+      `);
+
       // Create a pending friendship
       const pendingFriendshipId = `integration-test-friendship-pending-${Date.now()}`;
 
@@ -507,6 +523,17 @@ describe('Notification Triggers Integration Tests', () => {
     });
 
     test('should create notification for the correct user (friend, not remover)', async () => {
+      // Create test users for this specific test
+      const testUserId = `integration-test-correct-user-${Date.now()}`;
+      const friendUserId = `integration-test-correct-friend-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
+        VALUES
+          ('${testUserId}', 'integration-test-correct-user', 'integration-test-correct-${Date.now()}@example.com', 'Test', 'User', NOW(), NOW()),
+          ('${friendUserId}', 'integration-test-correct-friend', 'integration-test-correct-friend-${Date.now()}@example.com', 'Friend', 'User', NOW(), NOW())
+      `);
+
       // Create another friendship
       const friendshipId = `integration-test-friendship-correct-user-${Date.now()}`;
 
@@ -547,13 +574,14 @@ describe('Notification Triggers Integration Tests', () => {
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES
-          ('${testUserId}', 'friendshipuser', 'friendship@example.com', 'Friendship', 'User', NOW(), NOW()),
-          ('${friendUserId}', 'friendshipfriend', 'friend@example.com', 'Friendship', 'Friend', NOW(), NOW())
+          ('${testUserId}', 'friendshipuser${timestamp}', 'friendship${timestamp}@example.com', 'Friendship', 'User', NOW(), NOW()),
+          ('${friendUserId}', 'friendshipfriend${timestamp}', 'friend${timestamp}@example.com', 'Friendship', 'Friend', NOW(), NOW())
       `);
     });
 
-    test.skip('should create friendship_requested notification when friendship is created', async () => {
-      const friendshipId = `integration-test-friendship-request-${timestamp}`;
+    test('should create friendship_requested notification when friendship is created', async () => {
+      const uniqueTimestamp = Date.now() + Math.random() * 1000;
+      const friendshipId = `integration-test-friendship-request-${uniqueTimestamp}`;
 
       // Create friendship
       await db.execute(`
@@ -561,11 +589,14 @@ describe('Notification Triggers Integration Tests', () => {
         VALUES ('${friendshipId}', '${testUserId}', '${friendUserId}', 'PENDING', NOW(), NOW())
       `);
 
+      // Wait a moment for the trigger to execute
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Check if notification was created
       const notification = (await db.execute(`
         SELECT id, type, user_id, target_id, target_type
         FROM notifications
-        WHERE type = 'friendship_requested' AND user_id = '${friendUserId}' AND target_id = '${friendshipId}'
+        WHERE type = 'friend_request' AND user_id = '${friendUserId}' AND target_id = '${friendshipId}'
       `)) as unknown as {
         rows: Array<{
           id: string;
@@ -577,14 +608,22 @@ describe('Notification Triggers Integration Tests', () => {
       };
 
       expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].type).toBe('friendship_requested');
+      expect(notification.rows[0].type).toBe('friend_request');
       expect(notification.rows[0].user_id).toBe(friendUserId);
       expect(notification.rows[0].target_id).toBe(friendshipId);
       expect(notification.rows[0].target_type).toBe('friendship');
     });
 
-    test.skip('should create friendship_accepted notification when friendship is accepted', async () => {
-      const friendshipId = `integration-test-friendship-accept-${timestamp}`;
+    test('should create friendship_accepted notification when friendship is accepted', async () => {
+      const uniqueTimestamp = Date.now() + Math.random() * 1000; // Ensure uniqueness
+      const friendshipId = `integration-test-friendship-accept-${uniqueTimestamp}`;
+
+      // Clean up any existing friendship with the same canonical_id first
+      await db.execute(`
+        DELETE FROM friendships
+        WHERE (user_id = '${testUserId}' AND friend_id = '${friendUserId}')
+        OR (user_id = '${friendUserId}' AND friend_id = '${testUserId}')
+      `);
 
       // Create friendship
       await db.execute(`
@@ -599,11 +638,14 @@ describe('Notification Triggers Integration Tests', () => {
         WHERE id = '${friendshipId}'
       `);
 
+      // Wait a moment for the trigger to execute
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       // Check if notification was created
       const notification = (await db.execute(`
         SELECT id, type, user_id, target_id, target_type
         FROM notifications
-        WHERE type = 'friendship_accepted' AND user_id = '${testUserId}' AND target_id = '${friendshipId}'
+        WHERE type = 'friend_accepted' AND user_id = '${testUserId}' AND target_id = '${friendshipId}'
       `)) as unknown as {
         rows: Array<{
           id: string;
@@ -615,7 +657,7 @@ describe('Notification Triggers Integration Tests', () => {
       };
 
       expect(notification.rows).toHaveLength(1);
-      expect(notification.rows[0].type).toBe('friendship_accepted');
+      expect(notification.rows[0].type).toBe('friend_accepted');
       expect(notification.rows[0].user_id).toBe(testUserId);
       expect(notification.rows[0].target_id).toBe(friendshipId);
       expect(notification.rows[0].target_type).toBe('friendship');

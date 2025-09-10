@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { FriendshipCard } from '@/app/protected/user/components/FriendshipCard';
+import { FriendshipCard } from '@/app/protected/dashboard/components/FriendshipCard';
 
 vi.mock('lucide-react', () => ({
   UserX: (props: any) => <svg data-testid="userx-icon" {...props} />,

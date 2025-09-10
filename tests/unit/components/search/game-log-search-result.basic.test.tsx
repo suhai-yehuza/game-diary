@@ -39,7 +39,7 @@ describe('GameLogSearchResult', () => {
     expect(screen.getByText('Game Log')).toBeInTheDocument();
     expect(screen.getByText('@testuser')).toBeInTheDocument();
     expect(screen.getByText('4/5')).toBeInTheDocument();
-    expect(screen.getByText('Sun, Jan 15, 2023')).toBeInTheDocument();
+    expect(screen.getByText('Jan 15, 2023')).toBeInTheDocument();
     expect(screen.getByText('• San Francisco')).toBeInTheDocument();
     expect(screen.getByText('Classification: Regular Season')).toBeInTheDocument();
   });
@@ -84,7 +84,7 @@ describe('GameLogSearchResult', () => {
     const clickableElement = screen.getByText('Lakers @ Warriors').closest('div');
     fireEvent.click(clickableElement!);
 
-    expect(mockPush).toHaveBeenCalledWith('/protected/user');
+    expect(mockPush).toHaveBeenCalledWith('/protected/dashboard');
   });
 
   it('handles unknown username', () => {

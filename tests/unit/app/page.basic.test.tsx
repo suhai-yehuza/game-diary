@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { TestProviders } from '@src/app/components/providers/TestProviders';
-import HomePage from '@src/app/page';
+import { ClientProviders } from '@/app/components/providers/ClientProviders';
+import HomePage from '@/app/page';
 
 // Mock CacheProgressTracker component
 vi.mock('@/app/components/cache/CacheProgressTracker', () => {
@@ -87,10 +87,50 @@ vi.mock('@/hooks/use-live-games', () => ({
   }),
 }));
 
+// Mock the landing page data service
+vi.mock('@/lib/services/landing-page-data.service', () => ({
+  LandingPageDataService: vi.fn().mockImplementation(() => ({
+    getLandingPageDataWithGranularCache: vi.fn().mockResolvedValue({
+      trendingGameLogs: [],
+      recentGames: [],
+      topPublicGameLogs: [],
+      liveGames: [],
+    }),
+  })),
+}));
+
+// Mock landing page components
+vi.mock('@/app/components/common/LoadingSpinner', () => ({
+  CardSkeleton: ({ children }: any) => <div data-testid="card-skeleton">{children}</div>,
+}));
+
+vi.mock('@/app/components/landing/ContentPreviewBanner', () => ({
+  ContentPreviewBanner: ({ children }: any) => (
+    <div data-testid="content-preview-banner">{children}</div>
+  ),
+}));
+
+vi.mock('@/app/components/landing/LandingPageClientFallback', () => ({
+  LandingPageClientFallback: ({ children }: any) => (
+    <div data-testid="landing-page-client-fallback">{children}</div>
+  ),
+}));
+
+vi.mock('@/app/components/landing/ScrollToContentButton', () => ({
+  ScrollToContentButton: ({ children }: any) => (
+    <div data-testid="scroll-to-content-button">{children}</div>
+  ),
+}));
+
+// Mock ProgressiveDataLoader component
+vi.mock('@/app/components/landing/ProgressiveDataLoader', () => ({
+  ProgressiveDataLoader: ({ children, fallback }: any) => (
+    <div data-testid="progressive-data-loader">{children || fallback}</div>
+  ),
+}));
+
 const TestWrapper = ({ children }: { children: React.ReactNode }) => (
-  <TestProviders>
-    <div data-testid="test-wrapper">{children}</div>
-  </TestProviders>
+  <div data-testid="test-wrapper">{children}</div>
 );
 
 describe('HomePage', () => {
@@ -99,8 +139,12 @@ describe('HomePage', () => {
     process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test-key';
   });
 
-  it('renders the home page with correct structure', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('renders the home page with correct structure', async () => {
+    // Call the async component function directly
+    const result = await HomePage();
+
+    // Render the result
+    render(result, { wrapper: TestWrapper });
 
     expect(screen.getByText('Game Diary')).toBeInTheDocument();
     expect(
@@ -110,8 +154,9 @@ describe('HomePage', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders navigation links', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('renders navigation links', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     expect(screen.getByText('Go to Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Explore Sports')).toBeInTheDocument();
@@ -119,36 +164,41 @@ describe('HomePage', () => {
     expect(screen.getByText('All Sports')).toBeInTheDocument();
   });
 
-  it('renders footer links', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('renders footer links', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     expect(screen.getByText('Live Games')).toBeInTheDocument();
     expect(screen.getByText('All Sports')).toBeInTheDocument();
   });
 
-  it('applies correct CSS classes to main container', () => {
-    const { container } = render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to main container', async () => {
+    const result = await HomePage();
+    const { container } = render(result, { wrapper: TestWrapper });
 
     const section = container.querySelector('section');
     expect(section).toHaveClass('relative', 'overflow-hidden');
   });
 
-  it('applies correct CSS classes to hero section', () => {
-    const { container } = render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to hero section', async () => {
+    const result = await HomePage();
+    const { container } = render(result, { wrapper: TestWrapper });
 
     const hero = container.querySelector('section');
     expect(hero).toHaveClass('relative', 'overflow-hidden');
   });
 
-  it('applies correct CSS classes to hero content', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to hero content', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     const heroContent = screen.getByText('Game Diary').closest('div');
     expect(heroContent).toHaveClass('text-center');
   });
 
-  it('applies correct CSS classes to call-to-action button', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to call-to-action button', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     const ctaButton = screen.getByText('Explore Sports').closest('a');
     expect(ctaButton).toHaveClass(
@@ -161,16 +211,18 @@ describe('HomePage', () => {
     );
   });
 
-  it('applies correct CSS classes to footer', () => {
-    const { container: _container } = render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to footer', async () => {
+    const result = await HomePage();
+    const { container: _container } = render(result, { wrapper: TestWrapper });
 
     // The page doesn't have a footer element, so we'll check for the navigation links instead
     const navLinks = screen.getAllByRole('link');
     expect(navLinks.length).toBeGreaterThan(0);
   });
 
-  it('applies correct CSS classes to footer links', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('applies correct CSS classes to footer links', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     const footerLinks = screen
       .getAllByRole('link')
@@ -189,8 +241,9 @@ describe('HomePage', () => {
     });
   });
 
-  it('renders with proper accessibility attributes', () => {
-    render(<HomePage />, { wrapper: TestWrapper });
+  it('renders with proper accessibility attributes', async () => {
+    const result = await HomePage();
+    render(result, { wrapper: TestWrapper });
 
     const heading = screen.getByRole('heading', { level: 1 });
     expect(heading).toBeInTheDocument();

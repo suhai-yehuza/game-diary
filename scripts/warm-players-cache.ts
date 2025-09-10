@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { hybridCacheService } from '../src/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '../src/lib/cache/simple-cache-service';
 import { logger } from '../src/lib/utils/logger';
 
 async function warmPlayersCache() {
@@ -36,7 +36,7 @@ async function warmPlayersCache() {
     console.log(`📊 Total players in DB: ${players.results || 0}`);
 
     // Show cache stats
-    const stats = await hybridCacheService.getStats();
+    const stats = simpleCacheService.getStats();
     const playersCacheKeys = Object.keys(stats).filter(key => key.startsWith('players:'));
 
     console.log('\n📈 Cache Statistics:');

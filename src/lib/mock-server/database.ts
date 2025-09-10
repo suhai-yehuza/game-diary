@@ -319,9 +319,8 @@ async function generateMockNBAData() {
     basketball_games: Array.isArray(nbaGames)
       ? nbaGames.map((game: Record<string, unknown>, index: number) => ({
           id: `2024-basketball_game_${index + 1}`,
-          game_type: 'nba',
           season: '2024', // Default to 2024 season
-          basketball_game_id: `basketball_game_${index + 1}`,
+          game_id: `basketball_game_${index + 1}`,
           teams: {
             home: {
               id: `team_${Math.floor(Math.random() * 30) + 1}`,

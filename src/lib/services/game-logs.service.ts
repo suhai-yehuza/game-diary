@@ -1,5 +1,4 @@
 import { apolloClient } from '@/lib/apollo-client';
-import { GameLogCacheUtils } from '@/lib/cache';
 import { GET_GAME_LOGS } from '@/lib/graphql/queries';
 import { logger } from '@/lib/utils/logger';
 import type { IPaginationParams, IGameLog } from '@/types';
@@ -11,7 +10,8 @@ export class GameLogsService {
   private static readonly MAX_CONCURRENT_REQUESTS = 5;
 
   /**
-   * Get game logs with intelligent caching and fallback strategies
+   * Get game logs with simplified caching strategy
+   * Let Apollo Client handle most of the caching, with minimal service-level caching
    */
   static async getGameLogs(
     filters: Record<string, unknown> = {},
@@ -19,7 +19,6 @@ export class GameLogsService {
     options: {
       useCache?: boolean;
       forceRefresh?: boolean;
-      batchSize?: number;
     } = {}
   ): Promise<{
     gameLogs: IGameLog[];
@@ -33,57 +32,25 @@ export class GameLogsService {
     };
   }> {
     const startTime = Date.now();
-    const { useCache = true, forceRefresh = false, batchSize = this.BATCH_SIZE } = options;
+    const { useCache: _useCache = true, forceRefresh: _forceRefresh = false } = options;
 
     try {
-      // Try cache first if enabled and not forcing refresh
-      if (useCache && !forceRefresh) {
-        const cachedResult = await GameLogCacheUtils.getCachedGameLogList(filters, pagination);
-
-        if (cachedResult) {
-          const cacheTime = Date.now() - startTime;
-          logger.info(`${this.SERVICE_NAME}: Cache hit for filters`, { filters, pagination });
-
-          return {
-            gameLogs: cachedResult as unknown as IGameLog[],
-            totalCount: cachedResult.length,
-            hasNextPage: cachedResult.length >= pagination.limit,
-            cacheHit: true,
-            performance: {
-              cacheTime,
-              queryTime: 0,
-              totalTime: cacheTime,
-            },
-          };
-        }
-      }
-
-      // Cache miss - fetch from source
+      // Use Apollo Client's built-in caching for GraphQL queries
       const queryStartTime = Date.now();
-      const result = await this.fetchGameLogsFromSource(filters, pagination, batchSize);
+      const result = await this.fetchGameLogsFromSource(filters, pagination);
       const queryTime = Date.now() - queryStartTime;
-
-      // Cache the result for future use with longer TTL for better hit rate
-      if (useCache && result.gameLogs.length > 0) {
-        await GameLogCacheUtils.cacheGameLogList(filters, pagination, result.gameLogs, {
-          ttl: 900, // 15 minutes - increased for better cache hit rate
-          tags: ['gameLogList', 'gameLogs'],
-          strategy: 'hybrid',
-        });
-      }
 
       const totalTime = Date.now() - startTime;
 
       logger.info(`${this.SERVICE_NAME}: Fetched ${result.gameLogs.length} game logs`, {
         filters,
         pagination,
-        cacheHit: false,
-        performance: { cacheTime: 0, queryTime, totalTime },
+        performance: { queryTime, totalTime },
       });
 
       return {
         ...result,
-        cacheHit: false,
+        cacheHit: false, // Apollo Client handles caching transparently
         performance: {
           cacheTime: 0,
           queryTime,
@@ -168,11 +135,7 @@ export class GameLogsService {
     pagination: IPaginationParams = { page: 1, limit: 20 },
     options: { useCache?: boolean; forceRefresh?: boolean } = {}
   ) {
-    return this.getGameLogs(
-      { userId },
-      pagination,
-      { ...options, batchSize: 100 } // Larger batch size for user logs
-    );
+    return this.getGameLogs({ userId }, pagination, options);
   }
 
   /**
@@ -182,11 +145,7 @@ export class GameLogsService {
     pagination: IPaginationParams = { page: 1, limit: 20 },
     options: { useCache?: boolean; forceRefresh?: boolean } = {}
   ) {
-    return this.getGameLogs(
-      { classification: 'PUBLIC' },
-      pagination,
-      { ...options, batchSize: 100 } // Larger batch size for public logs
-    );
+    return this.getGameLogs({ classification: 'PUBLIC' }, pagination, options);
   }
 
   /**
@@ -203,7 +162,7 @@ export class GameLogsService {
         userId, // For user-specific friend logs
       },
       pagination,
-      { ...options, batchSize: 50 }
+      options
     );
   }
 
@@ -223,11 +182,7 @@ export class GameLogsService {
       searchField,
     };
 
-    return this.getGameLogs(
-      searchFilters,
-      pagination,
-      { ...options, batchSize: 30 } // Smaller batch size for search results
-    );
+    return this.getGameLogs(searchFilters, pagination, options);
   }
 
   /**
@@ -253,65 +208,36 @@ export class GameLogsService {
   }
 
   /**
-   * Get cache statistics and health
-   */
-  static async getCacheStats() {
-    return GameLogCacheUtils.getCacheStats();
-  }
-
-  /**
-   * Invalidate cache for specific game log or user
-   */
-  static async invalidateCache(gameLogId?: string, userId?: string, gameId?: string) {
-    await GameLogCacheUtils.invalidateGameLogCaches(gameLogId, userId, gameId);
-
-    logger.info(`${this.SERVICE_NAME}: Cache invalidated`, {
-      gameLogId,
-      userId,
-      gameId,
-    });
-  }
-
-  /**
    * Fetch game logs from the actual data source using GraphQL
    */
   private static async fetchGameLogsFromSource(
     filters: Record<string, unknown>,
-    pagination: IPaginationParams,
-    batchSize: number
+    pagination: IPaginationParams
   ): Promise<{
     gameLogs: IGameLog[];
     totalCount: number;
     hasNextPage: boolean;
   }> {
     try {
-      logger.info(`${this.SERVICE_NAME}: Fetching from GraphQL source`, {
-        filters,
-        pagination,
-        batchSize,
-      });
-
       // Convert pagination to GraphQL format
+      const offset = pagination.offset || 0;
       const graphqlPagination = {
         first: pagination.limit,
-        after:
-          pagination.page > 1
-            ? btoa(`arrayconnection:${(pagination.page - 1) * pagination.limit}`)
-            : null,
+        after: offset > 0 ? btoa(`arrayconnection:${offset}`) : null,
       };
 
-      // Execute GraphQL query
+      // Execute GraphQL query - let Apollo Client handle caching
       const { data } = await apolloClient.query({
         query: GET_GAME_LOGS,
         variables: {
           filters: filters || {},
           pagination: graphqlPagination,
         },
-        fetchPolicy: 'network-only', // Always fetch fresh data
+        // Use cache-first policy to leverage Apollo's built-in caching
+        fetchPolicy: 'cache-first',
       });
 
       if (!data?.gameLogs) {
-        logger.warn(`${this.SERVICE_NAME}: No game logs data returned from GraphQL`);
         return {
           gameLogs: [],
           totalCount: 0,
@@ -324,13 +250,6 @@ export class GameLogsService {
         data.gameLogs.edges?.map((edge: Record<string, unknown>) => edge.node as IGameLog) || [];
       const totalCount = data.gameLogs.totalCount || 0;
       const hasNextPage = data.gameLogs.pageInfo?.hasNextPage || false;
-
-      logger.info(`${this.SERVICE_NAME}: Successfully fetched ${gameLogs.length} game logs`, {
-        totalCount,
-        hasNextPage,
-        filters,
-        pagination,
-      });
 
       return {
         gameLogs,

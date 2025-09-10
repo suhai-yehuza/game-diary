@@ -63,7 +63,19 @@ class Logger {
     }
   }
 
-  cache(operation: 'hit' | 'miss' | 'set' | 'delete', key: string, context?: ILogContext): void {
+  cache(
+    operation:
+      | 'hit'
+      | 'miss'
+      | 'set'
+      | 'delete'
+      | 'expired'
+      | 'evicted'
+      | 'cleared'
+      | 'invalidated',
+    key: string,
+    context?: ILogContext
+  ): void {
     if (this.shouldLog(LogLevel.DEBUG)) {
       const message = `Cache ${operation}: ${key}`;
       console.debug(this.formatMessage('CACHE', message, context));

@@ -87,11 +87,11 @@ export const DIVISIONS = {
 } as const;
 
 export const GAME_STATUS_VALUES = {
-  FINISHED: 'FINISHED',
-  LIVE: 'LIVE',
-  SCHEDULED: 'SCHEDULED',
-  CANCELLED: 'CANCELLED',
-  IN_PROGRESS: 'IN_PROGRESS',
+  FINISHED: 'Finished',
+  LIVE: 'Live',
+  SCHEDULED: 'Scheduled',
+  CANCELLED: 'Canceled',
+  IN_PROGRESS: 'In Progress',
 } as const;
 
 export const GAME_STAGE_VALUES = {

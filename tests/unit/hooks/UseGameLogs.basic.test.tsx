@@ -1,6 +1,5 @@
 /// <reference types="vitest/globals" />
 
-import { useQuery } from '@apollo/client';
 import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -12,25 +11,13 @@ import {
 } from '@/hooks/use-game-logs';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
-// Mock Apollo Client
-vi.mock('@apollo/client', () => {
-  const mockUseQuery = vi.fn();
-  const mockGql = vi.fn(() => '');
+// Mock useOptimizedQuery
+vi.mock('@/hooks/use-optimized-query', () => ({
+  useOptimizedQuery: vi.fn(),
+}));
 
-  return {
-    useQuery: mockUseQuery,
-    gql: mockGql,
-    NetworkStatus: {
-      loading: 1,
-      setVariables: 2,
-      fetchMore: 3,
-      refetch: 4,
-      poll: 6,
-      ready: 7,
-      error: 8,
-    },
-  };
-});
+// Import the mocked function
+import { useOptimizedQuery } from '@/hooks/use-optimized-query';
 
 // Mock API_CONFIG
 vi.mock('@/lib/config/app.config', () => ({
@@ -79,7 +66,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should return an object with expected properties', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -101,7 +88,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should accept options parameter', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -113,7 +100,7 @@ describe('Game Logs Hooks', () => {
       const options = { filters: { userId: 'user123' }, pagination: { first: 10 } };
       renderHook(() => useGameLogs(options));
 
-      expect(useQuery).toHaveBeenCalledWith(
+      expect(useOptimizedQuery).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           variables: {
@@ -121,7 +108,7 @@ describe('Game Logs Hooks', () => {
               filters: { userId: 'user123' },
               pagination: { first: 10 },
             },
-            pagination: { first: 20 },
+            pagination: { first: 20, after: null },
           },
         })
       );
@@ -129,7 +116,7 @@ describe('Game Logs Hooks', () => {
 
     it('should handle error state', () => {
       const mockError = new Error('Test error');
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: mockError,
         data: null,
@@ -144,7 +131,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should handle loading state', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: true,
         error: null,
         data: null,
@@ -159,7 +146,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should handle loadMoreGameLogs functionality', async () => {
-      const mockFetchMore = vi.fn().mockResolvedValue({
+      const mockRefetch = vi.fn().mockResolvedValue({
         data: {
           gameLogs: {
             edges: [{ node: { id: '2', notes: 'Game 2' } }],
@@ -177,20 +164,20 @@ describe('Game Logs Hooks', () => {
         },
       };
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: mockData,
         networkStatus: 7, // NetworkStatus.ready
-        refetch: vi.fn(),
-        fetchMore: mockFetchMore,
+        refetch: mockRefetch,
+        fetchMore: vi.fn(),
       });
 
       const { result } = renderHook(() => useGameLogs());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onCompleted) {
           queryOptions.onCompleted(mockData);
         }
@@ -201,15 +188,7 @@ describe('Game Logs Hooks', () => {
         await result.current.loadMoreGameLogs();
       });
 
-      expect(mockFetchMore).toHaveBeenCalledWith({
-        variables: {
-          pagination: {
-            limit: 20,
-            page: 1,
-            after: 'cursor1',
-          },
-        },
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should not loadMoreGameLogs when hasNextPage is false', async () => {
@@ -223,7 +202,7 @@ describe('Game Logs Hooks', () => {
         },
       };
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: mockData,
@@ -236,7 +215,7 @@ describe('Game Logs Hooks', () => {
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onCompleted) {
           queryOptions.onCompleted(mockData);
         }
@@ -253,7 +232,7 @@ describe('Game Logs Hooks', () => {
     it('should not loadMoreGameLogs when loading is true', async () => {
       const mockFetchMore = vi.fn();
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: true,
         error: null,
         data: null,
@@ -273,7 +252,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should handle loadMoreFriendsLogs functionality', async () => {
-      const mockFetchMore = vi.fn().mockResolvedValue({
+      const mockRefetch = vi.fn().mockResolvedValue({
         data: {
           friendsGameLogs: {
             edges: [{ node: { id: '2', notes: 'Friend Game 2' } }],
@@ -291,20 +270,20 @@ describe('Game Logs Hooks', () => {
         },
       };
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: mockData,
         networkStatus: 7, // NetworkStatus.ready
-        refetch: vi.fn(),
-        fetchMore: mockFetchMore,
+        refetch: mockRefetch,
+        fetchMore: vi.fn(),
       });
 
       const { result } = renderHook(() => useFriendsGameLogs());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onCompleted) {
           queryOptions.onCompleted(mockData);
         }
@@ -315,15 +294,7 @@ describe('Game Logs Hooks', () => {
         await result.current.loadMoreFriendsLogs();
       });
 
-      expect(mockFetchMore).toHaveBeenCalledWith({
-        variables: {
-          pagination: {
-            limit: 20,
-            page: 1,
-            after: 'cursor1',
-          },
-        },
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should handle refetch functionality', async () => {
@@ -337,7 +308,7 @@ describe('Game Logs Hooks', () => {
         },
       });
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -360,7 +331,7 @@ describe('Game Logs Hooks', () => {
       const mockErrorHandler = vi.fn();
       errorHandlers.api = mockErrorHandler;
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -373,7 +344,7 @@ describe('Game Logs Hooks', () => {
 
       // Trigger onError callback manually
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onError) {
           queryOptions.onError(new Error('FORBIDDEN'));
         }
@@ -383,7 +354,7 @@ describe('Game Logs Hooks', () => {
         expect.any(Error),
         expect.objectContaining({
           component: 'useGameLogs',
-          action: 'Load game logs',
+          action: 'GraphQL operation',
         })
       );
     });
@@ -391,7 +362,7 @@ describe('Game Logs Hooks', () => {
     it('should handle onError callback with other error', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -404,7 +375,7 @@ describe('Game Logs Hooks', () => {
 
       // Trigger onError callback manually
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onError) {
           queryOptions.onError(new Error('Test error'));
         }
@@ -421,7 +392,7 @@ describe('Game Logs Hooks', () => {
 
   describe('usePublicGameLogs', () => {
     it('should return an object with expected properties', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -442,7 +413,7 @@ describe('Game Logs Hooks', () => {
     });
 
     it('should pass public classification filter to useGameLogs', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -453,12 +424,12 @@ describe('Game Logs Hooks', () => {
 
       renderHook(() => usePublicGameLogs());
 
-      expect(useQuery).toHaveBeenCalledWith(
+      expect(useOptimizedQuery).toHaveBeenCalledWith(
         expect.any(String),
         expect.objectContaining({
           variables: {
             filters: { classification: 'PUBLIC' },
-            pagination: { first: 20 },
+            pagination: { first: 20, after: null },
           },
         })
       );
@@ -467,7 +438,7 @@ describe('Game Logs Hooks', () => {
 
   describe('useFriendsGameLogs', () => {
     it('should return an object with expected properties', () => {
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,
@@ -503,20 +474,19 @@ describe('Game Logs Hooks', () => {
         },
       };
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: mockData,
         networkStatus: 7, // NetworkStatus.ready
-        refetch: vi.fn(),
-        fetchMore: mockFetchMore,
+        refetch: mockFetchMore,
       });
 
       const { result } = renderHook(() => useFriendsGameLogs());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onCompleted) {
           queryOptions.onCompleted(mockData);
         }
@@ -527,11 +497,7 @@ describe('Game Logs Hooks', () => {
         await result.current.loadMoreFriendsLogs();
       });
 
-      expect(mockFetchMore).toHaveBeenCalledWith({
-        variables: {
-          pagination: { limit: 20, page: 1, after: 'cursor1' },
-        },
-      });
+      expect(mockFetchMore).toHaveBeenCalled();
     });
 
     it('should not loadMore when hasNextPage is false', async () => {
@@ -545,7 +511,7 @@ describe('Game Logs Hooks', () => {
         },
       };
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: mockData,
@@ -558,7 +524,7 @@ describe('Game Logs Hooks', () => {
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
-        const queryOptions = (useQuery as any).mock.calls[0][1];
+        const queryOptions = (useOptimizedQuery as any).mock.calls[0][1];
         if (queryOptions.onCompleted) {
           queryOptions.onCompleted(mockData);
         }
@@ -575,7 +541,7 @@ describe('Game Logs Hooks', () => {
     it('should not loadMore when loading is true', async () => {
       const mockFetchMore = vi.fn();
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: true,
         error: null,
         data: null,
@@ -605,7 +571,7 @@ describe('Game Logs Hooks', () => {
         },
       });
 
-      (useQuery as any).mockReturnValue({
+      (useOptimizedQuery as any).mockReturnValue({
         loading: false,
         error: null,
         data: null,

@@ -2,10 +2,10 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 
-import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
+import { EditGameLogModal } from '@/app/components/game-logs/GameLogModal';
 
-// Mock the GameLogModal component
-vi.mock('@/app/components/game-logs/GameLogModal', () => ({
+// Mock the BaseGameLogModal component
+vi.mock('@/app/components/game-logs/BaseGameLogModal', () => ({
   GameLogModal: ({
     mode,
     gameLog,

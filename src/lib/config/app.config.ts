@@ -32,6 +32,10 @@ const envSchema = z.object({
   NEXT_PUBLIC_RAPID_API_BASE_URL: z
     .string()
     .url('NEXT_PUBLIC_RAPID_API_BASE_URL must be a valid URL'),
+  FETCH_FROM_EXTERNAL_API: z
+    .string()
+    .optional()
+    .transform(val => val === 'true'),
 });
 
 // Distribution functions
@@ -202,6 +206,28 @@ export const API_CONFIG = {
   } as const satisfies IPaginationConstants,
 } as const;
 
+/**
+ * Get the FETCH_FROM_EXTERNAL_API environment flag
+ * @returns boolean indicating whether to fetch from external API
+ */
+export function shouldFetchFromExternalAPI(): boolean {
+  // In test environments, default to false (use database)
+  if (isTestEnvironment || isE2ETestEnvironment) {
+    return false;
+  }
+
+  // Parse the environment variable
+  const fetchFromExternal = process.env.FETCH_FROM_EXTERNAL_API;
+
+  // Default to false (database) for production
+  if (!fetchFromExternal) {
+    return false;
+  }
+
+  // Return true only if explicitly set to 'true'
+  return fetchFromExternal.toLowerCase() === 'true';
+}
+
 export function getRapidApiConfig(): IRapidAPIConfig {
   // Check if we're in a test environment
   if (isTestEnvironment || isE2ETestEnvironment) {
@@ -226,6 +252,7 @@ export function getRapidApiConfig(): IRapidAPIConfig {
       NEXT_PUBLIC_RAPID_API_KEY: process.env.NEXT_PUBLIC_RAPID_API_KEY,
       NEXT_PUBLIC_RAPID_API_HOST: process.env.NEXT_PUBLIC_RAPID_API_HOST,
       NEXT_PUBLIC_RAPID_API_BASE_URL: process.env.NEXT_PUBLIC_RAPID_API_BASE_URL,
+      FETCH_FROM_EXTERNAL_API: process.env.FETCH_FROM_EXTERNAL_API,
     });
 
     // Ensure base URL doesn't have trailing slash to avoid double slashes

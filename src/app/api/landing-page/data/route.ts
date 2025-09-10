@@ -80,10 +80,13 @@ export async function GET(request: NextRequest) {
           (game: { status?: string | { short?: string; long?: string } }) => {
             const status = game.status;
             if (typeof status === 'string') {
-              return status === 'FINISHED' || status === 'Finished';
+              return status.toLowerCase() === 'finished';
             }
             if (typeof status === 'object' && status !== null) {
-              return status.short === 'FINISHED' || status.long === 'Finished';
+              const shortStatus =
+                typeof status.short === 'string' ? status.short.toLowerCase() : '';
+              const longStatus = typeof status.long === 'string' ? status.long.toLowerCase() : '';
+              return shortStatus === 'finished' || longStatus === 'finished';
             }
             return false;
           }

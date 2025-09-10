@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-import { UserSearchResultCard } from '@/app/protected/user/components/UserSearchResultCard';
+import { UserSearchResultCard } from '@/app/protected/dashboard/components/UserSearchResultCard';
 
 vi.mock('@/hooks/use-friendships', () => ({
   useFriendshipStatus: () => ({

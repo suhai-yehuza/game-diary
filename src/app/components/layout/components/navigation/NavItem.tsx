@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 
-import type { INavItemExtendedProps } from '@/types';
+import { getSportsButtonClass } from '@/lib/constants/colors';
+import type { INavItemExtendedProps, SportsConfigKey } from '@/types';
 
 export function NavItem({
   href,
@@ -12,12 +13,32 @@ export function NavItem({
   onClick,
   isStacked = false,
   closeMenu,
+  sport,
   ...props
-}: INavItemExtendedProps) {
+}: INavItemExtendedProps & { sport?: SportsConfigKey }) {
   const handleClick = () => {
     if (onClick) onClick();
     if (isStacked && closeMenu) closeMenu();
   };
+
+  // Get sport-specific colors if sport is provided
+  const getSportColors = () => {
+    if (!sport) {
+      return {
+        active: 'text-white bg-blue-600 border border-blue-700 shadow-md font-semibold',
+        inactive:
+          'text-white bg-gray-600 border-0 hover:border hover:border-gray-500 hover:bg-gray-500',
+      };
+    }
+
+    const sportClass = getSportsButtonClass(sport);
+    return {
+      active: `text-white ${sportClass} border border-opacity-20 shadow-md font-semibold`,
+      inactive: `text-white bg-gray-600 border-0 hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} shadow-sm`,
+    };
+  };
+
+  const colors = getSportColors();
 
   // Modern mobile styling with proper touch targets - Google Search button style
   const mobileStackedClasses = `
@@ -31,11 +52,7 @@ export function NavItem({
     focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1
     shadow-sm
     nav-item-google-style
-    ${
-      isActive
-        ? 'text-white bg-blue-600 border border-blue-700 shadow-md font-semibold'
-        : 'text-white bg-gray-600 border-0 hover:border hover:border-gray-500 hover:bg-gray-500'
-    }
+    ${isActive ? colors.active : colors.inactive}
     ${className}
   `;
 
@@ -48,11 +65,7 @@ export function NavItem({
     rounded-lg
     focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1
     nav-item-google-style
-    ${
-      isActive
-        ? 'text-white bg-blue-600 border border-blue-700 shadow-md font-semibold'
-        : 'text-white bg-gray-600 border-0 hover:border hover:border-gray-500 hover:bg-gray-500 shadow-sm'
-    }
+    ${isActive ? colors.active : colors.inactive}
     ${className}
   `;
 

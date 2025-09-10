@@ -1,7 +1,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi } from 'vitest';
 
-import { GameLogModal } from '@/app/components/game-logs/GameLogModal';
+import { GameLogModal } from '@/app/components/game-logs/BaseGameLogModal';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/types';
 import type { IGameLog } from '@/types';
 
@@ -142,8 +142,7 @@ const mockGameLog: IGameLog = {
   game: {
     id: 'test-game-id',
     date: '2024-01-15T00:00:00Z',
-    status: 'scheduled',
-    game_type: 'nba',
+    status: { short: '', long: 'Scheduled' },
     teams: {
       home: {
         id: 'home-team-id',

@@ -218,6 +218,7 @@ describe('PlayerSearchResult', () => {
     it('handles height as direct properties', () => {
       const playerWithDirectHeight = {
         ...defaultPlayer,
+        height: undefined, // Remove the default height
         feets: 6,
         inches: 9,
       };
@@ -229,6 +230,7 @@ describe('PlayerSearchResult', () => {
     it('handles height as direct meters property', () => {
       const playerWithDirectMeters = {
         ...defaultPlayer,
+        height: undefined, // Remove the default height
         meters: 2.06,
       };
       render(<PlayerSearchResult player={playerWithDirectMeters} />);
@@ -312,6 +314,7 @@ describe('PlayerSearchResult', () => {
     it('handles weight as direct kilograms property', () => {
       const playerWithDirectKg = {
         ...defaultPlayer,
+        weight: undefined, // Remove the default weight
         kilograms: 113,
       };
       render(<PlayerSearchResult player={playerWithDirectKg} />);

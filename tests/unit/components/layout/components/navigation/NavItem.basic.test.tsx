@@ -50,8 +50,7 @@ describe('NavItem', () => {
         'border-0',
         'hover:border',
         'hover:border-gray-500',
-        'hover:bg-gray-500',
-        'shadow-sm'
+        'hover:bg-gray-500'
       );
     });
 

@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { ErrorHandler } from '@/lib/utils/error-handler';
 
 export async function GET(request: NextRequest) {
@@ -24,8 +24,8 @@ export async function GET(request: NextRequest) {
 
         const allKeys: string[] = [];
         for (const pattern of patterns) {
-          const keys = await ErrorHandler.getInstance().handleAsync(
-            () => hybridCacheService.getKeysByPattern(pattern),
+          const keys = ErrorHandler.getInstance().handleSync(
+            () => simpleCacheService.getKeysByPattern(pattern),
             {
               component: 'CacheAPI',
               action: 'getKeysByPattern',
@@ -38,14 +38,11 @@ export async function GET(request: NextRequest) {
 
         // Get additional info for each key
         const keysWithInfo = await Promise.all(
-          allKeys.map(async key => {
-            const value = await ErrorHandler.getInstance().handleAsync(
-              () => hybridCacheService.get(key),
-              {
-                component: 'CacheAPI',
-                action: 'getKeyInfo',
-              }
-            );
+          allKeys.map(key => {
+            const value = ErrorHandler.getInstance().handleSync(() => simpleCacheService.get(key), {
+              component: 'CacheAPI',
+              action: 'getKeyInfo',
+            });
 
             // Determine cache type based on key pattern
             let type = 'unknown';
@@ -93,9 +90,9 @@ export async function GET(request: NextRequest) {
   return result as NextResponse;
 }
 
-export async function DELETE(request: NextRequest) {
-  const result = await ErrorHandler.getInstance().handleAsync(
-    async () => {
+export function DELETE(request: NextRequest) {
+  const result = ErrorHandler.getInstance().handleSync(
+    () => {
       const { searchParams } = new URL(request.url);
       const action = searchParams.get('action');
       const tag = searchParams.get('tag');
@@ -105,14 +102,14 @@ export async function DELETE(request: NextRequest) {
         if (tag) {
           // Invalidate specific tag by pattern
           const pattern = `*:tag:${tag}:*`;
-          await hybridCacheService.invalidate({ pattern });
+          simpleCacheService.invalidate({ pattern });
           return NextResponse.json({
             success: true,
             message: `Cache invalidated for tag: ${tag}`,
           });
         } else {
           // Invalidate all cache by clearing everything
-          await hybridCacheService.clear();
+          simpleCacheService.clear();
           return NextResponse.json({
             success: true,
             message: 'All cache invalidated successfully',
@@ -122,7 +119,7 @@ export async function DELETE(request: NextRequest) {
 
       if (action === 'delete' && key) {
         // Delete specific cache key
-        await hybridCacheService.delete(key);
+        simpleCacheService.delete(key);
         return NextResponse.json({
           success: true,
           message: `Cache key deleted: ${key}`,

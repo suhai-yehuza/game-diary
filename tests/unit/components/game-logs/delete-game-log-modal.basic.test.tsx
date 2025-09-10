@@ -1,4 +1,5 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import { toast } from 'sonner';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
@@ -22,12 +23,12 @@ vi.mock('sonner', () => {
 });
 
 // Mock Apollo Client
-const mockUseOptimizedMutation = vi.fn();
-let capturedUseOptimizedMutationOptions: any = null;
+const mockUseMutation = vi.fn();
+let capturedUseMutationOptions: any = null;
 vi.mock('@/hooks/use-optimized-mutation', () => ({
   useOptimizedMutation: (_doc: any, options: any) => {
-    capturedUseOptimizedMutationOptions = options;
-    return mockUseOptimizedMutation();
+    capturedUseMutationOptions = options;
+    return mockUseMutation();
   },
 }));
 
@@ -69,8 +70,20 @@ describe('DeleteGameLogModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false }]);
-    capturedUseOptimizedMutationOptions = null;
+    mockUseMutation.mockReturnValue([
+      vi.fn(),
+      {
+        loading: false,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: vi.fn(),
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
+    capturedUseMutationOptions = null;
   });
 
   it('renders when isOpen is true', () => {
@@ -113,39 +126,69 @@ describe('DeleteGameLogModal', () => {
   });
 
   it('calls delete mutation when delete button is clicked', async () => {
+    const user = userEvent.setup();
     const mockDeleteMutation = vi.fn().mockResolvedValue({
       data: { deleteGameLog: { success: true, errors: [] } },
     });
 
-    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseMutation.mockReturnValue([
+      mockDeleteMutation,
+      {
+        loading: false,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: mockDeleteMutation,
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
     const deleteButton = screen.getByRole('button', { name: 'Delete Game Log' });
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mockDeleteMutation).toHaveBeenCalledWith({
         variables: { id: 'test-log-id' },
+        optimisticResponse: expect.any(Object),
+        update: expect.any(Function),
       });
     });
   });
 
   it('calls onSuccess when deletion is successful', async () => {
+    const user = userEvent.setup();
     const mockDeleteMutation = vi.fn().mockResolvedValue({
       data: { deleteGameLog: { success: true, errors: [] } },
     });
 
-    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseMutation.mockReturnValue([
+      mockDeleteMutation,
+      {
+        loading: false,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: mockDeleteMutation,
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
     const deleteButton = screen.getByRole('button', { name: 'Delete Game Log' });
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mockDeleteMutation).toHaveBeenCalledWith({
         variables: { id: 'test-log-id' },
+        optimisticResponse: expect.any(Object),
+        update: expect.any(Function),
       });
     });
 
@@ -155,6 +198,7 @@ describe('DeleteGameLogModal', () => {
   });
 
   it('does not call onSuccess when deletion fails', async () => {
+    const user = userEvent.setup();
     let onCompletedCallback: ((data: any) => void) | undefined;
 
     const mockDeleteMutation = vi.fn().mockImplementation(options => {
@@ -164,12 +208,24 @@ describe('DeleteGameLogModal', () => {
       });
     });
 
-    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseMutation.mockReturnValue([
+      mockDeleteMutation,
+      {
+        loading: false,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: mockDeleteMutation,
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
     const deleteButton = screen.getByRole('button', { name: 'Delete Game Log' });
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mockDeleteMutation).toHaveBeenCalled();
@@ -188,7 +244,19 @@ describe('DeleteGameLogModal', () => {
   });
 
   it('shows loading state when deletion is in progress', () => {
-    mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: true }]);
+    mockUseMutation.mockReturnValue([
+      vi.fn(),
+      {
+        loading: true,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: vi.fn(),
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
 
     render(<DeleteGameLogModal {...mockProps} />);
 
@@ -198,9 +266,22 @@ describe('DeleteGameLogModal', () => {
   });
 
   it('handles mutation errors gracefully', async () => {
+    const user = userEvent.setup();
     const mockDeleteMutation = vi.fn().mockRejectedValue(new Error('Network error'));
 
-    mockUseOptimizedMutation.mockReturnValue([mockDeleteMutation, { loading: false }]);
+    mockUseMutation.mockReturnValue([
+      mockDeleteMutation,
+      {
+        loading: false,
+        error: undefined,
+        data: undefined,
+        called: false,
+        client: null,
+        mutate: mockDeleteMutation,
+        mutateAsync: vi.fn(),
+        reset: vi.fn(),
+      },
+    ]);
 
     const { errorHandlers } = await import('@/lib/utils/error-handler');
     const mockErrorHandlers = vi.mocked(errorHandlers);
@@ -208,7 +289,7 @@ describe('DeleteGameLogModal', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     const deleteButton = screen.getByRole('button', { name: 'Delete Game Log' });
-    fireEvent.click(deleteButton);
+    await user.click(deleteButton);
 
     await waitFor(() => {
       expect(mockErrorHandlers.api).toHaveBeenCalledWith(expect.any(Error), {
@@ -222,7 +303,7 @@ describe('DeleteGameLogModal', () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
     // Simulate Apollo calling onCompleted
-    capturedUseOptimizedMutationOptions?.onCompleted?.({
+    capturedUseMutationOptions?.onCompleted?.({
       deleteGameLog: { success: true, errors: [] },
     });
 
@@ -234,7 +315,7 @@ describe('DeleteGameLogModal', () => {
   it('shows error toast with message when deletion fails (onCompleted)', async () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    capturedUseOptimizedMutationOptions?.onCompleted?.({
+    capturedUseMutationOptions?.onCompleted?.({
       deleteGameLog: { success: false, errors: [{ message: 'Custom error' }] },
     });
 
@@ -246,7 +327,7 @@ describe('DeleteGameLogModal', () => {
   it('shows generic error toast when onError is called', async () => {
     render(<DeleteGameLogModal {...mockProps} />);
 
-    capturedUseOptimizedMutationOptions?.onError?.(new Error('Network error'));
+    capturedUseMutationOptions?.onError?.(new Error('Network error'));
 
     await waitFor(() => {
       expect((toast as any).error).toHaveBeenCalledWith('Failed to delete game log');

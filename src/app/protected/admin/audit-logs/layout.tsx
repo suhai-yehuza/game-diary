@@ -42,7 +42,7 @@ export default async function AdminAuditLogsLayout({ children }: { children: Rea
       details: { userRoles, page: '/admin/audit-logs' },
     });
 
-    redirect('/protected/user');
+    redirect('/protected/dashboard');
   }
 
   // Log successful admin page access

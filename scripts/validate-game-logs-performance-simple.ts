@@ -134,7 +134,7 @@ async function validateOptimizations(): Promise<PerformanceValidation[]> {
   try {
     const fs = await import('fs');
     const optimizedComponentPath = 'src/app/components/game-logs/OptimizedGameLogsTable.tsx';
-    const optimizedHookPath = 'src/hooks/use-optimized-game-logs-tabs.ts';
+    const optimizedHookPath = 'src/hooks/use-game-logs-tabs.ts';
 
     const componentExists = fs.existsSync(optimizedComponentPath);
     const hookExists = fs.existsSync(optimizedHookPath);

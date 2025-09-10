@@ -2,7 +2,7 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 
-import { GameLogCard } from '@/app/components/game-logs/GameLogCard';
+import { GameLogCard } from '@/app/components';
 
 // Mock lucide-react icons
 vi.mock('lucide-react', () => ({
@@ -29,6 +29,66 @@ vi.mock('lucide-react', () => ({
   ChevronUp: ({ className }: any) => (
     <div data-testid="chevron-up" className={className}>
       ChevronUp
+    </div>
+  ),
+  Heart: ({ className }: any) => (
+    <div data-testid="heart" className={className}>
+      Heart
+    </div>
+  ),
+  Star: ({ className }: any) => (
+    <div data-testid="star" className={className}>
+      Star
+    </div>
+  ),
+  Eye: ({ className }: any) => (
+    <div data-testid="eye" className={className}>
+      Eye
+    </div>
+  ),
+  Calendar: ({ className }: any) => (
+    <div data-testid="calendar" className={className}>
+      Calendar
+    </div>
+  ),
+  MapPin: ({ className }: any) => (
+    <div data-testid="map-pin" className={className}>
+      MapPin
+    </div>
+  ),
+  Edit: ({ className }: any) => (
+    <div data-testid="edit" className={className}>
+      Edit
+    </div>
+  ),
+  Trash2: ({ className }: any) => (
+    <div data-testid="trash-2" className={className}>
+      Trash2
+    </div>
+  ),
+  Users: ({ className }: any) => (
+    <div data-testid="users" className={className}>
+      Users
+    </div>
+  ),
+  Clock: ({ className }: any) => (
+    <div data-testid="clock" className={className}>
+      Clock
+    </div>
+  ),
+  Moon: ({ className }: any) => (
+    <div data-testid="moon" className={className}>
+      Moon
+    </div>
+  ),
+  Sun: ({ className }: any) => (
+    <div data-testid="sun" className={className}>
+      Sun
+    </div>
+  ),
+  Monitor: ({ className }: any) => (
+    <div data-testid="monitor" className={className}>
+      Monitor
     </div>
   ),
 }));
@@ -70,9 +130,7 @@ vi.mock('@/app/components/layout/components/SearchBar', () => ({
   useMobileDetection: () => false,
 }));
 
-vi.mock('@/app/components/game-logs/utils/gameLogsUtils', () => ({
-  getTeamDisplay: (game: any) => `Team Display for ${game?.id || 'unknown'}`,
-}));
+// Note: gameLogsUtils functions are used as-is since they're pure functions
 
 const mockGameLog = {
   id: 'log-1',
@@ -94,8 +152,7 @@ const mockGameLog = {
   game: {
     id: 'game-1',
     date: '2024-01-15',
-    status: 'Final',
-    game_type: 'Regular Season',
+    status: { short: '', long: 'Finished' },
     teams: {
       home: {
         id: 'lakers',
@@ -237,7 +294,7 @@ describe('GameLogCard Extended Tests', () => {
       };
       render(<GameLogCard gameLog={logWithUserNoId} />);
 
-      expect(screen.getByText('@Unknown User')).toBeInTheDocument();
+      expect(screen.getByText('@Anonymous')).toBeInTheDocument();
     });
   });
 
@@ -245,7 +302,7 @@ describe('GameLogCard Extended Tests', () => {
     it('renders game link with correct href', () => {
       render(<GameLogCard gameLog={mockGameLog} />);
 
-      const gameLink = screen.getByRole('link', { name: /team display/i });
+      const gameLink = screen.getByRole('link', { name: /GSW @ LAL on Sun, Jan 14, 2024/i });
       expect(gameLink).toHaveAttribute('href', '/games/game-1');
     });
 
@@ -276,9 +333,10 @@ describe('GameLogCard Extended Tests', () => {
         await user.click(commentsButton);
       });
 
-      const commentsSection = screen.getByTestId('game-log-comments-inner');
+      const commentsSection = screen.getByTestId('game-log-comments');
       expect(commentsSection).toBeInTheDocument();
-      expect(commentsSection).toHaveAttribute('data-game-log-id', 'log-1');
+      const innerDiv = commentsSection.querySelector('[data-game-log-id="log-1"]');
+      expect(innerDiv).toBeInTheDocument();
     });
   });
 
@@ -287,7 +345,7 @@ describe('GameLogCard Extended Tests', () => {
       const logWithoutGame = { ...mockGameLog, game: undefined };
       render(<GameLogCard gameLog={logWithoutGame} />);
 
-      expect(screen.getByText(/Team Display for unknown/)).toBeInTheDocument();
+      expect(screen.getByText(/Unknown Teams/)).toBeInTheDocument();
     });
 
     it('handles empty string notes', () => {
@@ -401,7 +459,7 @@ describe('GameLogCard Extended Tests', () => {
       };
       render(<GameLogCard gameLog={logWithNoName} />);
 
-      expect(screen.getByText('@Unknown User')).toBeInTheDocument();
+      expect(screen.getByText('@Anonymous')).toBeInTheDocument();
     });
 
     it('handles user with empty first_name and username', () => {
@@ -411,7 +469,7 @@ describe('GameLogCard Extended Tests', () => {
       };
       render(<GameLogCard gameLog={logWithEmptyNames} />);
 
-      expect(screen.getByText('@Unknown User')).toBeInTheDocument();
+      expect(screen.getByText('@Anonymous')).toBeInTheDocument();
     });
   });
 

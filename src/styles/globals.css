@@ -2135,6 +2135,20 @@ button {
   pointer-events: none !important;
 }
 
+/* Hide Next.js development overlay during E2E tests */
+.playwright-test nextjs-portal,
+[data-playwright-test='true'] nextjs-portal {
+  display: none !important;
+  pointer-events: none !important;
+}
+
+/* Hide any script elements with Next.js dev overlay data attributes */
+.playwright-test script[data-nextjs-dev-overlay],
+[data-playwright-test='true'] script[data-nextjs-dev-overlay] {
+  display: none !important;
+  pointer-events: none !important;
+}
+
 /* === Search input cleanup === */
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-ms-clear,

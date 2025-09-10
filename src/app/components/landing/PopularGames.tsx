@@ -5,27 +5,26 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
-import { useLandingPageData } from '@/hooks/use-landing-page-data';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
-import type { IPopularGame } from '@/types';
+import type { IPopularGamesProps, IPopularGame } from '@/types';
 
-export function PopularGames() {
-  const { data, loading, error } = useLandingPageData();
+export function PopularGames({ data }: IPopularGamesProps) {
+  const loading = !data;
+  const error = null; // No error handling needed for server-side data
   const [activeTab, setActiveTab] = useState<'topRated' | 'mostRated' | 'mostPopular'>(
     'mostPopular'
   );
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 15, // Desktop speed
-    mobileSpeed: 8, // Mobile speed - slower for better readability
+    speed: 4, // Desktop speed - slowed down
+    mobileSpeed: 2, // Mobile speed - slower for better readability
     pauseOnHover: true,
     autoStart: true,
   });
 
   // Extract popular games from cached data
-  const popularGames = data?.popularGames;
-  const topRated: IPopularGame[] = popularGames?.topRated || [];
-  const mostRated: IPopularGame[] = popularGames?.mostRated || [];
-  const mostPopular: IPopularGame[] = popularGames?.mostPopular || [];
+  const topRated: IPopularGame[] = data?.topRated || [];
+  const mostRated: IPopularGame[] = data?.mostRated || [];
+  const mostPopular: IPopularGame[] = data?.mostPopular || [];
 
   const tabs = [
     { id: 'mostPopular', label: 'Most Popular', icon: TrendingUp, data: mostPopular },
@@ -75,7 +74,7 @@ export function PopularGames() {
           href="/sports/all-sports"
           className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
         >
-          Browse All Sports
+          Browse All Games
         </Link>
       </div>
     );

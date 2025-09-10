@@ -1,5 +1,5 @@
-import { useQuery, useMutation } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
+import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { toast } from 'sonner';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
@@ -15,7 +15,19 @@ import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
 // Mock Apollo Client
 vi.mock('@apollo/client', () => ({
   useQuery: vi.fn(),
-  useMutation: vi.fn(),
+  useMutation: vi.fn(() => [
+    vi.fn().mockResolvedValue({}),
+    {
+      data: undefined,
+      loading: false,
+      error: undefined,
+      called: false,
+      client: null,
+      mutate: vi.fn().mockResolvedValue({}),
+      mutateAsync: vi.fn().mockResolvedValue({}),
+      reset: vi.fn(),
+    },
+  ]),
   gql: vi.fn((strings, ...values) => {
     // Simple mock implementation of gql that returns the template string
     return strings.join('');
@@ -25,6 +37,11 @@ vi.mock('@apollo/client', () => ({
 // Mock useOptimizedQuery
 vi.mock('@/hooks/use-optimized-query', () => ({
   useOptimizedQuery: vi.fn(),
+}));
+
+// Mock useOptimizedMutation
+vi.mock('@/hooks/use-optimized-mutation', () => ({
+  useOptimizedMutation: vi.fn(),
 }));
 
 // Mock Clerk
@@ -40,7 +57,7 @@ vi.mock('@/lib/graphql/queries', () => ({
   MARK_ALL_NOTIFICATIONS_AS_READ: 'MARK_ALL_NOTIFICATIONS_AS_READ',
 }));
 
-// Mock useOptimizedMutation hook
+// Mock useMutation hook
 const mockMarkAsRead = vi.fn().mockResolvedValue({
   data: {
     markNotificationAsRead: {
@@ -58,52 +75,6 @@ const mockMarkAllAsRead = vi.fn().mockResolvedValue({
     },
   },
 });
-
-vi.mock('@/hooks/use-optimized-mutation', () => ({
-  useOptimizedMutation: vi.fn(query => {
-    if (query === 'MARK_NOTIFICATION_AS_READ') {
-      return [
-        mockMarkAsRead,
-        { loading: false, error: undefined, called: false, client: null, reset: vi.fn() },
-      ];
-    }
-    if (query === 'MARK_ALL_NOTIFICATIONS_AS_READ') {
-      return [
-        mockMarkAllAsRead,
-        { loading: false, error: undefined, called: false, client: null, reset: vi.fn() },
-      ];
-    }
-    return [
-      vi.fn().mockResolvedValue({}),
-      {
-        data: undefined,
-        loading: false,
-        error: undefined,
-        called: false,
-        client: null,
-        mutate: vi.fn().mockResolvedValue({}),
-        mutateAsync: vi.fn().mockResolvedValue({}),
-        reset: vi.fn(),
-      },
-    ];
-  }),
-}));
-
-// Mock useOptimizedQuery hook
-vi.mock('@/hooks/use-optimized-query', () => ({
-  useOptimizedQuery: vi.fn(() => ({
-    data: {
-      userNotifications: {
-        edges: [],
-      },
-      unreadNotificationsCount: 0,
-    },
-    refetch: vi.fn(),
-    loading: false,
-    error: undefined,
-    client: null,
-  })),
-}));
 
 // Mock error handlers
 vi.mock('@/lib/utils/error-handler', () => ({
@@ -178,19 +149,17 @@ function TestComponent() {
 }
 
 describe('NotificationProvider', () => {
-  const mockUseQuery = vi.mocked(useQuery);
-  const mockUseMutation = vi.mocked(useMutation);
+  const mockUseQuery = vi.mocked(useOptimizedQuery);
+  const mockUseMutation = vi.mocked(useOptimizedMutation);
   const mockUseUser = vi.mocked(useUser);
   const mockErrorHandlers = vi.mocked(errorHandlers);
   const mockToast = vi.mocked(toast);
-  const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-  const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
 
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Reset useOptimizedQuery mock
-    mockUseOptimizedQuery.mockReturnValue({
+    // Reset useQuery mock
+    mockUseQuery.mockReturnValue({
       data: {
         userNotifications: {
           edges: [],
@@ -203,8 +172,8 @@ describe('NotificationProvider', () => {
       client: null,
     });
 
-    // Reset useOptimizedMutation mock
-    mockUseOptimizedMutation.mockImplementation(query => {
+    // Reset useMutation mock
+    mockUseMutation.mockImplementation(query => {
       if (query === 'MARK_NOTIFICATION_AS_READ') {
         return [
           mockMarkAsRead,
@@ -462,7 +431,7 @@ describe('NotificationProvider', () => {
         },
       };
 
-      mockUseOptimizedQuery.mockReturnValue({
+      mockUseQuery.mockReturnValue({
         data: mockNotifications,
         refetch: vi.fn(),
         loading: false,
@@ -481,7 +450,7 @@ describe('NotificationProvider', () => {
     });
 
     it('loads unread count from GraphQL', () => {
-      mockUseOptimizedQuery.mockReturnValue({
+      mockUseQuery.mockReturnValue({
         data: {
           unreadNotificationsCount: 5,
         },

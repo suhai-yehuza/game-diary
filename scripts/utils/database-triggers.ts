@@ -106,6 +106,9 @@ async function dropAllTriggersAndFunctions(db: ReturnType<typeof createDatabaseC
     const table = triggerTables[trigger] || null;
     if (!table) continue;
     try {
+      // Use CREATE OR REPLACE instead of DROP IF EXISTS for cleaner approach
+      // Note: This requires the trigger definition to be provided elsewhere
+      // For now, keeping DROP IF EXISTS as this is a cleanup function
       await db.execute(sql.raw(`DROP TRIGGER IF EXISTS ${trigger} ON ${table}`));
       logger.info(`  - Dropped trigger ${trigger} on ${table}`);
     } catch (err) {

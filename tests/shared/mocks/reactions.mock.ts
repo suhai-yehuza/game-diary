@@ -62,8 +62,7 @@ export const MOCK_TEAMS = {
 export const MOCK_GAME = {
   id: 'game-123',
   date: new Date().toISOString(),
-  game_type: 'REGULAR',
-  status: 'FINISHED',
+  status: { short: '', long: 'Finished' },
   teams: {
     home: MOCK_TEAMS.home,
     away: MOCK_TEAMS.away,

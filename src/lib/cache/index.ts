@@ -1,7 +1,7 @@
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Main cache exports
-export { hybridCacheService, HybridCacheService } from './hybrid-cache-service';
+export { simpleCacheService, SimpleCacheService } from './simple-cache-service';
 
 // Cache decorators
 export {
@@ -27,15 +27,23 @@ export {
   NotificationCacheUtils,
 } from './cache-utilities';
 
-// Enhanced game log cache utilities
-export { GameLogCacheUtils } from './game-log-cache.utils';
+// Games cache utilities
+export {
+  GamesCacheUtils,
+  getGameStatusInfo,
+  getGamesCacheTTL,
+  generateGamesCacheKey,
+} from './games-cache-utils';
 
 // Cache configuration
 export const CACHE_CONFIG = {
   // Default TTL values (in seconds)
   TTL: {
-    GAME: 1800, // 30 minutes
-    GAME_LIST: 900, // 15 minutes
+    GAME: 7200, // 2 hours - games data is static once season ends
+    GAME_LIST: 7200, // 2 hours - game lists don't change frequently
+    GAMES_FINISHED: 86400, // 24 hours - finished games never change
+    GAMES_LIVE: 300, // 5 minutes - live games change frequently
+    GAMES_SCHEDULED: 3600, // 1 hour - scheduled games change less frequently
     USER: 3600, // 1 hour
     USER_FRIENDSHIPS: 1800, // 30 minutes
     GAME_LOG: 900, // 15 minutes
@@ -44,9 +52,11 @@ export const CACHE_CONFIG = {
     COMMENT_LIST: 300, // 5 minutes
     REACTION: 300, // 5 minutes
     SEARCH: 1800, // 30 minutes
-    NBA_HUB_COUNTS: 3600, // 1 hour - counts don't change frequently
-    PLAYERS: 1800, // 30 minutes - players data changes infrequently
-    TEAMS: 3600, // 1 hour - teams data changes very infrequently
+    NBA_HUB_COUNTS: 3600, // 1 hour - counts don't change frequently ✅
+    NBA_HUB_TEAMS_COUNT: 86400, // 24 hours - teams count changes extremely rarely ✅
+    PLAYERS: 3600, // 1 hour - increased from 30 minutes (players data changes infrequently)
+    TEAMS: 86400, // 24 hours - teams data changes extremely rarely (only during off-season) ✅
+    LANDING_PAGE: 300, // 5 minutes - needs to be relatively fresh for user experience ✅
   },
 
   // Cache strategies

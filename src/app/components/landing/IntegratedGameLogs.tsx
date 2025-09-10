@@ -4,21 +4,21 @@ import { MessageCircle, Heart, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
-import { useLandingPageData } from '@/hooks/use-landing-page-data';
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
-import type { GameLog } from '@/types';
+import type { IIntegratedGameLogsProps } from '@/types';
 
-export function IntegratedGameLogs() {
-  const { data, loading, error } = useLandingPageData();
+export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
+  const loading = !data;
+  const error = null; // No error handling needed for server-side data
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 15, // Desktop speed
-    mobileSpeed: 8, // Mobile speed - slower for better readability
+    speed: 4, // Desktop speed - slowed down
+    mobileSpeed: 2, // Mobile speed - slower for better readability
     pauseOnHover: true,
     autoStart: true,
   });
 
   // Extract trending game logs from cached data
-  const topGameLogs = (data?.trendingContent?.topGameLogs || []) as GameLog[];
+  const topGameLogs = data?.topGameLogs || [];
 
   if (loading) {
     return (
@@ -49,7 +49,7 @@ export function IntegratedGameLogs() {
       <div className="text-center py-8">
         <div className="text-gray-500 dark:text-gray-400 mb-4">No trending game logs available</div>
         <Link
-          href="/protected/user"
+          href="/protected/dashboard"
           className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
         >
           Create Your First Log
@@ -201,15 +201,21 @@ export function IntegratedGameLogs() {
                 {/* Activity Stats */}
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <MessageCircle className="w-3 h-3" />
-                      <span>{formatShort(gameLog.totalCommentCount || 0)} comments</span>
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <Heart className="w-3 h-3" />
-                      <span>{formatShort(gameLog.totalReactionCount || 0)} reactions</span>
-                    </div>
+                    {(gameLog.totalCommentCount || 0) > 0 && (
+                      <>
+                        <div className="flex items-center gap-1">
+                          <MessageCircle className="w-3 h-3" />
+                          <span>{formatShort(gameLog.totalCommentCount || 0)} comments</span>
+                        </div>
+                        {(gameLog.totalReactionCount || 0) > 0 && <span>•</span>}
+                      </>
+                    )}
+                    {(gameLog.totalReactionCount || 0) > 0 && (
+                      <div className="flex items-center gap-1">
+                        <Heart className="w-3 h-3" />
+                        <span>{formatShort(gameLog.totalReactionCount || 0)} reactions</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -221,7 +227,7 @@ export function IntegratedGameLogs() {
       {/* View All Button */}
       <div className="mt-auto pt-4">
         <Link
-          href="/protected/user"
+          href="/protected/dashboard"
           className="block w-full text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
         >
           View All Game Logs

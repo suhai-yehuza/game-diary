@@ -1,6 +1,6 @@
 import { logger } from '@/lib/utils/logger';
 
-import { hybridCacheService } from './hybrid-cache-service';
+import { simpleCacheService } from './simple-cache-service';
 
 /**
  * Cache validation utilities to ensure data consistency
@@ -19,7 +19,7 @@ export class CacheValidationUtils {
   }> {
     try {
       // Get cached players count
-      const cachedData = await hybridCacheService.get('players:all');
+      const cachedData = simpleCacheService.get('players:all');
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
@@ -65,7 +65,7 @@ export class CacheValidationUtils {
   }> {
     try {
       // Get cached games count
-      const cachedData = await hybridCacheService.get('games:all');
+      const cachedData = simpleCacheService.get('games:all');
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
@@ -111,7 +111,7 @@ export class CacheValidationUtils {
   }> {
     try {
       // Get cached teams count
-      const cachedData = await hybridCacheService.get('teams:all');
+      const cachedData = simpleCacheService.get('teams:all');
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
@@ -294,7 +294,7 @@ export class CacheValidationUtils {
       logger.info('Refreshing players cache...');
 
       // Clear existing cache
-      await hybridCacheService.invalidate({ pattern: 'players:*' });
+      simpleCacheService.invalidate({ pattern: 'players:*' });
 
       // Fetch fresh data with bypass cache
       const response = await fetch(
@@ -319,7 +319,7 @@ export class CacheValidationUtils {
       logger.info('Refreshing games cache...');
 
       // Clear existing cache
-      await hybridCacheService.invalidate({ pattern: 'games:*' });
+      simpleCacheService.invalidate({ pattern: 'games:*' });
 
       // Fetch fresh data with bypass cache
       const response = await fetch('http://localhost:3000/api/games?limit=20000&bypass-cache=true');
@@ -342,7 +342,7 @@ export class CacheValidationUtils {
       logger.info('Refreshing teams cache...');
 
       // Clear existing cache
-      await hybridCacheService.invalidate({ pattern: 'teams:*' });
+      simpleCacheService.invalidate({ pattern: 'teams:*' });
 
       // Fetch fresh data with bypass cache
       const response = await fetch('http://localhost:3000/api/teams?bypass-cache=true');
@@ -365,7 +365,7 @@ export class CacheValidationUtils {
       logger.info('Refreshing NBA Hub counts cache...');
 
       // Clear existing cache
-      await hybridCacheService.invalidate({ pattern: 'nbaHub:*' });
+      simpleCacheService.invalidate({ pattern: 'nbaHub:*' });
 
       // Fetch fresh data with bypass cache
       const response = await fetch('http://localhost:3000/api/nba-hub/counts?bypass-cache=true');
@@ -391,7 +391,7 @@ export class CacheValidationUtils {
       const { GameLogsService } = await import('@/lib/services/game-logs.service');
 
       // Clear existing cache
-      await hybridCacheService.invalidate({ pattern: 'gameLogs:*' });
+      simpleCacheService.invalidate({ pattern: 'gameLogs:*' });
 
       // Fetch fresh data with bypass cache
       await GameLogsService.getGameLogs({}, { page: 1, limit: 20 }, { useCache: false });

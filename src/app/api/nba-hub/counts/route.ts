@@ -72,7 +72,7 @@ export async function GET(request: Request) {
     }
 
     try {
-      const testResult = await NBAHubCacheUtils.getCachedNBACounts();
+      const testResult = NBAHubCacheUtils.getCachedNBACounts();
       console.log('✅ Cache service is accessible, test result:', testResult);
     } catch (cacheError) {
       console.error('❌ Cache service error:', cacheError);
@@ -87,7 +87,7 @@ export async function GET(request: Request) {
     if (!bypassCache) {
       console.log('🔍 Attempting to retrieve from hybrid cache...');
       const cacheStartTime = Date.now();
-      const cachedCounts = await NBAHubCacheUtils.getCachedNBACounts();
+      const cachedCounts = NBAHubCacheUtils.getCachedNBACounts();
       const cacheEndTime = Date.now();
 
       console.log(`⏱️ Cache operation took ${cacheEndTime - cacheStartTime}ms`);
@@ -156,7 +156,7 @@ export async function GET(request: Request) {
     fallbackCache.set('nbaHub:teams.count', {
       data: { count: counts.totalTeams },
       timestamp: Date.now(),
-      ttl: CACHE_CONFIG.TTL.NBA_HUB_COUNTS,
+      ttl: CACHE_CONFIG.TTL.NBA_HUB_TEAMS_COUNT, // 24 hours for teams count
     });
     fallbackCache.set('nbaHub:players.count', {
       data: { count: counts.totalPlayers },
@@ -176,7 +176,7 @@ export async function GET(request: Request) {
           ttl: CACHE_CONFIG.TTL.NBA_HUB_COUNTS,
         }),
         NBAHubCacheUtils.cacheCount('teams', counts.totalTeams, {
-          ttl: CACHE_CONFIG.TTL.NBA_HUB_COUNTS,
+          ttl: CACHE_CONFIG.TTL.NBA_HUB_TEAMS_COUNT, // 24 hours for teams count
         }),
         NBAHubCacheUtils.cacheCount('players', counts.totalPlayers, {
           ttl: CACHE_CONFIG.TTL.NBA_HUB_COUNTS,

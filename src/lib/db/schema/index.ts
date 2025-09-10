@@ -22,7 +22,15 @@ import {
   basketballGamesRelations,
   basketballPlayersRelations,
   basketballTeamsRelations,
+  game_ratings_relations,
+  notificationsRelations,
+  leaguesRelations,
+  seasonsRelations,
+  auditLogsRelations,
+  keyRotationLogsRelations,
+  rlsAccessLogsRelations,
 } from '@/lib/db/schema/relations';
+import { auditLogs, keyRotationLogs, rlsAccessLogs } from '@/lib/db/schema/system-schemas';
 import {
   users,
   friendships,
@@ -43,6 +51,13 @@ export {
   basketballGamesRelations,
   basketballPlayersRelations,
   basketballTeamsRelations,
+  game_ratings_relations,
+  notificationsRelations,
+  leaguesRelations,
+  seasonsRelations,
+  auditLogsRelations,
+  keyRotationLogsRelations,
+  rlsAccessLogsRelations,
 } from '@/lib/db/schema/relations';
 
 // Schema types are exported from @/lib/types instead
@@ -60,6 +75,7 @@ export {
 } from '@/lib/db/schema/game-schemas';
 export { notifications } from '@/lib/db/schema/notification-schemas';
 export { users, friendships, reactions, reactionEmojis } from '@/lib/db/schema/user-schemas';
+export { auditLogs, keyRotationLogs, rlsAccessLogs } from '@/lib/db/schema/system-schemas';
 
 // Export the schema object
 export const schema = {
@@ -79,7 +95,6 @@ export const schema = {
     ...reactionEmojis,
     relations: reactionEmojisRelations,
   },
-  notifications,
   friendships: {
     ...friendships,
     relations: friendshipsRelations,
@@ -96,13 +111,14 @@ export const schema = {
     ...basketball_players,
     relations: basketballPlayersRelations,
   },
-  leagues,
-  seasons,
   game_logs: {
     ...game_logs,
     relations: gameLogsRelations,
   },
-  game_ratings,
+  game_ratings: {
+    ...game_ratings,
+    relations: game_ratings_relations,
+  },
   publicComments: {
     ...publicComments,
     relations: publicCommentsRelations,
@@ -110,5 +126,29 @@ export const schema = {
   publicReactions: {
     ...publicReactions,
     relations: publicReactionsRelations,
+  },
+  notifications: {
+    ...notifications,
+    relations: notificationsRelations,
+  },
+  leagues: {
+    ...leagues,
+    relations: leaguesRelations,
+  },
+  seasons: {
+    ...seasons,
+    relations: seasonsRelations,
+  },
+  audit_logs: {
+    ...auditLogs,
+    relations: auditLogsRelations,
+  },
+  key_rotation_logs: {
+    ...keyRotationLogs,
+    relations: keyRotationLogsRelations,
+  },
+  rls_access_logs: {
+    ...rlsAccessLogs,
+    relations: rlsAccessLogsRelations,
   },
 };

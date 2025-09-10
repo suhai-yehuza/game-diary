@@ -1,24 +1,20 @@
-'use client';
-
-import { Globe, Trophy, TrendingUp, Calendar, ArrowDown, Star } from 'lucide-react';
+import { Globe, Trophy } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import React, { Suspense } from 'react';
 
 import { CardSkeleton } from '@/app/components/common/LoadingSpinner';
-import { ContentPreviewBanner } from '@/app/components/landing/ContentPreviewBanner';
-import { IntegratedGameLogs } from '@/app/components/landing/IntegratedGameLogs';
-import { IntegratedGames } from '@/app/components/landing/IntegratedGames';
-import { PopularGames } from '@/app/components/landing/PopularGames';
-import { useMenuContext } from '@/app/components/providers';
+import { BackgroundCacheWarmer } from '@/app/components/landing/BackgroundCacheWarmer';
+import { ContentPreviewBannerOptimized } from '@/app/components/landing/ContentPreviewBannerOptimized';
+import { LandingPageDataSection } from '@/app/components/landing/LandingPageDataSection';
+import { ScrollToContentButton } from '@/app/components/landing/ScrollToContentButton';
 
 export default function HomePage() {
-  const { isMenuExpanded } = useMenuContext();
-
-  if (isMenuExpanded) return null;
-
   return (
     <div className="home-page-gradient">
+      {/* Background cache warmer - runs after page loads */}
+      <BackgroundCacheWarmer />
+
       {/* Hero Section */}
       <section className="relative overflow-hidden py-12 sm:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -46,7 +42,7 @@ export default function HomePage() {
 
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center justify-center mb-12">
               <Link
-                href="/protected/user"
+                href="/protected/dashboard"
                 className="px-8 py-4 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 font-medium shadow-lg hover:shadow-xl"
               >
                 Go to Dashboard
@@ -78,108 +74,24 @@ export default function HomePage() {
             </div>
 
             {/* Clickable Scroll Indicator */}
-            <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  // Responsive scroll based on viewport height
-                  const viewportHeight = window.innerHeight;
-                  const isMobile = window.innerWidth < 768;
-
-                  // Calculate scroll position based on viewport height
-                  const targetScroll = isMobile ? viewportHeight * 0.9 : viewportHeight;
-
-                  window.scrollTo({
-                    top: targetScroll,
-                    behavior: 'smooth',
-                  });
-                }}
-                className="flex flex-col items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-200 cursor-pointer group"
-              >
-                <ArrowDown className="w-5 h-5 text-black group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors duration-200" />
-                <span className="text-xs text-black dark:text-white group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-200">
-                  See what&apos;s happening
-                </span>
-              </button>
-            </div>
+            <ScrollToContentButton />
           </div>
         </div>
 
         {/* Content Preview Banner - Integrated with hero */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
-          <ContentPreviewBanner />
+          <ContentPreviewBannerOptimized />
         </div>
       </section>
 
-      {/* Content Sections - Reduced spacing for better flow */}
+      {/* Content Sections - Progressive loading with immediate UI */}
       <div
         className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pb-6 sm:pb-8"
         data-section="trending-latest-results"
       >
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10"
-          data-section="main-content-grid"
-        >
-          {/* Trending Game Logs Section */}
-          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
-                <h2 className="text-lg sm:text-xl font-bold">Trending Game Logs</h2>
-              </div>
-              <p className="text-white/90 mt-1 text-sm sm:text-base">
-                See what&apos;s hot in the community
-              </p>
-            </div>
-
-            <div className="p-4 sm:p-6 flex-1 flex flex-col">
-              <div className="flex-1">
-                <Suspense fallback={<CardSkeleton />}>
-                  <IntegratedGameLogs />
-                </Suspense>
-              </div>
-            </div>
-          </section>
-
-          {/* Finished Games Section */}
-          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
-                <h2 className="text-lg sm:text-xl font-bold">Recent Games</h2>
-              </div>
-              <p className="text-white/90 mt-1 text-sm sm:text-base">Latest results and scores</p>
-            </div>
-
-            <div className="p-4 sm:p-6 flex-1 flex flex-col">
-              <div className="flex-1">
-                <Suspense fallback={<CardSkeleton />}>
-                  <IntegratedGames />
-                </Suspense>
-              </div>
-            </div>
-          </section>
-
-          {/* Popular Games Section */}
-          <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-            <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
-              <div className="flex items-center gap-2 sm:gap-3">
-                <Star className="w-5 h-5 sm:w-6 sm:h-6" />
-                <h2 className="text-lg sm:text-xl font-bold">Popular Games</h2>
-              </div>
-              <p className="text-white/90 mt-1 text-sm sm:text-base">
-                Top rated and most popular games
-              </p>
-            </div>
-
-            <div className="p-4 sm:p-6 flex-1 flex flex-col">
-              <div className="flex-1">
-                <Suspense fallback={<CardSkeleton />}>
-                  <PopularGames />
-                </Suspense>
-              </div>
-            </div>
-          </section>
-        </div>
+        <Suspense fallback={<CardSkeleton />}>
+          <LandingPageDataSection />
+        </Suspense>
 
         {/* Connecting Element */}
         <div className="flex justify-center mt-8 mb-6">
@@ -204,7 +116,7 @@ export default function HomePage() {
                 connecting with the community.
               </p>
               <Link
-                href="/protected/user"
+                href="/protected/dashboard"
                 className="inline-block px-8 py-4 bg-white !text-black rounded-lg hover:bg-neutral-100 transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl"
               >
                 Get Started Now

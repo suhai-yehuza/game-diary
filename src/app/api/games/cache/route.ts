@@ -1,13 +1,13 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { logger } from '@/lib/utils/logger';
 
 export function GET() {
   try {
     // Get cache statistics for games
-    const cacheStats = hybridCacheService.getStats();
+    const cacheStats = simpleCacheService.getStats();
     const gamesCacheKeys = Object.keys(cacheStats).filter(key => key.startsWith('games:'));
 
     const gamesCacheInfo = gamesCacheKeys.map(key => ({
@@ -34,7 +34,7 @@ export function GET() {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
@@ -43,11 +43,11 @@ export async function DELETE(request: NextRequest) {
     if (action === 'invalidate') {
       if (season) {
         // Invalidate specific season cache by clearing all games cache
-        await hybridCacheService.clear();
+        simpleCacheService.clear();
         logger.info('Games cache invalidated for season', { season });
       } else {
         // Invalidate all games cache
-        await hybridCacheService.clear();
+        simpleCacheService.clear();
         logger.info('All games cache invalidated');
       }
 
@@ -77,26 +77,29 @@ export async function POST(request: NextRequest) {
     const season = searchParams.get('season');
 
     if (action === 'warm') {
-      // Warm up games cache by fetching data
-      let url: string;
-      if (season === 'all') {
-        // For "all seasons", use a reasonable limit to ensure cache is created
-        url = `${request.nextUrl.origin}/api/games?season=all&limit=20000`; // Increased to 20000 to match frontend expectation
-      } else if (season) {
-        url = `${request.nextUrl.origin}/api/games?season=${season}`;
-      } else {
-        url = `${request.nextUrl.origin}/api/games`;
-      }
+      // Warm up games cache by fetching data using paginated API
+      const statuses = ['finished', 'live', 'scheduled', 'all'];
+      const warmPromises = statuses.map(async status => {
+        const url = `${request.nextUrl.origin}/api/games?season=${season || 'all'}&status=${status}&page=1&limit=50`;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to warm games cache for season ${season || 'all'}, status ${status}`
+          );
+        }
+        return { status, success: true };
+      });
 
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to warm games cache');
-      }
+      const results = await Promise.all(warmPromises);
 
-      logger.info('Games cache warmed', { season: season || 'all' });
+      logger.info('Games cache warmed', {
+        season: season || 'all',
+        statuses: results.map(r => r.status),
+        totalCombinations: results.length,
+      });
       return NextResponse.json({
         success: true,
-        message: `Games cache ${season ? `for season ${season}` : ''} warmed successfully`,
+        message: `Games cache ${season ? `for season ${season}` : 'for all seasons'} warmed successfully (${results.length} status combinations)`,
       });
     }
 

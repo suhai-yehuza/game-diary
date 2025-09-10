@@ -137,10 +137,11 @@ export function FloatingGamesDisplay() {
   };
 
   const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'LIVE':
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'live':
         return 'text-red-600 dark:text-red-400';
-      case 'FINISHED':
+      case 'finished':
         return 'text-green-600 dark:text-green-400';
       default:
         return 'text-gray-600 dark:text-gray-400';
@@ -148,10 +149,11 @@ export function FloatingGamesDisplay() {
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'LIVE':
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'live':
         return <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />;
-      case 'FINISHED':
+      case 'finished':
         return <div className="w-2 h-2 bg-green-500 rounded-full" />;
       default:
         return <Clock className="w-3 h-3" />;
@@ -410,17 +412,17 @@ export function FloatingGamesDisplay() {
                 <div className="text-center mx-2 sm:mx-3 flex-shrink-0">
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">VS</div>
                   <div
-                    className={`text-xs font-medium flex items-center gap-1 justify-center ${getStatusColor(typeof currentGame.status === 'string' ? currentGame.status : currentGame.status?.short || 'SCHEDULED')}`}
+                    className={`text-xs font-medium flex items-center gap-1 justify-center ${getStatusColor(typeof currentGame.status === 'string' ? currentGame.status : currentGame.status?.short || 'scheduled')}`}
                   >
                     {getStatusIcon(
                       typeof currentGame.status === 'string'
                         ? currentGame.status
-                        : currentGame.status?.short || 'SCHEDULED'
+                        : currentGame.status?.short || 'scheduled'
                     )}
                     <span className="hidden sm:inline">
                       {typeof currentGame.status === 'string'
                         ? currentGame.status
-                        : currentGame.status?.short || 'SCHEDULED'}
+                        : currentGame.status?.short || 'scheduled'}
                     </span>
                   </div>
                 </div>
@@ -467,9 +469,16 @@ export function FloatingGamesDisplay() {
               </div>
 
               {/* Game Progress */}
-              {typeof currentGame.status === 'string'
-                ? currentGame.status === 'LIVE'
-                : currentGame.status?.short === 'LIVE' &&
+              {(() => {
+                const isLive =
+                  typeof currentGame.status === 'string'
+                    ? currentGame.status.toLowerCase() === 'live'
+                    : currentGame.status?.short && typeof currentGame.status.short === 'string'
+                      ? currentGame.status.short.toLowerCase() === 'live'
+                      : false;
+
+                return (
+                  isLive &&
                   currentGame.periods && (
                     <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-3 border border-red-200 dark:border-red-800">
                       <div className="flex items-center justify-between">
@@ -489,7 +498,9 @@ export function FloatingGamesDisplay() {
                         </div>
                       )}
                     </div>
-                  )}
+                  )
+                );
+              })()}
 
               {/* Navigation Controls */}
               <div className="flex items-center justify-between mb-12">

@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { ActivityTable } from '@src/app/protected/user/components/ActivityTable';
+import { ActivityTable } from '@/app/protected/dashboard/components/ActivityTable';
 
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({

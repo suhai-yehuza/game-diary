@@ -2,8 +2,8 @@ import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { TestProviders } from '@src/app/components/providers/TestProviders';
-import LiveGamesPage from '@src/app/sports/live/page';
+import { ClientProviders } from '@/app/components/providers';
+import LiveGamesPage from '@/app/sports/live/page';
 
 // Mock CacheProgressTracker component
 vi.mock('@/app/components/cache/CacheProgressTracker', () => {
@@ -28,6 +28,105 @@ vi.mock('lucide-react', () => ({
   MapPin: () => <span data-testid="map-pin-icon">MapPin</span>,
 }));
 
+// Mock next/image
+vi.mock('next/image', () => ({
+  default: ({ src, alt, ...props }: any) => <img src={src} alt={alt} {...props} />,
+}));
+
+// Mock next/link
+vi.mock('next/link', () => ({
+  default: ({ children, href, ...props }: any) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
+}));
+
+// Mock next-themes
+vi.mock('next-themes', () => ({
+  useTheme: () => ({
+    resolvedTheme: 'light',
+  }),
+  ThemeProvider: ({ children }: any) => <div data-testid="theme-provider">{children}</div>,
+}));
+
+// Mock useLiveGames hook
+vi.mock('@/hooks/use-live-games', () => ({
+  useLiveGames: () => ({
+    games: [],
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/sports/live',
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    back: vi.fn(),
+  }),
+}));
+
+// Mock common components
+vi.mock('@/app/components/common', () => ({
+  PageLoadingSpinner: ({ children }: any) => (
+    <div data-testid="page-loading-spinner">{children}</div>
+  ),
+  PageErrorDisplay: ({ error }: any) => (
+    <div data-testid="page-error-display">{error?.message}</div>
+  ),
+  NoDataEmptyState: ({ title, description }: any) => (
+    <div data-testid="no-data-empty-state">
+      <h3>{title}</h3>
+      <p>{description}</p>
+    </div>
+  ),
+}));
+
+// Mock UI components
+vi.mock('@/app/components/ui/button', () => ({
+  Button: ({ children, ...props }: any) => <button {...props}>{children}</button>,
+}));
+
+// Mock the types
+vi.mock('@/types', () => ({
+  IGamesApiResponse: {},
+  IUseLiveGamesOptions: {},
+  IUseLiveGamesReturn: {},
+  LogLevel: 'info',
+  ErrorCategory: {
+    NETWORK: 'network',
+    VALIDATION: 'validation',
+    AUTHENTICATION: 'authentication',
+    AUTHORIZATION: 'authorization',
+    BUSINESS_LOGIC: 'business_logic',
+    SYSTEM: 'system',
+    DATABASE: 'database',
+    API: 'api',
+    UI: 'ui',
+    UNKNOWN: 'unknown',
+  },
+  ErrorSeverity: {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+    CRITICAL: 'critical',
+  },
+}));
+
+// Mock hooks
+vi.mock('@/hooks/use-live-games', () => ({
+  useLiveGames: () => ({
+    games: [],
+    loading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+}));
+
 // Mock Clerk
 vi.mock('@clerk/nextjs', () => ({
   useUser: () => ({
@@ -40,6 +139,13 @@ vi.mock('@clerk/nextjs', () => ({
     },
   }),
   ClerkProvider: ({ children }: any) => <div data-testid="clerk-provider">{children}</div>,
+}));
+
+// Mock ClerkProviderWrapper
+vi.mock('@/app/components/providers/ClerkProvider', () => ({
+  ClerkProviderWrapper: ({ children }: any) => (
+    <div data-testid="clerk-provider-wrapper">{children}</div>
+  ),
 }));
 
 // Mock the useLiveGames hook
@@ -72,9 +178,9 @@ describe('LiveGamesPage', () => {
 
   it('renders the live games page with correct structure', () => {
     render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Check for main heading
@@ -87,9 +193,9 @@ describe('LiveGamesPage', () => {
 
   it('applies correct CSS classes for layout', () => {
     const { container } = render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Check for main container
@@ -103,9 +209,9 @@ describe('LiveGamesPage', () => {
 
   it('has proper semantic structure', () => {
     render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Check for heading hierarchy
@@ -116,16 +222,16 @@ describe('LiveGamesPage', () => {
 
   it('renders consistently', () => {
     const { rerender } = render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Re-render and check consistency
     rerender(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();
@@ -134,9 +240,9 @@ describe('LiveGamesPage', () => {
 
   it('displays live game information', () => {
     render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Check for live game elements
@@ -150,9 +256,9 @@ describe('LiveGamesPage', () => {
 
   it('displays game details correctly', () => {
     render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Check for arena information
@@ -168,17 +274,17 @@ describe('LiveGamesPage', () => {
 
   it('handles multiple renders without issues', () => {
     const { rerender } = render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     // Multiple re-renders
     for (let i = 0; i < 3; i++) {
       rerender(
-        <TestProviders>
+        <ClientProviders>
           <LiveGamesPage />
-        </TestProviders>
+        </ClientProviders>
       );
     }
 
@@ -188,9 +294,9 @@ describe('LiveGamesPage', () => {
 
   it('has proper content structure', () => {
     render(
-      <TestProviders>
+      <ClientProviders>
         <LiveGamesPage />
-      </TestProviders>
+      </ClientProviders>
     );
 
     expect(screen.getByRole('heading', { level: 1 })).toBeInTheDocument();

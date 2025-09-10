@@ -139,7 +139,7 @@ describe('NBA API Integration Tests', () => {
   });
 
   describe('Player Detail API Endpoint', () => {
-    test.skip('should return player details by ID', async () => {
+    test('should return player details by ID', async () => {
       // First get a list of players to get an ID
       const listResponse = await fetch(`${BASE_URL}/api/players?limit=1`);
       const listData = await listResponse.json();

@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '@/lib/cache';
 import { API_LIMITS } from '@/lib/constants';
 import {
   getPlayers,
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     // Get filter parameters
     const searchTerm = searchParams.get('search') || undefined;
     const positionFilter = searchParams.get('position') || undefined;
-    const teamFilter = searchParams.get('team') || undefined;
+    const yearFilter = searchParams.get('year') || undefined;
     const collegeFilter = searchParams.get('college') || undefined;
     const countryFilter = searchParams.get('country') || undefined;
     const sortByParam = searchParams.get('sortBy');
@@ -46,10 +46,10 @@ export async function GET(request: NextRequest) {
     if (getOptions === 'true') {
       // Cache filter options with longer TTL since they change less frequently
       const optionsCacheKey = 'players:filter-options';
-      const optionsCacheTTL = 7200; // 2 hours for filter options
+      const optionsCacheTTL = 60 * 60 * 1000; // 1 hour for filter options
 
       if (!bypassCache) {
-        const cachedOptions = await hybridCacheService.get(optionsCacheKey);
+        const cachedOptions = simpleCacheService.get(optionsCacheKey);
         if (cachedOptions) {
           logger.cache('hit', optionsCacheKey);
           return NextResponse.json(cachedOptions);
@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
       };
 
       // Cache the filter options
-      await hybridCacheService.set(optionsCacheKey, options, {
+      simpleCacheService.set(optionsCacheKey, options, {
         ttl: optionsCacheTTL,
         tags: ['players', 'nba', 'filter-options'],
       });
@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
     const filters: IPlayerFilters = {
       searchTerm,
       positionFilter,
-      teamFilter,
+      yearFilter,
       collegeFilter,
       countryFilter,
       sortBy,
@@ -103,23 +103,29 @@ export async function GET(request: NextRequest) {
       cacheKey = `players:search:${searchTerm}`;
     } else if (positionFilter && positionFilter !== 'all') {
       cacheKey = `players:position:${positionFilter}`;
-    } else if (teamFilter && teamFilter !== 'all') {
-      cacheKey = `players:team:${teamFilter}`;
+    } else if (yearFilter && yearFilter !== 'all') {
+      cacheKey = `players:year:${yearFilter}`;
     } else if (collegeFilter && collegeFilter !== 'all') {
       cacheKey = `players:college:${collegeFilter}`;
     } else if (countryFilter && countryFilter !== 'all') {
       cacheKey = `players:country:${countryFilter}`;
     }
 
-    // Add sorting info to the key (but not pagination)
+    // Add sorting info to the key
     if (sortBy !== 'name' || sortDirection !== 'asc') {
       cacheKey += `:sort:${sortBy}:${sortDirection}`;
     }
 
+    // Add pagination info to the key
+    cacheKey += `:page:${page}:limit:${limit}`;
+
+    // Add version to force cache refresh for JSONB fields
+    cacheKey += `:v7`;
+
     console.log('🔑 Generated cache key:', cacheKey, 'for request params:', {
       searchTerm,
       positionFilter,
-      teamFilter,
+      yearFilter,
       collegeFilter,
       countryFilter,
       sortBy,
@@ -132,7 +138,7 @@ export async function GET(request: NextRequest) {
     // Note: We don't include limit/offset in cache keys since we cache all data
     // and reconstruct pages on the client side for better cache efficiency
 
-    const cacheTTL = 3600; // 1 hour cache for player data
+    const cacheTTL = 60 * 60 * 1000; // 1 hour cache for player data
 
     // Try to get from cache first (unless bypass is requested)
     if (!bypassCache) {
@@ -140,7 +146,7 @@ export async function GET(request: NextRequest) {
 
       // Test cache service availability
       try {
-        const cachedData = await hybridCacheService.get(cacheKey);
+        const cachedData = simpleCacheService.get(cacheKey);
         console.log('🔍 Cache lookup result:', {
           key: cacheKey,
           found: cachedData !== null,
@@ -169,10 +175,13 @@ export async function GET(request: NextRequest) {
     });
 
     // Cache logic removed - fetch directly from database
-    // Fetch players from database
+    // Fetch players from database with pagination
     const { players, total } = await getPlayers(filters);
 
-    // Format response to match external API structure
+    // Calculate pagination info
+    const totalPages = Math.ceil(total / limit);
+
+    // Format response to match external API structure with proper pagination
     const response: IPlayersApiResponse = {
       success: true,
       get: 'players',
@@ -181,22 +190,36 @@ export async function GET(request: NextRequest) {
         season: '2024',
         ...(searchTerm && { search: searchTerm }),
         ...(positionFilter && { position: positionFilter }),
-        ...(teamFilter && { team: teamFilter }),
+        ...(yearFilter && { year: yearFilter }),
         ...(collegeFilter && { college: collegeFilter }),
+        ...(countryFilter && { country: countryFilter }),
       },
       errors: [],
       results: total,
-      response: players,
+      response: players, // Use players directly (already paginated by database)
       timestamp: new Date().toISOString(),
       requestId: crypto.randomUUID(),
-      players: players,
+      players: players, // Use players directly (already paginated by database)
       total: total,
-      page: 1,
-      limit: API_LIMITS.PLAYERS.DEFAULT,
+      page: page,
+      limit: limit,
+      pagination: {
+        page,
+        limit,
+        totalCount: total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+      cacheInfo: {
+        hit: false,
+        key: cacheKey,
+        ttl: cacheTTL,
+      },
     };
 
     // Cache the response
-    await hybridCacheService.set(cacheKey, response, {
+    simpleCacheService.set(cacheKey, response, {
       ttl: cacheTTL,
       tags: ['players', 'nba', 'filtered'],
     });

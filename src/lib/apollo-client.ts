@@ -1,10 +1,4 @@
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink,
-  from,
-  type FieldFunctionOptions,
-} from '@apollo/client';
+import { ApolloClient, InMemoryCache, createHttpLink, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 
@@ -20,7 +14,7 @@ const httpLink = createHttpLink({
     const timeoutId = setTimeout(() => {
       console.warn('GraphQL query timeout - aborting request');
       controller.abort();
-    }, 15000); // 15 second timeout for complex queries
+    }, 20000); // 20 second timeout for complex queries
 
     return fetch(uri, {
       ...options,
@@ -83,22 +77,20 @@ export const apolloClient = new ApolloClient({
     typePolicies: {
       Query: {
         fields: {
-          // Optimize gameLogs with better keyArgs and merge strategy
+          // Simplified gameLogs caching - let Apollo handle optimistic updates naturally
           gameLogs: {
-            keyArgs: ['filters', 'pagination.first'],
-            merge(
-              existing: IConnection<unknown> | undefined,
-              incoming: IConnection<unknown>,
-              options: FieldFunctionOptions
-            ) {
-              const args = options?.args as { pagination?: { after?: string } } | undefined;
-              // If no existing data, return incoming
+            // Only use essential keyArgs to avoid cache fragmentation
+            keyArgs: ['filters', 'pagination'],
+            // Simple merge strategy that works well with optimistic updates
+            merge(existing: IConnection<unknown> | undefined, incoming: IConnection<unknown>) {
+              // For optimistic updates, Apollo will handle the merging automatically
+              // We only need to handle pagination merging
               if (!existing) return incoming;
 
-              // If this is a fresh query (no cursor), replace existing
-              if (!args?.pagination?.after) return incoming;
+              // If incoming has no edges, it's likely a fresh query - replace existing
+              if (!incoming.edges || incoming.edges.length === 0) return incoming;
 
-              // Merge paginated results
+              // For pagination, merge edges
               return {
                 ...incoming,
                 edges: [...(existing.edges || []), ...(incoming.edges || [])],
@@ -107,17 +99,12 @@ export const apolloClient = new ApolloClient({
               };
             },
           },
-          // Optimize comments with better pagination handling
+          // Simplified comments caching
           comments: {
-            keyArgs: ['filters', 'pagination.first'],
-            merge(
-              existing: IConnection<unknown> | undefined,
-              incoming: IConnection<unknown>,
-              options: FieldFunctionOptions
-            ) {
-              const args = options?.args as { pagination?: { after?: string } } | undefined;
+            keyArgs: ['filters', 'pagination'],
+            merge(existing: IConnection<unknown> | undefined, incoming: IConnection<unknown>) {
               if (!existing) return incoming;
-              if (!args?.pagination?.after) return incoming;
+              if (!incoming.edges || incoming.edges.length === 0) return incoming;
 
               return {
                 ...incoming,
@@ -127,7 +114,7 @@ export const apolloClient = new ApolloClient({
               };
             },
           },
-          // Optimize reactions with stable caching
+          // Simplified reactions caching
           reactions: {
             keyArgs: ['targetId', 'targetType'],
             merge(_existing: unknown, incoming: unknown) {
@@ -135,17 +122,12 @@ export const apolloClient = new ApolloClient({
               return incoming;
             },
           },
-          // Add caching for user searches
+          // Simplified user search caching
           searchUsers: {
-            keyArgs: ['searchTerm', 'searchField', 'filters', 'pagination.first'],
-            merge(
-              existing: IConnection<unknown> | undefined,
-              incoming: IConnection<unknown>,
-              options: FieldFunctionOptions
-            ) {
-              const args = options?.args as { pagination?: { after?: string } } | undefined;
+            keyArgs: ['searchTerm', 'filters', 'pagination'],
+            merge(existing: IConnection<unknown> | undefined, incoming: IConnection<unknown>) {
               if (!existing) return incoming;
-              if (!args?.pagination?.after) return incoming;
+              if (!incoming.edges || incoming.edges.length === 0) return incoming;
 
               return {
                 ...incoming,
@@ -155,17 +137,12 @@ export const apolloClient = new ApolloClient({
               };
             },
           },
-          // Add caching for friendships
+          // Simplified friendships caching
           userFriendships: {
-            keyArgs: ['filters', 'pagination.first'],
-            merge(
-              existing: IConnection<unknown> | undefined,
-              incoming: IConnection<unknown>,
-              options: FieldFunctionOptions
-            ) {
-              const args = options?.args as { pagination?: { after?: string } } | undefined;
+            keyArgs: ['filters', 'pagination'],
+            merge(existing: IConnection<unknown> | undefined, incoming: IConnection<unknown>) {
               if (!existing) return incoming;
-              if (!args?.pagination?.after) return incoming;
+              if (!incoming.edges || incoming.edges.length === 0) return incoming;
 
               return {
                 ...incoming,

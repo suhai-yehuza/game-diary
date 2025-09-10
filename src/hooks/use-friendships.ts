@@ -13,6 +13,15 @@ import {
   GET_FRIENDSHIP_STATUS,
   GET_FRIENDSHIP_REQUESTS,
   SEARCH_USERS,
+  GET_FRIENDSHIPS_COUNTS,
+  GET_FRIENDSHIPS_WITH_COUNTS,
+  GET_FRIENDSHIPS_DETAILED,
+  GET_FRIENDSHIP_REQUESTS_COUNTS,
+  GET_FRIENDSHIP_REQUESTS_WITH_COUNTS,
+  GET_FRIENDSHIP_REQUESTS_DETAILED,
+  GET_USER_SEARCH_COUNTS,
+  GET_USER_SEARCH_WITH_COUNTS,
+  GET_USER_SEARCH_DETAILED,
 } from '@/lib/graphql/queries';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { ErrorCategory, ErrorSeverity } from '@/types';
@@ -28,7 +37,17 @@ import type {
   ISearchUsersResponse,
   IFriendshipMutationResponse,
   IRemoveFriendResponse,
+  IUseOptimizedFriendshipsOptions,
+  IUseOptimizedFriendshipsReturn,
+  IUseOptimizedFriendshipRequestsOptions,
+  IUseOptimizedFriendshipRequestsReturn,
+  IUseOptimizedUserSearchOptions,
+  IUseOptimizedUserSearchReturn,
 } from '@/types';
+
+// ============================================================================
+// BASIC FRIENDSHIP HOOKS (Original functionality)
+// ============================================================================
 
 export function useFriendships(filters: FriendshipFilters = {}, options: { skip?: boolean } = {}) {
   const [friendships, setFriendships] = useState<IFriendship[]>([]);
@@ -88,16 +107,15 @@ export function useFriendships(filters: FriendshipFilters = {}, options: { skip?
   // Create a custom refetch function that forces a network request
   const forceRefetch = useCallback(async () => {
     try {
-      const result = await refetch({
-        fetchPolicy: 'network-only', // Force network request
-      });
+      const result = await refetch();
 
       // Manually update the local state with the new data
-      if (result.data?.userFriendships) {
-        setFriendships(result.data.userFriendships.edges.map(edge => edge.node));
-        setTotalCount(result.data.userFriendships.totalCount);
-        setEndCursor(result.data.userFriendships.pageInfo.endCursor ?? null);
-        setHasNextPage(!!result.data.userFriendships.pageInfo.hasNextPage);
+      const typedResult = result as { data?: IUserFriendshipsResponse };
+      if (typedResult.data?.userFriendships) {
+        setFriendships(typedResult.data.userFriendships.edges.map(edge => edge.node));
+        setTotalCount(typedResult.data.userFriendships.totalCount);
+        setEndCursor(typedResult.data.userFriendships.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.userFriendships.pageInfo.hasNextPage);
       }
 
       return result;
@@ -124,11 +142,12 @@ export function useFriendships(filters: FriendshipFilters = {}, options: { skip?
         },
       });
 
-      if (result.data?.userFriendships) {
-        const newFriendships = result.data.userFriendships.edges.map(edge => edge.node);
+      const typedResult = result as { data?: IUserFriendshipsResponse };
+      if (typedResult.data?.userFriendships) {
+        const newFriendships = typedResult.data.userFriendships.edges.map(edge => edge.node);
         setFriendships(prev => [...prev, ...newFriendships]);
-        setEndCursor(result.data.userFriendships.pageInfo.endCursor ?? null);
-        setHasNextPage(!!result.data.userFriendships.pageInfo.hasNextPage);
+        setEndCursor(typedResult.data.userFriendships.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.userFriendships.pageInfo.hasNextPage);
       }
     } catch (error) {
       errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -200,16 +219,15 @@ export function useFriendshipStatus(userId: string) {
   // Create a custom refetch function that forces a network request
   const forceRefetch = useCallback(async () => {
     try {
-      const result = await refetch({
-        fetchPolicy: 'network-only', // Force network request
-      });
+      const result = await refetch();
 
       // Update local state with the new data
-      if (result.data?.friendshipStatus) {
+      const typedResult = result as { data?: IFriendshipStatusResponse };
+      if (typedResult.data?.friendshipStatus) {
         setStatus({
-          status: result.data.friendshipStatus.status as IFriendshipStatusType,
-          friendshipId: result.data.friendshipStatus.friendshipId ?? undefined,
-          isInitiator: result.data.friendshipStatus.isInitiator ?? undefined,
+          status: typedResult.data.friendshipStatus.status as IFriendshipStatusType,
+          friendshipId: typedResult.data.friendshipStatus.friendshipId ?? undefined,
+          isInitiator: typedResult.data.friendshipStatus.isInitiator ?? undefined,
         });
       } else {
         // If no friendship status, set to null
@@ -296,16 +314,15 @@ export function useFriendshipRequests(options: { skip?: boolean } = {}) {
   // Create a custom refetch function that forces a network request
   const forceRefetch = useCallback(async () => {
     try {
-      const result = await refetch({
-        fetchPolicy: 'network-only', // Force network request
-      });
+      const result = await refetch();
 
       // Manually update the local state with the new data
-      if (result.data?.friendshipRequests) {
-        setRequests(result.data.friendshipRequests.edges.map(edge => edge.node));
-        setTotalCount(result.data.friendshipRequests.totalCount);
-        setEndCursor(result.data.friendshipRequests.pageInfo.endCursor ?? null);
-        setHasNextPage(!!result.data.friendshipRequests.pageInfo.hasNextPage);
+      const typedResult = result as { data?: IFriendshipRequestsResponse };
+      if (typedResult.data?.friendshipRequests) {
+        setRequests(typedResult.data.friendshipRequests.edges.map(edge => edge.node));
+        setTotalCount(typedResult.data.friendshipRequests.totalCount);
+        setEndCursor(typedResult.data.friendshipRequests.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.friendshipRequests.pageInfo.hasNextPage);
       }
 
       return result;
@@ -332,11 +349,12 @@ export function useFriendshipRequests(options: { skip?: boolean } = {}) {
         },
       });
 
-      if (result.data?.friendshipRequests) {
-        const newRequests = result.data.friendshipRequests.edges.map(edge => edge.node);
+      const typedResult = result as { data?: IFriendshipRequestsResponse };
+      if (typedResult.data?.friendshipRequests) {
+        const newRequests = typedResult.data.friendshipRequests.edges.map(edge => edge.node);
         setRequests(prev => [...prev, ...newRequests]);
-        setEndCursor(result.data.friendshipRequests.pageInfo.endCursor ?? null);
-        setHasNextPage(!!result.data.friendshipRequests.pageInfo.hasNextPage);
+        setEndCursor(typedResult.data.friendshipRequests.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.friendshipRequests.pageInfo.hasNextPage);
       }
     } catch (error) {
       errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -424,11 +442,7 @@ export function useUserSearch() {
       const startTime = performance.now();
 
       try {
-        const result = await refetch({
-          searchTerm: searchTerm,
-          searchField: 'all',
-          pagination: { first: 10 },
-        });
+        const result = await refetch();
 
         const endTime = performance.now();
         const queryTime = endTime - startTime;
@@ -441,11 +455,12 @@ export function useUserSearch() {
           );
         }
 
-        if (result.data?.searchUsers) {
-          setUsers(result.data.searchUsers.edges.map(edge => edge.node));
-          setTotalCount(result.data.searchUsers.totalCount);
-          setEndCursor(result.data.searchUsers.pageInfo.endCursor ?? null);
-          setHasNextPage(!!result.data.searchUsers.pageInfo.hasNextPage);
+        const typedResult = result as { data?: ISearchUsersResponse };
+        if (typedResult.data?.searchUsers) {
+          setUsers(typedResult.data.searchUsers.edges.map(edge => edge.node));
+          setTotalCount(typedResult.data.searchUsers.totalCount);
+          setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
+          setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
         }
 
         return result;
@@ -472,11 +487,12 @@ export function useUserSearch() {
         },
       });
 
-      if (result.data?.searchUsers) {
-        const newUsers = result.data.searchUsers.edges.map(edge => edge.node);
+      const typedResult = result as { data?: ISearchUsersResponse };
+      if (typedResult.data?.searchUsers) {
+        const newUsers = typedResult.data.searchUsers.edges.map(edge => edge.node);
         setUsers(prev => [...prev, ...newUsers]);
-        setEndCursor(result.data.searchUsers.pageInfo.endCursor ?? null);
-        setHasNextPage(!!result.data.searchUsers.pageInfo.hasNextPage);
+        setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
       }
     } catch (error) {
       errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -514,32 +530,30 @@ export function useFriendRequestMutations() {
   });
 
   const [acceptFriendRequest, { loading: acceptLoading, error: acceptError }] =
-    useOptimizedMutation<{ acceptFriendRequest?: IFriendshipMutationResponse }>(
-      ACCEPT_FRIEND_REQUEST,
-      {
-        context: {
-          component: 'useFriendRequestMutations',
-          action: 'Accept friend request',
-          category: ErrorCategory.API,
-          severity: ErrorSeverity.MEDIUM,
-          timestamp: new Date(),
-        },
-      }
-    );
+    useOptimizedMutation<{
+      acceptFriendRequest?: IFriendshipMutationResponse;
+    }>(ACCEPT_FRIEND_REQUEST, {
+      context: {
+        component: 'useFriendRequestMutations',
+        action: 'Accept friend request',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date(),
+      },
+    });
 
   const [rejectFriendRequest, { loading: rejectLoading, error: rejectError }] =
-    useOptimizedMutation<{ rejectFriendRequest?: IFriendshipMutationResponse }>(
-      REJECT_FRIEND_REQUEST,
-      {
-        context: {
-          component: 'useFriendRequestMutations',
-          action: 'Reject friend request',
-          category: ErrorCategory.API,
-          severity: ErrorSeverity.MEDIUM,
-          timestamp: new Date(),
-        },
-      }
-    );
+    useOptimizedMutation<{
+      rejectFriendRequest?: IFriendshipMutationResponse;
+    }>(REJECT_FRIEND_REQUEST, {
+      context: {
+        component: 'useFriendRequestMutations',
+        action: 'Reject friend request',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date(),
+      },
+    });
 
   const [removeFriend, { loading: removeLoading, error: removeError }] = useOptimizedMutation<{
     removeFriend?: IRemoveFriendResponse;
@@ -560,5 +574,469 @@ export function useFriendRequestMutations() {
     removeFriend,
     loading: sendLoading || acceptLoading || rejectLoading || removeLoading,
     error: sendError || acceptError || rejectError || removeError,
+  };
+}
+
+// ============================================================================
+// OPTIMIZED FRIENDSHIP HOOKS (Performance-optimized versions)
+// ============================================================================
+
+export function useOptimizedFriendships(
+  filters: FriendshipFilters = {},
+  options: IUseOptimizedFriendshipsOptions = {}
+): IUseOptimizedFriendshipsReturn {
+  const [friendships, setFriendships] = useState<IFriendship[]>([]);
+  const [endCursor, setEndCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const hasLoggedWarning = useRef(false);
+
+  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+
+  // Choose the appropriate query based on options
+  const query = useMemo(() => {
+    if (useCountsOnly) return GET_FRIENDSHIPS_COUNTS;
+    if (useDetailed) return GET_FRIENDSHIPS_DETAILED;
+    return GET_FRIENDSHIPS_WITH_COUNTS;
+  }, [useCountsOnly, useDetailed]);
+
+  // Memoize the onCompleted callback to prevent infinite re-renders
+  const onCompleted = useCallback(
+    (data: IUserFriendshipsResponse) => {
+      if (data?.userFriendships) {
+        if (useCountsOnly) {
+          setTotalCount(data.userFriendships.totalCount);
+        } else {
+          setFriendships(data.userFriendships.edges.map(edge => edge.node));
+          setTotalCount(data.userFriendships.totalCount);
+          setEndCursor(data.userFriendships.pageInfo.endCursor ?? null);
+          setHasNextPage(!!data.userFriendships.pageInfo.hasNextPage);
+        }
+      }
+    },
+    [useCountsOnly]
+  );
+
+  // Memoize the context to prevent query recreation
+  const context = useMemo(
+    () => ({
+      component: 'useOptimizedFriendships',
+      action: 'Load optimized friendships',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    }),
+    []
+  );
+
+  const { loading, error, refetch, fetchMore } = useOptimizedQuery<IUserFriendshipsResponse>(
+    query,
+    {
+      variables: {
+        filters,
+        pagination: useCountsOnly ? { first: 1 } : { first: limit },
+      },
+      context,
+      onCompleted,
+      skip: _skip || useCountsOnly,
+    }
+  );
+
+  // Log slow queries for performance monitoring (only once per query, after 2 seconds)
+  useEffect(() => {
+    if (loading && !hasLoggedWarning.current) {
+      const timer = setTimeout(() => {
+        if (loading) {
+          console.warn(`Slow optimized friendships query detected: query is still loading`, {
+            filters,
+          });
+          hasLoggedWarning.current = true;
+        }
+      }, 2000); // Wait 2 seconds before warning
+
+      return () => clearTimeout(timer);
+    } else if (!loading) {
+      hasLoggedWarning.current = false;
+    }
+  }, [loading, filters]);
+
+  // Create a custom refetch function that forces a network request
+  const forceRefetch = useCallback(async () => {
+    try {
+      const result = await refetch();
+
+      // Manually update the local state with the new data
+      const typedResult = result as { data?: IUserFriendshipsResponse };
+      if (typedResult.data?.userFriendships) {
+        if (useCountsOnly) {
+          setTotalCount(typedResult.data.userFriendships.totalCount);
+        } else {
+          setFriendships(typedResult.data.userFriendships.edges.map(edge => edge.node));
+          setTotalCount(typedResult.data.userFriendships.totalCount);
+          setEndCursor(typedResult.data.userFriendships.pageInfo.endCursor ?? null);
+          setHasNextPage(!!typedResult.data.userFriendships.pageInfo.hasNextPage);
+        }
+      }
+
+      return result;
+    } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useOptimizedFriendships',
+        action: 'Refetch optimized friendships',
+      });
+      return null;
+    }
+  }, [refetch, useCountsOnly]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || !endCursor || useCountsOnly) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            first: limit,
+            after: endCursor,
+          },
+        },
+      });
+
+      const typedResult = result as { data?: IUserFriendshipsResponse };
+      if (typedResult.data?.userFriendships) {
+        const newFriendships = typedResult.data.userFriendships.edges.map(edge => edge.node);
+        setFriendships(prev => [...prev, ...newFriendships]);
+        setEndCursor(typedResult.data.userFriendships.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.userFriendships.pageInfo.hasNextPage);
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useOptimizedFriendships',
+        action: 'Load more optimized friendships',
+      });
+    }
+  }, [hasNextPage, endCursor, fetchMore, limit, useCountsOnly]);
+
+  return {
+    friendships,
+    loading,
+    error: error ? new Error(error.message) : null,
+    refetch: forceRefetch,
+    hasNextPage,
+    loadMore,
+    totalCount,
+    // Performance metrics
+    queryTime: loading,
+    isSlowQuery: loading,
+  };
+}
+
+export function useOptimizedFriendshipRequests(
+  options: IUseOptimizedFriendshipRequestsOptions = {}
+): IUseOptimizedFriendshipRequestsReturn {
+  const [requests, setRequests] = useState<IFriendship[]>([]);
+  const [endCursor, setEndCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const hasLoggedWarning = useRef(false);
+
+  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+
+  // Choose the appropriate query based on options
+  const query = useMemo(() => {
+    if (useCountsOnly) return GET_FRIENDSHIP_REQUESTS_COUNTS;
+    if (useDetailed) return GET_FRIENDSHIP_REQUESTS_DETAILED;
+    return GET_FRIENDSHIP_REQUESTS_WITH_COUNTS;
+  }, [useCountsOnly, useDetailed]);
+
+  // Memoize the onCompleted callback to prevent infinite re-renders
+  const onCompleted = useCallback(
+    (data: IFriendshipRequestsResponse) => {
+      if (data?.friendshipRequests) {
+        if (useCountsOnly) {
+          setTotalCount(data.friendshipRequests.totalCount);
+        } else {
+          setRequests(data.friendshipRequests.edges.map(edge => edge.node));
+          setTotalCount(data.friendshipRequests.totalCount);
+          setEndCursor(data.friendshipRequests.pageInfo.endCursor ?? null);
+          setHasNextPage(!!data.friendshipRequests.pageInfo.hasNextPage);
+        }
+      }
+    },
+    [useCountsOnly]
+  );
+
+  // Memoize the context to prevent query recreation
+  const context = useMemo(
+    () => ({
+      component: 'useOptimizedFriendshipRequests',
+      action: 'Load optimized friendship requests',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    }),
+    []
+  );
+
+  const { loading, error, refetch, fetchMore } = useOptimizedQuery<IFriendshipRequestsResponse>(
+    query,
+    {
+      variables: {
+        pagination: useCountsOnly ? { first: 1 } : { first: limit },
+      },
+      context,
+      onCompleted,
+      skip: _skip || useCountsOnly,
+    }
+  );
+
+  // Log slow queries for performance monitoring (only once per query, after 2 seconds)
+  useEffect(() => {
+    if (loading && !hasLoggedWarning.current) {
+      const timer = setTimeout(() => {
+        if (loading) {
+          console.warn(`Slow optimized friendship requests query detected: query is still loading`);
+          hasLoggedWarning.current = true;
+        }
+      }, 2000); // Wait 2 seconds before warning
+
+      return () => clearTimeout(timer);
+    } else if (!loading) {
+      hasLoggedWarning.current = false;
+    }
+  }, [loading]);
+
+  // Create a custom refetch function that forces a network request
+  const forceRefetch = useCallback(async () => {
+    try {
+      const result = await refetch();
+
+      // Manually update the local state with the new data
+      const typedResult = result as { data?: IFriendshipRequestsResponse };
+      if (typedResult.data?.friendshipRequests) {
+        if (useCountsOnly) {
+          setTotalCount(typedResult.data.friendshipRequests.totalCount);
+        } else {
+          setRequests(typedResult.data.friendshipRequests.edges.map(edge => edge.node));
+          setTotalCount(typedResult.data.friendshipRequests.totalCount);
+          setEndCursor(typedResult.data.friendshipRequests.pageInfo.endCursor ?? null);
+          setHasNextPage(!!typedResult.data.friendshipRequests.pageInfo.hasNextPage);
+        }
+      }
+
+      return result;
+    } catch (error) {
+      // Use centralized error handling
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useOptimizedFriendshipRequests',
+        action: 'Refetch optimized friendship requests',
+      });
+      return null;
+    }
+  }, [refetch, useCountsOnly]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || !endCursor || useCountsOnly) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            first: limit,
+            after: endCursor,
+          },
+        },
+      });
+
+      const typedResult = result as { data?: IFriendshipRequestsResponse };
+      if (typedResult.data?.friendshipRequests) {
+        const newRequests = typedResult.data.friendshipRequests.edges.map(edge => edge.node);
+        setRequests(prev => [...prev, ...newRequests]);
+        setEndCursor(typedResult.data.friendshipRequests.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.friendshipRequests.pageInfo.hasNextPage);
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useOptimizedFriendshipRequests',
+        action: 'Load more optimized friendship requests',
+      });
+    }
+  }, [hasNextPage, endCursor, fetchMore, limit, useCountsOnly]);
+
+  return {
+    requests,
+    loading,
+    error: error ? new Error(error.message) : null,
+    refetch: forceRefetch,
+    hasNextPage,
+    loadMore,
+    totalCount,
+    // Performance metrics
+    queryTime: loading,
+    isSlowQuery: loading,
+  };
+}
+
+export function useOptimizedUserSearch(
+  options: IUseOptimizedUserSearchOptions = {}
+): IUseOptimizedUserSearchReturn {
+  const [users, setUsers] = useState<UserSummary[]>([]);
+  const [endCursor, setEndCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(true);
+  const [totalCount, setTotalCount] = useState<number>(0);
+  const hasLoggedWarning = useRef(false);
+
+  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+
+  // Choose the appropriate query based on options
+  const query = useMemo(() => {
+    if (useCountsOnly) return GET_USER_SEARCH_COUNTS;
+    if (useDetailed) return GET_USER_SEARCH_DETAILED;
+    return GET_USER_SEARCH_WITH_COUNTS;
+  }, [useCountsOnly, useDetailed]);
+
+  // Memoize the onCompleted callback to prevent infinite re-renders
+  const onCompleted = useCallback(
+    (data: ISearchUsersResponse) => {
+      if (data?.searchUsers) {
+        if (useCountsOnly) {
+          setTotalCount(data.searchUsers.totalCount);
+        } else {
+          setUsers(data.searchUsers.edges.map(edge => edge.node));
+          setTotalCount(data.searchUsers.totalCount);
+          setEndCursor(data.searchUsers.pageInfo.endCursor ?? null);
+          setHasNextPage(!!data.searchUsers.pageInfo.hasNextPage);
+        }
+      }
+    },
+    [useCountsOnly]
+  );
+
+  // Memoize the context to prevent query recreation
+  const context = useMemo(
+    () => ({
+      component: 'useOptimizedUserSearch',
+      action: 'Search optimized users',
+      category: ErrorCategory.API,
+      severity: ErrorSeverity.MEDIUM,
+      timestamp: new Date(),
+    }),
+    []
+  );
+
+  const { loading, error, refetch, fetchMore } = useOptimizedQuery<ISearchUsersResponse>(query, {
+    variables: {
+      searchTerm: '',
+      searchField: 'all',
+      pagination: useCountsOnly ? { first: 1 } : { first: limit },
+    },
+    context,
+    onCompleted,
+    skip: true, // Always skip initial query, use search function instead
+  });
+
+  // Log slow queries for performance monitoring (only once per query, after 2 seconds)
+  useEffect(() => {
+    if (loading && !hasLoggedWarning.current) {
+      const timer = setTimeout(() => {
+        if (loading) {
+          console.warn(`Slow optimized user search query detected: query is still loading`);
+          hasLoggedWarning.current = true;
+        }
+      }, 2000); // Wait 2 seconds before warning
+
+      return () => clearTimeout(timer);
+    } else if (!loading) {
+      hasLoggedWarning.current = false;
+    }
+  }, [loading]);
+
+  const search = useCallback(
+    async (searchTerm: string) => {
+      if (!searchTerm.trim()) {
+        setUsers([]);
+        setTotalCount(0);
+        return;
+      }
+
+      const startTime = performance.now();
+
+      try {
+        const result = await refetch();
+
+        const endTime = performance.now();
+        const queryTime = endTime - startTime;
+
+        // Log slow queries for performance monitoring
+        if (queryTime > 1000) {
+          // Log if query takes more than 1 second
+          console.warn(
+            `Slow optimized user search query detected: ${queryTime.toFixed(2)}ms for term: "${searchTerm}"`
+          );
+        }
+
+        const typedResult = result as { data?: ISearchUsersResponse };
+        if (typedResult.data?.searchUsers) {
+          if (useCountsOnly) {
+            setTotalCount(typedResult.data.searchUsers.totalCount);
+          } else {
+            setUsers(typedResult.data.searchUsers.edges.map(edge => edge.node));
+            setTotalCount(typedResult.data.searchUsers.totalCount);
+            setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
+            setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
+          }
+        }
+      } catch (err) {
+        const endTime = performance.now();
+        const queryTime = endTime - startTime;
+        console.error(`Error searching users after ${queryTime.toFixed(2)}ms:`, err);
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'useOptimizedUserSearch',
+          action: 'Search users',
+        });
+      }
+    },
+    [refetch, useCountsOnly]
+  );
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || !endCursor || useCountsOnly) return;
+
+    try {
+      const result = await fetchMore({
+        variables: {
+          pagination: {
+            first: limit,
+            after: endCursor,
+          },
+        },
+      });
+
+      const typedResult = result as { data?: ISearchUsersResponse };
+      if (typedResult.data?.searchUsers) {
+        const newUsers = typedResult.data.searchUsers.edges.map(edge => edge.node);
+        setUsers(prev => [...prev, ...newUsers]);
+        setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
+        setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
+      }
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'useOptimizedUserSearch',
+        action: 'Load more optimized users',
+      });
+    }
+  }, [hasNextPage, endCursor, fetchMore, limit, useCountsOnly]);
+
+  return {
+    users,
+    loading,
+    error: error ? new Error(error.message) : null,
+    search,
+    hasNextPage,
+    loadMore,
+    totalCount,
+    // Performance metrics
+    queryTime: loading,
+    isSlowQuery: loading,
   };
 }

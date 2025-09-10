@@ -106,9 +106,11 @@ describe('Constants Module', () => {
 
   describe('GAME_STATUS_VALUES', () => {
     it('should contain all expected game status values', () => {
-      expect(GAME_STATUS_VALUES).toHaveProperty('FINISHED', 'FINISHED');
-      expect(GAME_STATUS_VALUES).toHaveProperty('LIVE', 'LIVE');
-      expect(GAME_STATUS_VALUES).toHaveProperty('SCHEDULED', 'SCHEDULED');
+      expect(GAME_STATUS_VALUES).toHaveProperty('FINISHED', 'Finished');
+      expect(GAME_STATUS_VALUES).toHaveProperty('LIVE', 'Live');
+      expect(GAME_STATUS_VALUES).toHaveProperty('SCHEDULED', 'Scheduled');
+      expect(GAME_STATUS_VALUES).toHaveProperty('CANCELLED', 'Canceled');
+      expect(GAME_STATUS_VALUES).toHaveProperty('IN_PROGRESS', 'In Progress');
     });
   });
 
@@ -248,7 +250,7 @@ describe('Constants Module', () => {
   describe('getEnumValues', () => {
     it('should return correct game status values', () => {
       const values = getEnumValues.gameStatus();
-      expect(values).toEqual(['FINISHED', 'LIVE', 'SCHEDULED', 'CANCELLED', 'IN_PROGRESS']);
+      expect(values).toEqual(['Finished', 'Live', 'Scheduled', 'Canceled', 'In Progress']);
     });
 
     it('should return correct friendship status values', () => {
