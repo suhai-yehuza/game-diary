@@ -83,26 +83,33 @@ async function invalidateCache(target?: string, params?: Record<string, string>)
   if (!target || target === 'all') {
     console.log('🗑️ Invalidating all NBA caches...');
 
-    simpleCacheService.invalidate(['teams', 'games', 'players', 'nba']);
+    simpleCacheService.invalidate({ pattern: 'games:*' });
+    simpleCacheService.invalidate({ pattern: 'players:*' });
+    simpleCacheService.invalidate({ pattern: 'teams:*' });
+    simpleCacheService.invalidate({ pattern: 'nba:*' });
     console.log('✅ All NBA caches invalidated successfully!');
   } else {
     console.log(`🗑️ Invalidating ${target} cache...`);
 
     switch (target) {
       case 'teams':
-        simpleCacheService.invalidate(['teams', 'nba']);
+        simpleCacheService.invalidate({ pattern: 'teams:*' });
+        simpleCacheService.invalidate({ pattern: 'nba:*' });
         break;
       case 'games':
         const season = params?.season;
         if (season) {
-          simpleCacheService.invalidate([`games:${season}`]);
+          simpleCacheService.invalidate({ pattern: `games:${season}` });
+          simpleCacheService.invalidate({ pattern: 'nba:*' });
           console.log(`✅ Games cache for season ${season} invalidated`);
         } else {
-          simpleCacheService.invalidate(['games', 'nba']);
+          simpleCacheService.invalidate({ pattern: 'games:*' });
+          simpleCacheService.invalidate({ pattern: 'nba:*' });
         }
         break;
       case 'players':
-        simpleCacheService.invalidate(['players', 'nba']);
+        simpleCacheService.invalidate({ pattern: 'players:*' });
+        simpleCacheService.invalidate({ pattern: 'nba:*' });
         break;
     }
 
@@ -148,7 +155,10 @@ async function showCacheStats() {
 async function clearAllCaches() {
   console.log('🧹 Clearing all NBA caches...');
 
-  simpleCacheService.invalidate(['teams', 'games', 'players', 'nba']);
+  simpleCacheService.invalidate({ pattern: 'teams:*' });
+  simpleCacheService.invalidate({ pattern: 'games:*' });
+  simpleCacheService.invalidate({ pattern: 'players:*' });
+  simpleCacheService.invalidate({ pattern: 'nba:*' });
 
   console.log('✅ All NBA caches cleared successfully!');
 }

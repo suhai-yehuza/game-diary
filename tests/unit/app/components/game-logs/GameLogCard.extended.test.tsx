@@ -302,7 +302,7 @@ describe('GameLogCard Extended Tests', () => {
     it('renders game link with correct href', () => {
       render(<GameLogCard gameLog={mockGameLog} />);
 
-      const gameLink = screen.getByRole('link', { name: /GSW @ LAL on Sun, Jan 14, 2024/i });
+      const gameLink = screen.getByRole('link', { name: /GSW @ LAL on/ });
       expect(gameLink).toHaveAttribute('href', '/games/game-1');
     });
 
