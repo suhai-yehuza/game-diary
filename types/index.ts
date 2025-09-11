@@ -13,11 +13,6 @@
 export * from './generated/graphql';
 
 // ========================================
-// CORE TYPES
-// ========================================
-export * from './core.types';
-
-// ========================================
 // CONSTANTS (re-exported for convenience)
 // ========================================
 export * from '../src/lib/constants';

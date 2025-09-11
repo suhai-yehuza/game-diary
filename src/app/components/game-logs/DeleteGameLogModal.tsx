@@ -8,8 +8,19 @@ import { Card } from '@/app/components/ui/Card';
 import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
 import { DELETE_GAME_LOG } from '@/lib/graphql/mutations';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import type { IDeleteGameLogModalProps } from '@/types';
 import { ErrorCategory, ErrorSeverity } from '@/types';
+import type { IDeleteGameLogModalProps, GameLogEdge } from '@/types';
+
+// Helper function to generate optimistic response for delete mutation
+function generateDeleteOptimisticResponse(_gameLog: Record<string, unknown>) {
+  return {
+    deleteGameLog: {
+      success: true,
+      errors: [],
+      __typename: 'DeleteGameLogResponse',
+    },
+  };
+}
 
 export function DeleteGameLogModal({
   gameLog,
@@ -25,16 +36,21 @@ export function DeleteGameLogModal({
       severity: ErrorSeverity.MEDIUM,
       timestamp: new Date(),
     },
+    // Enable optimistic updates
+    enableOptimisticUpdates: true,
     onCompleted: (data: {
       deleteGameLog?: { success?: boolean; errors?: Array<{ message?: string }> };
     }) => {
       if (data?.deleteGameLog?.success) {
         toast.success('Game log deleted');
         onSuccess?.();
+        onClose();
       } else {
+        // Rollback optimistic update on error
         const errors = data?.deleteGameLog?.errors ?? [];
         const message = errors[0]?.message ?? 'Failed to delete game log';
         toast.error(message);
+        // The optimistic update will be automatically rolled back by Apollo
       }
     },
     onError: (error: unknown) => {
@@ -47,14 +63,46 @@ export function DeleteGameLogModal({
         timestamp: new Date().toISOString(),
       });
       toast.error('Failed to delete game log');
+      // The optimistic update will be automatically rolled back by Apollo
     },
   });
 
   const handleDelete = async () => {
     try {
+      // Generate optimistic response
+      const optimisticResponse = generateDeleteOptimisticResponse(gameLog);
+      // Execute mutation with optimistic response and cache update
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       await deleteGameLog({
         variables: {
           id: gameLog.id,
+        },
+        optimisticResponse,
+        update: (cache: any, { data }: any) => {
+          // Apollo will automatically handle the optimistic update
+          // This update function runs after the real mutation completes
+          if (data?.deleteGameLog?.success) {
+            // Remove the deleted game log from all gameLogs queries
+            cache.modify({
+              fields: {
+                gameLogs(existingConnection: any, { readField }: any) {
+                  if (!existingConnection) return existingConnection;
+
+                  const edges = existingConnection.edges || [];
+                  const filteredEdges = edges.filter((edge: GameLogEdge) => {
+                    const nodeId = readField('id', edge.node);
+                    return nodeId !== gameLog.id;
+                  });
+
+                  return {
+                    ...existingConnection,
+                    edges: filteredEdges,
+                    totalCount: Math.max(0, existingConnection.totalCount - 1),
+                  };
+                },
+              },
+            });
+          }
         },
       });
     } catch (error) {

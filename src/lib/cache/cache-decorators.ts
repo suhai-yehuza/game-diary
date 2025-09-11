@@ -1,6 +1,6 @@
 import type { ICacheOptions } from '@/types';
 
-import { hybridCacheService } from './hybrid-cache-service';
+import { simpleCacheService } from './simple-cache-service';
 
 /**
  * Cache decorator for class methods
@@ -15,7 +15,7 @@ export function CacheMethod(options: ICacheOptions = {}) {
       const cacheKey = generateMethodCacheKey(propertyKey, args);
 
       // Try to get from cache first
-      const cachedResult = await hybridCacheService.get(cacheKey, options);
+      const cachedResult = simpleCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -24,7 +24,7 @@ export function CacheMethod(options: ICacheOptions = {}) {
       const result = await originalMethod.apply(this, args);
 
       // Cache the result
-      await hybridCacheService.set(cacheKey, result, options);
+      simpleCacheService.set(cacheKey, result, options);
 
       return result;
     };
@@ -43,12 +43,12 @@ export function CacheProperty(options: ICacheOptions = {}) {
 
     // Getter
     const getter = function () {
-      return hybridCacheService.get(cacheKey, options);
+      return simpleCacheService.get(cacheKey, options);
     };
 
     // Setter
     const setter = function (value: unknown) {
-      void hybridCacheService.set(cacheKey, value, options);
+      simpleCacheService.set(cacheKey, value, options);
     };
 
     Object.defineProperty(target, propertyKey, {
@@ -72,7 +72,7 @@ export function CacheAPI(options: ICacheOptions = {}) {
       const cacheKey = generateAPICacheKey(propertyKey, args);
 
       // Check cache first
-      const cachedResult = await hybridCacheService.get(cacheKey, options);
+      const cachedResult = simpleCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -82,7 +82,7 @@ export function CacheAPI(options: ICacheOptions = {}) {
 
       // Cache successful responses only
       if (result && !result.error) {
-        void hybridCacheService.set(cacheKey, result, options);
+        simpleCacheService.set(cacheKey, result, options);
       }
 
       return result;
@@ -104,7 +104,7 @@ export function CacheGraphQL(options: ICacheOptions = {}) {
       const cacheKey = generateGraphQLCacheKey(propertyKey, args);
 
       // Check cache first
-      const cachedResult = await hybridCacheService.get(cacheKey, options);
+      const cachedResult = simpleCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -114,7 +114,7 @@ export function CacheGraphQL(options: ICacheOptions = {}) {
 
       // Cache successful responses
       if (result && !result.errors) {
-        void hybridCacheService.set(cacheKey, result, options);
+        simpleCacheService.set(cacheKey, result, options);
       }
 
       return result;
@@ -136,7 +136,7 @@ export function CacheDatabase(options: ICacheOptions = {}) {
       const cacheKey = generateDatabaseCacheKey(propertyKey, args);
 
       // Check cache first
-      const cachedResult = await hybridCacheService.get(cacheKey, options);
+      const cachedResult = simpleCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -146,7 +146,7 @@ export function CacheDatabase(options: ICacheOptions = {}) {
 
       // Cache results
       if (result !== null && result !== undefined) {
-        void hybridCacheService.set(cacheKey, result, options);
+        simpleCacheService.set(cacheKey, result, options);
       }
 
       return result;
@@ -176,7 +176,7 @@ export function InvalidateCache(
       const result = await originalMethod.apply(this, args);
 
       // Invalidate cache after successful execution
-      void hybridCacheService.invalidate(invalidationOptions);
+      simpleCacheService.invalidate(invalidationOptions);
 
       return result;
     };

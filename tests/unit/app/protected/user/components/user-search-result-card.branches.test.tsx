@@ -16,7 +16,7 @@ vi.mock('@/hooks/use-friendships', () => ({
   useFriendshipStatus: (...args: any[]) => mockImpl.useFriendshipStatus(...args),
 }));
 
-import { UserSearchResultCard } from '@/app/protected/user/components/UserSearchResultCard';
+import { UserSearchResultCard } from '@/app/protected/dashboard/components/UserSearchResultCard';
 
 describe('UserSearchResultCard branch coverage', () => {
   const baseUser = {

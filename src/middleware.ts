@@ -87,7 +87,7 @@ export const middleware = (
 
   // If user is authenticated and trying to access sign-in/sign-up, redirect to profile
   if (authData.userId && isAuthRoute(req)) {
-    return NextResponse.redirect(new URL('/protected/user', url));
+    return NextResponse.redirect(new URL('/protected/dashboard', url));
   }
 
   // Check for admin routes - these require special handling

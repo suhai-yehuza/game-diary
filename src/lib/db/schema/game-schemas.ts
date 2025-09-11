@@ -32,14 +32,12 @@ export const seasons = pgTable('seasons', {
 // Basketball Games table - extending base table configuration
 export const basketball_games = pgTable('basketball_games', {
   id: varchar('id', { length: 255 }).primaryKey(), // Format: ${season}-${game.id}
-  game_type: varchar('game_type', { length: 50 }).notNull().default('nba'),
   season: varchar('season', { length: 20 }),
-  basketball_game_id: varchar('basketball_game_id', { length: 255 }),
+  game_id: varchar('game_id', { length: 255 }),
   date: timestamp('date').notNull(),
   stage: integer('stage'), // Game stage (e.g., regular season, playoffs, etc.)
   teams: jsonb('teams'), // Complete teams data with home and away team information
-  game_status: varchar('game_status', { length: 50 }).notNull(), // Keep for backward compatibility
-  status: jsonb('status'), // New field to store complete status object
+  status: jsonb('status'), // Field to store complete status object
   scores: jsonb('scores'), // New field to store complete scores object with win/loss, series, linescore
   arena: jsonb('arena'), // New field to store complete arena object
   periods: jsonb('periods'), // New field to store complete periods object

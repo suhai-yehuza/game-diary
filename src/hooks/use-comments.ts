@@ -20,6 +20,7 @@ import type {
   ICreateCommentResponse,
   IUpdateCommentResponse,
   IDeleteCommentResponse,
+  CommentEdge,
 } from '@/types';
 
 // Adapter functions to convert GraphQL types to IComment interface
@@ -105,7 +106,7 @@ export function useComments(
     },
     onCompleted: data => {
       if (data?.comments) {
-        const newComments = data.comments.edges.map(edge =>
+        const newComments = data.comments.edges.map((edge: CommentEdge) =>
           adaptGraphQLComment(edge.node as Record<string, unknown>)
         );
         setComments(newComments);
@@ -123,6 +124,10 @@ export function useComments(
       }
     },
     onError: (error: unknown) => {
+      console.error('useComments - GraphQL error:', error);
+      console.error('useComments - parentId:', parentId);
+      console.error('useComments - parentType:', parentType);
+
       errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
         component: 'useComments',
         action: 'Load comments',
@@ -146,13 +151,15 @@ export function useComments(
         },
       });
 
-      if (result.data?.comments) {
-        const newComments = result.data.comments.edges.map(edge =>
+      const typedResult = result as { data?: GetCommentsQuery };
+      if (typedResult.data?.comments) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const newComments = typedResult.data.comments.edges.map((edge: any) =>
           adaptGraphQLComment(edge.node as Record<string, unknown>)
         );
         setComments(prev => [...prev, ...newComments]);
-        setCommentsEndCursor(result.data.comments.pageInfo.endCursor ?? null);
-        setCommentsHasNextPage(!!result.data.comments.pageInfo.hasNextPage);
+        setCommentsEndCursor(typedResult.data.comments.pageInfo.endCursor ?? null);
+        setCommentsHasNextPage(!!typedResult.data.comments.pageInfo.hasNextPage);
 
         // Cache the updated comment list
         void CommentCacheUtils.cacheCommentList(
@@ -378,8 +385,8 @@ export function useComments(
   }, [refetch]);
 
   // Clear cache for this parent
-  const clearCache = useCallback(async () => {
-    await CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
+  const clearCache = useCallback(() => {
+    CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
     setCachedComments(null);
     setIsCacheHit(false);
   }, [parentId, parentType]);
@@ -419,14 +426,38 @@ export function useComments(
 }
 
 export function useGameLogComments(gameLogId: string, initialLimit = 3) {
-  return useComments(gameLogId, ParentType.GameLog, {}, { first: initialLimit });
+  console.log('useGameLogComments - gameLogId:', gameLogId);
+  console.log('useGameLogComments - initialLimit:', initialLimit);
+
+  // Always call useComments, but pass empty string if gameLogId is not available
+  const result = useComments(gameLogId || '', ParentType.GameLog, {}, { first: initialLimit });
+
+  // Return early if no gameLogId
+  if (!gameLogId) {
+    console.error('useGameLogComments - gameLogId is empty or undefined');
+    return {
+      comments: [],
+      loading: false,
+      error: new Error('GameLog ID is required'),
+      commentsHasNextPage: false,
+      loadMoreComments: () => {
+        /* No-op */
+      },
+      refetch: () => {
+        /* No-op */
+      },
+      commentsTotalCount: 0,
+    };
+  }
+
+  return result;
 }
 
 export function useCommentReplies(commentId: string, initialLimit = 2) {
   return useComments(commentId, ParentType.Comment, {}, { first: initialLimit });
 }
 
-// Individual mutation hooks
+// mutation hooks
 export function useCreateComment() {
   const [createCommentMutation, { loading, error }] = useCreateCommentMutation();
 

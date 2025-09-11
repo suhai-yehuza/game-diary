@@ -114,7 +114,7 @@ export default function UserProfilePage() {
   }
 
   const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
-  const displayName = fullName || user.username || 'Unknown User';
+  const displayName = fullName || user.username || 'Anonymous';
 
   return (
     <div className="container mx-auto px-4 py-8">

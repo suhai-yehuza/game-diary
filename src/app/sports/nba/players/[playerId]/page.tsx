@@ -2,7 +2,7 @@
 
 import { ArrowLeft, User, Calendar, Trophy, Target, Users as _Users } from 'lucide-react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import { useState, useEffect, useMemo as _useMemo } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
@@ -16,12 +16,10 @@ import type { IPlayerResponse, ITeamResponse, IPlayerDetailPageProps } from '@/t
 
 // Interface moved to src/lib/types/page.types.ts
 
-export default function NBAPlayerDetailPage({ params }: IPlayerDetailPageProps) {
-  const [playerId, setPlayerId] = useState<string>('');
-
-  useEffect(() => {
-    setPlayerId((params as { playerId: string }).playerId);
-  }, [params]);
+export default function NBAPlayerDetailPage({ params: _params }: IPlayerDetailPageProps) {
+  // Get params using useParams hook
+  const routeParams = useParams();
+  const playerId = routeParams?.playerId as string;
 
   // Fetch player data from database
   const [player, setPlayer] = useState<IPlayerResponse | null>(null);

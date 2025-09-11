@@ -26,6 +26,7 @@ import type {
   ISeedPublicReaction,
   FriendshipStatus,
 } from '@/types';
+import { runSeedingWithNotificationBypass } from '@scripts/seeding-notification-bypass';
 import {
   users,
   friendships,
@@ -109,25 +110,25 @@ const GENERATION_CONFIG = {
     MAX_REACTIONS_PER_ITEM: 200,
     MAX_TOTAL_RECORDS: 10000000, // 10M records max
   },
-  // Memory optimization settings
+  // Memory optimization settings - Further reduced for better memory management
   MEMORY_OPTIMIZATION: {
-    BATCH_SIZE: 1000,
-    USER_BATCH_SIZE: 500,
-    FRIENDSHIP_BATCH_SIZE: 1000,
-    GAME_LOG_BATCH_SIZE: 1000,
-    COMMENT_BATCH_SIZE: 1000,
-    REACTION_BATCH_SIZE: 1000,
-    MEMORY_WARNING_THRESHOLD: 100000, // Warn when generating >100k records
-    GARBAGE_COLLECTION_HINT_THRESHOLD: 50000, // Suggest GC after 50k records
+    BATCH_SIZE: 200, // Reduced from 500
+    USER_BATCH_SIZE: 100, // Reduced from 250
+    FRIENDSHIP_BATCH_SIZE: 200, // Reduced from 500
+    GAME_LOG_BATCH_SIZE: 150, // Reduced from 500
+    COMMENT_BATCH_SIZE: 200, // Reduced from 500
+    REACTION_BATCH_SIZE: 150, // Reduced from 500
+    MEMORY_WARNING_THRESHOLD: 50000, // Warn when generating >50k records (reduced from 100k)
+    GARBAGE_COLLECTION_HINT_THRESHOLD: 25000, // Suggest GC after 25k records (reduced from 50k)
   },
-  // Production-specific settings
+  // Production-specific settings - Further reduced for better memory management
   PRODUCTION_OPTIMIZATION: {
-    USER_BATCH_SIZE: 100, // Smaller batches for production
-    FRIENDSHIP_BATCH_SIZE: 500,
-    GAME_LOG_BATCH_SIZE: 200,
-    COMMENT_BATCH_SIZE: 300,
-    REACTION_BATCH_SIZE: 500,
-    VERIFICATION_INTERVAL: 10, // Verify every 10 batches
+    USER_BATCH_SIZE: 50, // Further reduced from 100
+    FRIENDSHIP_BATCH_SIZE: 100, // Reduced from 250
+    GAME_LOG_BATCH_SIZE: 100, // Reduced from 200
+    COMMENT_BATCH_SIZE: 100, // Reduced from 200
+    REACTION_BATCH_SIZE: 100, // Reduced from 250
+    VERIFICATION_INTERVAL: 5, // Verify every 5 batches (more frequent)
     TRANSACTION_TIMEOUT: 30000, // 30 second timeout for transactions
   },
   // Hybrid approach settings for Clerk compatibility
@@ -266,11 +267,15 @@ class MemoryMonitor {
   private readonly startMemory: number;
   private lastCheck: number;
   private readonly checkInterval: number;
+  private readonly gcInterval: number;
+  private operationCount: number;
 
   constructor(checkIntervalMs = 10000) {
     this.startMemory = this.getMemoryUsage();
     this.lastCheck = Date.now();
     this.checkInterval = checkIntervalMs;
+    this.gcInterval = 1000; // Force GC every 1000 operations
+    this.operationCount = 0;
   }
 
   private getMemoryUsage(): number {
@@ -281,7 +286,15 @@ class MemoryMonitor {
   }
 
   checkMemory(recordCount: number): void {
+    this.operationCount++;
     const now = Date.now();
+
+    // Check if we should force garbage collection
+    if (this.operationCount % this.gcInterval === 0 && typeof global !== 'undefined' && global.gc) {
+      console.log('🗑️  Forcing periodic garbage collection...');
+      global.gc();
+    }
+
     if (now - this.lastCheck >= this.checkInterval) {
       const currentMemory = this.getMemoryUsage();
       const memoryIncrease = currentMemory - this.startMemory;
@@ -291,6 +304,17 @@ class MemoryMonitor {
 
       if (recordCount > GENERATION_CONFIG.MEMORY_OPTIMIZATION.GARBAGE_COLLECTION_HINT_THRESHOLD) {
         console.log('💡 Consider running garbage collection if available');
+
+        // Force garbage collection if available (Node.js)
+        if (typeof global !== 'undefined' && global.gc) {
+          console.log('🗑️  Forcing garbage collection...');
+          global.gc();
+        }
+      }
+
+      // More aggressive memory warnings
+      if (memoryMB > 500) {
+        console.warn(`⚠️  High memory usage detected: ${memoryMB}MB increase`);
       }
 
       this.lastCheck = now;
@@ -304,6 +328,72 @@ class MemoryMonitor {
       current,
       increase: current - this.startMemory,
     };
+  }
+}
+
+// Memory-efficient database query utility
+class MemoryEfficientQueries {
+  private readonly db: Database;
+  private readonly batchSize: number;
+
+  constructor(db: Database, batchSize = 1000) {
+    this.db = db;
+    this.batchSize = batchSize;
+  }
+
+  async *getUsersInBatches(): AsyncGenerator<ISeedUser[], void, unknown> {
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const usersData = await this.db.select().from(users).limit(this.batchSize).offset(offset);
+
+      if (usersData.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      yield usersData as unknown as ISeedUser[];
+      offset += this.batchSize;
+    }
+  }
+
+  async *getGameLogsInBatches(): AsyncGenerator<ISeedGameLog[], void, unknown> {
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const gameLogs = await this.db.select().from(game_logs).limit(this.batchSize).offset(offset);
+
+      if (gameLogs.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      yield gameLogs as ISeedGameLog[];
+      offset += this.batchSize;
+    }
+  }
+
+  async *getCommentsInBatches(): AsyncGenerator<ISeedComment[], void, unknown> {
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const commentsData = await this.db
+        .select()
+        .from(comments)
+        .limit(this.batchSize)
+        .offset(offset);
+
+      if (commentsData.length === 0) {
+        hasMore = false;
+        break;
+      }
+
+      yield commentsData as ISeedComment[];
+      offset += this.batchSize;
+    }
   }
 }
 
@@ -624,7 +714,7 @@ export function* generateGameLogsStream(
         notes: faker.helpers.arrayElement(BASKETBALL_DATA.GAME_NOTES),
         tags: faker.helpers.arrayElements(
           BASKETBALL_DATA.TAGS,
-          faker.number.int({ min: 1, max: 4 })
+          faker.number.int({ min: 2, max: 5 })
         ),
         created_at: faker.date.recent({ days: 90 }),
         updated_at: faker.date.recent({ days: 30 }),
@@ -1203,7 +1293,7 @@ async function main() {
   if (options.clear) {
     console.log('🧹 Clearing user data...');
     await clearUserData(options.env);
-    return;
+    process.exit(0);
   }
 
   // Determine user count based on scenario or custom value
@@ -1256,11 +1346,15 @@ async function main() {
   console.log('💡 This script is memory-optimized for large datasets');
 
   try {
-    await seedUserData({ userCount }, undefined, distributionConfig, {
-      noUsers: options.noUsers,
-      env: options.env,
+    console.log('🔧 Using notification bypass for user data seeding...');
+    await runSeedingWithNotificationBypass(async () => {
+      await seedUserData({ userCount }, undefined, distributionConfig, {
+        noUsers: options.noUsers,
+        env: options.env,
+      });
     });
     console.log('✅ User data seeding completed successfully!');
+    process.exit(0);
   } catch (error) {
     console.error('❌ User data seeding failed:', error);
     process.exit(1);
@@ -1336,6 +1430,7 @@ export async function seedUserData(
   const isProduction = env === 'production';
   const operationManager = new OperationManager(db, isProduction);
   const dataVerification = new DataVerification(db);
+  const _memoryEfficientQueries = new MemoryEfficientQueries(db, 500); // Use smaller batch size for queries
 
   // Use production-optimized batch sizes for production environment
   const batchSizes = isProduction
@@ -1497,6 +1592,11 @@ export async function seedUserData(
 
             memoryMonitor.checkMemory(totalUsers);
 
+            // Force garbage collection after each batch in production
+            if (isProduction && typeof global !== 'undefined' && global.gc) {
+              global.gc();
+            }
+
             // Verify data persistence every N batches in production
             if (
               isProduction &&
@@ -1575,6 +1675,11 @@ export async function seedUserData(
           friendshipBatch = [];
 
           memoryMonitor.checkMemory(totalFriendships);
+
+          // Force garbage collection after each batch
+          if (typeof global !== 'undefined' && global.gc) {
+            global.gc();
+          }
         }
       }
 
@@ -1703,11 +1808,12 @@ export async function seedUserData(
     // Step 6: Generate and insert reactions in streaming fashion
     console.log(`👍 Generating and inserting reactions...`);
     await timeStep('Generate and insert reactions', async () => {
+      // Use memory-efficient queries to avoid loading entire tables
       const usersFromDB = await db.select().from(users);
       const gameLogsFromDB = (await db.select().from(game_logs)) as ISeedGameLog[];
 
-      // Process comments in chunks to avoid memory issues with large datasets
-      const COMMENT_CHUNK_SIZE = 10000; // Process 10k comments at a time
+      // Process comments in smaller chunks to avoid memory issues
+      const COMMENT_CHUNK_SIZE = 1000; // Further reduced from 2000
       let totalReactions = 0;
       let offset = 0;
       let hasMoreComments = true;
@@ -1755,10 +1861,17 @@ export async function seedUserData(
             reactionBatch.push(reaction);
 
             if (reactionBatch.length >= GENERATION_CONFIG.MEMORY_OPTIMIZATION.REACTION_BATCH_SIZE) {
-              await db
-                .insert(reactions)
-                .values(reactionBatch as any)
-                .onConflictDoNothing();
+              await operationManager.executeWithRetry(async () => {
+                const result = await db
+                  .insert(reactions)
+                  .values(reactionBatch as any)
+                  .onConflictDoNothing();
+                console.log(
+                  `📦 Reaction batch: Inserted ${reactionBatch.length} reactions (${result.rowCount} actual inserts)`
+                );
+                return result;
+              }, `Reaction batch insertion`);
+
               chunkReactions += reactionBatch.length;
               totalReactions += reactionBatch.length;
               reactionBatch = [];
@@ -1767,14 +1880,25 @@ export async function seedUserData(
             }
           }
 
-          // Insert remaining reactions from this chunk
+          // Insert remaining reactions from this chunk in smaller batches
           if (reactionBatch.length > 0) {
-            await db
-              .insert(reactions)
-              .values(reactionBatch as any)
-              .onConflictDoNothing();
-            chunkReactions += reactionBatch.length;
-            totalReactions += reactionBatch.length;
+            const batchSize = GENERATION_CONFIG.MEMORY_OPTIMIZATION.REACTION_BATCH_SIZE;
+            for (let i = 0; i < reactionBatch.length; i += batchSize) {
+              const batch = reactionBatch.slice(i, i + batchSize);
+              await operationManager.executeWithRetry(async () => {
+                const result = await db
+                  .insert(reactions)
+                  .values(batch as any)
+                  .onConflictDoNothing();
+                console.log(
+                  `📦 Final reaction batch: Inserted ${batch.length} reactions (${result.rowCount} actual inserts)`
+                );
+                return result;
+              }, `Final reaction batch insertion`);
+
+              chunkReactions += batch.length;
+              totalReactions += batch.length;
+            }
           }
 
           console.log(
@@ -2002,7 +2126,10 @@ export async function clearUserData(env = 'development') {
 }
 
 // Execute main function if this script is run directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.endsWith('user-data-seed.ts')
+) {
   main().catch(error => {
     console.error('❌ Fatal error:', error);
     process.exit(1);

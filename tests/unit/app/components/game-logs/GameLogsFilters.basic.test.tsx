@@ -3,325 +3,140 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { GameLogsFilters } from '@/app/components/game-logs/GameLogsFilters';
 
-// Mock child components
-vi.mock('@/app/components/game-logs/GameLogsSearch', () => ({
-  GameLogsSearch: ({ onSearchChange, onClear, searchTerm, searchField }: any) => (
-    <div data-testid="game-logs-search">
-      <input
-        data-testid="search-input"
-        value={searchTerm || ''}
-        onChange={e => onSearchChange?.(e.target.value)}
-        placeholder={`Search by ${searchField}`}
-      />
-      <button data-testid="clear-search" onClick={onClear}>
-        Clear
-      </button>
-    </div>
-  ),
-}));
-
-vi.mock('@/app/components/game-logs/GameLogsSort', () => ({
-  GameLogsSort: ({
-    sortKey,
-    sortDirection,
-    onSort,
-    displayedCount,
-    totalCount,
-    classification,
-  }: any) => (
-    <div data-testid="game-logs-sort">
-      <select
-        data-testid="sort-field"
-        defaultValue={sortKey || ''}
-        onChange={e => onSort?.(e.target.value, sortDirection)}
-      >
-        <option value="date">Date</option>
-        <option value="title">Title</option>
-        <option value="rating">Rating</option>
-      </select>
-      <button
-        data-testid="sort-direction"
-        onClick={() => onSort?.(sortKey, sortDirection === 'asc' ? 'desc' : 'asc')}
-      >
-        {sortDirection}
-      </button>
-      <span data-testid="count-display">
-        {displayedCount} of {totalCount}
-      </span>
-      <span data-testid="classification">{classification || ''}</span>
-    </div>
-  ),
-}));
-
 describe('GameLogsFilters', () => {
   const defaultProps = {
-    searchTerm: 'test search',
-    searchField: 'title',
-    sortConfig: {
-      field: 'date',
-      direction: 'asc' as const,
-    },
-    displayedCount: 10,
-    totalCount: 25,
-    classification: 'all',
-    onSearchChange: vi.fn(),
-    onSearchClear: vi.fn(),
-    onSort: vi.fn(),
+    onFiltersChange: vi.fn(),
+    initialFilters: {},
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders the component with search and filter section', () => {
+  it('renders the component with correct header', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    expect(screen.getByText('Search & Filter')).toBeInTheDocument();
+    expect(screen.getByText('Game Logs Filters')).toBeInTheDocument();
+    expect(screen.getByText('Filter game logs by team, user, dates, and more')).toBeInTheDocument();
   });
 
-  it('renders GameLogsSearch component with correct props', () => {
+  it('renders show filters button', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
-    expect(screen.getByDisplayValue('test search')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Search by title')).toBeInTheDocument();
+    expect(screen.getByText('Show Filters')).toBeInTheDocument();
   });
 
-  it('renders GameLogsSort component with correct props', () => {
+  it('expands filters when show filters button is clicked', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
-    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
-    expect(screen.getByText('asc')).toBeInTheDocument();
-    expect(screen.getByText('10 of 25')).toBeInTheDocument();
-    expect(screen.getByText('all')).toBeInTheDocument();
+    const showFiltersButton = screen.getByText('Show Filters');
+    fireEvent.click(showFiltersButton);
+
+    expect(screen.getByText('Hide Filters')).toBeInTheDocument();
+    expect(screen.getByText('Team:')).toBeInTheDocument();
+    expect(screen.getByText('User:')).toBeInTheDocument();
+    expect(screen.getByText('Tags:')).toBeInTheDocument();
+    expect(screen.getByText('Rating:')).toBeInTheDocument();
   });
 
-  it('handles search change correctly', () => {
+  it('renders all filter inputs when expanded', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    const searchInput = screen.getByTestId('search-input');
+    const showFiltersButton = screen.getByText('Show Filters');
+    fireEvent.click(showFiltersButton);
 
-    fireEvent.change(searchInput, { target: { value: 'new search' } });
+    // Check for input fields
+    expect(screen.getByPlaceholderText('Search by team name...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search by username or name...')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Search by tags...')).toBeInTheDocument();
 
-    expect(defaultProps.onSearchChange).toHaveBeenCalledWith('new search');
+    // Check for date inputs - there are multiple date inputs, so we check for the specific ones
+    expect(screen.getAllByDisplayValue('')).toHaveLength(7); // 7 inputs total (3 text + 4 date)
   });
 
-  it('handles search clear correctly', () => {
+  it('calls onFiltersChange when filters are updated', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    const clearButton = screen.getByTestId('clear-search');
+    const showFiltersButton = screen.getByText('Show Filters');
+    fireEvent.click(showFiltersButton);
 
-    fireEvent.click(clearButton);
+    const teamInput = screen.getByPlaceholderText('Search by team name...');
+    fireEvent.change(teamInput, { target: { value: 'Lakers' } });
 
-    expect(defaultProps.onSearchClear).toHaveBeenCalled();
+    expect(defaultProps.onFiltersChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        teamName: 'Lakers',
+      })
+    );
   });
 
-  it('handles sort field change correctly', () => {
-    render(<GameLogsFilters {...defaultProps} />);
-    const sortField = screen.getByTestId('sort-field');
-
-    fireEvent.change(sortField, { target: { value: 'title' } });
-
-    expect(defaultProps.onSort).toHaveBeenCalledWith('title', 'asc');
-  });
-
-  it('handles sort direction change correctly', () => {
-    render(<GameLogsFilters {...defaultProps} />);
-    const sortDirection = screen.getByTestId('sort-direction');
-
-    fireEvent.click(sortDirection);
-
-    expect(defaultProps.onSort).toHaveBeenCalledWith('date', 'desc');
-  });
-
-  it('handles sort direction change from desc to asc', () => {
-    const descProps = {
+  it('shows clear all button when filters are active', () => {
+    const propsWithFilters = {
       ...defaultProps,
-      sortConfig: {
-        field: 'date',
-        direction: 'desc' as const,
+      initialFilters: {
+        teamName: 'Lakers',
+        username: 'testuser',
       },
     };
 
-    render(<GameLogsFilters {...descProps} />);
-    const sortDirection = screen.getByTestId('sort-direction');
+    render(<GameLogsFilters {...propsWithFilters} />);
+    const showFiltersButton = screen.getByText('Show Filters');
+    fireEvent.click(showFiltersButton);
 
-    fireEvent.click(sortDirection);
-
-    expect(defaultProps.onSort).toHaveBeenCalledWith('date', 'asc');
+    expect(screen.getByText('Clear All')).toBeInTheDocument();
   });
 
-  it('handles empty search term', () => {
-    const emptySearchProps = {
+  it('clears all filters when clear all button is clicked', () => {
+    const propsWithFilters = {
       ...defaultProps,
-      searchTerm: '',
-    };
-
-    render(<GameLogsFilters {...emptySearchProps} />);
-    expect(screen.getByDisplayValue('')).toBeInTheDocument();
-  });
-
-  it('handles empty search term', () => {
-    const emptySearchProps = {
-      ...defaultProps,
-      searchTerm: '',
-    };
-
-    render(<GameLogsFilters {...emptySearchProps} />);
-    expect(screen.getByDisplayValue('')).toBeInTheDocument();
-  });
-
-  it('handles different search fields', () => {
-    const contentSearchProps = {
-      ...defaultProps,
-      searchField: 'content',
-    };
-
-    render(<GameLogsFilters {...contentSearchProps} />);
-    expect(screen.getByPlaceholderText('Search by content')).toBeInTheDocument();
-  });
-
-  it('handles different sort configurations', () => {
-    const titleSortProps = {
-      ...defaultProps,
-      sortConfig: {
-        field: 'title',
-        direction: 'desc' as const,
+      initialFilters: {
+        teamName: 'Lakers',
+        username: 'testuser',
       },
     };
 
-    render(<GameLogsFilters {...titleSortProps} />);
-    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
-    expect(screen.getByText('desc')).toBeInTheDocument();
-  });
+    render(<GameLogsFilters {...propsWithFilters} />);
+    const showFiltersButton = screen.getByText('Show Filters');
+    fireEvent.click(showFiltersButton);
 
-  it('handles undefined sort config', () => {
-    const undefinedSortProps = {
-      ...defaultProps,
-      sortConfig: null,
-    };
+    const clearAllButton = screen.getByText('Clear All');
+    fireEvent.click(clearAllButton);
 
-    render(<GameLogsFilters {...undefinedSortProps} />);
-    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
-    expect(screen.getByText('asc')).toBeInTheDocument();
-  });
-
-  it('handles null sort config', () => {
-    const nullSortProps = {
-      ...defaultProps,
-      sortConfig: null,
-    };
-
-    render(<GameLogsFilters {...nullSortProps} />);
-    expect(screen.getByTestId('sort-field')).toBeInTheDocument();
-    expect(screen.getByText('asc')).toBeInTheDocument();
-  });
-
-  it('handles different count displays', () => {
-    const zeroCountProps = {
-      ...defaultProps,
-      displayedCount: 0,
-      totalCount: 0,
-    };
-
-    render(<GameLogsFilters {...zeroCountProps} />);
-    expect(screen.getByText('0 of 0')).toBeInTheDocument();
-  });
-
-  it('handles large count displays', () => {
-    const largeCountProps = {
-      ...defaultProps,
-      displayedCount: 999999,
-      totalCount: 1000000,
-    };
-
-    render(<GameLogsFilters {...largeCountProps} />);
-    expect(screen.getByText('999999 of 1000000')).toBeInTheDocument();
-  });
-
-  it('handles different classifications', () => {
-    const classificationProps = {
-      ...defaultProps,
-      classification: 'favorites',
-    };
-
-    render(<GameLogsFilters {...classificationProps} />);
-    expect(screen.getByText('favorites')).toBeInTheDocument();
-  });
-
-  it('handles empty classification', () => {
-    const emptyClassificationProps = {
-      ...defaultProps,
-      classification: '',
-    };
-
-    render(<GameLogsFilters {...emptyClassificationProps} />);
-    expect(screen.getByTestId('classification')).toBeInTheDocument();
+    expect(defaultProps.onFiltersChange).toHaveBeenCalledWith({
+      teamName: '',
+      username: '',
+      tags: '',
+      watchedDateFrom: '',
+      watchedDateTo: '',
+      gameDateFrom: '',
+      gameDateTo: '',
+      rating: '',
+      watchedSetting: '',
+      watchedScope: '',
+    });
   });
 
   it('applies correct CSS classes to main container', () => {
     render(<GameLogsFilters {...defaultProps} />);
-    const container = screen.getByText('Search & Filter').closest('div')?.parentElement;
+    const container = screen.getByText('Game Logs Filters').closest('div')?.parentElement
+      ?.parentElement?.parentElement;
     expect(container).toHaveClass(
       'bg-white',
       'dark:bg-gray-800',
-      'rounded-lg',
+      'rounded-xl',
       'border',
       'border-gray-200',
-      'dark:border-gray-700',
-      'p-4',
-      'sm:p-6',
-      'space-y-4'
-    );
-  });
-
-  it('renders with proper section structure', () => {
-    render(<GameLogsFilters {...defaultProps} />);
-
-    // Check that both sections are rendered
-    expect(screen.getByText('Search & Filter')).toBeInTheDocument();
-
-    // Check that the sort section has the border-t class (indicating it's separated)
-    const sortSection = screen.getByTestId('game-logs-sort').closest('div');
-    expect(sortSection?.parentElement).toHaveClass(
-      'border-t',
-      'border-gray-200',
-      'dark:border-gray-700',
-      'pt-4'
+      'dark:border-gray-700'
     );
   });
 
   it('handles missing callback functions gracefully', () => {
-    const noCallbacksProps = {
-      ...defaultProps,
-      onSearchChange: () => {},
-      onSearchClear: () => {},
-      onSort: () => {},
+    const propsWithoutCallback = {
+      onFiltersChange: undefined,
+      initialFilters: {},
     };
 
-    render(<GameLogsFilters {...noCallbacksProps} />);
-
     // Should render without errors
-    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
-    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
+    expect(() => render(<GameLogsFilters {...propsWithoutCallback} />)).not.toThrow();
   });
 
   it('handles all props being optional', () => {
-    const minimalProps = {
-      searchTerm: '',
-      searchField: 'title',
-      sortConfig: {
-        field: 'date',
-        direction: 'asc' as const,
-      },
-      displayedCount: 0,
-      totalCount: 0,
-      classification: 'all',
-      onSearchChange: () => {},
-      onSearchClear: () => {},
-      onSort: () => {},
-    };
-
-    render(<GameLogsFilters {...minimalProps} />);
-
     // Should render without errors
-    expect(screen.getByTestId('game-logs-search')).toBeInTheDocument();
-    expect(screen.getByTestId('game-logs-sort')).toBeInTheDocument();
+    expect(() => render(<GameLogsFilters />)).not.toThrow();
   });
 });

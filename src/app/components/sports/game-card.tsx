@@ -66,15 +66,30 @@ export function GameCard({ game }: IGameCardProps) {
     const statusLower = statusStr.toLowerCase();
     const statusLongLower = statusLong?.toLowerCase() || '';
 
-    // Check if it's a past scheduled game (should be cancelled)
-    const isPastScheduled =
-      (statusLower === 'ns' || statusLower === '1' || statusLongLower === 'scheduled') &&
-      gameDate <= now;
+    // Check if it's a scheduled game (SCHEDULED status in database)
+    // Handle both string status and JSONB status object
+    const isScheduledStatus = statusLower === 'scheduled' || statusLongLower === 'scheduled';
+
+    if (isScheduledStatus) {
+      // If the game date is in the past, it's cancelled/postponed
+      if (gameDate <= now) {
+        return 'Cancelled';
+      }
+      // If the game date is in the future, it's truly scheduled
+      return 'Scheduled';
+    }
 
     // Check if it's a postponed game (should be cancelled)
-    const isPostponed = statusLongLower === 'postponed';
+    const isPostponed = statusLongLower === 'postponed' || statusLower === 'postponed';
 
-    if (isPastScheduled || isPostponed) {
+    if (isPostponed) {
+      return 'Cancelled';
+    }
+
+    // Check if it's explicitly cancelled
+    const isCancelled = statusLongLower === 'cancelled' || statusLower === 'cancelled';
+
+    if (isCancelled) {
       return 'Cancelled';
     }
 
@@ -127,7 +142,7 @@ export function GameCard({ game }: IGameCardProps) {
       aria-label={`View details for ${game.teams.visitors.name} vs ${game.teams.home.name}`}
       data-testid="game-card"
     >
-      <Card className="hover:shadow-lg transition-all duration-200 border-0 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced h-full flex flex-col">
+      <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced h-full flex flex-col">
         <CardContent className="p-3 sm:p-4 lg:p-6 flex flex-col h-full">
           <div className="flex flex-col gap-3 sm:gap-4 h-full">
             {/* Teams and Score */}

@@ -6,6 +6,7 @@ import { config } from 'dotenv';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import type { DistributionConfigPreset, ScenarioKey } from '@/types';
+import { runSeedingWithNotificationBypass } from '@scripts/seeding-notification-bypass';
 import {
   getConfigByEnvironment,
   getConfigByPreset,
@@ -550,9 +551,14 @@ async function main() {
         ? getConfigByPreset(options.distribution)
         : getConfigByEnvironment(environment);
 
-      // Pass scenario configuration and optimization config to seedUserData
+      // Pass scenario configuration and optimization config to seedUserData with notification bypass
       const config = getScenarioConfig(scenario, userCount);
-      await seedUserData(config, optimizationConfig, distributionConfig);
+
+      console.log('🔧 Using notification bypass for user data seeding...');
+      await runSeedingWithNotificationBypass(async () => {
+        await seedUserData(config, optimizationConfig, distributionConfig);
+      });
+
       const internalTime = performanceTracker.endTimer('internal_data_seeding');
       console.log(`✅ Internal app data seeding completed in ${formatDuration(internalTime)}`);
     }
@@ -574,8 +580,8 @@ async function main() {
 
     // Clean up cache service to prevent hanging processes
     try {
-      const { hybridCacheService } = await import('@/lib/cache');
-      hybridCacheService.destroy();
+      const { simpleCacheService } = await import('@/lib/cache');
+      simpleCacheService.clear();
       console.log('🧹 Cache service cleaned up successfully');
     } catch (cleanupError) {
       console.warn('⚠️ Failed to cleanup cache service:', cleanupError);
@@ -590,8 +596,8 @@ async function main() {
 
     // Clean up cache service even on error
     try {
-      const { hybridCacheService } = await import('@/lib/cache');
-      hybridCacheService.destroy();
+      const { simpleCacheService } = await import('@/lib/cache');
+      simpleCacheService.clear();
     } catch (cleanupError) {
       console.warn('⚠️ Failed to cleanup cache service after error:', cleanupError);
     }

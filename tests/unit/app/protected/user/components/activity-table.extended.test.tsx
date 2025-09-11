@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 
-import { ActivityTable } from '@/app/protected/user/components/ActivityTable';
+import { ActivityTable } from '@/app/protected/dashboard/components/ActivityTable';
 
 vi.mock('@clerk/nextjs', () => ({
   useUser: () => ({ user: null, isLoaded: true }),

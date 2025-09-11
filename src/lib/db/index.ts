@@ -37,6 +37,9 @@ class DatabaseManager {
   private async connectWithRetry(): Promise<void> {
     while (this.retryCount < this.maxRetries) {
       try {
+        if (!this.config.connectionString) {
+          throw new Error('Database connection string is required');
+        }
         this.sql = neon(this.config.connectionString);
         this.db = drizzle(this.sql, { schema });
 

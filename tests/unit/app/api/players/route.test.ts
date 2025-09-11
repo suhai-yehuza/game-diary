@@ -2,7 +2,6 @@ import { NextRequest } from 'next/server';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 import { GET } from '@/app/api/players/route';
-// Cache system disabled
 import {
   getPlayers,
   getUniqueColleges,
@@ -10,15 +9,6 @@ import {
   getUniquePositions,
 } from '@/lib/db/services/players.service';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
-
-// Mock the cache service
-vi.mock('@/lib/cache/hybrid-cache-service', () => ({
-  hybridCacheService: {
-    get: vi.fn(),
-    set: vi.fn(),
-  },
-}));
 
 // Mock the players service
 vi.mock('@/lib/db/services/players.service', () => ({
@@ -34,14 +24,20 @@ vi.mock('@/lib/utils/error-handler', () => ({
   },
 }));
 
+// Mock the cache service
+vi.mock('@/lib/cache', () => ({
+  simpleCacheService: {
+    get: vi.fn().mockReturnValue(null), // Always return null (cache miss)
+    set: vi.fn(),
+  },
+}));
+
 describe('GET /api/players', () => {
   const mockRequest = new NextRequest('http://localhost:3000/api/players');
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Cache system disabled - ensure cache always misses
-    vi.mocked(hybridCacheService.get).mockResolvedValue(null);
-    vi.mocked(hybridCacheService.set).mockResolvedValue();
   });
 
   it('should return players with default parameters', async () => {
@@ -137,17 +133,22 @@ describe('GET /api/players', () => {
     expect(getPlayers).toHaveBeenCalledWith(
       expect.objectContaining({
         positionFilter: 'PG',
-        teamFilter: 'Lakers',
         collegeFilter: 'Kentucky',
         countryFilter: 'USA',
+        limit: 5000,
+        offset: 0,
+        sortBy: 'name',
+        sortDirection: 'asc',
+        searchTerm: undefined,
+        yearFilter: undefined,
       })
     );
 
     expect(data).toMatchObject({
       parameters: expect.objectContaining({
         position: 'PG',
-        team: 'Lakers',
         college: 'Kentucky',
+        country: 'USA',
       }),
     });
   });

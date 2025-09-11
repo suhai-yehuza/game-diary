@@ -105,9 +105,7 @@ export function Comment({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
                   <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-                    {displayComment.user.first_name ||
-                      displayComment.user.username ||
-                      'Unknown User'}
+                    {displayComment.user.first_name || displayComment.user.username || 'Anonymous'}
                   </span>
                   <span className="text-xs text-theme-muted">
                     {format(new Date(displayComment.created_at as string), 'MMM dd, yyyy HH:mm')}

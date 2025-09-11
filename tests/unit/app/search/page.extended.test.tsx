@@ -75,11 +75,11 @@ describe('SearchPage (client)', () => {
   it('renders empty state when no query and shows appropriate message', async () => {
     render(<SearchPage />);
 
-    expect(screen.getByTestId('empty')).toHaveTextContent('no-query');
-
-    // This page doesn't have a search input - it's in the header layout
-    // Just verify the empty state is showing (using mocked component)
-    expect(screen.getByTestId('empty')).toHaveTextContent('no-query');
+    expect(screen.getByTestId('empty')).toBeInTheDocument();
+    expect(screen.getByText('Start searching')).toBeInTheDocument();
+    expect(
+      screen.getByText('Enter a search term above to find users and game logs.')
+    ).toBeInTheDocument();
   });
 
   // Query-present scenario is covered in a separate test file to avoid module caching issues

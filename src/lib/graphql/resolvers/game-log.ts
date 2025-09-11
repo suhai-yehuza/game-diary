@@ -1,68 +1,250 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, isNull, desc, count, inArray } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
-import {
-  game_logs,
-  basketball_games,
-  users,
-  comments,
-  reactions,
-  basketball_teams,
-} from '@/lib/db/schema';
+import { checkFriendshipStatusQuery, executeUltraFastGameLogQuery } from '@/lib/db/queries';
+import { game_logs, basketball_games, comments, reactions, friendships } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
-import { ErrorHandler } from '@/lib/utils/error-handler';
+import { ErrorHandler, errorHandlers } from '@/lib/utils/error-handler';
 import { generateUUIDv7 } from '@/lib/utils/id-generator';
-import { FRIENDSHIP_STATUS, CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/types';
-import type { GraphQLContext } from '@/types';
+import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/types';
+import type { GraphQLContext, ITeamsData } from '@/types';
+
+// Helper function to get database instance
+const getDb = () => {
+  const dbInstance = db();
+  if (!dbInstance) {
+    throw new Error('Database not available');
+  }
+  return dbInstance;
+};
 
 // Simple in-memory cache for friendship checks
-// In production, consider using Redis or a more robust caching solution
 const friendshipCache = new Map<string, boolean>();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const cacheTimestamps = new Map<string, number>();
 
-// Helper function to generate cache key for friendship check
-function getFriendshipCacheKey(userId1: string, userId2: string): string {
-  // Sort IDs to ensure consistent cache key regardless of order
-  const [id1, id2] = [userId1, userId2].sort();
-  return `friendship:${id1}:${id2}`;
-}
+// Helper function to check if cache entry is still valid
+const isCacheValid = (key: string): boolean => {
+  const timestamp = cacheTimestamps.get(key);
+  if (!timestamp) return false;
+  return Date.now() - timestamp < CACHE_TTL;
+};
 
-// Helper function to check friendship status with caching
-async function _checkFriendshipStatus(_userId1: string, _userId2: string): Promise<boolean> {
-  const cacheKey = getFriendshipCacheKey(_userId1, _userId2);
+// Helper function to get cached friendship status
+const getCachedFriendshipStatus = (userId1: string, userId2: string): boolean | null => {
+  const key = `${userId1}-${userId2}`;
+  if (isCacheValid(key)) {
+    return friendshipCache.get(key) ?? null;
+  }
+  return null;
+};
 
+// Helper function to cache friendship status
+const setCachedFriendshipStatus = (userId1: string, userId2: string, status: boolean): void => {
+  const key = `${userId1}-${userId2}`;
+  friendshipCache.set(key, status);
+  cacheTimestamps.set(key, Date.now());
+};
+
+// Helper function to check friendship status
+async function _checkFriendshipStatus(userId1: string, userId2: string): Promise<boolean> {
   // Check cache first
-  const cached = friendshipCache.get(cacheKey);
-  if (cached !== undefined) {
+  const cached = getCachedFriendshipStatus(userId1, userId2);
+  if (cached !== null) {
     return cached;
   }
 
-  // Query database (temporarily using old logic until canonical_id is fully set up)
-  const friendship = await db()?.execute(sql`
-    SELECT EXISTS(
-      SELECT 1 FROM friendships
-      WHERE status = ${FRIENDSHIP_STATUS.ACCEPTED}
-      AND (
-        (user_id = ${_userId1} AND friend_id = ${_userId2})
-        OR
-        (user_id = ${_userId2} AND friend_id = ${_userId1})
-      )
-      AND deleted_at IS NULL
-    ) as is_friend
-  `);
+  try {
+    const result = await checkFriendshipStatusQuery(userId1, userId2);
+    const isFriends = result;
 
-  const isFriend = Boolean(friendship?.rows?.[0]?.is_friend);
+    // Cache the result
+    setCachedFriendshipStatus(userId1, userId2, isFriends);
 
-  // Cache the result
-  friendshipCache.set(cacheKey, isFriend);
-
-  // Set cache expiration
-  setTimeout(() => {
-    friendshipCache.delete(cacheKey);
-  }, CACHE_TTL);
-
-  return isFriend;
+    return isFriends;
+  } catch (error) {
+    console.error('Error checking friendship status:', error);
+    return false;
+  }
 }
+
+// Helper function to get team objects from game data
+function getTeamObjects(game: unknown): { homeTeam: unknown; awayTeam: unknown } {
+  const gameObj = game as Record<string, unknown>;
+  if (!gameObj?.teams) {
+    return { homeTeam: null, awayTeam: null };
+  }
+
+  const teams = gameObj.teams as ITeamsData;
+  return {
+    homeTeam: teams.home || null,
+    awayTeam: teams.away || null,
+  };
+}
+
+// Consolidated Game Log Query Resolvers
+export const gameLogQueryResolvers = {
+  // Get a single game log by ID (simplified approach)
+  gameLog: async (_parent: unknown, args: { id: string }, context: GraphQLContext) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const { id } = args;
+
+    try {
+      // Use a simple query to get the basic game log data
+      // Let the field resolvers handle comments, reactions, and other related data
+      const gameLog = await getDb()
+        ?.select()
+        .from(game_logs)
+        .where(and(eq(game_logs.id, id), isNull(game_logs.deleted_at)))
+        .limit(1);
+
+      if (!gameLog || gameLog.length === 0) {
+        return null;
+      }
+
+      return gameLog[0];
+    } catch (error) {
+      console.error('Error fetching game log:', error);
+      throw new Error('Failed to fetch game log');
+    }
+  },
+
+  // Main gameLogs query (from adaptive resolver with optimized performance)
+  async gameLogs(
+    parent: unknown,
+    args: {
+      filters?: { userId?: string; classification?: string; gameId?: string; hasNotes?: boolean };
+      pagination?: { first?: number; after?: string };
+    },
+    context: GraphQLContext
+  ) {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const { filters, pagination } = args;
+    const first = pagination?.first ?? 20;
+
+    // Build WHERE conditions
+    const whereConditions = ['gl.deleted_at IS NULL'];
+
+    if (filters?.userId) {
+      whereConditions.push(`gl.user_id = '${filters.userId}'`);
+    }
+
+    if (filters?.classification) {
+      whereConditions.push(`gl.classification = '${filters.classification}'`);
+    }
+
+    if (filters?.gameId) {
+      whereConditions.push(`gl.game_id = '${filters.gameId}'`);
+    }
+
+    if (filters?.hasNotes) {
+      whereConditions.push("gl.notes IS NOT NULL AND gl.notes != ''");
+    }
+
+    const whereClause = `WHERE ${whereConditions.join(' AND ')}`;
+
+    // Use optimized query
+    const result = await executeUltraFastGameLogQuery(whereClause, first);
+
+    const gameLogs = Array.isArray(result) ? result : [];
+
+    return {
+      edges: gameLogs.map((gameLog, index) => ({
+        cursor: gameLog.id || `cursor-${index}`,
+        node: gameLog,
+      })),
+      pageInfo: {
+        hasNextPage: gameLogs.length >= first,
+        endCursor: gameLogs.length > 0 ? gameLogs[gameLogs.length - 1].id : null,
+      },
+      totalCount: gameLogs.length,
+    };
+  },
+
+  // Friends game logs query (from optimized resolver)
+  async friendsGameLogs(
+    parent: unknown,
+    args: { pagination?: { first?: number; after?: string } },
+    context: GraphQLContext
+  ) {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    const { pagination } = args;
+    const first = pagination?.first ?? 20;
+    const userId = context.user.id;
+
+    try {
+      // Get user's friends
+      const friendsResult = await getDb()
+        .select({ friendId: friendships.friend_id })
+        .from(friendships)
+        .where(and(eq(friendships.user_id, userId), eq(friendships.status, 'accepted')));
+
+      const friendIds = friendsResult
+        .map(f => f.friendId)
+        .filter((id): id is string => id !== null);
+
+      if (friendIds.length === 0) {
+        return {
+          edges: [],
+          pageInfo: {
+            hasNextPage: false,
+            endCursor: null,
+          },
+          totalCount: 0,
+        };
+      }
+
+      // Get friends' game logs
+      const gameLogsResult = await getDb()
+        .select({
+          id: game_logs.id,
+          game_id: game_logs.game_id,
+          user_id: game_logs.user_id,
+          rating_for_game: game_logs.rating_for_game,
+          notes: game_logs.notes,
+          tags: game_logs.tags,
+          watched_date: game_logs.watched_date,
+          watched_setting: game_logs.watched_setting,
+          watched_location: game_logs.watched_location,
+          watched_scope: game_logs.watched_scope,
+          classification: game_logs.classification,
+          created_at: game_logs.created_at,
+          updated_at: game_logs.updated_at,
+        })
+        .from(game_logs)
+        .where(and(isNull(game_logs.deleted_at), inArray(game_logs.user_id, friendIds)))
+        .orderBy(desc(game_logs.created_at))
+        .limit(first);
+
+      const edges = gameLogsResult.map(gameLog => ({
+        node: gameLog,
+        cursor: gameLog.id,
+        __typename: 'GameLogEdge',
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage: gameLogsResult.length >= first,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+        totalCount: gameLogsResult.length,
+      };
+    } catch (error) {
+      console.error('Error fetching friends game logs:', error);
+      throw new Error('Failed to fetch friends game logs');
+    }
+  },
+};
 
 // Game Log Mutation Resolvers
 export const gameLogMutationResolvers = {
@@ -89,119 +271,120 @@ export const gameLogMutationResolvers = {
     }
 
     const { input } = args;
-    const gameLogId = generateUUIDv7();
 
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
-        // First, fetch the user data to populate the UserSummary
-        const userData = await db()
-          ?.select({
-            id: users.id,
-            username: users.username,
-            first_name: users.first_name,
-            last_name: users.last_name,
-            email_address: users.email_address,
-            image_url: users.image_url,
-            isAdmin: users.isAdmin,
-            created_at: users.created_at,
-          })
-          .from(users)
-          .where(eq(users.id, context.user?.id ?? ''))
+        // Check if game exists
+        const game = await getDb()
+          ?.select()
+          .from(basketball_games)
+          .where(eq(basketball_games.id, input.gameId))
           .limit(1);
 
-        if (!userData || userData.length === 0) {
-          throw new Error('User not found');
+        if (!game || game.length === 0) {
+          return {
+            gameLog: null,
+            errors: [{ message: 'Game not found' }],
+          };
         }
 
-        const user = userData[0];
+        // Check if user already has a game log for this game
+        const existingGameLog = await getDb()
+          ?.select()
+          .from(game_logs)
+          .where(
+            and(eq(game_logs.game_id, input.gameId), eq(game_logs.user_id, context.user?.id ?? ''))
+          )
+          .limit(1);
 
-        // Validate and ensure the game exists in basketball_games table
-        let gameIdToUse = input.gameId;
-
-        // Check if gameId is already in season-gameId format (contains a dash)
-        if (!input.gameId.includes('-')) {
-          // If not in season-gameId format, we need to construct it
-          // For now, we'll assume current season - this should be passed from the frontend
-          const currentSeason = new Date().getFullYear().toString();
-          gameIdToUse = `${currentSeason}-${input.gameId}`;
-          console.log('🔍 createGameLog: converted gameId to season-gameId format:', gameIdToUse);
-        } else {
-          console.log('🔍 createGameLog: gameId already in correct format:', gameIdToUse);
-        }
-
-        // Check if the game exists in basketball_games table using direct query
-        const databaseUrl = process.env.DATABASE_URL ?? process.env.POSTGRES_URL;
-        let existingGame = null;
-
-        if (databaseUrl) {
-          const { neon } = await import('@neondatabase/serverless');
-          const directDb = neon(databaseUrl);
-          const gameResults =
-            await directDb`SELECT id FROM basketball_games WHERE id = ${gameIdToUse} LIMIT 1`;
-          existingGame = gameResults.length > 0 ? [{ id: gameResults[0].id }] : [];
-        } else {
-          // Fallback to Drizzle if no direct database URL
-          existingGame = await db()
-            ?.select({ id: basketball_games.id })
-            .from(basketball_games)
-            .where(eq(basketball_games.id, gameIdToUse))
-            .limit(1);
-        }
-
-        if (!existingGame || existingGame.length === 0) {
-          throw new Error(
-            'Game not found. Please ensure the game exists before creating a game log.'
-          );
+        if (existingGameLog && existingGameLog.length > 0) {
+          return {
+            gameLog: null,
+            errors: [{ message: 'You already have a game log for this game' }],
+          };
         }
 
         // Ensure watched_date is a proper Date object
-        const watchedDate = input.watched_date
-          ? input.watched_date instanceof Date
-            ? input.watched_date
-            : new Date(input.watched_date)
-          : new Date();
+        let watchedDate: Date;
+        if (input.watched_date) {
+          if (input.watched_date instanceof Date) {
+            watchedDate = input.watched_date;
+          } else {
+            // Try to parse the date string
+            const parsedDate = new Date(input.watched_date);
+            if (isNaN(parsedDate.getTime())) {
+              // If parsing fails, use current date
+              watchedDate = new Date();
+            } else {
+              watchedDate = parsedDate;
+            }
+          }
+        } else {
+          watchedDate = new Date();
+        }
 
-        await db()
-          ?.insert(game_logs)
-          .values({
-            id: gameLogId,
-            user_id: context.user?.id ?? '',
-            game_id: gameIdToUse,
-            rating_for_game: input.rating_for_game || 3,
-            notes: input.notes || null,
-            tags: input.tags || [],
-            watched_date: watchedDate,
-            watched_setting: input.watched_setting || WATCHED_SETTING.TV,
-            watched_location: input.watched_location || '',
-            watched_scope: input.watched_scope || WATCHED_SCOPE.FULL_GAME,
-            classification: input.classification || CLASSIFICATION.PRIVATE,
-          } as typeof game_logs.$inferInsert);
+        // Create the game log
+        const newGameLog = {
+          id: generateUUIDv7(),
+          game_id: input.gameId,
+          user_id: context.user?.id ?? '',
+          rating_for_game: input.rating_for_game,
+          notes: input.notes || null,
+          tags: input.tags || [],
+          watched_date: watchedDate,
+          watched_setting: input.watched_setting || WATCHED_SETTING.TV,
+          watched_location: input.watched_location || null,
+          watched_scope: input.watched_scope || WATCHED_SCOPE.FULL_GAME,
+          classification: input.classification || CLASSIFICATION.PRIVATE,
+          created_at: new Date(),
+          updated_at: new Date(),
+        };
+
+        try {
+          await getDb()?.insert(game_logs).values(newGameLog);
+        } catch (dbError) {
+          // Handle specific database errors
+          if (dbError instanceof Error) {
+            if (
+              dbError.message.includes('unique constraint') ||
+              dbError.message.includes('duplicate key')
+            ) {
+              return {
+                gameLog: null,
+                errors: [{ message: 'You already have a game log for this game' }],
+              };
+            }
+            if (dbError.message.includes('foreign key constraint')) {
+              return {
+                gameLog: null,
+                errors: [{ message: 'Invalid game or user reference' }],
+              };
+            }
+          }
+          throw dbError; // Re-throw if it's not a constraint violation
+        }
+
+        // Invalidate game logs cache
+        try {
+          const { simpleCacheService } = await import('@/lib/cache');
+          simpleCacheService.invalidate({
+            pattern: 'game-logs:*',
+          });
+          console.log('✅ Game logs cache invalidated after create');
+        } catch (cacheError) {
+          errorHandlers.api(
+            cacheError instanceof Error ? cacheError : new Error(String(cacheError)),
+            {
+              component: 'game-log-resolver',
+              action: 'invalidateCache',
+              metadata: { operation: 'create', pattern: 'game-logs:*' },
+            }
+          );
+        }
 
         return {
-          gameLog: {
-            id: gameLogId,
-            game_id: gameIdToUse,
-            rating_for_game: input.rating_for_game || 3,
-            notes: input.notes,
-            tags: input.tags,
-            watched_date: watchedDate,
-            watched_setting: input.watched_setting,
-            watched_location: input.watched_location,
-            watched_scope: input.watched_scope,
-            classification: input.classification || CLASSIFICATION.PRIVATE,
-            user: {
-              id: user.id,
-              username: user.username,
-              first_name: user.first_name,
-              last_name: user.last_name,
-              email_address: user.email_address,
-              image_url: user.image_url,
-              isAdmin: user.isAdmin,
-              created_at: user.created_at,
-            },
-            created_at: new Date(),
-            updated_at: new Date(),
-          },
+          gameLog: newGameLog,
+          errors: [],
         };
       },
       {
@@ -213,6 +396,7 @@ export const gameLogMutationResolvers = {
 
     return (
       result || {
+        gameLog: null,
         errors: [{ message: 'Failed to create game log' }],
       }
     );
@@ -245,14 +429,14 @@ export const gameLogMutationResolvers = {
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
         // First, check if the game log exists and belongs to the user
-        const existingGameLog = await db()?.query.game_logs.findFirst({
+        const existingGameLog = await getDb()?.query.game_logs.findFirst({
           where: and(eq(game_logs.id, id), eq(game_logs.user_id, context.user?.id ?? '')),
         });
 
         if (!existingGameLog) {
           return {
-            success: false,
-            error: 'Game log not found or access denied',
+            gameLog: null,
+            errors: [{ message: 'Game log not found or access denied' }],
           };
         }
 
@@ -264,7 +448,7 @@ export const gameLogMutationResolvers = {
           : existingGameLog.watched_date;
 
         // Update the game log
-        await db()
+        await getDb()
           ?.update(game_logs)
           .set({
             rating_for_game: input.rating_for_game ?? existingGameLog.rating_for_game,
@@ -279,8 +463,25 @@ export const gameLogMutationResolvers = {
           })
           .where(eq(game_logs.id, id));
 
+        // Invalidate game logs cache to ensure UI updates
+        try {
+          const { simpleCacheService } = await import('@/lib/cache');
+          simpleCacheService.invalidate({
+            pattern: 'game-logs:*',
+          });
+          console.log('✅ Game logs cache invalidated after update');
+        } catch (cacheError) {
+          errorHandlers.api(
+            cacheError instanceof Error ? cacheError : new Error(String(cacheError)),
+            {
+              component: 'game-log-resolver',
+              action: 'invalidateCache',
+              metadata: { operation: 'update', pattern: 'game-logs:*' },
+            }
+          );
+        }
+
         return {
-          success: true,
           gameLog: {
             id,
             game_id: existingGameLog.game_id,
@@ -295,6 +496,7 @@ export const gameLogMutationResolvers = {
             created_at: existingGameLog.created_at,
             updated_at: new Date(),
           },
+          errors: [],
         };
       },
       {
@@ -306,8 +508,8 @@ export const gameLogMutationResolvers = {
 
     return (
       result || {
-        success: false,
-        error: 'Failed to update game log',
+        gameLog: null,
+        errors: [{ message: 'Failed to update game log' }],
       }
     );
   },
@@ -323,7 +525,7 @@ export const gameLogMutationResolvers = {
     const result = await ErrorHandler.getInstance().handleAsync(
       async () => {
         // First, check if the game log exists and belongs to the user
-        const existingGameLog = await db()?.query.game_logs.findFirst({
+        const existingGameLog = await getDb()?.query.game_logs.findFirst({
           where: and(eq(game_logs.id, id), eq(game_logs.user_id, context.user?.id ?? '')),
         });
 
@@ -335,13 +537,31 @@ export const gameLogMutationResolvers = {
         }
 
         // Soft delete the game log
-        await db()
+        await getDb()
           ?.update(game_logs)
           .set({
             deleted_at: new Date(),
             updated_at: new Date(),
           })
           .where(eq(game_logs.id, id));
+
+        // Invalidate game logs cache to ensure UI updates
+        try {
+          const { simpleCacheService } = await import('@/lib/cache');
+          simpleCacheService.invalidate({
+            pattern: 'game-logs:*',
+          });
+          console.log('✅ Game logs cache invalidated after delete');
+        } catch (cacheError) {
+          errorHandlers.api(
+            cacheError instanceof Error ? cacheError : new Error(String(cacheError)),
+            {
+              component: 'game-log-resolver',
+              action: 'invalidateCache',
+              metadata: { operation: 'delete', pattern: 'game-logs:*' },
+            }
+          );
+        }
 
         return {
           success: true,
@@ -364,536 +584,108 @@ export const gameLogMutationResolvers = {
   },
 };
 
-// Game Log Resolver (for individual game log fields)
+// Game Log Field Resolvers
 export const gameLogResolver = {
-  // Resolve the user field for a game log
-  user: async (parent: { user_id?: string }) => {
-    if (!parent.user_id) {
-      // Return a default user object to satisfy non-nullable requirement
+  // Resolve game field for GameLog
+  game: async (parent: { game_id: string }) => {
+    if (!parent.game_id) return null;
+
+    try {
+      const game = await getDb()
+        ?.select()
+        .from(basketball_games)
+        .where(eq(basketball_games.id, parent.game_id))
+        .limit(1);
+
+      if (!game || game.length === 0) return null;
+
+      const gameData = game[0] as Record<string, unknown>;
+      const { homeTeam, awayTeam } = getTeamObjects(gameData);
+
       return {
-        id: '',
-        username: 'Unknown User',
-        first_name: 'Unknown',
-        last_name: 'User',
-        email_address: null,
-        phone_number: null,
-        image_url: null,
-        isAdmin: false,
+        id: gameData.id,
+        date: gameData.game_date,
+        teams: gameData.game_teams,
+        status: gameData.game_status,
+        season: gameData.game_season,
+        week: gameData.game_week,
+        home_team: homeTeam,
+        away_team: awayTeam,
+        home_team_id: gameData.home_team_id,
+        away_team_id: gameData.away_team_id,
       };
-    }
-
-    const user = await db()?.query.users.findFirst({
-      where: eq(users.id, parent.user_id),
-    });
-
-    if (!user) {
-      // Return a default user object if user not found
-      return {
-        id: parent.user_id,
-        username: 'Unknown User',
-        first_name: 'Unknown',
-        last_name: 'User',
-        email_address: null,
-        phone_number: null,
-        image_url: null,
-        isAdmin: false,
-      };
-    }
-
-    return {
-      id: user.id,
-      username: user.username,
-      first_name: user.first_name,
-      last_name: user.last_name,
-      email_address: null, // Don't expose email in game log context
-      phone_number: null, // Don't expose phone in game log context
-      image_url: user.image_url,
-      isAdmin: false, // Default value since isAdmin is not available
-    };
-  },
-
-  // Resolve the game field for a game log
-  game: async (parent: { game_id?: string }) => {
-    if (!parent.game_id) {
-      // Return a default game object to satisfy non-nullable requirement
-      return {
-        id: '',
-        date: new Date(),
-        status: 'UNKNOWN',
-        game_type: 'nba',
-        season: null,
-        basketball_game_id: null,
-        teams: null,
-        scores: null,
-        average_rating: null,
-        total_ratings: null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-        homeTeam: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        awayTeam: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      };
-    }
-
-    const game = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        if (!parent.game_id) {
-          return null;
-        }
-        return db()?.query.basketball_games.findFirst({
-          where: eq(basketball_games.id, parent.game_id),
-        });
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch NBA game by ID',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    if (!game) {
-      console.warn('Game not found for game_id:', parent.game_id);
-      // Return a default game object if game not found
-      return {
-        id: parent.game_id,
-        date: new Date(),
-        status: 'UNKNOWN',
-        game_type: 'nba',
-        season: null,
-        basketball_game_id: parent.game_id,
-        teams: null,
-        scores: null,
-        average_rating: null,
-        total_ratings: null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-        homeTeam: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        awayTeam: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      };
-    }
-
-    // Fetch home and away basketball_teams separately since relations are not defined
-    let homeTeam = null;
-    let awayTeam = null;
-
-    const teamResults = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        const teamPromises = [];
-        const teamsData = game.teams as {
-          home?: { id?: string | number };
-          away?: { id?: string | number };
-        };
-        if (teamsData?.home?.id) {
-          teamPromises.push(
-            db()
-              ?.query.basketball_teams.findFirst({
-                where: eq(basketball_teams.id, teamsData.home.id.toString()),
-              })
-              .then(result => ({ type: 'home', team: result }))
-          );
-        }
-        if (teamsData?.away?.id) {
-          teamPromises.push(
-            db()
-              ?.query.basketball_teams.findFirst({
-                where: eq(basketball_teams.id, teamsData.away.id.toString()),
-              })
-              .then(result => ({ type: 'away', team: result }))
-          );
-        }
-
-        return Promise.all(teamPromises);
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch team data for game',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    if (teamResults) {
-      teamResults.forEach(result => {
-        if (result?.type === 'home') {
-          homeTeam = result.team;
-        } else if (result?.type === 'away') {
-          awayTeam = result.team;
-        }
-      });
-    }
-
-    return {
-      id: game.id,
-      date: game.date ? new Date(game.date) : undefined,
-      status: game.status,
-      game_type: game.game_type || 'nba',
-      season: game.season,
-      basketball_game_id: game.basketball_game_id,
-      teams: game.teams,
-      scores: game.scores,
-      average_rating: game.average_rating ? parseFloat(game.average_rating) : null,
-      total_ratings: game.total_ratings,
-      created_at: game.created_at ? new Date(game.created_at) : new Date(),
-      updated_at: game.updated_at ? new Date(game.updated_at) : new Date(),
-      deleted_at: game.deleted_at ? new Date(game.deleted_at) : null,
-      home_team: homeTeam
-        ? {
-            id: (homeTeam as Record<string, unknown>).id,
-            name: (homeTeam as Record<string, unknown>).name,
-            nickname: (homeTeam as Record<string, unknown>).nickname,
-            code: (homeTeam as Record<string, unknown>).code,
-            city: (homeTeam as Record<string, unknown>).city,
-            logo: (homeTeam as Record<string, unknown>).logo,
-            all_star: (homeTeam as Record<string, unknown>).all_star,
-            nba_franchise: (homeTeam as Record<string, unknown>).nba_franchise,
-            conference: (homeTeam as Record<string, unknown>).conference,
-            created_at: (homeTeam as Record<string, unknown>).created_at
-              ? new Date((homeTeam as Record<string, unknown>).created_at as string)
-              : new Date(),
-            updated_at: (homeTeam as Record<string, unknown>).updated_at
-              ? new Date((homeTeam as Record<string, unknown>).updated_at as string)
-              : new Date(),
-          }
-        : {
-            // Default team object to satisfy non-nullable requirement
-            id: 0,
-            name: 'Unknown Team',
-            nickname: null,
-            code: null,
-            city: null,
-            logo: null,
-            all_star: false,
-            nba_franchise: false,
-            conference: null,
-            created_at: new Date(),
-            updated_at: new Date(),
-          },
-      away_team: awayTeam
-        ? {
-            id: (awayTeam as Record<string, unknown>).id,
-            name: (awayTeam as Record<string, unknown>).name,
-            nickname: (awayTeam as Record<string, unknown>).nickname,
-            code: (awayTeam as Record<string, unknown>).code,
-            city: (awayTeam as Record<string, unknown>).city,
-            logo: (awayTeam as Record<string, unknown>).logo,
-            all_star: (awayTeam as Record<string, unknown>).all_star,
-            nba_franchise: (awayTeam as Record<string, unknown>).nba_franchise,
-            conference: (awayTeam as Record<string, unknown>).conference,
-            created_at: (awayTeam as Record<string, unknown>).created_at
-              ? new Date((awayTeam as Record<string, unknown>).created_at as string)
-              : new Date(),
-            updated_at: (awayTeam as Record<string, unknown>).updated_at
-              ? new Date((awayTeam as Record<string, unknown>).updated_at as string)
-              : new Date(),
-          }
-        : {
-            // Default team object to satisfy non-nullable requirement
-            id: 0,
-            name: 'Unknown Team',
-            nickname: null,
-            code: null,
-            city: null,
-            logo: null,
-            all_star: false,
-            nba_franchise: false,
-            conference: null,
-            created_at: new Date(),
-            updated_at: new Date(),
-          },
-    };
-    // If game is null due to error, return a default game object
-    if (!game) {
-      return {
-        id: parent.game_id || '',
-        date: new Date(),
-        status: 'UNKNOWN',
-        game_type: 'nba',
-        season: null,
-        basketball_game_id: parent.game_id || null,
-        teams: null,
-        scores: null,
-        average_rating: null,
-        total_ratings: null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        deleted_at: null,
-        home_team: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-        away_team: {
-          id: '',
-          name: 'Unknown Team',
-          nickname: null,
-          code: null,
-          city: null,
-          logo: null,
-          all_star: false,
-          nba_franchise: false,
-          conference: null,
-          created_at: new Date(),
-          updated_at: new Date(),
-        },
-      };
+    } catch (error) {
+      console.error('Error resolving game field:', error);
+      return null;
     }
   },
 
-  // Resolve totalCommentCount field for a game log
-  totalCommentCount: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
-    if (!context.user?.id) {
-      throw new AuthorizationError('Authentication required');
-    }
+  // Resolve comments field for GameLog
+  comments: async (parent: { id: string }) => {
+    if (!parent.id) return [];
 
-    // If MOCK_MODE is enabled, return 0 for comment count
-    if (process.env.MOCK_MODE === 'true') {
-      return 0;
-    }
+    try {
+      const commentsResult = await getDb()
+        ?.select()
+        .from(comments)
+        .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')))
+        .orderBy(desc(comments.created_at));
 
-    const totalCountResult = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        const database = db();
-        if (!database) {
-          return 0;
-        }
-
-        const result = await database
-          .select({ count: sql<number>`count(*)` })
-          .from(comments)
-          .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
-
-        return result?.[0]?.count ?? 0;
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch game log comment count',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    return totalCountResult ?? 0;
-  },
-
-  // Resolve comments field for a game log
-  comments: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
-    if (!context.user?.id) {
-      throw new AuthorizationError('Authentication required');
-    }
-
-    // If MOCK_MODE is enabled, return empty connection for comments
-    if (process.env.MOCK_MODE === 'true') {
-      return {
-        edges: [],
-        pageInfo: {
-          hasNextPage: false,
-          hasPreviousPage: false,
-          startCursor: null,
-          endCursor: null,
-        },
-        totalCount: 0,
-      };
-    }
-
-    const result = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        const database = db();
-        if (!database) {
-          return {
-            edges: [],
-            pageInfo: {
-              hasNextPage: false,
-              hasPreviousPage: false,
-              startCursor: null,
-              endCursor: null,
-            },
-            totalCount: 0,
-          };
-        }
-
-        const commentsData = await database
-          .select({
-            id: comments.id,
-            content: comments.content,
-            user_id: comments.user_id,
-            parent_id: comments.parent_id,
-            parent_type: comments.parent_type,
-            depth: comments.depth,
-            created_at: comments.created_at,
-            updated_at: comments.updated_at,
-            deleted_at: comments.deleted_at,
-          })
-          .from(comments)
-          .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
-
-        const edges = commentsData.map(comment => ({
-          cursor: comment.id,
-          node: comment,
-        }));
-
-        return {
-          edges,
-          pageInfo: {
-            hasNextPage: false,
-            hasPreviousPage: false,
-            startCursor: edges.length > 0 ? edges[0].cursor : null,
-            endCursor: edges.length > 0 ? edges[edges.length - 1].cursor : null,
-          },
-          totalCount: commentsData.length,
-        };
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch game log comments',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    return (
-      result ?? {
-        edges: [],
-        pageInfo: {
-          hasNextPage: false,
-          hasPreviousPage: false,
-          startCursor: null,
-          endCursor: null,
-        },
-        totalCount: 0,
-      }
-    );
-  },
-
-  // Resolve reactions field for a game log
-  reactions: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
-    if (!context.user?.id) {
-      throw new AuthorizationError('Authentication required');
-    }
-
-    // If MOCK_MODE is enabled, return empty array for reactions
-    if (process.env.MOCK_MODE === 'true') {
+      return commentsResult || [];
+    } catch (error) {
+      console.error('Error resolving comments field:', error);
       return [];
     }
-
-    const reactionsData = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        const database = db();
-        if (!database) {
-          return [];
-        }
-
-        const result = await database
-          .select({
-            id: reactions.id,
-            emoji: reactions.emoji,
-            user_id: reactions.user_id,
-            target_id: reactions.target_id,
-            target_type: reactions.target_type,
-            created_at: reactions.created_at,
-            updated_at: reactions.updated_at,
-            deleted_at: reactions.deleted_at,
-          })
-          .from(reactions)
-          .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
-
-        return result || [];
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch game log reactions',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    return reactionsData ?? [];
   },
 
-  // Resolve totalReactionCount field for a game log
-  totalReactionCount: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
-    if (!context.user?.id) {
-      throw new AuthorizationError('Authentication required');
-    }
+  // Resolve reactions field for GameLog
+  reactions: async (parent: { id: string }) => {
+    if (!parent.id) return [];
 
-    // If MOCK_MODE is enabled, return 0 for reaction count
-    if (process.env.MOCK_MODE === 'true') {
+    try {
+      const reactionsResult = await getDb()
+        ?.select()
+        .from(reactions)
+        .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
+
+      return reactionsResult || [];
+    } catch (error) {
+      console.error('Error resolving reactions field:', error);
+      return [];
+    }
+  },
+
+  // Resolve total comment count for GameLog
+  totalCommentCount: async (parent: { id: string }) => {
+    if (!parent.id) return 0;
+
+    try {
+      const result = await getDb()
+        ?.select({ count: count() })
+        .from(comments)
+        .where(and(eq(comments.parent_id, parent.id), eq(comments.parent_type, 'GAME_LOG')));
+
+      return result?.[0]?.count || 0;
+    } catch (error) {
+      console.error('Error resolving total comment count:', error);
       return 0;
     }
+  },
 
-    const totalCountResult = await ErrorHandler.getInstance().handleAsync(
-      async () => {
-        const database = db();
-        if (!database) {
-          return 0;
-        }
+  // Resolve total reaction count for GameLog
+  totalReactionCount: async (parent: { id: string }) => {
+    if (!parent.id) return 0;
 
-        const result = await database
-          .select({ count: sql<number>`count(*)` })
-          .from(reactions)
-          .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
+    try {
+      const result = await getDb()
+        ?.select({ count: count() })
+        .from(reactions)
+        .where(and(eq(reactions.target_id, parent.id), eq(reactions.target_type, 'GAME_LOG')));
 
-        return result?.[0]?.count ?? 0;
-      },
-      {
-        component: 'GraphQL Resolver',
-        action: 'Fetch game log reaction count',
-        timestamp: new Date().toISOString(),
-      }
-    );
-
-    return totalCountResult ?? 0;
+      return result?.[0]?.count || 0;
+    } catch (error) {
+      console.error('Error resolving total reaction count:', error);
+      return 0;
+    }
   },
 };

@@ -105,9 +105,8 @@ export type CreateCommentResponse = {
 };
 
 export type CreateGameInput = {
-  basketball_game_id?: InputMaybe<Scalars['ID']['input']>;
   date: Scalars['DateTime']['input'];
-  game_type: Scalars['String']['input'];
+  game_id?: InputMaybe<Scalars['ID']['input']>;
   scores?: InputMaybe<Scalars['JSON']['input']>;
   season?: InputMaybe<Scalars['String']['input']>;
   status: Scalars['String']['input'];
@@ -306,11 +305,10 @@ export type Game = {
   arena?: Maybe<Scalars['JSON']['output']>;
   average_rating?: Maybe<Scalars['Float']['output']>;
   away_team?: Maybe<Scalars['JSON']['output']>;
-  basketball_game_id?: Maybe<Scalars['String']['output']>;
   created_at: Scalars['DateTime']['output'];
   date: Scalars['DateTime']['output'];
   deleted_at?: Maybe<Scalars['DateTime']['output']>;
-  game_type: Scalars['String']['output'];
+  game_id?: Maybe<Scalars['String']['output']>;
   home_team?: Maybe<Scalars['JSON']['output']>;
   id: Scalars['ID']['output'];
   periods?: Maybe<Scalars['JSON']['output']>;
@@ -1022,8 +1020,7 @@ export type CreateGameMutation = {
       id: string;
       date: string;
       status?: any | null;
-      game_type: string;
-      basketball_game_id?: string | null;
+      game_id?: string | null;
       teams?: any | null;
       scores?: any | null;
       created_at: string;
@@ -1573,8 +1570,7 @@ export type GameFragmentFragment = {
   id: string;
   date: string;
   status?: any | null;
-  game_type: string;
-  basketball_game_id?: string | null;
+  game_id?: string | null;
   teams?: any | null;
   scores?: any | null;
   arena?: any | null;
@@ -1704,6 +1700,80 @@ export type FriendshipFragmentFragment = {
   };
 };
 
+export type FriendshipCountsFragmentFragment = {
+  __typename?: 'Friendship';
+  id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  initiator: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+  recipient: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+};
+
+export type FriendshipTableFragmentFragment = {
+  __typename?: 'Friendship';
+  id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  initiator: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+  recipient: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+};
+
+export type FriendshipDetailedFragmentFragment = {
+  __typename?: 'Friendship';
+  id: string;
+  status: FriendshipStatus;
+  created_at: string;
+  updated_at: string;
+  initiator: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email_address?: string | null;
+    image_url?: string | null;
+    isAdmin: boolean;
+  };
+  recipient: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email_address?: string | null;
+    image_url?: string | null;
+    isAdmin: boolean;
+  };
+};
+
 export type NbaPlayerFragmentFragment = {
   __typename?: 'NBAPlayer';
   id: string;
@@ -1756,8 +1826,7 @@ export type GetGamesQuery = {
         id: string;
         date: string;
         status?: any | null;
-        game_type: string;
-        basketball_game_id?: string | null;
+        game_id?: string | null;
         teams?: any | null;
         scores?: any | null;
         arena?: any | null;
@@ -1899,8 +1968,7 @@ export type GetGameQuery = {
     id: string;
     date: string;
     status?: any | null;
-    game_type: string;
-    basketball_game_id?: string | null;
+    game_id?: string | null;
     teams?: any | null;
     scores?: any | null;
     arena?: any | null;
@@ -1930,8 +1998,7 @@ export type GetLiveGamesQuery = {
         id: string;
         date: string;
         status?: any | null;
-        game_type: string;
-        basketball_game_id?: string | null;
+        game_id?: string | null;
         teams?: any | null;
         scores?: any | null;
         arena?: any | null;
@@ -2317,7 +2384,304 @@ export type GameLogTableFragmentFragment = {
     last_name: string;
     image_url?: string | null;
   };
-  game: { __typename?: 'Game'; teams?: any | null; date: string };
+  game: { __typename?: 'Game'; id: string; date: string; teams?: any | null };
+};
+
+export type GameLogCountsFragmentFragment = {
+  __typename?: 'GameLog';
+  id: string;
+  totalCommentCount: number;
+  totalReactionCount: number;
+};
+
+export type GameLogDetailedFragmentFragment = {
+  __typename?: 'GameLog';
+  id: string;
+  game_id: string;
+  rating_for_game: number;
+  notes?: string | null;
+  tags?: Array<string> | null;
+  watched_date?: string | null;
+  watched_setting?: string | null;
+  watched_location?: string | null;
+  watched_scope?: string | null;
+  classification: Classification;
+  created_at: string;
+  updated_at: string;
+  totalCommentCount: number;
+  totalReactionCount: number;
+  user: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+  game: {
+    __typename?: 'Game';
+    id: string;
+    date: string;
+    status?: any | null;
+    teams?: any | null;
+    scores?: any | null;
+    arena?: any | null;
+    periods?: any | null;
+    average_rating?: number | null;
+    total_ratings?: number | null;
+  };
+  comments: {
+    __typename?: 'CommentConnection';
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      node: {
+        __typename?: 'Comment';
+        id: string;
+        content: string;
+        created_at: string;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+  };
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type CommentCountsFragmentFragment = {
+  __typename?: 'Comment';
+  id: string;
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+};
+
+export type CommentDetailedFragmentFragment = {
+  __typename?: 'Comment';
+  id: string;
+  user_id: string;
+  parent_id: string;
+  parent_type: ParentType;
+  content: string;
+  depth: number;
+  created_at: string;
+  updated_at: string;
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+  user: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  };
+  childComments: {
+    __typename?: 'CommentConnection';
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      node: {
+        __typename?: 'Comment';
+        id: string;
+        content: string;
+        created_at: string;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+  };
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type PublicCommentCountsFragmentFragment = {
+  __typename?: 'PublicComment';
+  id: string;
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+};
+
+export type PublicCommentDetailedFragmentFragment = {
+  __typename?: 'PublicComment';
+  id: string;
+  content: string;
+  user_id?: string | null;
+  anonymous_name?: string | null;
+  anonymous_email?: string | null;
+  parent_id: string;
+  parent_type: ParentType;
+  depth: number;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  totalChildCommentCount: number;
+  totalReactionCount: number;
+  user?: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  } | null;
+  childComments: {
+    __typename?: 'PublicCommentConnection';
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      node: {
+        __typename?: 'PublicComment';
+        id: string;
+        content: string;
+        created_at: string;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+      };
+    }>;
+  };
+  reactions: Array<{
+    __typename?: 'PublicReaction';
+    id: string;
+    emoji: string;
+    user_id?: string | null;
+    anonymous_name?: string | null;
+    anonymous_email?: string | null;
+    target_id: string;
+    target_type: ParentType;
+    is_approved: boolean;
+    created_at: string;
+    user?: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+      image_url?: string | null;
+    } | null;
+  }>;
+};
+
+export type GameCountsFragmentFragment = {
+  __typename?: 'Game';
+  id: string;
+  totalPublicCommentCount: number;
+  totalPublicReactionCount: number;
+};
+
+export type PublicReactionFragmentFragment = {
+  __typename?: 'PublicReaction';
+  id: string;
+  emoji: string;
+  user_id?: string | null;
+  anonymous_name?: string | null;
+  anonymous_email?: string | null;
+  target_id: string;
+  target_type: ParentType;
+  is_approved: boolean;
+  created_at: string;
+  updated_at: string;
+  deleted_at?: string | null;
+  user?: {
+    __typename?: 'UserSummary';
+    id: string;
+    username: string;
+    first_name: string;
+    last_name: string;
+    image_url?: string | null;
+  } | null;
+};
+
+export type GameDetailedFragmentFragment = {
+  __typename?: 'Game';
+  id: string;
+  date: string;
+  status?: any | null;
+  game_id?: string | null;
+  teams?: any | null;
+  scores?: any | null;
+  arena?: any | null;
+  periods?: any | null;
+  average_rating?: number | null;
+  total_ratings?: number | null;
+  created_at: string;
+  updated_at: string;
+  totalPublicCommentCount: number;
+  totalPublicReactionCount: number;
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      node: {
+        __typename?: 'PublicComment';
+        id: string;
+        content: string;
+        anonymous_name?: string | null;
+        created_at: string;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+      };
+    }>;
+  };
+  publicReactions: Array<{
+    __typename?: 'PublicReaction';
+    id: string;
+    emoji: string;
+    anonymous_name?: string | null;
+    created_at: string;
+    user?: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+      image_url?: string | null;
+    } | null;
+  }>;
 };
 
 export type GetFriendsGameLogsTableQueryVariables = Exact<{
@@ -2347,7 +2711,7 @@ export type GetFriendsGameLogsTableQuery = {
           last_name: string;
           image_url?: string | null;
         };
-        game: { __typename?: 'Game'; teams?: any | null; date: string };
+        game: { __typename?: 'Game'; id: string; date: string; teams?: any | null };
       };
     }>;
     pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; hasPreviousPage: boolean };
@@ -2382,11 +2746,1036 @@ export type GetGameLogsTableQuery = {
           last_name: string;
           image_url?: string | null;
         };
-        game: { __typename?: 'Game'; teams?: any | null; date: string };
+        game: { __typename?: 'Game'; id: string; date: string; teams?: any | null };
       };
     }>;
     pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; hasPreviousPage: boolean };
   };
+};
+
+export type GetFriendsGameLogsCountsQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetFriendsGameLogsCountsQuery = {
+  __typename?: 'Query';
+  friendsGameLogs: {
+    __typename?: 'GameLogConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'GameLogEdge';
+      cursor: string;
+      node: {
+        __typename?: 'GameLog';
+        id: string;
+        totalCommentCount: number;
+        totalReactionCount: number;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; hasPreviousPage: boolean };
+  };
+};
+
+export type GetGameLogsCountsQueryVariables = Exact<{
+  filters?: InputMaybe<GameLogFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetGameLogsCountsQuery = {
+  __typename?: 'Query';
+  gameLogs: {
+    __typename?: 'GameLogConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'GameLogEdge';
+      cursor: string;
+      node: {
+        __typename?: 'GameLog';
+        id: string;
+        totalCommentCount: number;
+        totalReactionCount: number;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; hasPreviousPage: boolean };
+  };
+};
+
+export type GetLandingPageTrendingContentQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+export type GetLandingPageTrendingContentQuery = {
+  __typename?: 'Query';
+  gameLogs: {
+    __typename?: 'GameLogConnection';
+    edges: Array<{
+      __typename?: 'GameLogEdge';
+      node: {
+        __typename?: 'GameLog';
+        id: string;
+        totalCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        game: {
+          __typename?: 'Game';
+          id: string;
+          date: string;
+          teams?: any | null;
+          scores?: any | null;
+        };
+      };
+    }>;
+  };
+};
+
+export type GetLandingPageLatestGamesQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+export type GetLandingPageLatestGamesQuery = {
+  __typename?: 'Query';
+  games: {
+    __typename?: 'GameConnection';
+    edges: Array<{
+      __typename?: 'GameEdge';
+      node: {
+        __typename?: 'Game';
+        date: string;
+        status?: any | null;
+        teams?: any | null;
+        scores?: any | null;
+        arena?: any | null;
+        id: string;
+        totalPublicCommentCount: number;
+        totalPublicReactionCount: number;
+      };
+    }>;
+  };
+};
+
+export type GetLandingPagePopularGamesQueryVariables = Exact<{
+  limit?: InputMaybe<Scalars['Int']['input']>;
+}>;
+
+export type GetLandingPagePopularGamesQuery = {
+  __typename?: 'Query';
+  games: {
+    __typename?: 'GameConnection';
+    edges: Array<{
+      __typename?: 'GameEdge';
+      node: {
+        __typename?: 'Game';
+        date: string;
+        status?: any | null;
+        teams?: any | null;
+        scores?: any | null;
+        average_rating?: number | null;
+        total_ratings?: number | null;
+        id: string;
+        totalPublicCommentCount: number;
+        totalPublicReactionCount: number;
+      };
+    }>;
+  };
+};
+
+export type GetNbaHubCountsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetNbaHubCountsQuery = {
+  __typename?: 'Query';
+  games: { __typename?: 'GameConnection'; totalCount: number };
+  teams: { __typename?: 'TeamConnection'; totalCount: number };
+  players: { __typename?: 'NBAPlayerConnection'; totalCount: number };
+  liveGames: { __typename?: 'GameConnection'; totalCount: number };
+};
+
+export type GetGameLogCommentsCountsQueryVariables = Exact<{
+  gameLogId: Scalars['ID']['input'];
+}>;
+
+export type GetGameLogCommentsCountsQuery = {
+  __typename?: 'Query';
+  gameLog?: {
+    __typename?: 'GameLog';
+    id: string;
+    totalCommentCount: number;
+    totalReactionCount: number;
+  } | null;
+};
+
+export type GetGameLogCommentsWithCountsQueryVariables = Exact<{
+  gameLogId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetGameLogCommentsWithCountsQuery = {
+  __typename?: 'Query';
+  gameLog?: {
+    __typename?: 'GameLog';
+    id: string;
+    totalCommentCount: number;
+    totalReactionCount: number;
+  } | null;
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetGameLogCommentsDetailedQueryVariables = Exact<{
+  gameLogId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetGameLogCommentsDetailedQuery = {
+  __typename?: 'Query';
+  gameLog?: {
+    __typename?: 'GameLog';
+    id: string;
+    totalCommentCount: number;
+    totalReactionCount: number;
+  } | null;
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        id: string;
+        user_id: string;
+        parent_id: string;
+        parent_type: ParentType;
+        content: string;
+        depth: number;
+        created_at: string;
+        updated_at: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        childComments: {
+          __typename?: 'CommentConnection';
+          edges: Array<{
+            __typename?: 'CommentEdge';
+            node: {
+              __typename?: 'Comment';
+              id: string;
+              content: string;
+              created_at: string;
+              user: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              };
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'Reaction';
+          id: string;
+          emoji: string;
+          created_at: string;
+          user: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+          };
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetCommentRepliesWithCountsQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetCommentRepliesWithCountsQuery = {
+  __typename?: 'Query';
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetCommentRepliesDetailedQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetCommentRepliesDetailedQuery = {
+  __typename?: 'Query';
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        id: string;
+        user_id: string;
+        parent_id: string;
+        parent_type: ParentType;
+        content: string;
+        depth: number;
+        created_at: string;
+        updated_at: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        childComments: {
+          __typename?: 'CommentConnection';
+          edges: Array<{
+            __typename?: 'CommentEdge';
+            node: {
+              __typename?: 'Comment';
+              id: string;
+              content: string;
+              created_at: string;
+              user: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              };
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'Reaction';
+          id: string;
+          emoji: string;
+          created_at: string;
+          user: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+          };
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetGameLogReactionsQueryVariables = Exact<{
+  gameLogId: Scalars['ID']['input'];
+}>;
+
+export type GetGameLogReactionsQuery = {
+  __typename?: 'Query';
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    user_id: string;
+    target_id: string;
+    target_type: ParentType;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type GetCommentReactionsQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+}>;
+
+export type GetCommentReactionsQuery = {
+  __typename?: 'Query';
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    user_id: string;
+    target_id: string;
+    target_type: ParentType;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type GetPublicCommentsCountsQueryVariables = Exact<{
+  gameId: Scalars['ID']['input'];
+}>;
+
+export type GetPublicCommentsCountsQuery = {
+  __typename?: 'Query';
+  game?: {
+    __typename?: 'Game';
+    id: string;
+    totalPublicCommentCount: number;
+    totalPublicReactionCount: number;
+  } | null;
+};
+
+export type GetPublicCommentsWithCountsQueryVariables = Exact<{
+  gameId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentsWithCountsQuery = {
+  __typename?: 'Query';
+  game?: {
+    __typename?: 'Game';
+    id: string;
+    totalPublicCommentCount: number;
+    totalPublicReactionCount: number;
+  } | null;
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetPublicCommentsDetailedQueryVariables = Exact<{
+  gameId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentsDetailedQuery = {
+  __typename?: 'Query';
+  game?: {
+    __typename?: 'Game';
+    id: string;
+    totalPublicCommentCount: number;
+    totalPublicReactionCount: number;
+  } | null;
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        id: string;
+        content: string;
+        user_id?: string | null;
+        anonymous_name?: string | null;
+        anonymous_email?: string | null;
+        parent_id: string;
+        parent_type: ParentType;
+        depth: number;
+        is_approved: boolean;
+        created_at: string;
+        updated_at: string;
+        deleted_at?: string | null;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+        childComments: {
+          __typename?: 'PublicCommentConnection';
+          edges: Array<{
+            __typename?: 'PublicCommentEdge';
+            node: {
+              __typename?: 'PublicComment';
+              id: string;
+              content: string;
+              created_at: string;
+              user?: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              } | null;
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'PublicReaction';
+          id: string;
+          emoji: string;
+          user_id?: string | null;
+          anonymous_name?: string | null;
+          anonymous_email?: string | null;
+          target_id: string;
+          target_type: ParentType;
+          is_approved: boolean;
+          created_at: string;
+          user?: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+            image_url?: string | null;
+          } | null;
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetPublicCommentRepliesWithCountsQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentRepliesWithCountsQuery = {
+  __typename?: 'Query';
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetPublicCommentRepliesDetailedQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentRepliesDetailedQuery = {
+  __typename?: 'Query';
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        id: string;
+        content: string;
+        user_id?: string | null;
+        anonymous_name?: string | null;
+        anonymous_email?: string | null;
+        parent_id: string;
+        parent_type: ParentType;
+        depth: number;
+        is_approved: boolean;
+        created_at: string;
+        updated_at: string;
+        deleted_at?: string | null;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+        childComments: {
+          __typename?: 'PublicCommentConnection';
+          edges: Array<{
+            __typename?: 'PublicCommentEdge';
+            node: {
+              __typename?: 'PublicComment';
+              id: string;
+              content: string;
+              created_at: string;
+              user?: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              } | null;
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'PublicReaction';
+          id: string;
+          emoji: string;
+          user_id?: string | null;
+          anonymous_name?: string | null;
+          anonymous_email?: string | null;
+          target_id: string;
+          target_type: ParentType;
+          is_approved: boolean;
+          created_at: string;
+          user?: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+            image_url?: string | null;
+          } | null;
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetPublicReactionsQueryVariables = Exact<{
+  targetId: Scalars['ID']['input'];
+  targetType: ParentType;
+}>;
+
+export type GetPublicReactionsQuery = {
+  __typename?: 'Query';
+  publicReactions: Array<{
+    __typename?: 'PublicReaction';
+    id: string;
+    emoji: string;
+    user_id?: string | null;
+    anonymous_name?: string | null;
+    anonymous_email?: string | null;
+    target_id: string;
+    target_type: ParentType;
+    is_approved: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
+    user?: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+      image_url?: string | null;
+    } | null;
+  }>;
+};
+
+export type GetCommentQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  repliesPagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetCommentQuery = {
+  __typename?: 'Query';
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        id: string;
+        user_id: string;
+        parent_id: string;
+        parent_type: ParentType;
+        content: string;
+        depth: number;
+        created_at: string;
+        updated_at: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        childComments: {
+          __typename?: 'CommentConnection';
+          edges: Array<{
+            __typename?: 'CommentEdge';
+            node: {
+              __typename?: 'Comment';
+              id: string;
+              content: string;
+              created_at: string;
+              user: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              };
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'Reaction';
+          id: string;
+          emoji: string;
+          created_at: string;
+          user: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+          };
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    user_id: string;
+    target_id: string;
+    target_type: ParentType;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type GetCommentWithCountsQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  repliesPagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetCommentWithCountsQuery = {
+  __typename?: 'Query';
+  comments: {
+    __typename?: 'CommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'CommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Comment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+  reactions: Array<{
+    __typename?: 'Reaction';
+    id: string;
+    emoji: string;
+    user_id: string;
+    target_id: string;
+    target_type: ParentType;
+    created_at: string;
+    user: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+    };
+  }>;
+};
+
+export type GetPublicCommentQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  repliesPagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentQuery = {
+  __typename?: 'Query';
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        id: string;
+        content: string;
+        user_id?: string | null;
+        anonymous_name?: string | null;
+        anonymous_email?: string | null;
+        parent_id: string;
+        parent_type: ParentType;
+        depth: number;
+        is_approved: boolean;
+        created_at: string;
+        updated_at: string;
+        deleted_at?: string | null;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+        childComments: {
+          __typename?: 'PublicCommentConnection';
+          edges: Array<{
+            __typename?: 'PublicCommentEdge';
+            node: {
+              __typename?: 'PublicComment';
+              id: string;
+              content: string;
+              created_at: string;
+              user?: {
+                __typename?: 'UserSummary';
+                id: string;
+                username: string;
+                first_name: string;
+                last_name: string;
+                image_url?: string | null;
+              } | null;
+            };
+          }>;
+        };
+        reactions: Array<{
+          __typename?: 'PublicReaction';
+          id: string;
+          emoji: string;
+          user_id?: string | null;
+          anonymous_name?: string | null;
+          anonymous_email?: string | null;
+          target_id: string;
+          target_type: ParentType;
+          is_approved: boolean;
+          created_at: string;
+          user?: {
+            __typename?: 'UserSummary';
+            id: string;
+            username: string;
+            first_name: string;
+            last_name: string;
+            image_url?: string | null;
+          } | null;
+        }>;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+  publicReactions: Array<{
+    __typename?: 'PublicReaction';
+    id: string;
+    emoji: string;
+    user_id?: string | null;
+    anonymous_name?: string | null;
+    anonymous_email?: string | null;
+    target_id: string;
+    target_type: ParentType;
+    is_approved: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
+    user?: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+      image_url?: string | null;
+    } | null;
+  }>;
+};
+
+export type GetPublicCommentWithCountsQueryVariables = Exact<{
+  commentId: Scalars['ID']['input'];
+  repliesPagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetPublicCommentWithCountsQuery = {
+  __typename?: 'Query';
+  publicComments: {
+    __typename?: 'PublicCommentConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'PublicCommentEdge';
+      cursor: string;
+      node: {
+        __typename?: 'PublicComment';
+        content: string;
+        created_at: string;
+        updated_at: string;
+        id: string;
+        totalChildCommentCount: number;
+        totalReactionCount: number;
+        user?: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        } | null;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+  publicReactions: Array<{
+    __typename?: 'PublicReaction';
+    id: string;
+    emoji: string;
+    user_id?: string | null;
+    anonymous_name?: string | null;
+    anonymous_email?: string | null;
+    target_id: string;
+    target_type: ParentType;
+    is_approved: boolean;
+    created_at: string;
+    updated_at: string;
+    deleted_at?: string | null;
+    user?: {
+      __typename?: 'UserSummary';
+      id: string;
+      username: string;
+      first_name: string;
+      last_name: string;
+      image_url?: string | null;
+    } | null;
+  }>;
 };
 
 export type GetUserFriendshipsQueryVariables = Exact<{
@@ -2482,6 +3871,258 @@ export type GetFriendshipStatusQuery = {
   };
 };
 
+export type GetFriendshipsCountsQueryVariables = Exact<{
+  filters?: InputMaybe<FriendshipFilters>;
+}>;
+
+export type GetFriendshipsCountsQuery = {
+  __typename?: 'Query';
+  userFriendships: { __typename?: 'FriendshipConnection'; totalCount: number };
+};
+
+export type GetFriendshipsWithCountsQueryVariables = Exact<{
+  filters?: InputMaybe<FriendshipFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetFriendshipsWithCountsQuery = {
+  __typename?: 'Query';
+  userFriendships: {
+    __typename?: 'FriendshipConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'FriendshipEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Friendship';
+        id: string;
+        status: FriendshipStatus;
+        created_at: string;
+        initiator: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        recipient: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetFriendshipsDetailedQueryVariables = Exact<{
+  filters?: InputMaybe<FriendshipFilters>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetFriendshipsDetailedQuery = {
+  __typename?: 'Query';
+  userFriendships: {
+    __typename?: 'FriendshipConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'FriendshipEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Friendship';
+        id: string;
+        status: FriendshipStatus;
+        created_at: string;
+        updated_at: string;
+        initiator: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address?: string | null;
+          image_url?: string | null;
+          isAdmin: boolean;
+        };
+        recipient: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address?: string | null;
+          image_url?: string | null;
+          isAdmin: boolean;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetFriendshipRequestsCountsQueryVariables = Exact<{ [key: string]: never }>;
+
+export type GetFriendshipRequestsCountsQuery = {
+  __typename?: 'Query';
+  friendshipRequests: { __typename?: 'FriendshipConnection'; totalCount: number };
+};
+
+export type GetFriendshipRequestsWithCountsQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetFriendshipRequestsWithCountsQuery = {
+  __typename?: 'Query';
+  friendshipRequests: {
+    __typename?: 'FriendshipConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'FriendshipEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Friendship';
+        id: string;
+        status: FriendshipStatus;
+        created_at: string;
+        initiator: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+        recipient: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          image_url?: string | null;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetFriendshipRequestsDetailedQueryVariables = Exact<{
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetFriendshipRequestsDetailedQuery = {
+  __typename?: 'Query';
+  friendshipRequests: {
+    __typename?: 'FriendshipConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'FriendshipEdge';
+      cursor: string;
+      node: {
+        __typename?: 'Friendship';
+        id: string;
+        status: FriendshipStatus;
+        created_at: string;
+        updated_at: string;
+        initiator: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address?: string | null;
+          image_url?: string | null;
+          isAdmin: boolean;
+        };
+        recipient: {
+          __typename?: 'UserSummary';
+          id: string;
+          username: string;
+          first_name: string;
+          last_name: string;
+          email_address?: string | null;
+          image_url?: string | null;
+          isAdmin: boolean;
+        };
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetUserSearchCountsQueryVariables = Exact<{
+  searchTerm?: InputMaybe<Scalars['String']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+export type GetUserSearchCountsQuery = {
+  __typename?: 'Query';
+  searchUsers: { __typename?: 'UserConnection'; totalCount: number };
+};
+
+export type GetUserSearchWithCountsQueryVariables = Exact<{
+  searchTerm?: InputMaybe<Scalars['String']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetUserSearchWithCountsQuery = {
+  __typename?: 'Query';
+  searchUsers: {
+    __typename?: 'UserConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'UserEdge';
+      cursor: string;
+      node: {
+        __typename?: 'UserSummary';
+        id: string;
+        username: string;
+        first_name: string;
+        last_name: string;
+        email_address?: string | null;
+        image_url?: string | null;
+        isAdmin: boolean;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
+export type GetUserSearchDetailedQueryVariables = Exact<{
+  searchTerm?: InputMaybe<Scalars['String']['input']>;
+  searchField?: InputMaybe<Scalars['String']['input']>;
+  pagination?: InputMaybe<PaginationInput>;
+}>;
+
+export type GetUserSearchDetailedQuery = {
+  __typename?: 'Query';
+  searchUsers: {
+    __typename?: 'UserConnection';
+    totalCount: number;
+    edges: Array<{
+      __typename?: 'UserEdge';
+      cursor: string;
+      node: {
+        __typename?: 'UserSummary';
+        id: string;
+        username: string;
+        first_name: string;
+        last_name: string;
+        email_address?: string | null;
+        image_url?: string | null;
+        isAdmin: boolean;
+      };
+    }>;
+    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
+  };
+};
+
 export type NotificationFragmentFragment = {
   __typename?: 'Notification';
   id: string;
@@ -2512,29 +4153,6 @@ export type PublicCommentFragmentFragment = {
   deleted_at?: string | null;
   totalChildCommentCount: number;
   totalReactionCount: number;
-  user?: {
-    __typename?: 'UserSummary';
-    id: string;
-    username: string;
-    first_name: string;
-    last_name: string;
-    image_url?: string | null;
-  } | null;
-};
-
-export type PublicReactionFragmentFragment = {
-  __typename?: 'PublicReaction';
-  id: string;
-  emoji: string;
-  user_id?: string | null;
-  anonymous_name?: string | null;
-  anonymous_email?: string | null;
-  target_id: string;
-  target_type: ParentType;
-  is_approved: boolean;
-  created_at: string;
-  updated_at: string;
-  deleted_at?: string | null;
   user?: {
     __typename?: 'UserSummary';
     id: string;
@@ -2638,44 +4256,12 @@ export type GetPublicCommentsQuery = {
   };
 };
 
-export type GetPublicReactionsQueryVariables = Exact<{
-  targetId: Scalars['ID']['input'];
-  targetType: ParentType;
-}>;
-
-export type GetPublicReactionsQuery = {
-  __typename?: 'Query';
-  publicReactions: Array<{
-    __typename?: 'PublicReaction';
-    id: string;
-    emoji: string;
-    user_id?: string | null;
-    anonymous_name?: string | null;
-    anonymous_email?: string | null;
-    target_id: string;
-    target_type: ParentType;
-    is_approved: boolean;
-    created_at: string;
-    updated_at: string;
-    deleted_at?: string | null;
-    user?: {
-      __typename?: 'UserSummary';
-      id: string;
-      username: string;
-      first_name: string;
-      last_name: string;
-      image_url?: string | null;
-    } | null;
-  }>;
-};
-
 export const GameFragmentFragmentDoc = gql`
   fragment GameFragment on Game {
     id
     date
     status
-    game_type
-    basketball_game_id
+    game_id
     teams
     scores
     arena
@@ -2799,6 +4385,74 @@ export const FriendshipFragmentFragmentDoc = gql`
     }
   }
 `;
+export const FriendshipCountsFragmentFragmentDoc = gql`
+  fragment FriendshipCountsFragment on Friendship {
+    id
+    status
+    created_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+  }
+`;
+export const FriendshipTableFragmentFragmentDoc = gql`
+  fragment FriendshipTableFragment on Friendship {
+    id
+    status
+    created_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+  }
+`;
+export const FriendshipDetailedFragmentFragmentDoc = gql`
+  fragment FriendshipDetailedFragment on Friendship {
+    id
+    status
+    created_at
+    updated_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      email_address
+      image_url
+      isAdmin
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      email_address
+      image_url
+      isAdmin
+    }
+  }
+`;
 export const NbaPlayerFragmentFragmentDoc = gql`
   fragment NBAPlayerFragment on NBAPlayer {
     id
@@ -2849,8 +4503,277 @@ export const GameLogTableFragmentFragmentDoc = gql`
       image_url
     }
     game {
-      teams
+      id
       date
+      teams
+    }
+  }
+`;
+export const GameLogCountsFragmentFragmentDoc = gql`
+  fragment GameLogCountsFragment on GameLog {
+    id
+    totalCommentCount
+    totalReactionCount
+  }
+`;
+export const GameLogDetailedFragmentFragmentDoc = gql`
+  fragment GameLogDetailedFragment on GameLog {
+    id
+    game_id
+    rating_for_game
+    notes
+    tags
+    watched_date
+    watched_setting
+    watched_location
+    watched_scope
+    classification
+    created_at
+    updated_at
+    totalCommentCount
+    totalReactionCount
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    game {
+      id
+      date
+      status
+      teams
+      scores
+      arena
+      periods
+      average_rating
+      total_ratings
+    }
+    comments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+      }
+      created_at
+    }
+  }
+`;
+export const CommentCountsFragmentFragmentDoc = gql`
+  fragment CommentCountsFragment on Comment {
+    id
+    totalChildCommentCount
+    totalReactionCount
+  }
+`;
+export const CommentDetailedFragmentFragmentDoc = gql`
+  fragment CommentDetailedFragment on Comment {
+    id
+    user_id
+    parent_id
+    parent_type
+    content
+    depth
+    created_at
+    updated_at
+    totalChildCommentCount
+    totalReactionCount
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    childComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+      }
+      created_at
+    }
+  }
+`;
+export const PublicCommentCountsFragmentFragmentDoc = gql`
+  fragment PublicCommentCountsFragment on PublicComment {
+    id
+    totalChildCommentCount
+    totalReactionCount
+  }
+`;
+export const PublicCommentDetailedFragmentFragmentDoc = gql`
+  fragment PublicCommentDetailedFragment on PublicComment {
+    id
+    content
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    user_id
+    anonymous_name
+    anonymous_email
+    parent_id
+    parent_type
+    depth
+    is_approved
+    created_at
+    updated_at
+    deleted_at
+    totalChildCommentCount
+    totalReactionCount
+    childComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+        image_url
+      }
+      user_id
+      anonymous_name
+      anonymous_email
+      target_id
+      target_type
+      is_approved
+      created_at
+    }
+  }
+`;
+export const GameCountsFragmentFragmentDoc = gql`
+  fragment GameCountsFragment on Game {
+    id
+    totalPublicCommentCount
+    totalPublicReactionCount
+  }
+`;
+export const PublicReactionFragmentFragmentDoc = gql`
+  fragment PublicReactionFragment on PublicReaction {
+    id
+    emoji
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    user_id
+    anonymous_name
+    anonymous_email
+    target_id
+    target_type
+    is_approved
+    created_at
+    updated_at
+    deleted_at
+  }
+`;
+export const GameDetailedFragmentFragmentDoc = gql`
+  fragment GameDetailedFragment on Game {
+    id
+    date
+    status
+    game_id
+    teams
+    scores
+    arena
+    periods
+    average_rating
+    total_ratings
+    created_at
+    updated_at
+    totalPublicCommentCount
+    totalPublicReactionCount
+    publicComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          anonymous_name
+          created_at
+        }
+      }
+    }
+    publicReactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+        image_url
+      }
+      anonymous_name
+      created_at
     }
   }
 `;
@@ -2893,28 +4816,6 @@ export const PublicCommentFragmentFragmentDoc = gql`
     totalReactionCount
   }
 `;
-export const PublicReactionFragmentFragmentDoc = gql`
-  fragment PublicReactionFragment on PublicReaction {
-    id
-    emoji
-    user {
-      id
-      username
-      first_name
-      last_name
-      image_url
-    }
-    user_id
-    anonymous_name
-    anonymous_email
-    target_id
-    target_type
-    is_approved
-    created_at
-    updated_at
-    deleted_at
-  }
-`;
 export const CreateGameDocument = gql`
   mutation CreateGame($input: CreateGameInput!) {
     createGame(input: $input) {
@@ -2922,8 +4823,7 @@ export const CreateGameDocument = gql`
         id
         date
         status
-        game_type
-        basketball_game_id
+        game_id
         teams
         scores
         created_at
@@ -5443,6 +7343,2036 @@ export type GetGameLogsTableQueryResult = Apollo.QueryResult<
   GetGameLogsTableQuery,
   GetGameLogsTableQueryVariables
 >;
+export const GetFriendsGameLogsCountsDocument = gql`
+  query GetFriendsGameLogsCounts($pagination: PaginationInput) {
+    friendsGameLogs(pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+  ${GameLogCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetFriendsGameLogsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendsGameLogsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendsGameLogsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendsGameLogsCountsQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendsGameLogsCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendsGameLogsCountsQuery,
+    GetFriendsGameLogsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetFriendsGameLogsCountsQuery, GetFriendsGameLogsCountsQueryVariables>(
+    GetFriendsGameLogsCountsDocument,
+    options
+  );
+}
+export function useGetFriendsGameLogsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendsGameLogsCountsQuery,
+    GetFriendsGameLogsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetFriendsGameLogsCountsQuery, GetFriendsGameLogsCountsQueryVariables>(
+    GetFriendsGameLogsCountsDocument,
+    options
+  );
+}
+export function useGetFriendsGameLogsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendsGameLogsCountsQuery,
+        GetFriendsGameLogsCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetFriendsGameLogsCountsQuery,
+    GetFriendsGameLogsCountsQueryVariables
+  >(GetFriendsGameLogsCountsDocument, options);
+}
+export type GetFriendsGameLogsCountsQueryHookResult = ReturnType<
+  typeof useGetFriendsGameLogsCountsQuery
+>;
+export type GetFriendsGameLogsCountsLazyQueryHookResult = ReturnType<
+  typeof useGetFriendsGameLogsCountsLazyQuery
+>;
+export type GetFriendsGameLogsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendsGameLogsCountsSuspenseQuery
+>;
+export type GetFriendsGameLogsCountsQueryResult = Apollo.QueryResult<
+  GetFriendsGameLogsCountsQuery,
+  GetFriendsGameLogsCountsQueryVariables
+>;
+export const GetGameLogsCountsDocument = gql`
+  query GetGameLogsCounts($filters: GameLogFilters, $pagination: PaginationInput) {
+    gameLogs(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+  ${GameLogCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetGameLogsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetGameLogsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGameLogsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGameLogsCountsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetGameLogsCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>(
+    GetGameLogsCountsDocument,
+    options
+  );
+}
+export function useGetGameLogsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>(
+    GetGameLogsCountsDocument,
+    options
+  );
+}
+export function useGetGameLogsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetGameLogsCountsQuery, GetGameLogsCountsQueryVariables>(
+    GetGameLogsCountsDocument,
+    options
+  );
+}
+export type GetGameLogsCountsQueryHookResult = ReturnType<typeof useGetGameLogsCountsQuery>;
+export type GetGameLogsCountsLazyQueryHookResult = ReturnType<typeof useGetGameLogsCountsLazyQuery>;
+export type GetGameLogsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetGameLogsCountsSuspenseQuery
+>;
+export type GetGameLogsCountsQueryResult = Apollo.QueryResult<
+  GetGameLogsCountsQuery,
+  GetGameLogsCountsQueryVariables
+>;
+export const GetLandingPageTrendingContentDocument = gql`
+  query GetLandingPageTrendingContent($limit: Int = 10) {
+    gameLogs(filters: { classification: PUBLIC }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          game {
+            id
+            date
+            teams
+            scores
+          }
+        }
+      }
+    }
+  }
+  ${GameLogCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetLandingPageTrendingContentQuery__
+ *
+ * To run a query within a React component, call `useGetLandingPageTrendingContentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLandingPageTrendingContentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLandingPageTrendingContentQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetLandingPageTrendingContentQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetLandingPageTrendingContentQuery,
+    GetLandingPageTrendingContentQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetLandingPageTrendingContentQuery,
+    GetLandingPageTrendingContentQueryVariables
+  >(GetLandingPageTrendingContentDocument, options);
+}
+export function useGetLandingPageTrendingContentLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetLandingPageTrendingContentQuery,
+    GetLandingPageTrendingContentQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetLandingPageTrendingContentQuery,
+    GetLandingPageTrendingContentQueryVariables
+  >(GetLandingPageTrendingContentDocument, options);
+}
+export function useGetLandingPageTrendingContentSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetLandingPageTrendingContentQuery,
+        GetLandingPageTrendingContentQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetLandingPageTrendingContentQuery,
+    GetLandingPageTrendingContentQueryVariables
+  >(GetLandingPageTrendingContentDocument, options);
+}
+export type GetLandingPageTrendingContentQueryHookResult = ReturnType<
+  typeof useGetLandingPageTrendingContentQuery
+>;
+export type GetLandingPageTrendingContentLazyQueryHookResult = ReturnType<
+  typeof useGetLandingPageTrendingContentLazyQuery
+>;
+export type GetLandingPageTrendingContentSuspenseQueryHookResult = ReturnType<
+  typeof useGetLandingPageTrendingContentSuspenseQuery
+>;
+export type GetLandingPageTrendingContentQueryResult = Apollo.QueryResult<
+  GetLandingPageTrendingContentQuery,
+  GetLandingPageTrendingContentQueryVariables
+>;
+export const GetLandingPageLatestGamesDocument = gql`
+  query GetLandingPageLatestGames($limit: Int = 10) {
+    games(filters: { status: FINISHED }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameCountsFragment
+          date
+          status
+          teams
+          scores
+          arena
+        }
+      }
+    }
+  }
+  ${GameCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetLandingPageLatestGamesQuery__
+ *
+ * To run a query within a React component, call `useGetLandingPageLatestGamesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLandingPageLatestGamesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLandingPageLatestGamesQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetLandingPageLatestGamesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetLandingPageLatestGamesQuery,
+    GetLandingPageLatestGamesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetLandingPageLatestGamesQuery, GetLandingPageLatestGamesQueryVariables>(
+    GetLandingPageLatestGamesDocument,
+    options
+  );
+}
+export function useGetLandingPageLatestGamesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetLandingPageLatestGamesQuery,
+    GetLandingPageLatestGamesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetLandingPageLatestGamesQuery,
+    GetLandingPageLatestGamesQueryVariables
+  >(GetLandingPageLatestGamesDocument, options);
+}
+export function useGetLandingPageLatestGamesSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetLandingPageLatestGamesQuery,
+        GetLandingPageLatestGamesQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetLandingPageLatestGamesQuery,
+    GetLandingPageLatestGamesQueryVariables
+  >(GetLandingPageLatestGamesDocument, options);
+}
+export type GetLandingPageLatestGamesQueryHookResult = ReturnType<
+  typeof useGetLandingPageLatestGamesQuery
+>;
+export type GetLandingPageLatestGamesLazyQueryHookResult = ReturnType<
+  typeof useGetLandingPageLatestGamesLazyQuery
+>;
+export type GetLandingPageLatestGamesSuspenseQueryHookResult = ReturnType<
+  typeof useGetLandingPageLatestGamesSuspenseQuery
+>;
+export type GetLandingPageLatestGamesQueryResult = Apollo.QueryResult<
+  GetLandingPageLatestGamesQuery,
+  GetLandingPageLatestGamesQueryVariables
+>;
+export const GetLandingPagePopularGamesDocument = gql`
+  query GetLandingPagePopularGames($limit: Int = 10) {
+    games(filters: { status: FINISHED }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameCountsFragment
+          date
+          status
+          teams
+          scores
+          average_rating
+          total_ratings
+        }
+      }
+    }
+  }
+  ${GameCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetLandingPagePopularGamesQuery__
+ *
+ * To run a query within a React component, call `useGetLandingPagePopularGamesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetLandingPagePopularGamesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetLandingPagePopularGamesQuery({
+ *   variables: {
+ *      limit: // value for 'limit'
+ *   },
+ * });
+ */
+export function useGetLandingPagePopularGamesQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetLandingPagePopularGamesQuery,
+    GetLandingPagePopularGamesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetLandingPagePopularGamesQuery, GetLandingPagePopularGamesQueryVariables>(
+    GetLandingPagePopularGamesDocument,
+    options
+  );
+}
+export function useGetLandingPagePopularGamesLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetLandingPagePopularGamesQuery,
+    GetLandingPagePopularGamesQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetLandingPagePopularGamesQuery,
+    GetLandingPagePopularGamesQueryVariables
+  >(GetLandingPagePopularGamesDocument, options);
+}
+export function useGetLandingPagePopularGamesSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetLandingPagePopularGamesQuery,
+        GetLandingPagePopularGamesQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetLandingPagePopularGamesQuery,
+    GetLandingPagePopularGamesQueryVariables
+  >(GetLandingPagePopularGamesDocument, options);
+}
+export type GetLandingPagePopularGamesQueryHookResult = ReturnType<
+  typeof useGetLandingPagePopularGamesQuery
+>;
+export type GetLandingPagePopularGamesLazyQueryHookResult = ReturnType<
+  typeof useGetLandingPagePopularGamesLazyQuery
+>;
+export type GetLandingPagePopularGamesSuspenseQueryHookResult = ReturnType<
+  typeof useGetLandingPagePopularGamesSuspenseQuery
+>;
+export type GetLandingPagePopularGamesQueryResult = Apollo.QueryResult<
+  GetLandingPagePopularGamesQuery,
+  GetLandingPagePopularGamesQueryVariables
+>;
+export const GetNbaHubCountsDocument = gql`
+  query GetNBAHubCounts {
+    games: games(filters: { status: FINISHED }, pagination: { first: 1 }) {
+      totalCount
+    }
+    teams: basketball_teams(pagination: { first: 1 }) {
+      totalCount
+    }
+    players: nbaPlayers(pagination: { first: 1 }) {
+      totalCount
+    }
+    liveGames: games(filters: { status: LIVE }, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+/**
+ * __useGetNbaHubCountsQuery__
+ *
+ * To run a query within a React component, call `useGetNbaHubCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetNbaHubCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetNbaHubCountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetNbaHubCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>(
+    GetNbaHubCountsDocument,
+    options
+  );
+}
+export function useGetNbaHubCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>(
+    GetNbaHubCountsDocument,
+    options
+  );
+}
+export function useGetNbaHubCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetNbaHubCountsQuery, GetNbaHubCountsQueryVariables>(
+    GetNbaHubCountsDocument,
+    options
+  );
+}
+export type GetNbaHubCountsQueryHookResult = ReturnType<typeof useGetNbaHubCountsQuery>;
+export type GetNbaHubCountsLazyQueryHookResult = ReturnType<typeof useGetNbaHubCountsLazyQuery>;
+export type GetNbaHubCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetNbaHubCountsSuspenseQuery
+>;
+export type GetNbaHubCountsQueryResult = Apollo.QueryResult<
+  GetNbaHubCountsQuery,
+  GetNbaHubCountsQueryVariables
+>;
+export const GetGameLogCommentsCountsDocument = gql`
+  query GetGameLogCommentsCounts($gameLogId: ID!) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+  }
+`;
+
+/**
+ * __useGetGameLogCommentsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetGameLogCommentsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGameLogCommentsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGameLogCommentsCountsQuery({
+ *   variables: {
+ *      gameLogId: // value for 'gameLogId'
+ *   },
+ * });
+ */
+export function useGetGameLogCommentsCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetGameLogCommentsCountsQuery,
+    GetGameLogCommentsCountsQueryVariables
+  > &
+    ({ variables: GetGameLogCommentsCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetGameLogCommentsCountsQuery, GetGameLogCommentsCountsQueryVariables>(
+    GetGameLogCommentsCountsDocument,
+    options
+  );
+}
+export function useGetGameLogCommentsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetGameLogCommentsCountsQuery,
+    GetGameLogCommentsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetGameLogCommentsCountsQuery, GetGameLogCommentsCountsQueryVariables>(
+    GetGameLogCommentsCountsDocument,
+    options
+  );
+}
+export function useGetGameLogCommentsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetGameLogCommentsCountsQuery,
+        GetGameLogCommentsCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetGameLogCommentsCountsQuery,
+    GetGameLogCommentsCountsQueryVariables
+  >(GetGameLogCommentsCountsDocument, options);
+}
+export type GetGameLogCommentsCountsQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsCountsQuery
+>;
+export type GetGameLogCommentsCountsLazyQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsCountsLazyQuery
+>;
+export type GetGameLogCommentsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsCountsSuspenseQuery
+>;
+export type GetGameLogCommentsCountsQueryResult = Apollo.QueryResult<
+  GetGameLogCommentsCountsQuery,
+  GetGameLogCommentsCountsQueryVariables
+>;
+export const GetGameLogCommentsWithCountsDocument = gql`
+  query GetGameLogCommentsWithCounts($gameLogId: ID!, $pagination: PaginationInput) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+    comments(filters: { parentId: $gameLogId, parentType: GAME_LOG }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${CommentCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetGameLogCommentsWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetGameLogCommentsWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGameLogCommentsWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGameLogCommentsWithCountsQuery({
+ *   variables: {
+ *      gameLogId: // value for 'gameLogId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetGameLogCommentsWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetGameLogCommentsWithCountsQuery,
+    GetGameLogCommentsWithCountsQueryVariables
+  > &
+    ({ variables: GetGameLogCommentsWithCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetGameLogCommentsWithCountsQuery,
+    GetGameLogCommentsWithCountsQueryVariables
+  >(GetGameLogCommentsWithCountsDocument, options);
+}
+export function useGetGameLogCommentsWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetGameLogCommentsWithCountsQuery,
+    GetGameLogCommentsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetGameLogCommentsWithCountsQuery,
+    GetGameLogCommentsWithCountsQueryVariables
+  >(GetGameLogCommentsWithCountsDocument, options);
+}
+export function useGetGameLogCommentsWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetGameLogCommentsWithCountsQuery,
+        GetGameLogCommentsWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetGameLogCommentsWithCountsQuery,
+    GetGameLogCommentsWithCountsQueryVariables
+  >(GetGameLogCommentsWithCountsDocument, options);
+}
+export type GetGameLogCommentsWithCountsQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsWithCountsQuery
+>;
+export type GetGameLogCommentsWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsWithCountsLazyQuery
+>;
+export type GetGameLogCommentsWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsWithCountsSuspenseQuery
+>;
+export type GetGameLogCommentsWithCountsQueryResult = Apollo.QueryResult<
+  GetGameLogCommentsWithCountsQuery,
+  GetGameLogCommentsWithCountsQueryVariables
+>;
+export const GetGameLogCommentsDetailedDocument = gql`
+  query GetGameLogCommentsDetailed($gameLogId: ID!, $pagination: PaginationInput) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+    comments(filters: { parentId: $gameLogId, parentType: GAME_LOG }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${CommentDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetGameLogCommentsDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetGameLogCommentsDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGameLogCommentsDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGameLogCommentsDetailedQuery({
+ *   variables: {
+ *      gameLogId: // value for 'gameLogId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetGameLogCommentsDetailedQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetGameLogCommentsDetailedQuery,
+    GetGameLogCommentsDetailedQueryVariables
+  > &
+    ({ variables: GetGameLogCommentsDetailedQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetGameLogCommentsDetailedQuery, GetGameLogCommentsDetailedQueryVariables>(
+    GetGameLogCommentsDetailedDocument,
+    options
+  );
+}
+export function useGetGameLogCommentsDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetGameLogCommentsDetailedQuery,
+    GetGameLogCommentsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetGameLogCommentsDetailedQuery,
+    GetGameLogCommentsDetailedQueryVariables
+  >(GetGameLogCommentsDetailedDocument, options);
+}
+export function useGetGameLogCommentsDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetGameLogCommentsDetailedQuery,
+        GetGameLogCommentsDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetGameLogCommentsDetailedQuery,
+    GetGameLogCommentsDetailedQueryVariables
+  >(GetGameLogCommentsDetailedDocument, options);
+}
+export type GetGameLogCommentsDetailedQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsDetailedQuery
+>;
+export type GetGameLogCommentsDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsDetailedLazyQuery
+>;
+export type GetGameLogCommentsDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetGameLogCommentsDetailedSuspenseQuery
+>;
+export type GetGameLogCommentsDetailedQueryResult = Apollo.QueryResult<
+  GetGameLogCommentsDetailedQuery,
+  GetGameLogCommentsDetailedQueryVariables
+>;
+export const GetCommentRepliesWithCountsDocument = gql`
+  query GetCommentRepliesWithCounts($commentId: ID!, $pagination: PaginationInput) {
+    comments(filters: { parentId: $commentId, parentType: COMMENT }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${CommentCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetCommentRepliesWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetCommentRepliesWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentRepliesWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentRepliesWithCountsQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetCommentRepliesWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetCommentRepliesWithCountsQuery,
+    GetCommentRepliesWithCountsQueryVariables
+  > &
+    ({ variables: GetCommentRepliesWithCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetCommentRepliesWithCountsQuery,
+    GetCommentRepliesWithCountsQueryVariables
+  >(GetCommentRepliesWithCountsDocument, options);
+}
+export function useGetCommentRepliesWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetCommentRepliesWithCountsQuery,
+    GetCommentRepliesWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetCommentRepliesWithCountsQuery,
+    GetCommentRepliesWithCountsQueryVariables
+  >(GetCommentRepliesWithCountsDocument, options);
+}
+export function useGetCommentRepliesWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetCommentRepliesWithCountsQuery,
+        GetCommentRepliesWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetCommentRepliesWithCountsQuery,
+    GetCommentRepliesWithCountsQueryVariables
+  >(GetCommentRepliesWithCountsDocument, options);
+}
+export type GetCommentRepliesWithCountsQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesWithCountsQuery
+>;
+export type GetCommentRepliesWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesWithCountsLazyQuery
+>;
+export type GetCommentRepliesWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesWithCountsSuspenseQuery
+>;
+export type GetCommentRepliesWithCountsQueryResult = Apollo.QueryResult<
+  GetCommentRepliesWithCountsQuery,
+  GetCommentRepliesWithCountsQueryVariables
+>;
+export const GetCommentRepliesDetailedDocument = gql`
+  query GetCommentRepliesDetailed($commentId: ID!, $pagination: PaginationInput) {
+    comments(filters: { parentId: $commentId, parentType: COMMENT }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${CommentDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetCommentRepliesDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetCommentRepliesDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentRepliesDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentRepliesDetailedQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetCommentRepliesDetailedQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetCommentRepliesDetailedQuery,
+    GetCommentRepliesDetailedQueryVariables
+  > &
+    ({ variables: GetCommentRepliesDetailedQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetCommentRepliesDetailedQuery, GetCommentRepliesDetailedQueryVariables>(
+    GetCommentRepliesDetailedDocument,
+    options
+  );
+}
+export function useGetCommentRepliesDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetCommentRepliesDetailedQuery,
+    GetCommentRepliesDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetCommentRepliesDetailedQuery,
+    GetCommentRepliesDetailedQueryVariables
+  >(GetCommentRepliesDetailedDocument, options);
+}
+export function useGetCommentRepliesDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetCommentRepliesDetailedQuery,
+        GetCommentRepliesDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetCommentRepliesDetailedQuery,
+    GetCommentRepliesDetailedQueryVariables
+  >(GetCommentRepliesDetailedDocument, options);
+}
+export type GetCommentRepliesDetailedQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesDetailedQuery
+>;
+export type GetCommentRepliesDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesDetailedLazyQuery
+>;
+export type GetCommentRepliesDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetCommentRepliesDetailedSuspenseQuery
+>;
+export type GetCommentRepliesDetailedQueryResult = Apollo.QueryResult<
+  GetCommentRepliesDetailedQuery,
+  GetCommentRepliesDetailedQueryVariables
+>;
+export const GetGameLogReactionsDocument = gql`
+  query GetGameLogReactions($gameLogId: ID!) {
+    reactions(targetId: $gameLogId, targetType: GAME_LOG) {
+      ...ReactionFragment
+    }
+  }
+  ${ReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetGameLogReactionsQuery__
+ *
+ * To run a query within a React component, call `useGetGameLogReactionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetGameLogReactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetGameLogReactionsQuery({
+ *   variables: {
+ *      gameLogId: // value for 'gameLogId'
+ *   },
+ * });
+ */
+export function useGetGameLogReactionsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetGameLogReactionsQuery,
+    GetGameLogReactionsQueryVariables
+  > &
+    ({ variables: GetGameLogReactionsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetGameLogReactionsQuery, GetGameLogReactionsQueryVariables>(
+    GetGameLogReactionsDocument,
+    options
+  );
+}
+export function useGetGameLogReactionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetGameLogReactionsQuery,
+    GetGameLogReactionsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetGameLogReactionsQuery, GetGameLogReactionsQueryVariables>(
+    GetGameLogReactionsDocument,
+    options
+  );
+}
+export function useGetGameLogReactionsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetGameLogReactionsQuery, GetGameLogReactionsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetGameLogReactionsQuery, GetGameLogReactionsQueryVariables>(
+    GetGameLogReactionsDocument,
+    options
+  );
+}
+export type GetGameLogReactionsQueryHookResult = ReturnType<typeof useGetGameLogReactionsQuery>;
+export type GetGameLogReactionsLazyQueryHookResult = ReturnType<
+  typeof useGetGameLogReactionsLazyQuery
+>;
+export type GetGameLogReactionsSuspenseQueryHookResult = ReturnType<
+  typeof useGetGameLogReactionsSuspenseQuery
+>;
+export type GetGameLogReactionsQueryResult = Apollo.QueryResult<
+  GetGameLogReactionsQuery,
+  GetGameLogReactionsQueryVariables
+>;
+export const GetCommentReactionsDocument = gql`
+  query GetCommentReactions($commentId: ID!) {
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${ReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetCommentReactionsQuery__
+ *
+ * To run a query within a React component, call `useGetCommentReactionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentReactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentReactionsQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *   },
+ * });
+ */
+export function useGetCommentReactionsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetCommentReactionsQuery,
+    GetCommentReactionsQueryVariables
+  > &
+    ({ variables: GetCommentReactionsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetCommentReactionsQuery, GetCommentReactionsQueryVariables>(
+    GetCommentReactionsDocument,
+    options
+  );
+}
+export function useGetCommentReactionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetCommentReactionsQuery,
+    GetCommentReactionsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetCommentReactionsQuery, GetCommentReactionsQueryVariables>(
+    GetCommentReactionsDocument,
+    options
+  );
+}
+export function useGetCommentReactionsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetCommentReactionsQuery, GetCommentReactionsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetCommentReactionsQuery, GetCommentReactionsQueryVariables>(
+    GetCommentReactionsDocument,
+    options
+  );
+}
+export type GetCommentReactionsQueryHookResult = ReturnType<typeof useGetCommentReactionsQuery>;
+export type GetCommentReactionsLazyQueryHookResult = ReturnType<
+  typeof useGetCommentReactionsLazyQuery
+>;
+export type GetCommentReactionsSuspenseQueryHookResult = ReturnType<
+  typeof useGetCommentReactionsSuspenseQuery
+>;
+export type GetCommentReactionsQueryResult = Apollo.QueryResult<
+  GetCommentReactionsQuery,
+  GetCommentReactionsQueryVariables
+>;
+export const GetPublicCommentsCountsDocument = gql`
+  query GetPublicCommentsCounts($gameId: ID!) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+  }
+`;
+
+/**
+ * __useGetPublicCommentsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentsCountsQuery({
+ *   variables: {
+ *      gameId: // value for 'gameId'
+ *   },
+ * });
+ */
+export function useGetPublicCommentsCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentsCountsQuery,
+    GetPublicCommentsCountsQueryVariables
+  > &
+    ({ variables: GetPublicCommentsCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPublicCommentsCountsQuery, GetPublicCommentsCountsQueryVariables>(
+    GetPublicCommentsCountsDocument,
+    options
+  );
+}
+export function useGetPublicCommentsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentsCountsQuery,
+    GetPublicCommentsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetPublicCommentsCountsQuery, GetPublicCommentsCountsQueryVariables>(
+    GetPublicCommentsCountsDocument,
+    options
+  );
+}
+export function useGetPublicCommentsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentsCountsQuery,
+        GetPublicCommentsCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentsCountsQuery,
+    GetPublicCommentsCountsQueryVariables
+  >(GetPublicCommentsCountsDocument, options);
+}
+export type GetPublicCommentsCountsQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsCountsQuery
+>;
+export type GetPublicCommentsCountsLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsCountsLazyQuery
+>;
+export type GetPublicCommentsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsCountsSuspenseQuery
+>;
+export type GetPublicCommentsCountsQueryResult = Apollo.QueryResult<
+  GetPublicCommentsCountsQuery,
+  GetPublicCommentsCountsQueryVariables
+>;
+export const GetPublicCommentsWithCountsDocument = gql`
+  query GetPublicCommentsWithCounts($gameId: ID!, $pagination: PaginationInput) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+    publicComments(
+      filters: { parentId: $gameId, parentType: BASKETBALL_GAME }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PublicCommentCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentsWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentsWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentsWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentsWithCountsQuery({
+ *   variables: {
+ *      gameId: // value for 'gameId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentsWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentsWithCountsQuery,
+    GetPublicCommentsWithCountsQueryVariables
+  > &
+    ({ variables: GetPublicCommentsWithCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPublicCommentsWithCountsQuery,
+    GetPublicCommentsWithCountsQueryVariables
+  >(GetPublicCommentsWithCountsDocument, options);
+}
+export function useGetPublicCommentsWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentsWithCountsQuery,
+    GetPublicCommentsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPublicCommentsWithCountsQuery,
+    GetPublicCommentsWithCountsQueryVariables
+  >(GetPublicCommentsWithCountsDocument, options);
+}
+export function useGetPublicCommentsWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentsWithCountsQuery,
+        GetPublicCommentsWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentsWithCountsQuery,
+    GetPublicCommentsWithCountsQueryVariables
+  >(GetPublicCommentsWithCountsDocument, options);
+}
+export type GetPublicCommentsWithCountsQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsWithCountsQuery
+>;
+export type GetPublicCommentsWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsWithCountsLazyQuery
+>;
+export type GetPublicCommentsWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsWithCountsSuspenseQuery
+>;
+export type GetPublicCommentsWithCountsQueryResult = Apollo.QueryResult<
+  GetPublicCommentsWithCountsQuery,
+  GetPublicCommentsWithCountsQueryVariables
+>;
+export const GetPublicCommentsDetailedDocument = gql`
+  query GetPublicCommentsDetailed($gameId: ID!, $pagination: PaginationInput) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+    publicComments(
+      filters: { parentId: $gameId, parentType: BASKETBALL_GAME }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PublicCommentDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentsDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentsDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentsDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentsDetailedQuery({
+ *   variables: {
+ *      gameId: // value for 'gameId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentsDetailedQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentsDetailedQuery,
+    GetPublicCommentsDetailedQueryVariables
+  > &
+    ({ variables: GetPublicCommentsDetailedQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPublicCommentsDetailedQuery, GetPublicCommentsDetailedQueryVariables>(
+    GetPublicCommentsDetailedDocument,
+    options
+  );
+}
+export function useGetPublicCommentsDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentsDetailedQuery,
+    GetPublicCommentsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPublicCommentsDetailedQuery,
+    GetPublicCommentsDetailedQueryVariables
+  >(GetPublicCommentsDetailedDocument, options);
+}
+export function useGetPublicCommentsDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentsDetailedQuery,
+        GetPublicCommentsDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentsDetailedQuery,
+    GetPublicCommentsDetailedQueryVariables
+  >(GetPublicCommentsDetailedDocument, options);
+}
+export type GetPublicCommentsDetailedQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsDetailedQuery
+>;
+export type GetPublicCommentsDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsDetailedLazyQuery
+>;
+export type GetPublicCommentsDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentsDetailedSuspenseQuery
+>;
+export type GetPublicCommentsDetailedQueryResult = Apollo.QueryResult<
+  GetPublicCommentsDetailedQuery,
+  GetPublicCommentsDetailedQueryVariables
+>;
+export const GetPublicCommentRepliesWithCountsDocument = gql`
+  query GetPublicCommentRepliesWithCounts($commentId: ID!, $pagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PublicCommentCountsFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentRepliesWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentRepliesWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentRepliesWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentRepliesWithCountsQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentRepliesWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentRepliesWithCountsQuery,
+    GetPublicCommentRepliesWithCountsQueryVariables
+  > &
+    (
+      | { variables: GetPublicCommentRepliesWithCountsQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPublicCommentRepliesWithCountsQuery,
+    GetPublicCommentRepliesWithCountsQueryVariables
+  >(GetPublicCommentRepliesWithCountsDocument, options);
+}
+export function useGetPublicCommentRepliesWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentRepliesWithCountsQuery,
+    GetPublicCommentRepliesWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPublicCommentRepliesWithCountsQuery,
+    GetPublicCommentRepliesWithCountsQueryVariables
+  >(GetPublicCommentRepliesWithCountsDocument, options);
+}
+export function useGetPublicCommentRepliesWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentRepliesWithCountsQuery,
+        GetPublicCommentRepliesWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentRepliesWithCountsQuery,
+    GetPublicCommentRepliesWithCountsQueryVariables
+  >(GetPublicCommentRepliesWithCountsDocument, options);
+}
+export type GetPublicCommentRepliesWithCountsQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesWithCountsQuery
+>;
+export type GetPublicCommentRepliesWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesWithCountsLazyQuery
+>;
+export type GetPublicCommentRepliesWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesWithCountsSuspenseQuery
+>;
+export type GetPublicCommentRepliesWithCountsQueryResult = Apollo.QueryResult<
+  GetPublicCommentRepliesWithCountsQuery,
+  GetPublicCommentRepliesWithCountsQueryVariables
+>;
+export const GetPublicCommentRepliesDetailedDocument = gql`
+  query GetPublicCommentRepliesDetailed($commentId: ID!, $pagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PublicCommentDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentRepliesDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentRepliesDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentRepliesDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentRepliesDetailedQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentRepliesDetailedQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentRepliesDetailedQuery,
+    GetPublicCommentRepliesDetailedQueryVariables
+  > &
+    (
+      | { variables: GetPublicCommentRepliesDetailedQueryVariables; skip?: boolean }
+      | { skip: boolean }
+    )
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetPublicCommentRepliesDetailedQuery,
+    GetPublicCommentRepliesDetailedQueryVariables
+  >(GetPublicCommentRepliesDetailedDocument, options);
+}
+export function useGetPublicCommentRepliesDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentRepliesDetailedQuery,
+    GetPublicCommentRepliesDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPublicCommentRepliesDetailedQuery,
+    GetPublicCommentRepliesDetailedQueryVariables
+  >(GetPublicCommentRepliesDetailedDocument, options);
+}
+export function useGetPublicCommentRepliesDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentRepliesDetailedQuery,
+        GetPublicCommentRepliesDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentRepliesDetailedQuery,
+    GetPublicCommentRepliesDetailedQueryVariables
+  >(GetPublicCommentRepliesDetailedDocument, options);
+}
+export type GetPublicCommentRepliesDetailedQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesDetailedQuery
+>;
+export type GetPublicCommentRepliesDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesDetailedLazyQuery
+>;
+export type GetPublicCommentRepliesDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentRepliesDetailedSuspenseQuery
+>;
+export type GetPublicCommentRepliesDetailedQueryResult = Apollo.QueryResult<
+  GetPublicCommentRepliesDetailedQuery,
+  GetPublicCommentRepliesDetailedQueryVariables
+>;
+export const GetPublicReactionsDocument = gql`
+  query GetPublicReactions($targetId: ID!, $targetType: ParentType!) {
+    publicReactions(targetId: $targetId, targetType: $targetType) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PublicReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicReactionsQuery__
+ *
+ * To run a query within a React component, call `useGetPublicReactionsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicReactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicReactionsQuery({
+ *   variables: {
+ *      targetId: // value for 'targetId'
+ *      targetType: // value for 'targetType'
+ *   },
+ * });
+ */
+export function useGetPublicReactionsQuery(
+  baseOptions: Apollo.QueryHookOptions<GetPublicReactionsQuery, GetPublicReactionsQueryVariables> &
+    ({ variables: GetPublicReactionsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
+    GetPublicReactionsDocument,
+    options
+  );
+}
+export function useGetPublicReactionsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicReactionsQuery,
+    GetPublicReactionsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
+    GetPublicReactionsDocument,
+    options
+  );
+}
+export function useGetPublicReactionsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
+    GetPublicReactionsDocument,
+    options
+  );
+}
+export type GetPublicReactionsQueryHookResult = ReturnType<typeof useGetPublicReactionsQuery>;
+export type GetPublicReactionsLazyQueryHookResult = ReturnType<
+  typeof useGetPublicReactionsLazyQuery
+>;
+export type GetPublicReactionsSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicReactionsSuspenseQuery
+>;
+export type GetPublicReactionsQueryResult = Apollo.QueryResult<
+  GetPublicReactionsQuery,
+  GetPublicReactionsQueryVariables
+>;
+export const GetCommentDocument = gql`
+  query GetComment($commentId: ID!, $repliesPagination: PaginationInput) {
+    comments(
+      filters: { parentId: $commentId, parentType: COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${CommentDetailedFragmentFragmentDoc}
+  ${ReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetCommentQuery__
+ *
+ * To run a query within a React component, call `useGetCommentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      repliesPagination: // value for 'repliesPagination'
+ *   },
+ * });
+ */
+export function useGetCommentQuery(
+  baseOptions: Apollo.QueryHookOptions<GetCommentQuery, GetCommentQueryVariables> &
+    ({ variables: GetCommentQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetCommentQuery, GetCommentQueryVariables>(GetCommentDocument, options);
+}
+export function useGetCommentLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<GetCommentQuery, GetCommentQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetCommentQuery, GetCommentQueryVariables>(
+    GetCommentDocument,
+    options
+  );
+}
+export function useGetCommentSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetCommentQuery, GetCommentQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetCommentQuery, GetCommentQueryVariables>(
+    GetCommentDocument,
+    options
+  );
+}
+export type GetCommentQueryHookResult = ReturnType<typeof useGetCommentQuery>;
+export type GetCommentLazyQueryHookResult = ReturnType<typeof useGetCommentLazyQuery>;
+export type GetCommentSuspenseQueryHookResult = ReturnType<typeof useGetCommentSuspenseQuery>;
+export type GetCommentQueryResult = Apollo.QueryResult<GetCommentQuery, GetCommentQueryVariables>;
+export const GetCommentWithCountsDocument = gql`
+  query GetCommentWithCounts($commentId: ID!, $repliesPagination: PaginationInput) {
+    comments(
+      filters: { parentId: $commentId, parentType: COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${CommentCountsFragmentFragmentDoc}
+  ${ReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetCommentWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetCommentWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCommentWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCommentWithCountsQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      repliesPagination: // value for 'repliesPagination'
+ *   },
+ * });
+ */
+export function useGetCommentWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetCommentWithCountsQuery,
+    GetCommentWithCountsQueryVariables
+  > &
+    ({ variables: GetCommentWithCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetCommentWithCountsQuery, GetCommentWithCountsQueryVariables>(
+    GetCommentWithCountsDocument,
+    options
+  );
+}
+export function useGetCommentWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetCommentWithCountsQuery,
+    GetCommentWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetCommentWithCountsQuery, GetCommentWithCountsQueryVariables>(
+    GetCommentWithCountsDocument,
+    options
+  );
+}
+export function useGetCommentWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetCommentWithCountsQuery, GetCommentWithCountsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetCommentWithCountsQuery, GetCommentWithCountsQueryVariables>(
+    GetCommentWithCountsDocument,
+    options
+  );
+}
+export type GetCommentWithCountsQueryHookResult = ReturnType<typeof useGetCommentWithCountsQuery>;
+export type GetCommentWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetCommentWithCountsLazyQuery
+>;
+export type GetCommentWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetCommentWithCountsSuspenseQuery
+>;
+export type GetCommentWithCountsQueryResult = Apollo.QueryResult<
+  GetCommentWithCountsQuery,
+  GetCommentWithCountsQueryVariables
+>;
+export const GetPublicCommentDocument = gql`
+  query GetPublicComment($commentId: ID!, $repliesPagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    publicReactions(targetId: $commentId, targetType: PUBLIC_COMMENT) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PublicCommentDetailedFragmentFragmentDoc}
+  ${PublicReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      repliesPagination: // value for 'repliesPagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentQuery(
+  baseOptions: Apollo.QueryHookOptions<GetPublicCommentQuery, GetPublicCommentQueryVariables> &
+    ({ variables: GetPublicCommentQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPublicCommentQuery, GetPublicCommentQueryVariables>(
+    GetPublicCommentDocument,
+    options
+  );
+}
+export function useGetPublicCommentLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<GetPublicCommentQuery, GetPublicCommentQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetPublicCommentQuery, GetPublicCommentQueryVariables>(
+    GetPublicCommentDocument,
+    options
+  );
+}
+export function useGetPublicCommentSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetPublicCommentQuery, GetPublicCommentQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetPublicCommentQuery, GetPublicCommentQueryVariables>(
+    GetPublicCommentDocument,
+    options
+  );
+}
+export type GetPublicCommentQueryHookResult = ReturnType<typeof useGetPublicCommentQuery>;
+export type GetPublicCommentLazyQueryHookResult = ReturnType<typeof useGetPublicCommentLazyQuery>;
+export type GetPublicCommentSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentSuspenseQuery
+>;
+export type GetPublicCommentQueryResult = Apollo.QueryResult<
+  GetPublicCommentQuery,
+  GetPublicCommentQueryVariables
+>;
+export const GetPublicCommentWithCountsDocument = gql`
+  query GetPublicCommentWithCounts($commentId: ID!, $repliesPagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    publicReactions(targetId: $commentId, targetType: PUBLIC_COMMENT) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PublicCommentCountsFragmentFragmentDoc}
+  ${PublicReactionFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetPublicCommentWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetPublicCommentWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPublicCommentWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPublicCommentWithCountsQuery({
+ *   variables: {
+ *      commentId: // value for 'commentId'
+ *      repliesPagination: // value for 'repliesPagination'
+ *   },
+ * });
+ */
+export function useGetPublicCommentWithCountsQuery(
+  baseOptions: Apollo.QueryHookOptions<
+    GetPublicCommentWithCountsQuery,
+    GetPublicCommentWithCountsQueryVariables
+  > &
+    ({ variables: GetPublicCommentWithCountsQueryVariables; skip?: boolean } | { skip: boolean })
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetPublicCommentWithCountsQuery, GetPublicCommentWithCountsQueryVariables>(
+    GetPublicCommentWithCountsDocument,
+    options
+  );
+}
+export function useGetPublicCommentWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetPublicCommentWithCountsQuery,
+    GetPublicCommentWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetPublicCommentWithCountsQuery,
+    GetPublicCommentWithCountsQueryVariables
+  >(GetPublicCommentWithCountsDocument, options);
+}
+export function useGetPublicCommentWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetPublicCommentWithCountsQuery,
+        GetPublicCommentWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetPublicCommentWithCountsQuery,
+    GetPublicCommentWithCountsQueryVariables
+  >(GetPublicCommentWithCountsDocument, options);
+}
+export type GetPublicCommentWithCountsQueryHookResult = ReturnType<
+  typeof useGetPublicCommentWithCountsQuery
+>;
+export type GetPublicCommentWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetPublicCommentWithCountsLazyQuery
+>;
+export type GetPublicCommentWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetPublicCommentWithCountsSuspenseQuery
+>;
+export type GetPublicCommentWithCountsQueryResult = Apollo.QueryResult<
+  GetPublicCommentWithCountsQuery,
+  GetPublicCommentWithCountsQueryVariables
+>;
 export const GetUserFriendshipsDocument = gql`
   query GetUserFriendships($filters: FriendshipFilters, $pagination: PaginationInput) {
     userFriendships(filters: $filters, pagination: $pagination) {
@@ -5682,6 +9612,755 @@ export type GetFriendshipStatusQueryResult = Apollo.QueryResult<
   GetFriendshipStatusQuery,
   GetFriendshipStatusQueryVariables
 >;
+export const GetFriendshipsCountsDocument = gql`
+  query GetFriendshipsCounts($filters: FriendshipFilters) {
+    userFriendships(filters: $filters, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+/**
+ * __useGetFriendshipsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipsCountsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *   },
+ * });
+ */
+export function useGetFriendshipsCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipsCountsQuery,
+    GetFriendshipsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetFriendshipsCountsQuery, GetFriendshipsCountsQueryVariables>(
+    GetFriendshipsCountsDocument,
+    options
+  );
+}
+export function useGetFriendshipsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipsCountsQuery,
+    GetFriendshipsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetFriendshipsCountsQuery, GetFriendshipsCountsQueryVariables>(
+    GetFriendshipsCountsDocument,
+    options
+  );
+}
+export function useGetFriendshipsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetFriendshipsCountsQuery, GetFriendshipsCountsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetFriendshipsCountsQuery, GetFriendshipsCountsQueryVariables>(
+    GetFriendshipsCountsDocument,
+    options
+  );
+}
+export type GetFriendshipsCountsQueryHookResult = ReturnType<typeof useGetFriendshipsCountsQuery>;
+export type GetFriendshipsCountsLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipsCountsLazyQuery
+>;
+export type GetFriendshipsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipsCountsSuspenseQuery
+>;
+export type GetFriendshipsCountsQueryResult = Apollo.QueryResult<
+  GetFriendshipsCountsQuery,
+  GetFriendshipsCountsQueryVariables
+>;
+export const GetFriendshipsWithCountsDocument = gql`
+  query GetFriendshipsWithCounts($filters: FriendshipFilters, $pagination: PaginationInput) {
+    userFriendships(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipTableFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FriendshipTableFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetFriendshipsWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipsWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipsWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipsWithCountsQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendshipsWithCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipsWithCountsQuery,
+    GetFriendshipsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetFriendshipsWithCountsQuery, GetFriendshipsWithCountsQueryVariables>(
+    GetFriendshipsWithCountsDocument,
+    options
+  );
+}
+export function useGetFriendshipsWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipsWithCountsQuery,
+    GetFriendshipsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetFriendshipsWithCountsQuery, GetFriendshipsWithCountsQueryVariables>(
+    GetFriendshipsWithCountsDocument,
+    options
+  );
+}
+export function useGetFriendshipsWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendshipsWithCountsQuery,
+        GetFriendshipsWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetFriendshipsWithCountsQuery,
+    GetFriendshipsWithCountsQueryVariables
+  >(GetFriendshipsWithCountsDocument, options);
+}
+export type GetFriendshipsWithCountsQueryHookResult = ReturnType<
+  typeof useGetFriendshipsWithCountsQuery
+>;
+export type GetFriendshipsWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipsWithCountsLazyQuery
+>;
+export type GetFriendshipsWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipsWithCountsSuspenseQuery
+>;
+export type GetFriendshipsWithCountsQueryResult = Apollo.QueryResult<
+  GetFriendshipsWithCountsQuery,
+  GetFriendshipsWithCountsQueryVariables
+>;
+export const GetFriendshipsDetailedDocument = gql`
+  query GetFriendshipsDetailed($filters: FriendshipFilters, $pagination: PaginationInput) {
+    userFriendships(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FriendshipDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetFriendshipsDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipsDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipsDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipsDetailedQuery({
+ *   variables: {
+ *      filters: // value for 'filters'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendshipsDetailedQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipsDetailedQuery,
+    GetFriendshipsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetFriendshipsDetailedQuery, GetFriendshipsDetailedQueryVariables>(
+    GetFriendshipsDetailedDocument,
+    options
+  );
+}
+export function useGetFriendshipsDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipsDetailedQuery,
+    GetFriendshipsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetFriendshipsDetailedQuery, GetFriendshipsDetailedQueryVariables>(
+    GetFriendshipsDetailedDocument,
+    options
+  );
+}
+export function useGetFriendshipsDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendshipsDetailedQuery,
+        GetFriendshipsDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetFriendshipsDetailedQuery, GetFriendshipsDetailedQueryVariables>(
+    GetFriendshipsDetailedDocument,
+    options
+  );
+}
+export type GetFriendshipsDetailedQueryHookResult = ReturnType<
+  typeof useGetFriendshipsDetailedQuery
+>;
+export type GetFriendshipsDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipsDetailedLazyQuery
+>;
+export type GetFriendshipsDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipsDetailedSuspenseQuery
+>;
+export type GetFriendshipsDetailedQueryResult = Apollo.QueryResult<
+  GetFriendshipsDetailedQuery,
+  GetFriendshipsDetailedQueryVariables
+>;
+export const GetFriendshipRequestsCountsDocument = gql`
+  query GetFriendshipRequestsCounts {
+    friendshipRequests(pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+/**
+ * __useGetFriendshipRequestsCountsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipRequestsCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipRequestsCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipRequestsCountsQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useGetFriendshipRequestsCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipRequestsCountsQuery,
+    GetFriendshipRequestsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetFriendshipRequestsCountsQuery,
+    GetFriendshipRequestsCountsQueryVariables
+  >(GetFriendshipRequestsCountsDocument, options);
+}
+export function useGetFriendshipRequestsCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipRequestsCountsQuery,
+    GetFriendshipRequestsCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetFriendshipRequestsCountsQuery,
+    GetFriendshipRequestsCountsQueryVariables
+  >(GetFriendshipRequestsCountsDocument, options);
+}
+export function useGetFriendshipRequestsCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendshipRequestsCountsQuery,
+        GetFriendshipRequestsCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetFriendshipRequestsCountsQuery,
+    GetFriendshipRequestsCountsQueryVariables
+  >(GetFriendshipRequestsCountsDocument, options);
+}
+export type GetFriendshipRequestsCountsQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsCountsQuery
+>;
+export type GetFriendshipRequestsCountsLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsCountsLazyQuery
+>;
+export type GetFriendshipRequestsCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsCountsSuspenseQuery
+>;
+export type GetFriendshipRequestsCountsQueryResult = Apollo.QueryResult<
+  GetFriendshipRequestsCountsQuery,
+  GetFriendshipRequestsCountsQueryVariables
+>;
+export const GetFriendshipRequestsWithCountsDocument = gql`
+  query GetFriendshipRequestsWithCounts($pagination: PaginationInput) {
+    friendshipRequests(pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipTableFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FriendshipTableFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetFriendshipRequestsWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipRequestsWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipRequestsWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipRequestsWithCountsQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendshipRequestsWithCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipRequestsWithCountsQuery,
+    GetFriendshipRequestsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetFriendshipRequestsWithCountsQuery,
+    GetFriendshipRequestsWithCountsQueryVariables
+  >(GetFriendshipRequestsWithCountsDocument, options);
+}
+export function useGetFriendshipRequestsWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipRequestsWithCountsQuery,
+    GetFriendshipRequestsWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetFriendshipRequestsWithCountsQuery,
+    GetFriendshipRequestsWithCountsQueryVariables
+  >(GetFriendshipRequestsWithCountsDocument, options);
+}
+export function useGetFriendshipRequestsWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendshipRequestsWithCountsQuery,
+        GetFriendshipRequestsWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetFriendshipRequestsWithCountsQuery,
+    GetFriendshipRequestsWithCountsQueryVariables
+  >(GetFriendshipRequestsWithCountsDocument, options);
+}
+export type GetFriendshipRequestsWithCountsQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsWithCountsQuery
+>;
+export type GetFriendshipRequestsWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsWithCountsLazyQuery
+>;
+export type GetFriendshipRequestsWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsWithCountsSuspenseQuery
+>;
+export type GetFriendshipRequestsWithCountsQueryResult = Apollo.QueryResult<
+  GetFriendshipRequestsWithCountsQuery,
+  GetFriendshipRequestsWithCountsQueryVariables
+>;
+export const GetFriendshipRequestsDetailedDocument = gql`
+  query GetFriendshipRequestsDetailed($pagination: PaginationInput) {
+    friendshipRequests(pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FriendshipDetailedFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetFriendshipRequestsDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetFriendshipRequestsDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetFriendshipRequestsDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetFriendshipRequestsDetailedQuery({
+ *   variables: {
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetFriendshipRequestsDetailedQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetFriendshipRequestsDetailedQuery,
+    GetFriendshipRequestsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<
+    GetFriendshipRequestsDetailedQuery,
+    GetFriendshipRequestsDetailedQueryVariables
+  >(GetFriendshipRequestsDetailedDocument, options);
+}
+export function useGetFriendshipRequestsDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetFriendshipRequestsDetailedQuery,
+    GetFriendshipRequestsDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<
+    GetFriendshipRequestsDetailedQuery,
+    GetFriendshipRequestsDetailedQueryVariables
+  >(GetFriendshipRequestsDetailedDocument, options);
+}
+export function useGetFriendshipRequestsDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetFriendshipRequestsDetailedQuery,
+        GetFriendshipRequestsDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetFriendshipRequestsDetailedQuery,
+    GetFriendshipRequestsDetailedQueryVariables
+  >(GetFriendshipRequestsDetailedDocument, options);
+}
+export type GetFriendshipRequestsDetailedQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsDetailedQuery
+>;
+export type GetFriendshipRequestsDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsDetailedLazyQuery
+>;
+export type GetFriendshipRequestsDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetFriendshipRequestsDetailedSuspenseQuery
+>;
+export type GetFriendshipRequestsDetailedQueryResult = Apollo.QueryResult<
+  GetFriendshipRequestsDetailedQuery,
+  GetFriendshipRequestsDetailedQueryVariables
+>;
+export const GetUserSearchCountsDocument = gql`
+  query GetUserSearchCounts($searchTerm: String, $searchField: String) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+/**
+ * __useGetUserSearchCountsQuery__
+ *
+ * To run a query within a React component, call `useGetUserSearchCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSearchCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSearchCountsQuery({
+ *   variables: {
+ *      searchTerm: // value for 'searchTerm'
+ *      searchField: // value for 'searchField'
+ *   },
+ * });
+ */
+export function useGetUserSearchCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
+    GetUserSearchCountsDocument,
+    options
+  );
+}
+export function useGetUserSearchCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetUserSearchCountsQuery,
+    GetUserSearchCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
+    GetUserSearchCountsDocument,
+    options
+  );
+}
+export function useGetUserSearchCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
+    GetUserSearchCountsDocument,
+    options
+  );
+}
+export type GetUserSearchCountsQueryHookResult = ReturnType<typeof useGetUserSearchCountsQuery>;
+export type GetUserSearchCountsLazyQueryHookResult = ReturnType<
+  typeof useGetUserSearchCountsLazyQuery
+>;
+export type GetUserSearchCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetUserSearchCountsSuspenseQuery
+>;
+export type GetUserSearchCountsQueryResult = Apollo.QueryResult<
+  GetUserSearchCountsQuery,
+  GetUserSearchCountsQueryVariables
+>;
+export const GetUserSearchWithCountsDocument = gql`
+  query GetUserSearchWithCounts(
+    $searchTerm: String
+    $searchField: String
+    $pagination: PaginationInput
+  ) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+      edges {
+        node {
+          ...UserSummaryFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${UserSummaryFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetUserSearchWithCountsQuery__
+ *
+ * To run a query within a React component, call `useGetUserSearchWithCountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSearchWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSearchWithCountsQuery({
+ *   variables: {
+ *      searchTerm: // value for 'searchTerm'
+ *      searchField: // value for 'searchField'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetUserSearchWithCountsQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetUserSearchWithCountsQuery,
+    GetUserSearchWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetUserSearchWithCountsQuery, GetUserSearchWithCountsQueryVariables>(
+    GetUserSearchWithCountsDocument,
+    options
+  );
+}
+export function useGetUserSearchWithCountsLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetUserSearchWithCountsQuery,
+    GetUserSearchWithCountsQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetUserSearchWithCountsQuery, GetUserSearchWithCountsQueryVariables>(
+    GetUserSearchWithCountsDocument,
+    options
+  );
+}
+export function useGetUserSearchWithCountsSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetUserSearchWithCountsQuery,
+        GetUserSearchWithCountsQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<
+    GetUserSearchWithCountsQuery,
+    GetUserSearchWithCountsQueryVariables
+  >(GetUserSearchWithCountsDocument, options);
+}
+export type GetUserSearchWithCountsQueryHookResult = ReturnType<
+  typeof useGetUserSearchWithCountsQuery
+>;
+export type GetUserSearchWithCountsLazyQueryHookResult = ReturnType<
+  typeof useGetUserSearchWithCountsLazyQuery
+>;
+export type GetUserSearchWithCountsSuspenseQueryHookResult = ReturnType<
+  typeof useGetUserSearchWithCountsSuspenseQuery
+>;
+export type GetUserSearchWithCountsQueryResult = Apollo.QueryResult<
+  GetUserSearchWithCountsQuery,
+  GetUserSearchWithCountsQueryVariables
+>;
+export const GetUserSearchDetailedDocument = gql`
+  query GetUserSearchDetailed(
+    $searchTerm: String
+    $searchField: String
+    $pagination: PaginationInput
+  ) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+      edges {
+        node {
+          ...UserSummaryFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${UserSummaryFragmentFragmentDoc}
+`;
+
+/**
+ * __useGetUserSearchDetailedQuery__
+ *
+ * To run a query within a React component, call `useGetUserSearchDetailedQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSearchDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetUserSearchDetailedQuery({
+ *   variables: {
+ *      searchTerm: // value for 'searchTerm'
+ *      searchField: // value for 'searchField'
+ *      pagination: // value for 'pagination'
+ *   },
+ * });
+ */
+export function useGetUserSearchDetailedQuery(
+  baseOptions?: Apollo.QueryHookOptions<
+    GetUserSearchDetailedQuery,
+    GetUserSearchDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
+    GetUserSearchDetailedDocument,
+    options
+  );
+}
+export function useGetUserSearchDetailedLazyQuery(
+  baseOptions?: Apollo.LazyQueryHookOptions<
+    GetUserSearchDetailedQuery,
+    GetUserSearchDetailedQueryVariables
+  >
+) {
+  const options = { ...defaultOptions, ...baseOptions };
+  return Apollo.useLazyQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
+    GetUserSearchDetailedDocument,
+    options
+  );
+}
+export function useGetUserSearchDetailedSuspenseQuery(
+  baseOptions?:
+    | Apollo.SkipToken
+    | Apollo.SuspenseQueryHookOptions<
+        GetUserSearchDetailedQuery,
+        GetUserSearchDetailedQueryVariables
+      >
+) {
+  const options =
+    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
+  return Apollo.useSuspenseQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
+    GetUserSearchDetailedDocument,
+    options
+  );
+}
+export type GetUserSearchDetailedQueryHookResult = ReturnType<typeof useGetUserSearchDetailedQuery>;
+export type GetUserSearchDetailedLazyQueryHookResult = ReturnType<
+  typeof useGetUserSearchDetailedLazyQuery
+>;
+export type GetUserSearchDetailedSuspenseQueryHookResult = ReturnType<
+  typeof useGetUserSearchDetailedSuspenseQuery
+>;
+export type GetUserSearchDetailedQueryResult = Apollo.QueryResult<
+  GetUserSearchDetailedQuery,
+  GetUserSearchDetailedQueryVariables
+>;
 export const GetUserNotificationsDocument = gql`
   query GetUserNotifications($filters: NotificationFilters, $pagination: PaginationInput) {
     userNotifications(filters: $filters, pagination: $pagination) {
@@ -5916,75 +10595,4 @@ export type GetPublicCommentsSuspenseQueryHookResult = ReturnType<
 export type GetPublicCommentsQueryResult = Apollo.QueryResult<
   GetPublicCommentsQuery,
   GetPublicCommentsQueryVariables
->;
-export const GetPublicReactionsDocument = gql`
-  query GetPublicReactions($targetId: ID!, $targetType: ParentType!) {
-    publicReactions(targetId: $targetId, targetType: $targetType) {
-      ...PublicReactionFragment
-    }
-  }
-  ${PublicReactionFragmentFragmentDoc}
-`;
-
-/**
- * __useGetPublicReactionsQuery__
- *
- * To run a query within a React component, call `useGetPublicReactionsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetPublicReactionsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetPublicReactionsQuery({
- *   variables: {
- *      targetId: // value for 'targetId'
- *      targetType: // value for 'targetType'
- *   },
- * });
- */
-export function useGetPublicReactionsQuery(
-  baseOptions: Apollo.QueryHookOptions<GetPublicReactionsQuery, GetPublicReactionsQueryVariables> &
-    ({ variables: GetPublicReactionsQueryVariables; skip?: boolean } | { skip: boolean })
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
-    GetPublicReactionsDocument,
-    options
-  );
-}
-export function useGetPublicReactionsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetPublicReactionsQuery,
-    GetPublicReactionsQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
-    GetPublicReactionsDocument,
-    options
-  );
-}
-export function useGetPublicReactionsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetPublicReactionsQuery, GetPublicReactionsQueryVariables>(
-    GetPublicReactionsDocument,
-    options
-  );
-}
-export type GetPublicReactionsQueryHookResult = ReturnType<typeof useGetPublicReactionsQuery>;
-export type GetPublicReactionsLazyQueryHookResult = ReturnType<
-  typeof useGetPublicReactionsLazyQuery
->;
-export type GetPublicReactionsSuspenseQueryHookResult = ReturnType<
-  typeof useGetPublicReactionsSuspenseQuery
->;
-export type GetPublicReactionsQueryResult = Apollo.QueryResult<
-  GetPublicReactionsQuery,
-  GetPublicReactionsQueryVariables
 >;

@@ -5,7 +5,8 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 
 import { useMobileDetection, SearchBar } from '@/app/components/layout/components/SearchBar';
-import { SearchEmptyState, SearchResults } from '@/app/components/search';
+import { SearchEmptyState } from '@/app/components/search/SearchEmptyState';
+import { SearchResults } from '@/app/components/search/SearchResults';
 import type { ISearchResponse } from '@/types';
 
 function SearchPageContent() {

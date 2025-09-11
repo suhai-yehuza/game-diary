@@ -3,25 +3,31 @@ import { join } from 'path';
 
 import { makeExecutableSchema } from '@graphql-tools/schema';
 
-import { gameQueryResolvers, gameResolver } from '@/lib/graphql/resolvers/basketball-game';
+import { createDataLoaderContext } from '@/lib/graphql/dataloaders';
+import {
+  gameQueryResolvers,
+  gameResolver,
+  gameMutationResolvers,
+} from '@/lib/graphql/resolvers/basketball-game';
 import {
   nbaPlayerQueryResolvers,
   nbaPlayerResolver,
 } from '@/lib/graphql/resolvers/basketball-player';
 import { teamQueryResolvers, teamResolver } from '@/lib/graphql/resolvers/basketball-team';
-import { commentQueryResolvers, commentResolver } from '@/lib/graphql/resolvers/comment';
+import {
+  commentQueryResolvers,
+  commentResolver,
+  commentMutationResolvers,
+} from '@/lib/graphql/resolvers/comment';
 import {
   friendshipMutationResolvers,
   friendshipQueryResolvers,
 } from '@/lib/graphql/resolvers/friendship';
-import { gameLogMutationResolvers, gameLogResolver } from '@/lib/graphql/resolvers/game-log';
-import { adaptiveGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-adaptive';
-import { optimizedGameLogQueryResolvers } from '@/lib/graphql/resolvers/game-log-optimized';
 import {
-  gameMutationResolvers,
-  commentMutationResolvers,
-  reactionMutationResolvers,
-} from '@/lib/graphql/resolvers/mutations';
+  gameLogQueryResolvers,
+  gameLogMutationResolvers,
+  gameLogResolver,
+} from '@/lib/graphql/resolvers/game-log';
 import {
   notificationQueryResolvers,
   notificationMutationResolvers,
@@ -29,13 +35,15 @@ import {
 import {
   publicCommentQueryResolvers,
   publicCommentResolver,
-} from '@/lib/graphql/resolvers/public-comments';
-import {
+  publicReactionQueryResolvers,
   publicCommentMutationResolvers,
   publicReactionMutationResolvers,
-} from '@/lib/graphql/resolvers/public-mutations';
-import { publicReactionQueryResolvers } from '@/lib/graphql/resolvers/public-reactions';
-import { reactionQueryResolvers, reactionResolver } from '@/lib/graphql/resolvers/reaction';
+} from '@/lib/graphql/resolvers/public-resolvers';
+import {
+  reactionQueryResolvers,
+  reactionResolver,
+  reactionMutationResolvers,
+} from '@/lib/graphql/resolvers/reaction';
 import { ErrorResult } from '@/lib/graphql/resolvers/scalars';
 import {
   userQueryResolvers,
@@ -54,14 +62,7 @@ const resolvers = {
     ...gameQueryResolvers,
     ...nbaPlayerQueryResolvers,
     ...teamQueryResolvers,
-    ...adaptiveGameLogQueryResolvers, // Use adaptive resolver for gameLogs (fixing user field issue)
-    // Add friendsGameLogs from optimized resolver since adaptive doesn't have it
-    friendsGameLogs: (parent: unknown, args: unknown, context: unknown) =>
-      optimizedGameLogQueryResolvers.friendsGameLogs(
-        parent,
-        args as { pagination?: { first?: number; after?: string } },
-        context as GraphQLContext
-      ),
+    ...gameLogQueryResolvers, // Consolidated game log queries
     ...commentQueryResolvers,
     ...reactionQueryResolvers,
     ...publicCommentQueryResolvers,
@@ -85,8 +86,20 @@ const resolvers = {
   NBAPlayer: nbaPlayerResolver,
   Team: teamResolver,
   GameLog: {
-    // Only use the game resolver to resolve team names, let optimized query handle user data
-    game: gameLogResolver.game,
+    // Ensure id field is properly resolved
+    id: (parent: { id: string }) => parent.id || 'default-game-log-id',
+    // Use the existing user query resolver instead of custom field resolver
+    user: async (parent: { user_id: string }, _args: unknown, context: GraphQLContext) => {
+      if (!parent.user_id) return null;
+      // Use the existing user query resolver
+      return userQueryResolvers.user(null, { id: parent.user_id }, context);
+    },
+    // Use the existing game query resolver instead of custom field resolver
+    game: async (parent: { game_id: string }, _args: unknown, context: GraphQLContext) => {
+      if (!parent.game_id) return null;
+      // Use the existing game query resolver
+      return gameQueryResolvers.game(null, { id: parent.game_id }, context);
+    },
     comments: gameLogResolver.comments,
     reactions: gameLogResolver.reactions,
     totalCommentCount: gameLogResolver.totalCommentCount,
@@ -103,6 +116,20 @@ export const schema = makeExecutableSchema({
   typeDefs,
   resolvers,
 });
+
+// Enhanced schema with DataLoaders
+export const createEnhancedSchema = () => {
+  return makeExecutableSchema({
+    typeDefs,
+    resolvers: {
+      ...resolvers,
+      // Add context creation for DataLoaders
+      context: () => ({
+        dataLoaders: createDataLoaderContext(),
+      }),
+    },
+  });
+};
 
 // This file is kept for potential future use but currently resolvers are imported directly from their specific paths
 // All exports have been removed to eliminate dead code

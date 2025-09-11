@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { hybridCacheService } from '../src/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '../src/lib/cache/simple-cache-service';
 import { logger } from '../src/lib/utils/logger';
 
 interface CacheOperation {
@@ -83,26 +83,33 @@ async function invalidateCache(target?: string, params?: Record<string, string>)
   if (!target || target === 'all') {
     console.log('🗑️ Invalidating all NBA caches...');
 
-    await hybridCacheService.invalidateByTags(['teams', 'games', 'players', 'nba']);
+    simpleCacheService.invalidate({ pattern: 'games:*' });
+    simpleCacheService.invalidate({ pattern: 'players:*' });
+    simpleCacheService.invalidate({ pattern: 'teams:*' });
+    simpleCacheService.invalidate({ pattern: 'nba:*' });
     console.log('✅ All NBA caches invalidated successfully!');
   } else {
     console.log(`🗑️ Invalidating ${target} cache...`);
 
     switch (target) {
       case 'teams':
-        await hybridCacheService.invalidateByTags(['teams', 'nba']);
+        simpleCacheService.invalidate({ pattern: 'teams:*' });
+        simpleCacheService.invalidate({ pattern: 'nba:*' });
         break;
       case 'games':
         const season = params?.season;
         if (season) {
-          await hybridCacheService.invalidateByTags([`games:${season}`]);
+          simpleCacheService.invalidate({ pattern: `games:${season}` });
+          simpleCacheService.invalidate({ pattern: 'nba:*' });
           console.log(`✅ Games cache for season ${season} invalidated`);
         } else {
-          await hybridCacheService.invalidateByTags(['games', 'nba']);
+          simpleCacheService.invalidate({ pattern: 'games:*' });
+          simpleCacheService.invalidate({ pattern: 'nba:*' });
         }
         break;
       case 'players':
-        await hybridCacheService.invalidateByTags(['players', 'nba']);
+        simpleCacheService.invalidate({ pattern: 'players:*' });
+        simpleCacheService.invalidate({ pattern: 'nba:*' });
         break;
     }
 
@@ -114,7 +121,7 @@ async function showCacheStats() {
   console.log('📊 NBA Cache Statistics:');
   console.log('========================');
 
-  const stats = await hybridCacheService.getStats();
+  const stats = simpleCacheService.getStats();
 
   // Teams cache
   const teamsKeys = Object.keys(stats).filter(key => key.startsWith('teams:'));
@@ -148,7 +155,10 @@ async function showCacheStats() {
 async function clearAllCaches() {
   console.log('🧹 Clearing all NBA caches...');
 
-  await hybridCacheService.invalidateByTags(['teams', 'games', 'players', 'nba']);
+  simpleCacheService.invalidate({ pattern: 'teams:*' });
+  simpleCacheService.invalidate({ pattern: 'games:*' });
+  simpleCacheService.invalidate({ pattern: 'players:*' });
+  simpleCacheService.invalidate({ pattern: 'nba:*' });
 
   console.log('✅ All NBA caches cleared successfully!');
 }

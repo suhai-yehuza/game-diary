@@ -3,16 +3,12 @@
 import { User, AtSign, Calendar, Mail, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import { BaseSearchResult } from '@/app/components/search/BaseSearchResult';
+import { formatSearchDate } from '@/app/components/search/utils/searchDataParsers';
+import { SEARCH_STYLES } from '@/app/components/search/utils/searchStyles';
 import type { IUserSearchResultProps } from '@/types';
 
-function formatDate(dateString: string) {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  });
-}
+// Removed formatDate - using formatSearchDate from utilities instead
 
 export function UserSearchResult({ user }: IUserSearchResultProps) {
   const router = useRouter();
@@ -23,70 +19,62 @@ export function UserSearchResult({ user }: IUserSearchResultProps) {
   };
 
   return (
-    <div
-      className="group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 cursor-pointer overflow-hidden"
+    <BaseSearchResult
       onClick={handleClick}
+      gradient={SEARCH_STYLES.gradients.user}
+      badgeColor={SEARCH_STYLES.badge.user}
+      badgeText="View Profile"
+      badgeIcon={<ArrowRight className={SEARCH_STYLES.actionIndicator.icon} />}
     >
-      {/* Subtle background pattern */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/30 to-transparent dark:from-emerald-900/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-      <div className="relative flex items-start space-x-4">
-        {/* Enhanced Avatar */}
-        <div className="flex-shrink-0">
-          <div className="w-14 h-14 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300">
-            <User className="w-7 h-7 text-white" />
-          </div>
+      {/* Enhanced Avatar */}
+      <div className="flex-shrink-0">
+        <div className={`${SEARCH_STYLES.avatar.base} ${SEARCH_STYLES.avatar.user}`}>
+          <User className="w-7 h-7 text-white" />
         </div>
+      </div>
 
-        {/* User Information */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-start justify-between transition-colors">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-3 mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                  {user.first_name && user.last_name
-                    ? `${user.first_name} ${user.last_name}`
-                    : user.username || 'Unknown User'}
-                </h3>
-                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full mr-1.5" />
-                  User
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-1 mb-3" data-testid="username-line">
-                <AtSign className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {user.username || 'unknown'}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
-                {user.created_at && (
-                  <div className="flex items-center space-x-1.5">
-                    <Calendar className="w-4 h-4" />
-                    <span>Joined {formatDate(user.created_at)}</span>
-                  </div>
-                )}
-                {user.email_address && (
-                  <div className="flex items-center space-x-1.5">
-                    <Mail className="w-4 h-4" />
-                    <span className="truncate">{user.email_address}</span>
-                  </div>
-                )}
-              </div>
+      {/* User Information */}
+      <div className={SEARCH_STYLES.content.info}>
+        <div className="flex items-start justify-between transition-colors">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center space-x-3 mb-2">
+              <h3 className={`${SEARCH_STYLES.content.title} truncate`}>
+                {user.first_name && user.last_name
+                  ? `${user.first_name} ${user.last_name}`
+                  : user.username || 'Anonymous'}
+              </h3>
+              <span className={`${SEARCH_STYLES.badge.base} ${SEARCH_STYLES.badge.user}`}>
+                <span
+                  className={`w-1.5 h-1.5 ${SEARCH_STYLES.badgeDot.user} rounded-full mr-1.5`}
+                />
+                User
+              </span>
             </div>
 
-            {/* Action indicator with prompt */}
-            <div className="flex-shrink-0 ml-4 flex flex-col items-end">
-              <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300" />
-              <span className="text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
-                View Profile
+            <div className="flex items-center space-x-1 mb-3" data-testid="username-line">
+              <AtSign className="w-4 h-4 text-gray-400" />
+              <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {user.username || 'unknown'}
               </span>
+            </div>
+
+            <div className={SEARCH_STYLES.content.meta}>
+              {user.created_at && (
+                <div className="flex items-center space-x-1.5">
+                  <Calendar className="w-4 h-4" />
+                  <span>Joined {formatSearchDate(user.created_at)}</span>
+                </div>
+              )}
+              {user.email_address && (
+                <div className="flex items-center space-x-1.5">
+                  <Mail className="w-4 h-4" />
+                  <span className="truncate">{user.email_address}</span>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </BaseSearchResult>
   );
 }

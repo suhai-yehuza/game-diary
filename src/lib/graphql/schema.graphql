@@ -216,9 +216,8 @@ type Game {
   id: ID!
   date: DateTime!
   status: JSON
-  game_type: String!
   season: String
-  basketball_game_id: String
+  game_id: String
   teams: JSON
   home_team: JSON
   away_team: JSON
@@ -601,9 +600,8 @@ input UpdateGameLogInput {
 input CreateGameInput {
   date: DateTime!
   teams: JSON
-  game_type: String!
   season: String
-  basketball_game_id: ID
+  game_id: ID
   status: String!
   scores: JSON
 }

@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-import { FriendRequestCard } from '@/app/protected/user/components/FriendRequestCard';
+import { FriendRequestCard } from '@/app/protected/dashboard/components/FriendRequestCard';
 
 describe('FriendRequestCard (unit)', () => {
   it('renders requester and triggers accept/reject', async () => {

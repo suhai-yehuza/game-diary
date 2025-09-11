@@ -58,15 +58,35 @@ export function SportsPageLayout({
                 Live Games
               </Link>
             )}
-            {sportButtons.map(sport => (
-              <Link
-                key={sport.href}
-                href={sport.href}
-                className="inline-flex items-center justify-center px-4 py-3 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-              >
-                {sport.name}
-              </Link>
-            ))}
+            {sportButtons.map(sport => {
+              // Get sport-specific color classes
+              const getSportButtonClasses = (sportName: string) => {
+                switch (sportName.toLowerCase()) {
+                  case 'nba':
+                    return 'bg-[#00d4ff] hover:bg-[#00b8e6] focus:ring-[#00d4ff]';
+                  case 'nfl':
+                    return 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500';
+                  case 'mlb':
+                    return 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500';
+                  case 'nhl':
+                    return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
+                  case 'mls':
+                    return 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
+                  default:
+                    return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
+                }
+              };
+
+              return (
+                <Link
+                  key={sport.href}
+                  href={sport.href}
+                  className={`inline-flex items-center justify-center px-4 py-3 text-white ${getSportButtonClasses(sport.name)} rounded-lg font-medium transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                >
+                  {sport.name}
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}

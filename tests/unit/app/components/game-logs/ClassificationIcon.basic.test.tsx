@@ -5,14 +5,14 @@ import { ClassificationIcon } from '@/app/components/game-logs/ClassificationIco
 import { CLASSIFICATION } from '@/types';
 
 describe('ClassificationIcon', () => {
-  it('renders eye icon for public classification', () => {
+  it('renders globe icon for public classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PUBLIC} />);
-    expect(screen.getByTestId('eye-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('globe-icon')).toBeInTheDocument();
   });
 
-  it('renders users icon for protected classification', () => {
+  it('renders shield icon for protected classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PROTECTED} />);
-    expect(screen.getByTestId('users-icon')).toBeInTheDocument();
+    expect(screen.getByTestId('shield-icon')).toBeInTheDocument();
   });
 
   it('renders lock icon for private classification', () => {
@@ -32,13 +32,13 @@ describe('ClassificationIcon', () => {
 
   it('applies correct CSS classes for public classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PUBLIC} />);
-    const icon = screen.getByTestId('eye-icon');
+    const icon = screen.getByTestId('globe-icon');
     expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-success');
   });
 
   it('applies correct CSS classes for protected classification', () => {
     render(<ClassificationIcon classification={CLASSIFICATION.PROTECTED} />);
-    const icon = screen.getByTestId('users-icon');
+    const icon = screen.getByTestId('shield-icon');
     expect(icon).toHaveClass('w-4', 'h-4', 'text-semantic-warning');
   });
 

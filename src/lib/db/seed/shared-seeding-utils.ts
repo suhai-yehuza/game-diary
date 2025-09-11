@@ -5,7 +5,7 @@ import { eq, desc } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
 import { getRapidApiConfig } from '@/lib/config/app.config';
-import { GAME_STATUS_VALUES, REACTION_EMOJIS } from '@/lib/constants';
+import { REACTION_EMOJIS } from '@/lib/constants';
 import * as schema from '@/lib/db/schema';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { errorHandlers } from '@/lib/utils/error-handler';
@@ -197,7 +197,7 @@ export async function seedTeams(
   // Invalidate NBA Hub counts cache since teams count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    await NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
+    NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
     console.log('✅ Invalidated NBA Hub teams count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub teams count cache:', cacheError);
@@ -230,59 +230,16 @@ export function determineSeasonsToSeed(
   return seasonsToSeed;
 }
 
-export function determineGameStatus(game: IGameResponse): string {
-  // Use the actual status from the API response
-  const statusShort = typeof game.status === 'string' ? game.status : game.status.short;
-  const statusLong = typeof game.status === 'string' ? game.status : game.status.long;
-
-  // Map status codes to readable values
-  // statusShort is a string, undefined, or null
-  if (statusShort === '3' || statusLong?.toLowerCase().includes('finished')) {
-    return GAME_STATUS_VALUES.FINISHED;
-  }
-
-  // A game is only LIVE if it has a clock value (actual game time)
-  if (
-    (typeof game.status !== 'string' &&
-      game.status.clock !== null &&
-      game.status.clock !== undefined) ||
-    statusLong?.toLowerCase().includes('live')
-  ) {
-    return GAME_STATUS_VALUES.LIVE;
-  }
-
-  // Games that are in progress but not currently live (no clock)
-  if (statusShort === '2' || statusShort === '4') {
-    return GAME_STATUS_VALUES.IN_PROGRESS;
-  }
-
-  if (statusShort === '1' || statusLong?.toLowerCase().includes('scheduled')) {
-    return GAME_STATUS_VALUES.SCHEDULED;
-  }
-
-  if (
-    statusLong?.toLowerCase().includes('cancelled') ||
-    statusLong?.toLowerCase().includes('postponed')
-  ) {
-    return GAME_STATUS_VALUES.CANCELLED;
-  }
-
-  // Default to the long status if available, otherwise use short
-  return statusLong || statusShort || 'UNKNOWN';
-}
-
 export function createGameInsertData(
   game: IGameResponse,
   season: number
 ): {
   id: string;
-  game_type: string;
   season: string;
-  basketball_game_id: string;
+  game_id: string;
   date: Date;
   stage: number;
   teams: Record<string, unknown>;
-  game_status: string;
   status: Record<string, unknown>;
   scores: Record<string, unknown>;
   arena: Record<string, unknown>;
@@ -294,13 +251,11 @@ export function createGameInsertData(
 } {
   return {
     id: `${season}-${game.id?.toString() ?? 'missing-game-id'}`,
-    game_type: 'nba',
     season: season.toString(),
-    basketball_game_id: game.id?.toString() ?? 'missing-nba-game-id',
+    game_id: game.id?.toString() ?? 'missing-nba-game-id',
     date: new Date(typeof game.date === 'string' ? game.date : game.date.start),
     stage: game.stage || 0, // Store the game stage
     teams: game.teams ?? {}, // Store the complete teams object with home and away team data
-    game_status: determineGameStatus(game),
     status:
       typeof game.status === 'string'
         ? { short: game.status, long: game.status }
@@ -376,7 +331,7 @@ export async function seedGames(
   // Invalidate NBA Hub counts cache since games count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    await NBAHubCacheUtils.invalidateSpecificCountCaches('games');
+    NBAHubCacheUtils.invalidateSpecificCountCaches('games');
     console.log('✅ Invalidated NBA Hub games count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub games count cache:', cacheError);
@@ -464,7 +419,7 @@ export async function seedPlayers(
   // Invalidate NBA Hub counts cache since players count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    await NBAHubCacheUtils.invalidateSpecificCountCaches('players');
+    NBAHubCacheUtils.invalidateSpecificCountCaches('players');
     console.log('✅ Invalidated NBA Hub players count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub players count cache:', cacheError);
@@ -688,7 +643,7 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
       .from(schema.basketball_games)
       .where(eq(schema.basketball_games.season, seasonYear.toString()));
 
-    const gamesToComment = Math.max(1, Math.floor(allGames.length * 0.1));
+    const gamesToComment = Math.max(1, Math.floor(allGames.length * 0.05));
     const selectedGames = faker.helpers.arrayElements(allGames, gamesToComment);
 
     console.log(
@@ -701,7 +656,7 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
     // Generate realistic comments for each selected game
     for (const game of selectedGames) {
       // Generate 5-50 comments per game
-      const numComments = faker.number.int({ min: 5, max: 50 });
+      const numComments = faker.number.int({ min: 5, max: 10 });
 
       for (let i = 0; i < numComments; i++) {
         const commentId = faker.string.uuid();
@@ -885,7 +840,7 @@ export async function seedPublicReactions(
       .from(schema.basketball_games)
       .where(eq(schema.basketball_games.season, seasonYear.toString()));
 
-    const gamesToReact = Math.max(1, Math.floor(allGames.length * 0.1));
+    const gamesToReact = Math.max(1, Math.floor(allGames.length * 0.05));
     const selectedGames = faker.helpers.arrayElements(allGames, gamesToReact);
 
     console.log(

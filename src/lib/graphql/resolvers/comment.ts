@@ -3,9 +3,12 @@ import { eq, and, sql, isNull, desc } from 'drizzle-orm';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { comments, reactions } from '@/lib/db/schema';
+import { type IEnhancedGraphQLContext } from '@/lib/graphql/dataloaders';
 import { AuthorizationError } from '@/lib/graphql/errors';
+import { mapUserForGraphQL } from '@/lib/graphql/resolvers/utils/user-mapping';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import type { GraphQLContext } from '@/types';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
+import type { GraphQLContext, TARGET_TYPES } from '@/types';
 
 // Comment Query Resolvers
 export const commentQueryResolvers = {
@@ -95,15 +98,13 @@ export const commentQueryResolvers = {
             created_at: comment.created_at,
             updated_at: comment.updated_at,
             deleted_at: comment.deleted_at,
-            user: {
-              id: comment.user?.id ?? '',
-              username: comment.user?.username ?? '',
-              first_name: comment.user?.first_name ?? '',
-              last_name: comment.user?.last_name ?? '',
-              email_address: null,
-              phone_number: null,
-              image_url: comment.user?.image_url ?? null,
-            },
+            user: comment.user
+              ? {
+                  ...mapUserForGraphQL(comment.user),
+                  email_address: null,
+                  phone_number: null,
+                }
+              : null,
             reactions: [], // Reactions will be fetched separately via the reactions query
           },
         })) ?? [];
@@ -181,16 +182,16 @@ export const commentResolver = {
           created_at: comment.created_at,
           updated_at: comment.updated_at,
           deleted_at: comment.deleted_at,
-          user: {
-            id: comment.user?.id ?? '',
-            username: comment.user?.username ?? '',
-            first_name: comment.user?.first_name ?? '',
-            last_name: comment.user?.last_name ?? '',
-            email_address: null,
-            phone_number: null,
-            image_url: comment.user?.image_url ?? null,
-            isAdmin: comment.user?.isAdmin ?? false, // Ensure isAdmin is always present
-          },
+          user: comment.user
+            ? {
+                ...mapUserForGraphQL(comment.user),
+                email_address: null,
+                phone_number: null,
+                isAdmin: Array.isArray(comment.user)
+                  ? (comment.user[0]?.isAdmin ?? false)
+                  : (comment.user?.isAdmin ?? false), // Ensure isAdmin is always present
+              }
+            : null,
           reactions: [], // Reactions will be fetched separately via the reactions query
         },
       })) ?? [];
@@ -211,7 +212,7 @@ export const commentResolver = {
   totalChildCommentCount: async (
     parent: { id: string },
     _args: unknown,
-    context: GraphQLContext
+    context: IEnhancedGraphQLContext
   ) => {
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
@@ -222,6 +223,12 @@ export const commentResolver = {
       return 0;
     }
 
+    // Use DataLoader for batch loading comment counts
+    if (context.dataLoaders?.commentCountLoader) {
+      return context.dataLoaders.commentCountLoader.load(parent.id);
+    }
+
+    // Fallback to direct query if DataLoader not available
     try {
       const database = db();
       if (!database) {
@@ -246,7 +253,11 @@ export const commentResolver = {
   },
 
   // Resolve totalReactionCount field for a comment
-  totalReactionCount: async (parent: { id: string }, _args: unknown, context: GraphQLContext) => {
+  totalReactionCount: async (
+    parent: { id: string },
+    _args: unknown,
+    context: IEnhancedGraphQLContext
+  ) => {
     if (!context.user?.id) {
       throw new AuthorizationError('Authentication required');
     }
@@ -256,6 +267,12 @@ export const commentResolver = {
       return 0;
     }
 
+    // Use DataLoader for batch loading reaction counts
+    if (context.dataLoaders?.reactionCountLoader) {
+      return context.dataLoaders.reactionCountLoader.load(parent.id);
+    }
+
+    // Fallback to direct query if DataLoader not available
     try {
       const database = db();
       if (!database) {
@@ -282,6 +299,224 @@ export const commentResolver = {
         timestamp: new Date().toISOString(),
       });
       return 0;
+    }
+  },
+};
+
+// Comment Mutation Resolvers
+export const commentMutationResolvers = {
+  // Create a new comment
+  createComment: async (
+    _parent: unknown,
+    args: {
+      input: {
+        content: string;
+        parentId: string;
+        parentType: string;
+      };
+    },
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      const commentId = generateUUIDv7();
+
+      // Calculate depth based on parent type
+      let depth = 0;
+      if (args.input.parentType === 'COMMENT') {
+        // If replying to a comment, get the parent comment's depth and add 1
+        const parentComment = await db()?.query.comments.findFirst({
+          where: eq(comments.id, args.input.parentId),
+        });
+        depth = (parentComment?.depth ?? 0) + 1;
+      }
+
+      await db()
+        ?.insert(comments)
+        .values({
+          id: commentId,
+          user_id: context.user.id,
+          parent_id: args.input.parentId,
+          parent_type: args.input.parentType as keyof typeof TARGET_TYPES,
+          content: args.input.content,
+          depth,
+        })
+        .returning();
+
+      // Invalidate game logs cache to ensure UI updates
+      try {
+        const { simpleCacheService } = await import('@/lib/cache');
+        simpleCacheService.invalidate({
+          pattern: 'game-logs:*',
+        });
+        console.log('✅ Game logs cache invalidated after comment create');
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to invalidate game logs cache:', cacheError);
+      }
+
+      // Also invalidate specific game log caches
+      // Cache invalidation handled by Apollo Client's optimistic updates
+
+      // Fetch the created comment with user data
+      const createdComment = await db()?.query.comments.findFirst({
+        where: eq(comments.id, commentId),
+        with: {
+          user: true,
+        },
+      });
+
+      return {
+        comment: createdComment
+          ? {
+              id: createdComment.id,
+              content: createdComment.content,
+              user_id: createdComment.user_id,
+              parent_id: createdComment.parent_id,
+              parent_type: createdComment.parent_type,
+              depth: createdComment.depth,
+              created_at: createdComment.created_at,
+              updated_at: createdComment.updated_at,
+              deleted_at: createdComment.deleted_at,
+              user: createdComment.user
+                ? {
+                    ...mapUserForGraphQL(createdComment.user),
+                    email_address: null,
+                    phone_number: null,
+                    isAdmin: false, // Default value since isAdmin is not available
+                  }
+                : null,
+              reactions: [], // Reactions will be fetched separately via the reactions query
+            }
+          : null,
+        errors: [],
+      };
+    } catch {
+      return {
+        comment: null,
+        errors: [{ message: 'Failed to create comment', code: 'CREATE_COMMENT_ERROR' }],
+      };
+    }
+  },
+
+  // Update a comment
+  updateComment: async (
+    _parent: unknown,
+    args: {
+      id: string;
+      input: {
+        content: string;
+      };
+    },
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      // Check if user owns the comment
+      const existingComment = await db()?.query.comments.findFirst({
+        where: eq(comments.id, args.id),
+      });
+
+      if (!existingComment || existingComment.user_id !== context.user.id) {
+        throw new AuthorizationError('Access denied to this comment');
+      }
+
+      await db()
+        ?.update(comments)
+        .set({
+          content: args.input.content,
+          updated_at: new Date(),
+        })
+        .where(eq(comments.id, args.id))
+        .returning();
+
+      // Fetch the updated comment with user data
+      const updatedCommentWithUser = await db()?.query.comments.findFirst({
+        where: eq(comments.id, args.id),
+        with: {
+          user: true,
+        },
+      });
+
+      return {
+        comment: updatedCommentWithUser
+          ? {
+              id: updatedCommentWithUser.id,
+              content: updatedCommentWithUser.content,
+              user_id: updatedCommentWithUser.user_id,
+              parent_id: updatedCommentWithUser.parent_id,
+              parent_type: updatedCommentWithUser.parent_type,
+              depth: updatedCommentWithUser.depth,
+              created_at: updatedCommentWithUser.created_at,
+              updated_at: updatedCommentWithUser.updated_at,
+              deleted_at: updatedCommentWithUser.deleted_at,
+              user: updatedCommentWithUser.user
+                ? {
+                    ...mapUserForGraphQL(updatedCommentWithUser.user),
+                    email_address: null,
+                    phone_number: null,
+                    isAdmin: false, // Default value since isAdmin is not available
+                  }
+                : null,
+              reactions: [], // Reactions will be fetched separately via the reactions query
+            }
+          : null,
+        errors: [],
+      };
+    } catch {
+      return {
+        comment: null,
+        errors: [{ message: 'Failed to update comment', code: 'UPDATE_COMMENT_ERROR' }],
+      };
+    }
+  },
+
+  // Delete a comment
+  deleteComment: async (_parent: unknown, args: { id: string }, context: GraphQLContext) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      // Check if user owns the comment
+      const existingComment = await db()?.query.comments.findFirst({
+        where: eq(comments.id, args.id),
+      });
+
+      if (!existingComment || existingComment.user_id !== context.user.id) {
+        throw new AuthorizationError('Access denied to this comment');
+      }
+
+      await db()?.delete(comments).where(eq(comments.id, args.id));
+
+      // Invalidate game logs cache to ensure UI updates
+      try {
+        const { simpleCacheService } = await import('@/lib/cache');
+        simpleCacheService.invalidate({
+          pattern: 'game-logs:*',
+        });
+        console.log('✅ Game logs cache invalidated after comment delete');
+      } catch (cacheError) {
+        console.warn('⚠️ Failed to invalidate game logs cache:', cacheError);
+      }
+
+      // Also invalidate specific game log caches
+      // Cache invalidation handled by Apollo Client's optimistic updates
+
+      return {
+        success: true,
+        errors: [],
+      };
+    } catch {
+      return {
+        success: false,
+        errors: [{ message: 'Failed to delete comment', code: 'DELETE_COMMENT_ERROR' }],
+      };
     }
   },
 };

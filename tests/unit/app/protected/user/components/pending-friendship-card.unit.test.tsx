@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 
-import { PendingFriendshipCard } from '@/app/protected/user/components/PendingFriendshipCard';
+import { PendingFriendshipCard } from '@/app/protected/dashboard/components/PendingFriendshipCard';
 
 vi.mock('lucide-react', () => ({
   UserX: (props: any) => <svg data-testid="userx-icon" {...props} />,

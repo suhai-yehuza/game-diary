@@ -1,86 +1,52 @@
-import { useState, useEffect, useCallback } from 'react';
+'use client';
 
-import type { INBAHubCounts, IUseNBAHubCountsReturn } from '@/types';
+import { useQuery } from '@apollo/client';
+import { useCallback, useMemo } from 'react';
 
-/**
- * Custom hook for NBA Hub counts
- * Provides cached counts for games, teams, and players
- * Leverages the server-side hybrid cache (Redis + in-memory)
- */
-export function useNBAHubCounts(): IUseNBAHubCountsReturn {
-  const [counts, setCounts] = useState<INBAHubCounts | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const [source, setSource] = useState<'cache' | 'database' | null>(null);
+import { GET_NBA_HUB_COUNTS } from '@/lib/graphql/queries';
+import type { INBAHubCounts, IUseOptimizedNBAHubCountsOptions } from '@/types';
 
-  const fetchCounts = useCallback(async (forceRefresh = false) => {
-    try {
-      setLoading(true);
-      setError(null);
+export function useOptimizedNBAHubCounts(options: IUseOptimizedNBAHubCountsOptions = {}) {
+  const { skip = false } = options;
 
-      // Always fetch from API - the API handles the hybrid caching
-      // If forceRefresh is true, we'll bypass browser cache
-      const url = '/api/nba-hub/counts';
-      const options: RequestInit = forceRefresh
-        ? {
-            cache: 'no-cache',
-            headers: {
-              'Cache-Control': 'no-cache',
-            },
-          }
-        : {};
+  const { data, loading, error, refetch } = useQuery(GET_NBA_HUB_COUNTS, {
+    skip,
+    fetchPolicy: 'cache-first',
+    errorPolicy: 'all',
+    // Cache for 5 minutes
+    pollInterval: 5 * 60 * 1000,
+  });
 
-      const response = await fetch(url, options);
-      const data = await response.json();
-
-      if (data.success) {
-        setCounts(data.counts);
-        setLastUpdated(new Date());
-        setSource(data.source || 'database');
-
-        console.log(
-          `📊 NBA Hub counts updated: ${data.counts.totalGames} games, ${data.counts.totalTeams} teams, ${data.counts.totalPlayers} players (source: ${data.source})`
-        );
-      } else {
-        throw new Error(data.error || 'Failed to fetch counts');
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error occurred';
-      setError(errorMessage);
-      console.error('Error fetching NBA Hub counts:', err);
-    } finally {
-      setLoading(false);
+  // Transform data to match expected interface
+  const counts = useMemo((): INBAHubCounts => {
+    if (!data) {
+      return {
+        totalGames: 0,
+        totalTeams: 0,
+        totalPlayers: 0,
+        liveGames: 0,
+      };
     }
-  }, []);
 
-  // Initial fetch
-  useEffect(() => {
-    void fetchCounts();
-  }, [fetchCounts]);
+    return {
+      totalGames: data.games?.totalCount || 0,
+      totalTeams: data.teams?.totalCount || 0,
+      totalPlayers: data.players?.totalCount || 0,
+      liveGames: data.liveGames?.totalCount || 0,
+    };
+  }, [data]);
 
-  // Debug effect to track state changes
-  useEffect(() => {
-    console.log('🔍 Hook state changed:', {
-      counts: counts ? '✅ Has data' : '❌ No data',
-      loading,
-      error,
-      source,
-      lastUpdated: lastUpdated?.toISOString(),
-    });
-  }, [counts, loading, error, source, lastUpdated]);
-
-  // Refresh function for manual updates
+  // Refetch function
   const refresh = useCallback(async () => {
-    await fetchCounts(true);
-  }, [fetchCounts]);
+    await refetch();
+  }, [refetch]);
 
   return {
-    counts: counts || { totalGames: 0, totalTeams: 0, totalPlayers: 0, liveGames: 0 },
+    counts,
     loading,
     error,
     refresh,
-    lastUpdated: lastUpdated || undefined,
-    source: source || undefined,
+    lastUpdated: new Date(),
+    source: 'optimized-graphql' as const,
   };
 }

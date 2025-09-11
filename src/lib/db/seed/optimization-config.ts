@@ -10,38 +10,38 @@ export const OPTIMIZATION_CONFIG = {
     file_io: 3,
   },
 
-  // Batch size settings for different operations
+  // Batch size settings for different operations - Optimized for memory efficiency
   batch_sizes: {
     // Small batches for heavy operations (API calls, complex data)
-    small: 25,
+    small: 15, // Reduced from 25
     // Medium batches for moderate operations
-    medium: 100,
+    medium: 50, // Reduced from 100
     // Large batches for lightweight operations
-    large: 500,
+    large: 200, // Reduced from 500
     // Very large batches for simple inserts
-    very_large: 1000,
+    very_large: 500, // Reduced from 1000
 
-    // Specific batch sizes
-    users: 200,
-    friendships: 300,
-    game_logs: 100,
-    comments: 400,
-    reactions: 500,
-    basketball_games: 100, // Increased due to JSONB performance improvements
-    basketball_teams: 100,
-    basketball_players: 200,
-    game_stats: 25, // Complex stats data
-    player_stats: 50,
+    // Specific batch sizes - Reduced for better memory management
+    users: 100, // Reduced from 200
+    friendships: 150, // Reduced from 300
+    game_logs: 75, // Reduced from 100
+    comments: 150, // Reduced from 400
+    reactions: 100, // Reduced from 500
+    basketball_games: 50, // Reduced from 100
+    basketball_teams: 50, // Reduced from 100
+    basketball_players: 100, // Reduced from 200
+    game_stats: 15, // Reduced from 25
+    player_stats: 25, // Reduced from 50
   },
 
-  // Memory management settings
+  // Memory management settings - Optimized for better memory efficiency
   memory: {
     // Force garbage collection every N operations
-    gc_interval: 10000,
+    gc_interval: 5000, // Reduced from 10000
     // Maximum items to hold in memory before streaming
-    max_memory_items: 5000,
+    max_memory_items: 2000, // Reduced from 5000
     // Chunk size for processing large datasets
-    chunk_size: 1000,
+    chunk_size: 500, // Reduced from 1000
   },
 
   // Retry configuration

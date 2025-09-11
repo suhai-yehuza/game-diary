@@ -1,7 +1,8 @@
 import { sql } from 'drizzle-orm';
 
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
+import { simpleCacheService, CACHE_CONFIG } from '@/lib/cache';
 import { db } from '@/lib/db';
+import { getGameEngagementQuery } from '@/lib/db/queries';
 import { logger } from '@/lib/utils/logger';
 import type {
   ITrendingGameLog,
@@ -388,11 +389,15 @@ export class LandingPageDataService {
         .filter(game => {
           const status = game.status;
           if (typeof status === 'string') {
-            return status === 'FINISHED' || status === 'Finished';
+            return status.toLowerCase() === 'finished';
           }
           if (typeof status === 'object' && status !== null) {
             const statusObj = status as Record<string, unknown>;
-            return statusObj.long === 'Finished' || statusObj.short === 'FINISHED';
+            const longStatus =
+              typeof statusObj.long === 'string' ? statusObj.long.toLowerCase() : '';
+            const shortStatus =
+              typeof statusObj.short === 'string' ? statusObj.short.toLowerCase() : '';
+            return longStatus === 'finished' || shortStatus === 'finished';
           }
           return false;
         })
@@ -585,6 +590,9 @@ export class LandingPageDataService {
           const ratingResult = await database.execute(ratingQuery);
           const rating = ratingResult.rows?.[0];
 
+          // Get public comment and reaction counts for this game using centralized query
+          const engagement = await getGameEngagementQuery(String(game.id));
+
           // Parse arena data
           let arenaData: { name: string; city: string } | null = null;
           if (game.arena && typeof game.arena === 'object') {
@@ -646,14 +654,20 @@ export class LandingPageDataService {
               totalRatings: rating?.total_ratings ? Number(rating.total_ratings) : 0,
               popularityScore: 0, // We'll calculate this below
             },
-            gameLogCount: 0, // TODO: Calculate from actual data
-            commentCount: 0, // TODO: Calculate from actual data
-            reactionCount: 0, // TODO: Calculate from actual data
+            gameLogCount: engagement?.total_game_logs ? Number(engagement.total_game_logs) : 0,
+            commentCount: engagement?.total_all_comments
+              ? Number(engagement.total_all_comments)
+              : 0,
+            reactionCount: engagement?.total_all_reactions
+              ? Number(engagement.total_all_reactions)
+              : 0,
             arena: arenaData || undefined,
           };
 
           enrichedGames.push(enrichedGame);
-          console.log(`✅ Enriched game ${String(game.id)} with team and rating data`);
+          console.log(
+            `✅ Enriched game ${String(game.id)} with team, rating, and engagement data (${enrichedGame.commentCount} comments, ${enrichedGame.reactionCount} reactions)`
+          );
         } catch (error) {
           console.log(`❌ Error enriching game ${String(game.id)}:`, error);
         }
@@ -665,9 +679,23 @@ export class LandingPageDataService {
       const C = 3.0; // Prior mean (average rating across all games)
       const m = 2; // Prior confidence (minimum ratings before considering)
 
-      enrichedGames.forEach(game => {
+      enrichedGames.forEach((game, _index) => {
         const R = game.rating.average;
         const v = game.rating.totalRatings;
+        const comments = game.commentCount;
+        const reactions = game.reactionCount;
+        const gameLogs = game.gameLogCount;
+
+        // Use engagement data that's already stored in the game object
+        // Since we don't have detailed engagement breakdown in the game object,
+        // we'll use the total counts for the popularity calculation
+        const publicComments = 0; // We don't have this breakdown in the current structure
+        const publicReactions = 0; // We don't have this breakdown in the current structure
+        const allComments = comments;
+        const allReactions = reactions;
+        const uniqueUsers = 0; // We don't have this data in the current structure
+        const uniquePublicUsers = 0; // We don't have this data in the current structure
+        const recentActivity = 0; // Will be enhanced in future iteration
 
         // Algorithm 1: Bayesian Average - balances rating and number of ratings
         const bayesianScore = (v * R + m * C) / (v + m);
@@ -679,8 +707,36 @@ export class LandingPageDataService {
           (p + (z * z) / (2 * v) - z * Math.sqrt((p * (1 - p) + (z * z) / (4 * v)) / v)) /
           (1 + (z * z) / v);
 
-        // Algorithm 3: Combined score - weighted combination for best UI experience
-        const combinedScore = bayesianScore * 0.6 + wilsonScore * 5 * 0.4 + v * 0.1;
+        // Algorithm 3: Enhanced Engagement Score
+        // Public engagement (weighted more heavily for discoverability)
+        const publicEngagementScore = publicComments * 2 + publicReactions * 1;
+
+        // Total engagement (including private - shows overall interest)
+        const totalEngagementScore = allComments * 1.5 + allReactions * 0.8;
+
+        // User diversity score (more unique users = more popular)
+        const userDiversityScore = Math.log(uniqueUsers + 1) * 2;
+
+        // Public user diversity score (public engagement reach)
+        const publicUserDiversityScore = Math.log(uniquePublicUsers + 1) * 1.5;
+
+        // Game log volume score (more people logged this game)
+        const gameLogVolumeScore = Math.log(gameLogs + 1) * 1.5;
+
+        // Recent activity score (recent engagement indicates current popularity)
+        const _recentActivityScore = Math.log(recentActivity + 1) * 3;
+
+        // Algorithm 4: Comprehensive popularity score
+        // Rating quality (20%) + Public engagement (25%) + Total engagement (20%) +
+        // User diversity (15%) + Public user diversity (10%) + Game log volume (5%) + Wilson confidence (5%)
+        const combinedScore =
+          bayesianScore * 0.2 +
+          Math.log(publicEngagementScore + 1) * 0.25 +
+          Math.log(totalEngagementScore + 1) * 0.2 +
+          userDiversityScore * 0.15 +
+          publicUserDiversityScore * 0.1 +
+          gameLogVolumeScore * 0.05 +
+          wilsonScore * 5 * 0.05;
 
         game.rating.popularityScore = combinedScore;
       });
@@ -690,9 +746,19 @@ export class LandingPageDataService {
       const mostRated = [...enrichedGames].sort(
         (a, b) => b.rating.totalRatings - a.rating.totalRatings
       );
-      const mostPopular = [...enrichedGames].sort(
-        (a, b) => b.rating.popularityScore - a.rating.popularityScore
-      );
+      // Most Popular now considers comprehensive engagement as primary factor
+      const mostPopular = [...enrichedGames].sort((a, b) => {
+        // Primary sort: total engagement score (all comments + reactions)
+        const aTotalEngagement = a.commentCount + a.reactionCount;
+        const bTotalEngagement = b.commentCount + b.reactionCount;
+
+        if (aTotalEngagement !== bTotalEngagement) {
+          return bTotalEngagement - aTotalEngagement;
+        }
+
+        // Secondary sort: popularity score (includes rating quality and user diversity)
+        return b.rating.popularityScore - a.rating.popularityScore;
+      });
 
       const endTime = Date.now();
       this.logger.info('Popular games processed successfully', {
@@ -765,13 +831,29 @@ export class LandingPageDataService {
       };
 
       // Process recent games
-      const finishedGames = latestGames.filter(
-        game =>
-          (typeof game.status === 'string' ? game.status === 'FT' : game.status.short === 'FT') ||
-          (typeof game.status === 'string'
-            ? game.status === 'Finished'
-            : game.status.long === 'Finished')
-      );
+      const finishedGames = latestGames.filter(game => {
+        // Handle different status formats safely
+        if (typeof game.status === 'string') {
+          return game.status.toLowerCase() === 'ft' || game.status.toLowerCase() === 'finished';
+        }
+
+        // Handle object status format
+        if (game.status && typeof game.status === 'object') {
+          const shortStatus = game.status.short;
+          const longStatus = game.status.long;
+
+          // Check if short/long are strings before calling toLowerCase
+          const isShortFinished =
+            typeof shortStatus === 'string' &&
+            (shortStatus.toLowerCase() === 'ft' || shortStatus.toLowerCase() === 'finished');
+          const isLongFinished =
+            typeof longStatus === 'string' && longStatus.toLowerCase() === 'finished';
+
+          return isShortFinished || isLongFinished;
+        }
+
+        return false;
+      });
 
       const recentGames = {
         finishedGames,
@@ -803,7 +885,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:trendingContent';
-      const cachedData = await hybridCacheService.get(cacheKey);
+      const cachedData = simpleCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -825,8 +907,8 @@ export class LandingPageDataService {
         mostActiveGameLog: data.length > 0 ? data[0] : null,
       };
 
-      await hybridCacheService.set(cacheKey, result, {
-        ttl: 300,
+      simpleCacheService.set(cacheKey, result, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'trending-content'],
       });
       this.logger.cache('miss', cacheKey);
@@ -847,7 +929,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:latestResults';
-      const cachedData = await hybridCacheService.get(cacheKey);
+      const cachedData = simpleCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -869,8 +951,8 @@ export class LandingPageDataService {
         latestFinishedGame: data.length > 0 ? data[0] : null,
       };
 
-      await hybridCacheService.set(cacheKey, result, {
-        ttl: 300,
+      simpleCacheService.set(cacheKey, result, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'latest-results'],
       });
       this.logger.cache('miss', cacheKey);
@@ -891,7 +973,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:recentGames';
-      const cachedData = await hybridCacheService.get(cacheKey);
+      const cachedData = simpleCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -908,21 +990,37 @@ export class LandingPageDataService {
       }
 
       const data = await this.getRecentFinishedGames();
-      const finishedGames = data.filter(
-        game =>
-          (typeof game.status === 'string' ? game.status === 'FT' : game.status.short === 'FT') ||
-          (typeof game.status === 'string'
-            ? game.status === 'Finished'
-            : game.status.long === 'Finished')
-      );
+      const finishedGames = data.filter(game => {
+        // Handle different status formats safely
+        if (typeof game.status === 'string') {
+          return game.status.toLowerCase() === 'ft' || game.status.toLowerCase() === 'finished';
+        }
+
+        // Handle object status format
+        if (game.status && typeof game.status === 'object') {
+          const shortStatus = game.status.short;
+          const longStatus = game.status.long;
+
+          // Check if short/long are strings before calling toLowerCase
+          const isShortFinished =
+            typeof shortStatus === 'string' &&
+            (shortStatus.toLowerCase() === 'ft' || shortStatus.toLowerCase() === 'finished');
+          const isLongFinished =
+            typeof longStatus === 'string' && longStatus.toLowerCase() === 'finished';
+
+          return isShortFinished || isLongFinished;
+        }
+
+        return false;
+      });
 
       const result = {
         finishedGames,
         currentGame: finishedGames.length > 0 ? finishedGames[0] : null,
       };
 
-      await hybridCacheService.set(cacheKey, result, {
-        ttl: 300,
+      simpleCacheService.set(cacheKey, result, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'recent-games'],
       });
       this.logger.cache('miss', cacheKey);
@@ -945,7 +1043,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:popularGames';
-      const cachedData = await hybridCacheService.get(cacheKey);
+      const cachedData = simpleCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -966,8 +1064,8 @@ export class LandingPageDataService {
 
       const data = await this.getPopularGames();
 
-      await hybridCacheService.set(cacheKey, data, {
-        ttl: 600,
+      simpleCacheService.set(cacheKey, data, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes for trending content
         tags: ['landing-page', 'popular-games'],
       });
       this.logger.cache('miss', cacheKey);
@@ -980,17 +1078,291 @@ export class LandingPageDataService {
   }
 
   /**
+   * Get popular teams directly from database
+   */
+  async getPopularTeams(): Promise<{
+    mostPopular: Array<{
+      id: string;
+      name: string;
+      city: string;
+      logo: string;
+      totalGameLogs: number;
+      publicGameLogs: number;
+      totalComments: number;
+      totalReactions: number;
+      popularityScore: number;
+    }>;
+  }> {
+    try {
+      const database = db();
+      if (!database) {
+        throw new Error('Database connection not available');
+      }
+
+      // Get teams with basic engagement data - use nickname when name is empty
+      const teamsQuery = sql`
+        SELECT
+          t.id,
+          CASE
+            WHEN t.name IS NOT NULL AND t.name != '' THEN t.name
+            ELSE t.nickname
+          END as name,
+          t.city,
+          t.logo,
+          0 as total_game_logs,
+          0 as public_game_logs,
+          0 as total_comments,
+          0 as total_reactions
+        FROM basketball_teams t
+        WHERE t.deleted_at IS NULL
+        ORDER BY
+          CASE
+            WHEN t.name IS NOT NULL AND t.name != '' THEN t.name
+            ELSE t.nickname
+          END
+        LIMIT 10
+      `;
+
+      const teamsResult = await database.execute(teamsQuery);
+      const teams = teamsResult.rows || [];
+
+      const mostPopular = teams.map((team: Record<string, unknown>) => {
+        const totalGameLogs = parseInt(String(team.total_game_logs)) || 0;
+        const publicGameLogs = parseInt(String(team.public_game_logs)) || 0;
+        const totalComments = parseInt(String(team.total_comments)) || 0;
+        const totalReactions = parseInt(String(team.total_reactions)) || 0;
+        const popularityScore = totalGameLogs + totalComments + totalReactions;
+
+        return {
+          id: String(team.id),
+          name: String(team.name),
+          city: String(team.city),
+          logo: team.logo && typeof team.logo === 'string' ? team.logo : '',
+          totalGameLogs,
+          publicGameLogs,
+          totalComments,
+          totalReactions,
+          popularityScore,
+        };
+      });
+
+      return { mostPopular };
+    } catch (error) {
+      this.logger.error('Failed to get popular teams', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get popular teams with caching
+   */
+  async getPopularTeamsWithCache(): Promise<{
+    mostPopular: Array<{
+      id: string;
+      name: string;
+      city: string;
+      logo: string;
+      totalGameLogs: number;
+      publicGameLogs: number;
+      totalComments: number;
+      totalReactions: number;
+      popularityScore: number;
+    }>;
+  }> {
+    try {
+      const cacheKey = 'landingPage:landing-page-data:popularTeams';
+      const cachedData = simpleCacheService.get(cacheKey);
+
+      if (cachedData !== null && typeof cachedData === 'object' && 'mostPopular' in cachedData) {
+        const cached = cachedData as {
+          mostPopular: Array<{
+            id: string;
+            name: string;
+            city: string;
+            logo: string;
+            totalGameLogs: number;
+            publicGameLogs: number;
+            totalComments: number;
+            totalReactions: number;
+            popularityScore: number;
+          }>;
+        };
+        this.logger.cache('hit', cacheKey);
+        return cached;
+      }
+
+      // Use direct implementation instead of API call to avoid circular dependency
+      const data = await this.getPopularTeams();
+
+      simpleCacheService.set(cacheKey, data, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'popular-teams'],
+      });
+      this.logger.cache('miss', cacheKey);
+
+      return data;
+    } catch (error) {
+      this.logger.error('Failed to get popular teams with cache', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get popular players with caching
+   */
+  async getPopularPlayersWithCache(): Promise<{
+    mostPopular: Array<{
+      id: string;
+      name: string;
+      position: string;
+      currentTeam: string;
+      teamLogo: string;
+      totalGameLogs: number;
+      publicGameLogs: number;
+      totalComments: number;
+      totalReactions: number;
+      popularityScore: number;
+    }>;
+  }> {
+    try {
+      const cacheKey = 'landingPage:landing-page-data:popularPlayers';
+      const cachedData = simpleCacheService.get(cacheKey);
+
+      if (cachedData !== null && typeof cachedData === 'object' && 'mostPopular' in cachedData) {
+        const cached = cachedData as {
+          mostPopular: Array<{
+            id: string;
+            name: string;
+            position: string;
+            currentTeam: string;
+            teamLogo: string;
+            totalGameLogs: number;
+            publicGameLogs: number;
+            totalComments: number;
+            totalReactions: number;
+            popularityScore: number;
+          }>;
+        };
+        this.logger.cache('hit', cacheKey);
+        return cached;
+      }
+
+      // Fetch from API endpoint
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/landing-page/data/popularPlayers`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch popular players: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch popular players');
+      }
+
+      const data = { mostPopular: result.data.mostPopular || [] };
+
+      simpleCacheService.set(cacheKey, data, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'popular-players'],
+      });
+      this.logger.cache('miss', cacheKey);
+
+      return data;
+    } catch (error) {
+      this.logger.error('Failed to get popular players with cache', { error });
+      throw error;
+    }
+  }
+
+  /**
+   * Get active fans with caching
+   */
+  async getActiveFansWithCache(): Promise<{
+    mostActive: Array<{
+      id: string;
+      username: string;
+      avatar: string;
+      totalGameLogs: number;
+      publicGameLogs: number;
+      totalComments: number;
+      totalReactions: number;
+      receivedComments: number;
+      receivedReactions: number;
+      activityScore: number;
+    }>;
+  }> {
+    try {
+      const cacheKey = 'landingPage:landing-page-data:activeFans';
+      const cachedData = simpleCacheService.get(cacheKey);
+
+      if (cachedData !== null && typeof cachedData === 'object' && 'mostActive' in cachedData) {
+        const cached = cachedData as {
+          mostActive: Array<{
+            id: string;
+            username: string;
+            avatar: string;
+            totalGameLogs: number;
+            publicGameLogs: number;
+            totalComments: number;
+            totalReactions: number;
+            receivedComments: number;
+            receivedReactions: number;
+            activityScore: number;
+          }>;
+        };
+        this.logger.cache('hit', cacheKey);
+        return cached;
+      }
+
+      // Fetch from API endpoint
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/landing-page/data/activeFans`
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to fetch active fans: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to fetch active fans');
+      }
+
+      const data = { mostActive: result.data.mostActive || [] };
+
+      simpleCacheService.set(cacheKey, data, {
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'active-fans'],
+      });
+      this.logger.cache('miss', cacheKey);
+
+      return data;
+    } catch (error) {
+      this.logger.error('Failed to get active fans with cache', { error });
+      throw error;
+    }
+  }
+
+  /**
    * Invalidate specific cache sections based on tags or keys
    */
-  async invalidateCacheSection(
-    section: 'trending-content' | 'latest-results' | 'recent-games' | 'popular-games' | 'all'
+  invalidateCacheSection(
+    section:
+      | 'trending-content'
+      | 'latest-results'
+      | 'recent-games'
+      | 'popular-games'
+      | 'popular-teams'
+      | 'popular-players'
+      | 'active-fans'
+      | 'all'
   ): Promise<void> {
     try {
       if (section === 'all') {
         // Invalidate all landing page caches
-        await hybridCacheService.clear();
+        simpleCacheService.clear();
         this.logger.info('Invalidated all landing page caches');
-        return;
+        return Promise.resolve();
       }
 
       // Invalidate specific section
@@ -999,10 +1371,14 @@ export class LandingPageDataService {
         'latest-results': 'landing-page',
         'recent-games': 'landing-page',
         'popular-games': 'landing-page',
+        'popular-teams': 'landing-page',
+        'popular-players': 'landing-page',
+        'active-fans': 'landing-page',
       };
 
-      await hybridCacheService.invalidate({ tags: [tagMap[section]] });
+      simpleCacheService.invalidate({ pattern: `${tagMap[section]}:*` });
       this.logger.info(`Invalidated cache section: ${section}`);
+      return Promise.resolve();
     } catch (error) {
       this.logger.error('Failed to invalidate cache section', { section, error });
       throw error;
@@ -1017,27 +1393,45 @@ export class LandingPageDataService {
     latestResults: { key: string; ttl: number; tags: string[] };
     recentGames: { key: string; ttl: number; tags: string[] };
     popularGames: { key: string; ttl: number; tags: string[] };
+    popularTeams: { key: string; ttl: number; tags: string[] };
+    popularPlayers: { key: string; ttl: number; tags: string[] };
+    activeFans: { key: string; ttl: number; tags: string[] };
   } {
     return {
       trendingContent: {
         key: 'landingPage:landing-page-data:trendingContent',
-        ttl: 300,
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'trending-content'],
       },
       latestResults: {
         key: 'landingPage:landing-page-data:latestResults',
-        ttl: 300,
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'latest-results'],
       },
       recentGames: {
         key: 'landingPage:landing-page-data:recentGames',
-        ttl: 300,
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'recent-games'],
       },
       popularGames: {
         key: 'landingPage:landing-page-data:popularGames',
-        ttl: 600,
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes for trending content
         tags: ['landing-page', 'popular-games'],
+      },
+      popularTeams: {
+        key: 'landingPage:landing-page-data:popularTeams',
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'popular-teams'],
+      },
+      popularPlayers: {
+        key: 'landingPage:landing-page-data:popularPlayers',
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'popular-players'],
+      },
+      activeFans: {
+        key: 'landingPage:landing-page-data:activeFans',
+        ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
+        tags: ['landing-page', 'active-fans'],
       },
     };
   }

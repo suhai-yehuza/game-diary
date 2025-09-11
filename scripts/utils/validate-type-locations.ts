@@ -272,35 +272,37 @@ class TypeLocationValidator {
 
   private suggestTypeFile(typeName: string, currentFile: string): string {
     // Extract context from current file path
-    const relativePath = currentFile.replace('src/', '');
-    const pathParts = relativePath.split('/');
+    // const relativePath = currentFile.replace('src/', '');
+    // const pathParts = relativePath.split('/');
 
     // Determine appropriate type file based on context
-    if (pathParts[0] === 'app') {
-      if (pathParts[1] === 'components') {
-        return `types/component.types.ts`;
-      } else if (pathParts[1] === 'protected' && pathParts[2] === 'user') {
-        return `types/hooks.types.ts`;
-      } else {
-        return `types/core.types.ts`;
-      }
-    } else if (pathParts[0] === 'components') {
-      return `types/component.types.ts`;
-    } else if (pathParts[0] === 'hooks') {
-      return `types/hooks.types.ts`;
-    } else if (pathParts[0] === 'lib') {
-      if (pathParts[1] === 'utils') {
-        return `types/utils.types.ts`;
-      } else if (pathParts[1] === 'graphql') {
-        return `types/graphql.types.ts`;
-      } else if (pathParts[1] === 'db') {
-        return `types/db.types.ts`;
-      } else {
-        return `types/core.types.ts`;
-      }
-    } else {
-      return `types/${pathParts[0]}.types.ts`;
-    }
+    // if (pathParts[0] === 'app') {
+    //   if (pathParts[1] === 'components') {
+    //     return `types/custom/component.types.ts`;
+    //   } else if (pathParts[1] === 'protected' && pathParts[2] === 'user') {
+    //     return `types/custom/hooks.types.ts`;
+    //   } else {
+    //     return `types/custom/core.types.ts`;
+    //   }
+    // } else if (pathParts[0] === 'components') {
+    //   return `types/custom/component.types.ts`;
+    // } else if (pathParts[0] === 'hooks') {
+    //   return `types/custom/hooks.types.ts`;
+    // } else if (pathParts[0] === 'lib') {
+    //   if (pathParts[1] === 'utils') {
+    //     return `types/custom/utils.types.ts`;
+    //   } else if (pathParts[1] === 'graphql') {
+    //     return `types/custom/graphql.types.ts`;
+    //   } else if (pathParts[1] === 'db') {
+    //     return `types/custom/db.types.ts`;
+    //   } else {
+    //     return `types/custom/core.types.ts`;
+    //   }
+    // } else {
+    //   return `types/custom/${pathParts[0]}.types.ts`;
+    // }
+
+    return `types/custom/001-base.types.ts`;
   }
 
   private checkForImportViolations(content: string, file: string): void {

@@ -4,11 +4,10 @@ import { useUser } from '@clerk/nextjs';
 import { Calendar, Clock, MapPin, Users, Trophy, ArrowLeft, Plus, Edit, Eye } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
-import React, { useState, useEffect, useMemo } from 'react';
+import { notFound, useParams } from 'next/navigation';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
-import { CreateGameLogModal } from '@/app/components/game-logs/CreateGameLogModal';
-import { EditGameLogModal } from '@/app/components/game-logs/EditGameLogModal';
+import { CreateGameLogModal, EditGameLogModal } from '@/app/components/game-logs/GameLogModal';
 import { SportsPageLayout } from '@/app/components/sports';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
@@ -21,12 +20,13 @@ import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
 
-export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
+export default function NBAGameDetailPage({ params: _params }: IGameDetailPageProps) {
   // Use proper Clerk authentication
   const { user, isLoaded, isSignedIn } = useUser();
 
-  // Use params directly since it's already resolved
-  const resolvedParams = params;
+  // Get params using useParams hook
+  const routeParams = useParams();
+  const gameId = routeParams?.gameId as string;
 
   const [game, setGame] = useState<IGameResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -39,11 +39,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     forceRealData: false, // Use mock data instead of external API
   });
 
-  // Fetch user's game log for this specific game
-  const [userGameLogs, setUserGameLogs] = useState<IGameLog[]>([]);
-  const [refetchUserGameLogs, setRefetchUserGameLogs] = useState<
-    (() => Promise<unknown>) | undefined
-  >(undefined);
+  // Note: userGameLogs and refetchUserGameLogs are now derived from memoized values below
 
   // Test the simplified useGameLogs hook
   const shouldSkip = !isLoaded || !isSignedIn || !user?.id || !game?.id?.toString();
@@ -78,7 +74,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     gameId: game?.id,
     gameIdString: game?.id?.toString(),
     gameIdType: typeof game?.id,
-    resolvedParamsGameId: resolvedParams?.gameId,
+    resolvedParamsGameId: gameId,
   });
 
   // Use useMemo for stable references that trigger re-renders when data changes
@@ -99,65 +95,25 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
     return result;
   }, [gameLogsData]);
 
-  const memoizedForceRefresh = useMemo(() => {
-    console.log('🔍 Memoizing force refresh:', gameLogsData?.forceRefresh);
-    return gameLogsData?.forceRefresh;
-  }, [gameLogsData?.forceRefresh]);
+  const memoizedForceRefresh = useCallback(() => {
+    console.log('🔍 Memoizing force refresh:', gameLogsData?.refresh);
+    return gameLogsData?.refresh;
+  }, [gameLogsData?.refresh]);
 
-  // Update userGameLogs when memoized data changes
+  // Use the memoized data directly instead of syncing state to avoid infinite loops
+  const userGameLogs = memoizedGameLogs;
+  const refetchUserGameLogs = memoizedForceRefresh;
+
+  // Debug when userGameLogs data changes
   useEffect(() => {
     setTimeout(() => {
-      console.log('🔍 [EFFECT] Game logs data updated:', {
-        gameLogs: memoizedGameLogs,
-        gameLogsLength: memoizedGameLogs?.length,
-        userId: user?.id,
-        gameId: game?.id?.toString(),
-        isLoaded,
-        isSignedIn,
-        timestamp: new Date().toISOString(),
-      });
-    }, 300);
-
-    console.log('🔍 [EFFECT] useEffect triggered with:', {
-      memoizedGameLogsLength: memoizedGameLogs?.length,
-      memoizedGameLogs: memoizedGameLogs,
-      currentUserGameLogsLength: userGameLogs?.length,
-      willSetUserGameLogs: memoizedGameLogs && memoizedGameLogs.length > 0,
-    });
-
-    if (memoizedGameLogs && memoizedGameLogs.length > 0) {
-      setTimeout(() => {
-        console.log('📝 [EFFECT] Setting userGameLogs:', memoizedGameLogs);
-      }, 400);
-      setUserGameLogs(memoizedGameLogs);
-      setRefetchUserGameLogs(() => memoizedForceRefresh);
-    } else {
-      setTimeout(() => {
-        console.log('📝 [EFFECT] Clearing userGameLogs');
-      }, 400);
-      setUserGameLogs([]);
-      setRefetchUserGameLogs(undefined);
-    }
-  }, [
-    memoizedGameLogs,
-    memoizedForceRefresh,
-    user?.id,
-    game?.id,
-    isLoaded,
-    isSignedIn,
-    userGameLogs?.length,
-  ]);
-
-  // Debug when userGameLogs state changes
-  useEffect(() => {
-    setTimeout(() => {
-      console.log('🔍 [STATE_CHANGE] userGameLogs state changed:', {
+      console.log('🔍 [DATA_CHANGE] userGameLogs data changed:', {
         userGameLogs,
         userGameLogsLength: userGameLogs?.length,
         timestamp: new Date().toISOString(),
       });
     }, 500);
-  }, [userGameLogs, userGameLogs?.length]);
+  }, [userGameLogs]);
 
   const errorHandlerContext = useMemo(
     () => ({
@@ -173,13 +129,13 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
 
   useEffect(() => {
     const loadGame = async () => {
-      if (!resolvedParams?.gameId) {
+      if (!gameId) {
         return; // Wait for params to be resolved
       }
 
       const result = await handleAsync(async () => {
         // First try to find the game in the latest games array
-        let foundGame = latestGames.find(g => g.id.toString() === resolvedParams?.gameId);
+        let foundGame = latestGames.find(g => g.id.toString() === gameId);
 
         // If not found in latest games, try to fetch it directly from the API
         if (!foundGame) {
@@ -188,9 +144,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
             if (response.ok) {
               const data = await response.json();
               if (data.response && Array.isArray(data.response)) {
-                foundGame = data.response.find(
-                  (g: IGameResponse) => g.id.toString() === resolvedParams?.gameId
-                );
+                foundGame = data.response.find((g: IGameResponse) => g.id.toString() === gameId);
               }
             }
           } catch (error) {
@@ -213,10 +167,10 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
       setLoading(false);
     };
 
-    if (latestGames.length > 0 && resolvedParams?.gameId) {
+    if (latestGames.length > 0 && gameId) {
       void loadGame();
     }
-  }, [resolvedParams, latestGames, handleAsync]);
+  }, [gameId, latestGames, handleAsync]);
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -335,7 +289,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
         {isLoaded && user && (
           <div className="flex items-center gap-2">
             {hasExistingGameLog && (
-              <Link href={`/protected/user/game-logs/${existingGameLog.id}`}>
+              <Link href={`/protected/dashboard/game-logs/${existingGameLog.id}`}>
                 <Button
                   variant="outline"
                   size="sm"
@@ -381,7 +335,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
               {game.teams?.visitors?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
             </CardTitle>
             <Badge
-              className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'SCHEDULED')}`}
+              className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'scheduled')}`}
             >
               {typeof game.status === 'string'
                 ? game.status
@@ -641,18 +595,7 @@ export default function NBAGameDetailPage({ params }: IGameDetailPageProps) {
           setIsCreateGameLogModalOpen(false);
           if (refetchUserGameLogs) {
             console.log('🔄 Calling refetchUserGameLogs...');
-            refetchUserGameLogs()
-              .then(result => {
-                console.log('✅ Refetch completed with result:', result);
-                console.log('🔍 State after refetch:', {
-                  userGameLogs,
-                  userGameLogsLength: userGameLogs?.length,
-                  hasExistingGameLog,
-                });
-              })
-              .catch(error => {
-                console.error('❌ Refetch failed:', error);
-              });
+            void refetchUserGameLogs();
           } else {
             console.warn('⚠️ refetchUserGameLogs is not available');
           }

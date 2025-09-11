@@ -36,7 +36,8 @@ function isAdminRouteActive(isActive: (path: string) => boolean): boolean {
   return (
     isActive('/protected/admin/database') ||
     isActive('/protected/admin/audit-logs') ||
-    isActive('/protected/admin/experimental')
+    isActive('/protected/admin/experimental') ||
+    isActive('/protected/admin/demos')
   );
 }
 
@@ -97,6 +98,16 @@ function AdminNavE2E({
             onClick={handleLinkClick}
           >
             Experimental
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/protected/admin/demos"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+            onClick={handleLinkClick}
+          >
+            Demos
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -160,6 +171,16 @@ function AdminNavContent({
             onClick={handleLinkClick}
           >
             Experimental
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link
+            href="/protected/admin/demos"
+            className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            role="menuitem"
+            onClick={handleLinkClick}
+          >
+            Demos
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
@@ -248,6 +269,16 @@ function AdminNavWithAuthSafe({
               onClick={handleLinkClick}
             >
               Experimental
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link
+              href="/protected/admin/demos"
+              className="cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              role="menuitem"
+              onClick={handleLinkClick}
+            >
+              Demos
             </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>

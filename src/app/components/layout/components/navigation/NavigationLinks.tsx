@@ -53,7 +53,7 @@ export function NavigationLinks({
       </NavItem>
 
       {/* Sports Links */}
-      {Object.values(SPORTS_CONFIG).map(sport => (
+      {Object.entries(SPORTS_CONFIG).map(([sportKey, sport]) => (
         <NavItem
           key={sport.href}
           href={sport.href}
@@ -61,6 +61,7 @@ export function NavigationLinks({
           onClick={handleNavClick}
           isStacked={isStacked}
           closeMenu={closeMenu}
+          sport={sportKey as keyof typeof SPORTS_CONFIG}
           aria-current={isActive(sport.href) ? 'page' : undefined}
         >
           {sport.name}
@@ -81,6 +82,21 @@ export function NavigationLinks({
       {/* Divider */}
       <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
 
+      {/* Demos Section (Admin Only) */}
+      {isStacked && (
+        <div className="mt-6 mb-2">
+          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+            Admin Tools
+          </h3>
+        </div>
+      )}
+
+      {/* Only show Admin nav link for authenticated users with admin role */}
+      <AdminNavWithAuth isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />
+
+      {/* Divider */}
+      <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
+
       {/* Account Section */}
       {isStacked && (
         <div className="mt-6 mb-2">
@@ -90,22 +106,16 @@ export function NavigationLinks({
         </div>
       )}
 
-      {/* User Dashboard + Admin */}
+      {/* User Dashboard */}
       <NavItem
-        href="/protected/user"
-        isActive={isActive('/protected/user')}
+        href="/protected/dashboard"
+        isActive={isActive('/protected/dashboard')}
         onClick={handleNavClick}
         isStacked={isStacked}
         closeMenu={closeMenu}
       >
         Dashboard
       </NavItem>
-
-      {/* Add spacing between Dashboard and Admin */}
-      <div className="my-1 lg:my-0 lg:mx-2" />
-
-      {/* Only show Admin nav link for authenticated users with admin role */}
-      <AdminNavWithAuth isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />
     </nav>
   );
 }

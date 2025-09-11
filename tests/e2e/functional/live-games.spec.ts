@@ -171,7 +171,7 @@ test.describe('Live Games Functionality', () => {
       if (isMockModeEnabled()) {
         const liveGamesMock = getMockDataByType('liveGames');
         if (liveGamesMock?.results) {
-          const gamesCount = page.locator(`text=${liveGamesMock.results} games`);
+          const gamesCount = page.locator(`text=${liveGamesMock.results} Games currently live`);
           await expect(gamesCount).toBeVisible();
         }
       }
@@ -197,7 +197,7 @@ test.describe('Live Games Functionality', () => {
       await expect(title).toHaveText('Live NBA Games');
 
       // Check for games count
-      const gamesCount = page.locator(`text=${TEST_GAMES_DATA.totalGames} games`);
+      const gamesCount = page.locator(`text=${TEST_GAMES_DATA.totalGames} Games currently live`);
       await expect(gamesCount).toBeVisible();
 
       // Check for games grid

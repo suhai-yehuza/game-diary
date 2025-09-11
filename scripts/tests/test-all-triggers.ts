@@ -56,6 +56,23 @@ class TriggerValidator {
     this.db = createDatabaseClient({ env: environment });
   }
 
+  private async execute(sql: any) {
+    try {
+      return await this.db.execute(sql);
+    } catch (e: any) {
+      console.error('SQL Error details:', {
+        message: e.message,
+        code: e.code,
+        detail: e.detail,
+        hint: e.hint,
+        query: e.query,
+        params: e.params,
+        cause: e.cause,
+      });
+      throw e;
+    }
+  }
+
   // Static method for global cleanup
   static async globalCleanup(environment = 'development') {
     const db = createDatabaseClient({ env: environment });
@@ -218,9 +235,10 @@ class TriggerValidator {
     // Insert a test NBA game with error logging
     try {
       const teamsJson = `{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}`;
+      const statusJson = `{"short":"3","long":"Finished","clock":"0:00"}`;
       await this.db.execute(sql`
-        INSERT INTO basketball_games (id, game_type, season, date, teams, game_status, created_at, updated_at)
-        VALUES (${gameId}, 'nba', '2024', NOW(), ${teamsJson}, 'Final', NOW(), NOW())
+        INSERT INTO basketball_games (id, season, date, teams, status, created_at, updated_at)
+        VALUES (${gameId}, '2024', NOW(), ${teamsJson}, ${statusJson}, NOW(), NOW())
       `);
     } catch (error: any) {
       console.error('basketball_games insert error:', error);
@@ -300,17 +318,21 @@ class TriggerValidator {
       const userId1 = `integration-test-trigger-user-${generateId()}`;
       const userId2 = `integration-test-trigger-user-${generateId()}`;
 
-      // Set user context for the first user before inserting
+      // Insert first user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
-
-      // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW()),
-               (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Insert second user with proper context
+      await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
       `);
       // Insert two game_logs for the same game, different users, different ratings
-      await this.db.execute(sql`
+      await this.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, watched_date, rating_for_game, created_at, updated_at)
         VALUES
           (${generateId()}, ${userId1}, ${gameId}, NOW(), 4, NOW(), NOW()),
@@ -338,14 +360,18 @@ class TriggerValidator {
       const userId1 = `integration-test-trigger-user-${generateId()}`;
       const userId2 = `integration-test-trigger-user-${generateId()}`;
 
-      // Set user context for the first user before inserting
+      // Insert first user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
-
-      // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW()),
-               (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Insert second user with proper context
+      await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
       `);
       // Insert two game_logs for the same game, different users, different ratings
       const logId1 = generateId();
@@ -382,14 +408,18 @@ class TriggerValidator {
       const userId1 = `integration-test-trigger-user-${generateId()}`;
       const userId2 = `integration-test-trigger-user-${generateId()}`;
 
-      // Set user context for the first user before inserting
+      // Insert first user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
-
-      // Insert two users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW()),
-               (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Insert second user with proper context
+      await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
       `);
       // Insert two game_logs for the same game, different users, different ratings
       const logId1 = generateId();
@@ -432,14 +462,18 @@ class TriggerValidator {
     const commentId = `integration-test-trigger-comment-${generateId()}`;
 
     try {
-      // Set user context for the first user before inserting
+      // Create first user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
-
-      // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Create second user with proper context
+      await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
       `);
 
       // Create test game log
@@ -486,14 +520,18 @@ class TriggerValidator {
     const replyId = `integration-test-trigger-reply-${generateId()}`;
 
     try {
-      // Set user context for the first user before inserting
+      // Create first user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
-
-      // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+      `);
+
+      // Create second user with proper context
+      await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
       `);
 
       // Create test game log

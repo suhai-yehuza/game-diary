@@ -301,7 +301,7 @@ describe('GameCard Component', () => {
   it('shows correct status for scheduled game', () => {
     render(<GameCard game={mockScheduledGame} />);
 
-    expect(screen.getByText('Cancelled')).toBeInTheDocument();
+    expect(screen.getByText('Not Started')).toBeInTheDocument();
     expect(screen.getByTestId('calendar-days')).toBeInTheDocument();
   });
 

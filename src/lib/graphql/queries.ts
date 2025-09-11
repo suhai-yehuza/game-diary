@@ -11,8 +11,7 @@ export const GAME_FRAGMENT = gql`
     id
     date
     status
-    game_type
-    basketball_game_id
+    game_id
     teams
     scores
     arena
@@ -145,6 +144,80 @@ export const FRIENDSHIP_FRAGMENT = gql`
       first_name
       last_name
       image_url
+    }
+  }
+`;
+
+// Optimized friendship counts fragment
+export const FRIENDSHIP_COUNTS_FRAGMENT = gql`
+  fragment FriendshipCountsFragment on Friendship {
+    id
+    status
+    created_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+  }
+`;
+
+// Optimized friendship table fragment (for dashboard tables)
+export const FRIENDSHIP_TABLE_FRAGMENT = gql`
+  fragment FriendshipTableFragment on Friendship {
+    id
+    status
+    created_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+  }
+`;
+
+// Optimized friendship detailed fragment (for detailed views)
+export const FRIENDSHIP_DETAILED_FRAGMENT = gql`
+  fragment FriendshipDetailedFragment on Friendship {
+    id
+    status
+    created_at
+    updated_at
+    initiator {
+      id
+      username
+      first_name
+      last_name
+      email_address
+      image_url
+      isAdmin
+    }
+    recipient {
+      id
+      username
+      first_name
+      last_name
+      email_address
+      image_url
+      isAdmin
     }
   }
 `;
@@ -511,8 +584,295 @@ export const GAME_LOG_TABLE_FRAGMENT = gql`
       image_url
     }
     game {
-      teams
+      id
       date
+      teams
+    }
+  }
+`;
+
+// Optimized game log fragment with counts only
+export const GAME_LOG_COUNTS_FRAGMENT = gql`
+  fragment GameLogCountsFragment on GameLog {
+    id
+    totalCommentCount
+    totalReactionCount
+  }
+`;
+
+// Detailed game log fragment with all relations
+export const GAME_LOG_DETAILED_FRAGMENT = gql`
+  fragment GameLogDetailedFragment on GameLog {
+    id
+    game_id
+    rating_for_game
+    notes
+    tags
+    watched_date
+    watched_setting
+    watched_location
+    watched_scope
+    classification
+    created_at
+    updated_at
+    totalCommentCount
+    totalReactionCount
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    game {
+      id
+      date
+      status
+      teams
+      scores
+      arena
+      periods
+      average_rating
+      total_ratings
+    }
+    comments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+      }
+      created_at
+    }
+  }
+`;
+
+// Optimized comment fragment with counts
+export const COMMENT_COUNTS_FRAGMENT = gql`
+  fragment CommentCountsFragment on Comment {
+    id
+    totalChildCommentCount
+    totalReactionCount
+  }
+`;
+
+// Detailed comment fragment with all relations
+export const COMMENT_DETAILED_FRAGMENT = gql`
+  fragment CommentDetailedFragment on Comment {
+    id
+    user_id
+    parent_id
+    parent_type
+    content
+    depth
+    created_at
+    updated_at
+    totalChildCommentCount
+    totalReactionCount
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    childComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+      }
+      created_at
+    }
+  }
+`;
+
+// Optimized public comment fragment with counts
+export const PUBLIC_COMMENT_COUNTS_FRAGMENT = gql`
+  fragment PublicCommentCountsFragment on PublicComment {
+    id
+    totalChildCommentCount
+    totalReactionCount
+  }
+`;
+
+// Detailed public comment fragment with all relations
+export const PUBLIC_COMMENT_DETAILED_FRAGMENT = gql`
+  fragment PublicCommentDetailedFragment on PublicComment {
+    id
+    content
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    user_id
+    anonymous_name
+    anonymous_email
+    parent_id
+    parent_type
+    depth
+    is_approved
+    created_at
+    updated_at
+    deleted_at
+    totalChildCommentCount
+    totalReactionCount
+    childComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          created_at
+        }
+      }
+    }
+    reactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+        image_url
+      }
+      user_id
+      anonymous_name
+      anonymous_email
+      target_id
+      target_type
+      is_approved
+      created_at
+    }
+  }
+`;
+
+// Optimized game fragment with counts
+export const GAME_COUNTS_FRAGMENT = gql`
+  fragment GameCountsFragment on Game {
+    id
+    totalPublicCommentCount
+    totalPublicReactionCount
+  }
+`;
+
+// Public Reaction Fragment (for NBA games, players, teams - no authentication required)
+export const PUBLIC_REACTION_FRAGMENT = gql`
+  fragment PublicReactionFragment on PublicReaction {
+    id
+    emoji
+    user {
+      id
+      username
+      first_name
+      last_name
+      image_url
+    }
+    user_id
+    anonymous_name
+    anonymous_email
+    target_id
+    target_type
+    is_approved
+    created_at
+    updated_at
+    deleted_at
+  }
+`;
+
+// Detailed game fragment with all relations
+export const GAME_DETAILED_FRAGMENT = gql`
+  fragment GameDetailedFragment on Game {
+    id
+    date
+    status
+    game_id
+    teams
+    scores
+    arena
+    periods
+    average_rating
+    total_ratings
+    created_at
+    updated_at
+    totalPublicCommentCount
+    totalPublicReactionCount
+    publicComments {
+      edges {
+        node {
+          id
+          content
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          anonymous_name
+          created_at
+        }
+      }
+    }
+    publicReactions {
+      id
+      emoji
+      user {
+        id
+        username
+        first_name
+        last_name
+        image_url
+      }
+      anonymous_name
+      created_at
     }
   }
 `;
@@ -553,6 +913,537 @@ export const GET_GAME_LOGS_TABLE = gql`
     }
   }
   ${GAME_LOG_TABLE_FRAGMENT}
+`;
+
+// Ultra-optimized query for friends game logs with counts only
+export const GET_FRIENDS_GAME_LOGS_COUNTS = gql`
+  query GetFriendsGameLogsCounts($pagination: PaginationInput) {
+    friendsGameLogs(pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+  ${GAME_LOG_COUNTS_FRAGMENT}
+`;
+
+// Ultra-optimized query for game logs with counts only
+export const GET_GAME_LOGS_COUNTS = gql`
+  query GetGameLogsCounts($filters: GameLogFilters, $pagination: PaginationInput) {
+    gameLogs(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+      }
+      totalCount
+    }
+  }
+  ${GAME_LOG_COUNTS_FRAGMENT}
+`;
+
+// Landing Page Optimized Queries
+export const GET_LANDING_PAGE_TRENDING_CONTENT = gql`
+  query GetLandingPageTrendingContent($limit: Int = 10) {
+    gameLogs(filters: { classification: PUBLIC }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameLogCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          game {
+            id
+            date
+            teams
+            scores
+          }
+        }
+      }
+    }
+  }
+  ${GAME_LOG_COUNTS_FRAGMENT}
+`;
+
+export const GET_LANDING_PAGE_LATEST_GAMES = gql`
+  query GetLandingPageLatestGames($limit: Int = 10) {
+    games(filters: { status: FINISHED }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameCountsFragment
+          date
+          status
+          teams
+          scores
+          arena
+        }
+      }
+    }
+  }
+  ${GAME_COUNTS_FRAGMENT}
+`;
+
+export const GET_LANDING_PAGE_POPULAR_GAMES = gql`
+  query GetLandingPagePopularGames($limit: Int = 10) {
+    games(filters: { status: FINISHED }, pagination: { first: $limit }) {
+      edges {
+        node {
+          ...GameCountsFragment
+          date
+          status
+          teams
+          scores
+          average_rating
+          total_ratings
+        }
+      }
+    }
+  }
+  ${GAME_COUNTS_FRAGMENT}
+`;
+
+// NBA Hub Optimized Queries
+export const GET_NBA_HUB_COUNTS = gql`
+  query GetNBAHubCounts {
+    games: games(filters: { status: FINISHED }, pagination: { first: 1 }) {
+      totalCount
+    }
+    teams: basketball_teams(pagination: { first: 1 }) {
+      totalCount
+    }
+    players: nbaPlayers(pagination: { first: 1 }) {
+      totalCount
+    }
+    liveGames: games(filters: { status: LIVE }, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+// Game Log Comments & Reactions Optimized Queries
+export const GET_GAME_LOG_COMMENTS_COUNTS = gql`
+  query GetGameLogCommentsCounts($gameLogId: ID!) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+  }
+`;
+
+export const GET_GAME_LOG_COMMENTS_WITH_COUNTS = gql`
+  query GetGameLogCommentsWithCounts($gameLogId: ID!, $pagination: PaginationInput) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+    comments(filters: { parentId: $gameLogId, parentType: GAME_LOG }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${COMMENT_COUNTS_FRAGMENT}
+`;
+
+export const GET_GAME_LOG_COMMENTS_DETAILED = gql`
+  query GetGameLogCommentsDetailed($gameLogId: ID!, $pagination: PaginationInput) {
+    gameLog(id: $gameLogId) {
+      id
+      totalCommentCount
+      totalReactionCount
+    }
+    comments(filters: { parentId: $gameLogId, parentType: GAME_LOG }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${COMMENT_DETAILED_FRAGMENT}
+`;
+
+export const GET_COMMENT_REPLIES_WITH_COUNTS = gql`
+  query GetCommentRepliesWithCounts($commentId: ID!, $pagination: PaginationInput) {
+    comments(filters: { parentId: $commentId, parentType: COMMENT }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${COMMENT_COUNTS_FRAGMENT}
+`;
+
+export const GET_COMMENT_REPLIES_DETAILED = gql`
+  query GetCommentRepliesDetailed($commentId: ID!, $pagination: PaginationInput) {
+    comments(filters: { parentId: $commentId, parentType: COMMENT }, pagination: $pagination) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${COMMENT_DETAILED_FRAGMENT}
+`;
+
+export const GET_GAME_LOG_REACTIONS = gql`
+  query GetGameLogReactions($gameLogId: ID!) {
+    reactions(targetId: $gameLogId, targetType: GAME_LOG) {
+      ...ReactionFragment
+    }
+  }
+  ${REACTION_FRAGMENT}
+`;
+
+export const GET_COMMENT_REACTIONS = gql`
+  query GetCommentReactions($commentId: ID!) {
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${REACTION_FRAGMENT}
+`;
+
+// Public Comments & Reactions Optimized Queries
+export const GET_PUBLIC_COMMENTS_COUNTS = gql`
+  query GetPublicCommentsCounts($gameId: ID!) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+  }
+`;
+
+export const GET_PUBLIC_COMMENTS_WITH_COUNTS = gql`
+  query GetPublicCommentsWithCounts($gameId: ID!, $pagination: PaginationInput) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+    publicComments(
+      filters: { parentId: $gameId, parentType: BASKETBALL_GAME }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PUBLIC_COMMENT_COUNTS_FRAGMENT}
+`;
+
+export const GET_PUBLIC_COMMENTS_DETAILED = gql`
+  query GetPublicCommentsDetailed($gameId: ID!, $pagination: PaginationInput) {
+    game(id: $gameId) {
+      id
+      totalPublicCommentCount
+      totalPublicReactionCount
+    }
+    publicComments(
+      filters: { parentId: $gameId, parentType: BASKETBALL_GAME }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PUBLIC_COMMENT_DETAILED_FRAGMENT}
+`;
+
+export const GET_PUBLIC_COMMENT_REPLIES_WITH_COUNTS = gql`
+  query GetPublicCommentRepliesWithCounts($commentId: ID!, $pagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PUBLIC_COMMENT_COUNTS_FRAGMENT}
+`;
+
+export const GET_PUBLIC_COMMENT_REPLIES_DETAILED = gql`
+  query GetPublicCommentRepliesDetailed($commentId: ID!, $pagination: PaginationInput) {
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $pagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${PUBLIC_COMMENT_DETAILED_FRAGMENT}
+`;
+
+export const GET_PUBLIC_REACTIONS = gql`
+  query GetPublicReactions($targetId: ID!, $targetType: ParentType!) {
+    publicReactions(targetId: $targetId, targetType: $targetType) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PUBLIC_REACTION_FRAGMENT}
+`;
+
+// Comment Queries (get a specific comment with its reactions and child comments)
+// Note: Since there's no single comment query in the schema, we get the comment by filtering
+// and then get its replies and reactions in separate queries
+
+export const GET_COMMENT = gql`
+  query GetComment($commentId: ID!, $repliesPagination: PaginationInput) {
+    # Get the comment's child comments (replies) with detailed data
+    comments(
+      filters: { parentId: $commentId, parentType: COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...CommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    # Get the comment's reactions
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${COMMENT_DETAILED_FRAGMENT}
+  ${REACTION_FRAGMENT}
+`;
+
+export const GET_COMMENT_WITH_COUNTS = gql`
+  query GetCommentWithCounts($commentId: ID!, $repliesPagination: PaginationInput) {
+    # Get the comment's child comments (replies) with counts
+    comments(
+      filters: { parentId: $commentId, parentType: COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...CommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    # Get the comment's reactions
+    reactions(targetId: $commentId, targetType: COMMENT) {
+      ...ReactionFragment
+    }
+  }
+  ${COMMENT_COUNTS_FRAGMENT}
+  ${REACTION_FRAGMENT}
+`;
+
+export const GET_PUBLIC_COMMENT = gql`
+  query GetPublicComment($commentId: ID!, $repliesPagination: PaginationInput) {
+    # Get the public comment's child comments (replies) with detailed data
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    # Get the public comment's reactions
+    publicReactions(targetId: $commentId, targetType: PUBLIC_COMMENT) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PUBLIC_COMMENT_DETAILED_FRAGMENT}
+  ${PUBLIC_REACTION_FRAGMENT}
+`;
+
+export const GET_PUBLIC_COMMENT_WITH_COUNTS = gql`
+  query GetPublicCommentWithCounts($commentId: ID!, $repliesPagination: PaginationInput) {
+    # Get the public comment's child comments (replies) with counts
+    publicComments(
+      filters: { parentId: $commentId, parentType: PUBLIC_COMMENT }
+      pagination: $repliesPagination
+    ) {
+      edges {
+        node {
+          ...PublicCommentCountsFragment
+          user {
+            id
+            username
+            first_name
+            last_name
+            image_url
+          }
+          content
+          created_at
+          updated_at
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+    # Get the public comment's reactions
+    publicReactions(targetId: $commentId, targetType: PUBLIC_COMMENT) {
+      ...PublicReactionFragment
+    }
+  }
+  ${PUBLIC_COMMENT_COUNTS_FRAGMENT}
+  ${PUBLIC_REACTION_FRAGMENT}
 `;
 
 // Optimized friendship queries
@@ -604,6 +1495,155 @@ export const GET_FRIENDSHIP_STATUS = gql`
   }
 `;
 
+// Optimized friendship queries for dashboard
+export const GET_FRIENDSHIPS_COUNTS = gql`
+  query GetFriendshipsCounts($filters: FriendshipFilters) {
+    userFriendships(filters: $filters, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+export const GET_FRIENDSHIPS_WITH_COUNTS = gql`
+  query GetFriendshipsWithCounts($filters: FriendshipFilters, $pagination: PaginationInput) {
+    userFriendships(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipTableFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_TABLE_FRAGMENT}
+`;
+
+export const GET_FRIENDSHIPS_DETAILED = gql`
+  query GetFriendshipsDetailed($filters: FriendshipFilters, $pagination: PaginationInput) {
+    userFriendships(filters: $filters, pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_DETAILED_FRAGMENT}
+`;
+
+// Optimized friendship requests queries
+export const GET_FRIENDSHIP_REQUESTS_COUNTS = gql`
+  query GetFriendshipRequestsCounts {
+    friendshipRequests(pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+export const GET_FRIENDSHIP_REQUESTS_WITH_COUNTS = gql`
+  query GetFriendshipRequestsWithCounts($pagination: PaginationInput) {
+    friendshipRequests(pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipTableFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_TABLE_FRAGMENT}
+`;
+
+export const GET_FRIENDSHIP_REQUESTS_DETAILED = gql`
+  query GetFriendshipRequestsDetailed($pagination: PaginationInput) {
+    friendshipRequests(pagination: $pagination) {
+      edges {
+        node {
+          ...FriendshipDetailedFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${FRIENDSHIP_DETAILED_FRAGMENT}
+`;
+
+// Optimized user search queries
+export const GET_USER_SEARCH_COUNTS = gql`
+  query GetUserSearchCounts($searchTerm: String, $searchField: String) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: { first: 1 }) {
+      totalCount
+    }
+  }
+`;
+
+export const GET_USER_SEARCH_WITH_COUNTS = gql`
+  query GetUserSearchWithCounts(
+    $searchTerm: String
+    $searchField: String
+    $pagination: PaginationInput
+  ) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+      edges {
+        node {
+          ...UserSummaryFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${USER_SUMMARY_FRAGMENT}
+`;
+
+export const GET_USER_SEARCH_DETAILED = gql`
+  query GetUserSearchDetailed(
+    $searchTerm: String
+    $searchField: String
+    $pagination: PaginationInput
+  ) {
+    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+      edges {
+        node {
+          ...UserSummaryFragment
+        }
+        cursor
+      }
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${USER_SUMMARY_FRAGMENT}
+`;
+
 // Lightweight notification fragment
 export const NOTIFICATION_FRAGMENT = gql`
   fragment NotificationFragment on Notification {
@@ -644,30 +1684,6 @@ export const PUBLIC_COMMENT_FRAGMENT = gql`
     deleted_at
     totalChildCommentCount
     totalReactionCount
-  }
-`;
-
-// Public Reaction Fragment (for NBA games, players, teams - no authentication required)
-export const PUBLIC_REACTION_FRAGMENT = gql`
-  fragment PublicReactionFragment on PublicReaction {
-    id
-    emoji
-    user {
-      id
-      username
-      first_name
-      last_name
-      image_url
-    }
-    user_id
-    anonymous_name
-    anonymous_email
-    target_id
-    target_type
-    is_approved
-    created_at
-    updated_at
-    deleted_at
   }
 `;
 
@@ -718,14 +1734,4 @@ export const GET_PUBLIC_COMMENTS = gql`
     }
   }
   ${PUBLIC_COMMENT_FRAGMENT}
-`;
-
-// Public Reaction Queries (no authentication required)
-export const GET_PUBLIC_REACTIONS = gql`
-  query GetPublicReactions($targetId: ID!, $targetType: ParentType!) {
-    publicReactions(targetId: $targetId, targetType: $targetType) {
-      ...PublicReactionFragment
-    }
-  }
-  ${PUBLIC_REACTION_FRAGMENT}
 `;

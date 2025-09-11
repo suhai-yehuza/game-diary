@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
 import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { apolloClient } from '@/lib/apollo-client';
 import { ReactionCacheUtils, CACHE_CONFIG } from '@/lib/cache';
 import { CREATE_REACTION, DELETE_REACTION } from '@/lib/graphql/mutations';
 import { GET_REACTIONS } from '@/lib/graphql/queries';
@@ -101,7 +102,7 @@ export function useReactions(options: IReactionOptions) {
 
         // Cache the reactions (convert IReaction[] to Reaction[] for cache compatibility)
         if (!isCacheHit) {
-          const reactionsForCache = newReactions.map(reaction => ({
+          const reactionsForCache = newReactions.map((reaction: IReaction) => ({
             ...reaction,
             user: {
               ...reaction.user,
@@ -169,8 +170,44 @@ export function useReactions(options: IReactionOptions) {
     const optimisticIds = new Set(optimisticReactions.map(r => r.id));
     const filteredBaseReactions = baseReactions.filter((r: IReaction) => !optimisticIds.has(r.id));
 
-    return [...optimisticReactions, ...filteredBaseReactions];
+    // Combine optimistic and base reactions
+    const combinedReactions = [...optimisticReactions, ...filteredBaseReactions];
+
+    // Remove duplicates using Set for better performance
+    const seenReactions = new Set<string>();
+    const uniqueReactions = combinedReactions.filter((reaction: IReaction) => {
+      const key = `${reaction.user_id}-${reaction.emoji}`;
+      if (seenReactions.has(key)) {
+        return false; // Skip duplicate
+      }
+      seenReactions.add(key);
+      return true; // Keep unique reaction
+    });
+
+    // Debug logging
+    if (optimisticReactions.length > 0 || baseReactions.length > 0) {
+      console.log('🔍 Reactions calculation:', {
+        optimisticCount: optimisticReactions.length,
+        baseCount: baseReactions.length,
+        filteredBaseCount: filteredBaseReactions.length,
+        combinedCount: combinedReactions.length,
+        finalCount: uniqueReactions.length,
+        optimisticIds: Array.from(optimisticIds),
+        baseReactionIds: baseReactions.map(r => r.id),
+        finalReactionIds: uniqueReactions.map(r => r.id),
+      });
+    }
+
+    return uniqueReactions;
   }, [cachedReactions, data?.reactions, optimisticReactions]);
+
+  // Check if user has existing reactions (moved outside of callback to avoid hook violation)
+  const hasUserReactedToEmoji = useCallback(
+    (emoji: string) => {
+      return reactions.some(r => r.user_id === user?.id && r.emoji === emoji);
+    },
+    [reactions, user?.id]
+  );
 
   const reactionGroups = useMemo(() => {
     if (!reactions.length) return [];
@@ -193,6 +230,7 @@ export function useReactions(options: IReactionOptions) {
       groups.push({
         emoji,
         count: reactions.length,
+        reactions: reactions,
         hasUserReacted: reactions.some(r => r.user_id === user?.id),
         users: reactions.map(r => r.user),
       });
@@ -232,6 +270,18 @@ export function useReactions(options: IReactionOptions) {
       );
       if (!user?.id || !options.targetId) return;
 
+      // Prevent multiple simultaneous requests
+      if (isProcessing) {
+        console.warn('Reaction creation already in progress, skipping');
+        return;
+      }
+
+      // Check if user already has this reaction (including optimistic ones)
+      if (hasUserReactedToEmoji(emoji)) {
+        console.warn('User already has this reaction, skipping');
+        return;
+      }
+
       // Debounce rapid successive calls
       const now = Date.now();
       if (now - lastActionTime < 500) {
@@ -241,9 +291,10 @@ export function useReactions(options: IReactionOptions) {
       setLastActionTime(now);
 
       setIsProcessing(true);
+      let optimisticReaction: IReaction | null = null;
       try {
         // Add optimistic reaction
-        const optimisticReaction: IReaction = {
+        optimisticReaction = {
           id: `temp-${Date.now()}`,
           emoji,
           user_id: user.id,
@@ -261,7 +312,10 @@ export function useReactions(options: IReactionOptions) {
           },
         };
 
-        setOptimisticReactions(prev => [...prev, optimisticReaction]);
+        if (optimisticReaction) {
+          const reaction = optimisticReaction;
+          setOptimisticReactions(prev => [...prev, reaction]);
+        }
 
         const result = await createReaction({
           variables: {
@@ -274,18 +328,94 @@ export function useReactions(options: IReactionOptions) {
         });
 
         if ((result as { data?: CreateReactionMutation }).data?.createReaction) {
-          // Invalidate cache
-          await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
+          console.log('✅ Reaction created successfully, cleaning up optimistic reaction');
 
-          // Refetch to get the updated data immediately
-          await refetch();
+          // Remove optimistic reaction immediately to prevent duplicates
+          if (optimisticReaction) {
+            const reactionId = optimisticReaction.id;
+            setOptimisticReactions(prev => {
+              const filtered = prev.filter(r => r.id !== reactionId);
+              console.log('🧹 Optimistic reactions after cleanup:', filtered.length);
+              return filtered;
+            });
+          }
 
-          // Remove optimistic reaction after refetch completes
-          setOptimisticReactions(prev => prev.filter(r => r.id !== optimisticReaction.id));
+          // Update Apollo cache directly instead of refetching
+          try {
+            const createReactionData = (result as { data?: CreateReactionMutation }).data
+              ?.createReaction;
+            const newReaction = createReactionData?.reaction;
+            if (newReaction) {
+              // Update the reactions cache
+              apolloClient.cache.updateQuery(
+                {
+                  query: GET_REACTIONS,
+                  variables: {
+                    targetId: options.targetId,
+                    targetType: options.targetType,
+                  },
+                },
+                existingData => {
+                  if (!existingData) return existingData;
+
+                  const adaptedReaction = adaptGraphQLReaction(newReaction);
+
+                  // Check if reaction already exists using Set for better performance
+                  const existingReactions = existingData.reactions || [];
+                  const existingKeys = new Set(
+                    existingReactions.map((r: IReaction) => `${r.user_id}-${r.emoji}`)
+                  );
+                  const reactionKey = `${adaptedReaction.user_id}-${adaptedReaction.emoji}`;
+
+                  if (existingKeys.has(reactionKey)) {
+                    console.log('🔄 Reaction already exists in cache, skipping duplicate');
+                    return existingData;
+                  }
+
+                  return {
+                    ...existingData,
+                    reactions: [...existingReactions, adaptedReaction],
+                  };
+                }
+              );
+
+              // Invalidate the GameLog cache to ensure totalReactionCount is fresh
+              try {
+                const gameLogCacheId = apolloClient.cache.identify({
+                  __typename: 'GameLog',
+                  id: options.targetId,
+                });
+                if (gameLogCacheId) {
+                  apolloClient.cache.evict({ id: gameLogCacheId });
+                  apolloClient.cache.gc(); // Garbage collect to remove orphaned references
+                  console.log('🔄 GameLog cache invalidated for fresh totalReactionCount');
+                } else {
+                  console.warn('⚠️ Could not identify GameLog cache ID for invalidation');
+                }
+              } catch (evictError) {
+                console.warn('⚠️ Failed to invalidate GameLog cache:', evictError);
+              }
+
+              console.log('🔄 Apollo cache updated with new reaction and totalReactionCount');
+            }
+          } catch (cacheError) {
+            console.warn('⚠️ Failed to update Apollo cache:', cacheError);
+          }
+
+          // Skip hybrid cache invalidation since we're not using it
+          // await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
+          console.log('🗑️ Hybrid cache invalidation skipped');
+
+          // Don't dispatch global event to avoid page reloads
+          // The cache updates should be sufficient for UI updates
+          console.log('✅ Reaction created successfully - cache updated, no global event needed');
         }
       } catch (error) {
         // Remove optimistic reaction on error
-        setOptimisticReactions(prev => prev.filter(r => r.id !== `temp-${Date.now()}`));
+        if (optimisticReaction) {
+          const reactionId = optimisticReaction.id;
+          setOptimisticReactions(prev => prev.filter(r => r.id !== reactionId));
+        }
 
         errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
           component: 'useReactions',
@@ -310,7 +440,8 @@ export function useReactions(options: IReactionOptions) {
       options.targetType,
       createReaction,
       lastActionTime,
-      refetch,
+      hasUserReactedToEmoji,
+      isProcessing,
     ]
   );
 
@@ -345,14 +476,59 @@ export function useReactions(options: IReactionOptions) {
           },
         });
 
-        // Invalidate cache
-        await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
+        // Update Apollo cache directly instead of refetching
+        try {
+          // Remove the reaction from the cache
+          apolloClient.cache.updateQuery(
+            {
+              query: GET_REACTIONS,
+              variables: {
+                targetId: options.targetId,
+                targetType: options.targetType,
+              },
+            },
+            existingData => {
+              if (!existingData) return existingData;
 
-        // Refetch to get the updated data immediately
-        await refetch();
+              return {
+                ...existingData,
+                reactions: (existingData.reactions || []).filter(
+                  (reaction: IReaction) => reaction.id !== userReaction.id
+                ),
+              };
+            }
+          );
 
-        // Remove optimistic reaction after refetch completes
-        setOptimisticReactions(prev => prev.filter(r => r.id !== userReaction.id));
+          // Invalidate the GameLog cache to ensure totalReactionCount is fresh
+          try {
+            const gameLogCacheId = apolloClient.cache.identify({
+              __typename: 'GameLog',
+              id: options.targetId,
+            });
+            if (gameLogCacheId) {
+              apolloClient.cache.evict({ id: gameLogCacheId });
+              apolloClient.cache.gc(); // Garbage collect to remove orphaned references
+              console.log('🔄 GameLog cache invalidated for fresh totalReactionCount');
+            } else {
+              console.warn('⚠️ Could not identify GameLog cache ID for invalidation');
+            }
+          } catch (evictError) {
+            console.warn('⚠️ Failed to invalidate GameLog cache:', evictError);
+          }
+
+          console.log(
+            '🔄 Apollo cache updated - reaction removed and totalReactionCount decreased'
+          );
+        } catch (cacheError) {
+          console.warn('⚠️ Failed to update Apollo cache:', cacheError);
+        }
+
+        // Skip hybrid cache invalidation since we're not using it
+        // await ReactionCacheUtils.invalidateReactionCaches(options.targetId, options.targetType);
+
+        // Don't dispatch global event to avoid page reloads
+        // The cache updates should be sufficient for UI updates
+        console.log('✅ Reaction deleted successfully - cache updated, no global event needed');
       } catch (error) {
         errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
           component: 'useReactions',
@@ -367,15 +543,7 @@ export function useReactions(options: IReactionOptions) {
         setIsProcessing(false);
       }
     },
-    [
-      user?.id,
-      options.targetId,
-      options.targetType,
-      userReactions,
-      deleteReaction,
-      lastActionTime,
-      refetch,
-    ]
+    [user?.id, options.targetId, options.targetType, userReactions, deleteReaction, lastActionTime]
   );
 
   const toggleReaction = useCallback(

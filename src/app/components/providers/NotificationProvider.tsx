@@ -207,9 +207,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       );
 
       // Cache the notifications
-      NotificationCacheUtils.cacheUserNotifications(user.id, notificationList).catch(error => {
+      try {
+        NotificationCacheUtils.cacheUserNotifications(user.id, notificationList);
+      } catch (error) {
         console.warn('Failed to cache notifications:', error);
-      });
+      }
 
       setNotifications(notificationList);
     }
@@ -221,9 +223,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       const count = unreadCountData.unreadNotificationsCount;
 
       // Cache the unread count
-      NotificationCacheUtils.cacheUserUnreadCount(user.id, count).catch(error => {
+      try {
+        NotificationCacheUtils.cacheUserUnreadCount(user.id, count);
+      } catch (error) {
         console.warn('Failed to cache unread count:', error);
-      });
+      }
 
       setUnreadCount(count);
     }

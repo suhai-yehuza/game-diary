@@ -6,12 +6,15 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
-import { useTopGameLogs } from '@/hooks/use-top-game-logs';
+import { useOptimizedLandingPageData } from '@/hooks/use-landing-page-data';
 import { API_LIMITS } from '@/lib/constants';
-import type { IGameLog } from '@/types';
+import type { ITrendingGameLog } from '@/types';
 
 export function FloatingTopGameLogs() {
-  const { topGameLogs, loading, error } = useTopGameLogs({ limit: API_LIMITS.GAME_LOGS.LARGE });
+  const { data, loading, error } = useOptimizedLandingPageData({
+    limit: API_LIMITS.GAME_LOGS.LARGE,
+  });
+  const topGameLogs = data?.trendingContent?.topGameLogs || [];
   const { bannerHeight } = useBannerVisibility();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLargeScreen, setIsLargeScreen] = useState(false);
@@ -247,7 +250,7 @@ export function FloatingTopGameLogs() {
                 </button>
 
                 <div className="flex gap-1 justify-center flex-1 mx-2">
-                  {topGameLogs.slice(0, 4).map((log: IGameLog, index: number) => (
+                  {topGameLogs.slice(0, 4).map((log: ITrendingGameLog, index: number) => (
                     <button
                       key={`mobile-log-dot-${log.id}`}
                       onClick={() => setCurrentIndex(index)}
@@ -269,7 +272,7 @@ export function FloatingTopGameLogs() {
 
               {/* Mobile View All Button */}
               <Link
-                href="/protected/user"
+                href="/protected/dashboard"
                 className="block w-full text-center py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg text-xs font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
               >
                 View All Game Logs
@@ -400,20 +403,24 @@ export function FloatingTopGameLogs() {
               {/* Activity Stats */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                    <MessageCircle className="w-3 h-3" />
-                    <span className="hidden sm:inline">
-                      {currentGameLog.totalCommentCount || 0} comments
-                    </span>
-                    <span className="sm:hidden">{currentGameLog.totalCommentCount || 0}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
-                    <Heart className="w-3 h-3" />
-                    <span className="hidden sm:inline">
-                      {currentGameLog.totalReactionCount || 0} reactions
-                    </span>
-                    <span className="sm:hidden">{currentGameLog.totalReactionCount || 0}</span>
-                  </div>
+                  {(currentGameLog.totalCommentCount || 0) > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                      <MessageCircle className="w-3 h-3" />
+                      <span className="hidden sm:inline">
+                        {currentGameLog.totalCommentCount || 0} comments
+                      </span>
+                      <span className="sm:hidden">{currentGameLog.totalCommentCount || 0}</span>
+                    </div>
+                  )}
+                  {(currentGameLog.totalReactionCount || 0) > 0 && (
+                    <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
+                      <Heart className="w-3 h-3" />
+                      <span className="hidden sm:inline">
+                        {currentGameLog.totalReactionCount || 0} reactions
+                      </span>
+                      <span className="sm:hidden">{currentGameLog.totalReactionCount || 0}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -432,7 +439,7 @@ export function FloatingTopGameLogs() {
                 <div className="flex gap-1 flex-wrap justify-center flex-1 mx-2">
                   {topGameLogs
                     .slice(0, isLargeScreen ? 10 : isMediumScreen ? 8 : 6)
-                    .map((gameLog: IGameLog, index: number) => (
+                    .map((gameLog: ITrendingGameLog, index: number) => (
                       <button
                         key={`log-navigation-dot-${gameLog.id}`}
                         onClick={() => setCurrentIndex(index)}
@@ -459,7 +466,7 @@ export function FloatingTopGameLogs() {
 
               {/* View All Button */}
               <Link
-                href="/protected/user"
+                href="/protected/dashboard"
                 className="block w-full text-center py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105"
               >
                 Explore Game Logs

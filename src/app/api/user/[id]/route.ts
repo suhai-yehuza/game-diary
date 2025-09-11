@@ -54,7 +54,7 @@ async function areUsersFriends(userId1: string, userId2: string): Promise<boolea
   }
 }
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
 
@@ -62,7 +62,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const targetUserId = params.id;
+    const resolvedParams = await params;
+    const targetUserId = resolvedParams.id;
 
     // Try to fetch the target user from database first
     const targetUser = await db()?.query.users.findFirst({

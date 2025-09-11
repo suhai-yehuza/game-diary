@@ -11,25 +11,50 @@ import type { IPlayerResponse, IPlayerFilters } from '@/types';
  */
 function convertDbPlayerToApiFormat(dbPlayer: Record<string, unknown>): IPlayerResponse {
   try {
-    // Parse JSON fields safely
-    const birth = dbPlayer.birth ? JSON.parse(dbPlayer.birth as string) : null;
-    const nba = dbPlayer.nba ? JSON.parse(dbPlayer.nba as string) : null;
-    const height = dbPlayer.height ? JSON.parse(dbPlayer.height as string) : null;
-    const weight = dbPlayer.weight ? JSON.parse(dbPlayer.weight as string) : null;
-    const _teams = dbPlayer.teams ? JSON.parse(dbPlayer.teams as string) : null;
-    const leagues = dbPlayer.leagues ? JSON.parse(dbPlayer.leagues as string) : null;
+    // Handle JSONB fields - they might already be objects or need parsing
+    const birth = dbPlayer.birth
+      ? typeof dbPlayer.birth === 'string'
+        ? JSON.parse(dbPlayer.birth)
+        : dbPlayer.birth
+      : null;
+    const nba = dbPlayer.nba
+      ? typeof dbPlayer.nba === 'string'
+        ? JSON.parse(dbPlayer.nba)
+        : dbPlayer.nba
+      : null;
+    const height = dbPlayer.height
+      ? typeof dbPlayer.height === 'string'
+        ? JSON.parse(dbPlayer.height)
+        : dbPlayer.height
+      : null;
+    const weight = dbPlayer.weight
+      ? typeof dbPlayer.weight === 'string'
+        ? JSON.parse(dbPlayer.weight)
+        : dbPlayer.weight
+      : null;
+    const teams = dbPlayer.teams
+      ? typeof dbPlayer.teams === 'string'
+        ? JSON.parse(dbPlayer.teams)
+        : dbPlayer.teams
+      : null;
+    const leagues = dbPlayer.leagues
+      ? typeof dbPlayer.leagues === 'string'
+        ? JSON.parse(dbPlayer.leagues)
+        : dbPlayer.leagues
+      : null;
 
     return {
       id: String(dbPlayer.id),
       firstname: (dbPlayer.first_name as string) || (dbPlayer.firstName as string),
       lastname: (dbPlayer.last_name as string) || (dbPlayer.lastName as string),
       name: `${(dbPlayer.first_name as string) || ''} ${(dbPlayer.last_name as string) || ''}`.trim(),
-      position: 'Guard',
+      position: leagues?.standard?.pos || 'Guard', // Get position from JSONB or default to Guard
       team: {},
       birth,
       nba,
       height,
       weight,
+      teams,
       college: dbPlayer.college as string | null,
       affiliation: dbPlayer.affiliation as string | null,
       leagues,
@@ -70,7 +95,7 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
     const {
       searchTerm,
       positionFilter,
-      teamFilter,
+      team,
       collegeFilter,
       countryFilter,
       sortBy = 'name',
@@ -82,14 +107,15 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
     // Build WHERE conditions
     const conditions = [];
 
-    // Search term - search in first name, last name, or college
+    // Search term - search in first name, last name, college, or birth.country
     if (searchTerm?.trim()) {
       const term = `%${searchTerm.trim()}%`;
       conditions.push(
         or(
           ilike(basketball_players.first_name, term),
           ilike(basketball_players.last_name, term),
-          ilike(basketball_players.college, term)
+          ilike(basketball_players.college, term),
+          sql`${basketball_players.birth}::text ILIKE ${term}`
         )
       );
     }
@@ -99,23 +125,40 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
       conditions.push(ilike(basketball_players.college, `%${collegeFilter}%`));
     }
 
-    // Position filter - search in leagues JSON
+    // Year filter - temporarily disabled due to SQL syntax issues
+    // TODO: Fix year filter logic
+    // if (yearFilter && yearFilter !== 'all') {
+    //   if (yearFilter === 'veteran') {
+    //     // Players with NBA start year > 0 (have NBA experience)
+    //     conditions.push(sql`${basketball_players.nba}::text NOT ILIKE ${`%"start":0%`}`);
+    //     conditions.push(sql`${basketball_players.nba} IS NOT NULL`);
+    //   } else if (yearFilter === 'rookie') {
+    //     // Players with NBA start year = 0 or null (no NBA experience)
+    //     conditions.push(sql`(${basketball_players.nba}::text ILIKE ${`%"start":0%`} OR ${basketball_players.nba} IS NULL)`);
+    //   }
+    // }
+
+    // Position filter - query from leagues JSONB field
     if (positionFilter && positionFilter !== 'all') {
-      conditions.push(ilike(basketball_players.leagues, `%${positionFilter}%`));
+      conditions.push(
+        sql`${basketball_players.leagues}::text ILIKE ${`%"pos":"${positionFilter}"%`}`
+      );
     }
 
-    // Team filter - search in teams JSON
-    if (teamFilter && teamFilter !== 'all') {
-      conditions.push(ilike(basketball_players.teams, `%${teamFilter}%`));
+    // Team filter - query from teams JSONB field (array of team objects)
+    if (team && team !== 'all') {
+      conditions.push(sql`${basketball_players.teams}::text ILIKE ${`%${team}%`}`);
     }
 
-    // Country filter - search in birth JSON for country
+    // Country filter - query from birth JSONB field
     if (countryFilter && countryFilter !== 'all') {
-      conditions.push(ilike(basketball_players.birth, `%${countryFilter}%`));
+      conditions.push(
+        sql`${basketball_players.birth}::text ILIKE ${`%"country":"${countryFilter}"%`}`
+      );
     }
 
-    // TEMPORARILY: Remove all conditions to test if we can fetch any players
-    const _whereClause = undefined; // conditions.length > 0 ? and(...conditions) : undefined;
+    // Build WHERE clause
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     // Build ORDER BY clause
     let orderBy;
@@ -136,22 +179,36 @@ export async function getPlayers(filters: IPlayerFilters = {}): Promise<{
         orderBy = [basketball_players.last_name, basketball_players.first_name];
     }
 
-    // Use the same database connection method as the working endpoints
-    const dbPlayers = await db()?.query.basketball_players.findMany({
-      limit,
-      offset,
-      orderBy: orderBy,
-      where: isNull(basketball_players.deleted_at), // Only get non-deleted players
-    });
-
-    // Get total count using raw SQL like the search endpoint
-    const countQuery = sql`SELECT COUNT(*) as count FROM basketball_players WHERE deleted_at IS NULL`;
+    // Use explicit select to ensure all fields are included
     const database = db();
     if (!database) {
       throw new Error('Database not available');
     }
-    const countResult = await database.execute(countQuery);
-    const total = parseInt((countResult.rows[0]?.count as string) ?? '0');
+
+    const dbPlayers = await database
+      .select()
+      .from(basketball_players)
+      .where(
+        whereClause
+          ? and(whereClause, isNull(basketball_players.deleted_at))
+          : isNull(basketball_players.deleted_at)
+      )
+      .limit(limit)
+      .offset(offset)
+      .orderBy(...orderBy);
+
+    // Get total count with same filters
+
+    const countResult = await database
+      .select({ count: sql<number>`count(*)` })
+      .from(basketball_players)
+      .where(
+        whereClause
+          ? and(whereClause, isNull(basketball_players.deleted_at))
+          : isNull(basketball_players.deleted_at)
+      );
+
+    const total = countResult[0]?.count || 0;
 
     // Convert to API format
     const players = dbPlayers?.map(convertDbPlayerToApiFormat) ?? [];

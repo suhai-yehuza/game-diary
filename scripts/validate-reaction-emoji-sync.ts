@@ -66,7 +66,7 @@ function validateReactionEmojiSync(): ValidationResult {
   const projectRoot = process.cwd();
 
   const constantsPath = join(projectRoot, 'src/lib/constants/index.ts');
-  const migrationPath = join(projectRoot, 'src/lib/db/migrations/data/001_reaction_emojis.sql');
+  const migrationPath = join(projectRoot, 'src/lib/db/migrations/006_reaction_emojis.sql');
   const setupScriptPath = join(projectRoot, 'scripts/db/setup-complete-database.ts');
 
   const constants = extractEmojisFromConstants(constantsPath);

@@ -9,10 +9,6 @@ NOTES
 > pnpm hard:reseed:dev
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm hard:reseed:prod
 
-# Test all triggers are working correctly
-> pnpm db:test:all-triggers
-# > pnpm db:test:all-triggers:prod:override
-
 # seed user data (for dev only)
 > pnpm seed:user-data:large-pareto:dev
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true DISABLE_USER_SEEDING=false pnpm seed:user-data:large-pareto:prod
@@ -21,10 +17,15 @@ NOTES
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm seed:test-user-interactions:prod
 
 
+# [Optional 1] Test clerk webhook locally
 # for local clerk
 > ngrok http --url=cuddly-unduly-zebra.ngrok-free.app 3000
 
-# view virtual db
+# # [Optional 2] Test all triggers are working correctly
+> pnpm db:test:all-triggers
+# > pnpm db:test:all-triggers:prod:override
+
+# # [Optional 3] View virtual db
 > db:studio
 ===== ===== ===== ===== =====
 

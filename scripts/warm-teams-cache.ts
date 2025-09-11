@@ -1,6 +1,6 @@
 #!/usr/bin/env tsx
 
-import { hybridCacheService } from '../src/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '../src/lib/cache/simple-cache-service';
 import { logger } from '../src/lib/utils/logger';
 
 async function warmTeamsCache() {
@@ -15,15 +15,15 @@ async function warmTeamsCache() {
 
     const data = await response.json();
     logger.info('teams-cache', 'warming-completed', {
-      teamsCount: data.response?.length || 0,
+      teamsCount: data.teams?.length || 0,
       cacheKey: 'teams:all',
     });
 
     console.log('✅ Teams cache warmed successfully!');
-    console.log(`📊 Loaded ${data.response?.length || 0} teams into cache`);
+    console.log(`📊 Loaded ${data.teams?.length || 0} teams into cache`);
 
     // Show cache stats
-    const stats = await hybridCacheService.getStats();
+    const stats = simpleCacheService.getStats();
     const teamsCacheKeys = Object.keys(stats).filter(key => key.startsWith('teams:'));
 
     console.log('\n📈 Cache Statistics:');

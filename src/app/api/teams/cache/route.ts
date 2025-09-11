@@ -1,13 +1,13 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { hybridCacheService } from '@/lib/cache/hybrid-cache-service';
+import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { logger } from '@/lib/utils/logger';
 
 export function GET() {
   try {
     // Get cache statistics for teams
-    const cacheStats = hybridCacheService.getStats();
+    const cacheStats = simpleCacheService.getStats();
     const teamsCacheKeys = Object.keys(cacheStats).filter(key => key.startsWith('teams:'));
 
     const teamsCacheInfo = teamsCacheKeys.map(key => ({
@@ -34,7 +34,7 @@ export function GET() {
   }
 }
 
-export async function DELETE(request: NextRequest) {
+export function DELETE(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const action = searchParams.get('action');
@@ -43,11 +43,11 @@ export async function DELETE(request: NextRequest) {
     if (action === 'invalidate') {
       if (league) {
         // Invalidate specific league cache
-        await hybridCacheService.clear();
+        simpleCacheService.clear();
         logger.info('Teams cache invalidated for league', { league });
       } else {
         // Invalidate all teams cache
-        await hybridCacheService.clear();
+        simpleCacheService.clear();
         logger.info('All teams cache invalidated');
       }
 

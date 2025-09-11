@@ -136,9 +136,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith({
-        fetchPolicy: 'network-only',
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should handle refetch error', async () => {
@@ -364,9 +362,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith({
-        fetchPolicy: 'network-only',
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should handle loadMore functionality', async () => {
@@ -467,9 +463,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith({
-        fetchPolicy: 'network-only',
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should handle refetch with null data', async () => {
@@ -490,9 +484,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith({
-        fetchPolicy: 'network-only',
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should skip query when userId is empty', () => {
@@ -689,11 +681,7 @@ describe('Friendship Hooks', () => {
 
       // The users state should be updated after the search completes
       expect(result.current.users).toEqual([{ id: '1', username: 'user1' }]);
-      expect(mockRefetch).toHaveBeenCalledWith({
-        searchTerm: 'user1',
-        searchField: 'all',
-        pagination: { first: 10 },
-      });
+      expect(mockRefetch).toHaveBeenCalledWith();
     });
 
     it('should handle search error', async () => {

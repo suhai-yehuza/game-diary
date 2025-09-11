@@ -4,26 +4,28 @@ import { describe, it, expect } from 'vitest';
 // More comprehensive tests can be added later once component dependencies are stable
 describe('GameLogCard', () => {
   it('can be imported successfully', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogCard');
+    const importedModule = await import('@/app/components');
     expect(importedModule.GameLogCard).toBeDefined();
-    expect(typeof importedModule.GameLogCard).toBe('function');
+    // GameLogCard is a memoized component, so it's an object with a type property
+    expect(typeof importedModule.GameLogCard).toBe('object');
   });
 
   it('has the correct export name', async () => {
-    const importedModule = await import('@/app/components/game-logs/GameLogCard');
+    const importedModule = await import('@/app/components');
     expect(importedModule).toHaveProperty('GameLogCard');
   });
 
   it('is a React component', async () => {
-    const { GameLogCard } = await import('@/app/components/game-logs/GameLogCard');
-    // React functional components are functions
-    expect(typeof GameLogCard).toBe('function');
-    // Components should have a length (parameters) indicating they accept props
-    expect(GameLogCard.length).toBeGreaterThanOrEqual(0);
+    const { GameLogCard } = await import('@/app/components');
+    // GameLogCard is a memoized component, so it's an object
+    expect(typeof GameLogCard).toBe('object');
+    // Memoized components have a type property that points to the actual component
+    expect(GameLogCard.type).toBeDefined();
   });
 
   it('component name is correct', async () => {
-    const { GameLogCard } = await import('@/app/components/game-logs/GameLogCard');
-    expect(GameLogCard.name).toBe('GameLogCard');
+    const { GameLogCard } = await import('@/app/components');
+    // For memoized components, check the displayName property
+    expect(GameLogCard.displayName).toBe('GameLogCard');
   });
 });

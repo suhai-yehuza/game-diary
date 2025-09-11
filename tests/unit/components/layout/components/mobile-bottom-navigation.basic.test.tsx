@@ -187,7 +187,7 @@ describe('MobileBottomNavigation', () => {
   });
 
   it('handles different pathname patterns correctly', () => {
-    mockUsePathname.mockReturnValue('/protected/user');
+    mockUsePathname.mockReturnValue('/protected/dashboard');
 
     render(<MobileBottomNavigation />);
 

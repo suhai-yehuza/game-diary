@@ -8,8 +8,7 @@ export const CREATE_GAME = gql`
         id
         date
         status
-        game_type
-        basketball_game_id
+        game_id
         teams
         scores
         created_at

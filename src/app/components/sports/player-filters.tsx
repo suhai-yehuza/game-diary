@@ -8,10 +8,19 @@ import {
   X,
   RefreshCw,
   User,
+  List,
+  Calendar,
+  CheckCircle,
+  Play,
+  Clock,
+  XCircle,
+  MapPin,
+  GraduationCap,
 } from 'lucide-react';
 
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
+import { CustomSelect } from '@/app/components/ui/custom-select';
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import type { IPlayerFiltersProps } from '@/types';
@@ -28,7 +37,7 @@ export function PlayerFilters({
   onToggleAdvancedFilters,
   onRefresh,
 }: IPlayerFiltersProps) {
-  const selectStyle = {
+  const _selectStyle = {
     backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
     backgroundPosition: 'right 12px center',
     backgroundSize: '16px 16px',
@@ -85,44 +94,49 @@ export function PlayerFilters({
             />
           </div>
 
-          <select
+          <CustomSelect
             value={filters.positionFilter}
-            onChange={e => onUpdateFilter('positionFilter', e.target.value)}
-            className="h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-            style={selectStyle}
-          >
-            <option value="all">All Positions</option>
-            {filterOptions.positions?.map((position: string) => (
-              <option key={position} value={position}>
-                {position}
-              </option>
-            )) || []}
-          </select>
+            onChange={value => onUpdateFilter('positionFilter', value)}
+            options={[
+              { value: 'all', label: 'All Positions', icon: <User className="w-4 h-4" /> },
+              ...(filterOptions.positions?.map((position: string) => ({
+                value: position,
+                label: position,
+                icon: <Play className="w-4 h-4" />,
+              })) || []),
+            ]}
+            size="md"
+            variant="outline"
+            className="h-11"
+          />
 
-          <select
+          <CustomSelect
             value={filters.activeFilter}
-            onChange={e => onUpdateFilter('activeFilter', e.target.value)}
-            className="h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-            style={selectStyle}
-          >
-            <option value="all">All Players</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+            onChange={value => onUpdateFilter('activeFilter', value)}
+            options={[
+              { value: 'all', label: 'All Players', icon: <User className="w-4 h-4" /> },
+              { value: 'active', label: 'Active', icon: <CheckCircle className="w-4 h-4" /> },
+              { value: 'inactive', label: 'Inactive', icon: <XCircle className="w-4 h-4" /> },
+            ]}
+            size="md"
+            variant="outline"
+            className="h-11"
+          />
 
           <div className="flex gap-2">
-            <select
+            <CustomSelect
               value={filters.sortBy}
-              onChange={e => onUpdateFilter('sortBy', e.target.value)}
-              className="flex-1 h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-              style={selectStyle}
-            >
-              <option value="name">Name</option>
-              <option value="position">Position</option>
-              <option value="age">Age</option>
-
-              <option value="experience">Experience</option>
-            </select>
+              onChange={value => onUpdateFilter('sortBy', value)}
+              options={[
+                { value: 'name', label: 'Name', icon: <List className="w-4 h-4" /> },
+                { value: 'position', label: 'Position', icon: <Play className="w-4 h-4" /> },
+                { value: 'age', label: 'Age', icon: <Calendar className="w-4 h-4" /> },
+                { value: 'experience', label: 'Experience', icon: <Clock className="w-4 h-4" /> },
+              ]}
+              size="md"
+              variant="outline"
+              className="flex-1 h-11"
+            />
             <Button
               variant="outline"
               size="sm"
@@ -144,38 +158,46 @@ export function PlayerFilters({
                 <label className="block text-sm font-medium text-slate-100 dark:text-gray-700 mb-2">
                   Country
                 </label>
-                <select
+                <CustomSelect
                   value={filters.countryFilter}
-                  onChange={e => onUpdateFilter('countryFilter', e.target.value)}
-                  className="w-full h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-                  style={selectStyle}
-                >
-                  <option value="all">All Countries</option>
-                  {filterOptions.countries?.map((country: string) => (
-                    <option key={country} value={country}>
-                      {country}
-                    </option>
-                  )) || []}
-                </select>
+                  onChange={value => onUpdateFilter('countryFilter', value)}
+                  options={[
+                    { value: 'all', label: 'All Countries', icon: <MapPin className="w-4 h-4" /> },
+                    ...(filterOptions.countries?.map((country: string) => ({
+                      value: country,
+                      label: country,
+                      icon: <MapPin className="w-4 h-4" />,
+                    })) || []),
+                  ]}
+                  size="md"
+                  variant="outline"
+                  className="w-full h-11"
+                />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-100 dark:text-gray-700 mb-2">
                   College
                 </label>
-                <select
+                <CustomSelect
                   value={filters.collegeFilter}
-                  onChange={e => onUpdateFilter('collegeFilter', e.target.value)}
-                  className="w-full h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-                  style={selectStyle}
-                >
-                  <option value="all">All Colleges</option>
-                  {filterOptions.colleges?.map((college: string) => (
-                    <option key={college} value={college}>
-                      {college}
-                    </option>
-                  )) || []}
-                </select>
+                  onChange={value => onUpdateFilter('collegeFilter', value)}
+                  options={[
+                    {
+                      value: 'all',
+                      label: 'All Colleges',
+                      icon: <GraduationCap className="w-4 h-4" />,
+                    },
+                    ...(filterOptions.colleges?.map((college: string) => ({
+                      value: college,
+                      label: college,
+                      icon: <GraduationCap className="w-4 h-4" />,
+                    })) || []),
+                  ]}
+                  size="md"
+                  variant="outline"
+                  className="w-full h-11"
+                />
               </div>
             </div>
           </div>

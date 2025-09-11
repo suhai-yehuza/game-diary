@@ -25,6 +25,10 @@ class QueryPerformanceMonitor {
       variables,
       success,
       errorMessage,
+      executionTime: duration,
+      cacheHit: false,
+      resultCount: 0,
+      errorCount: success ? 0 : 1,
     };
 
     this.metrics.push(metric);

@@ -14,7 +14,7 @@ import { GET_COMMENTS } from '@/lib/graphql/queries';
 import { ParentType } from '@/types';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
-// Mock useOptimizedQuery
+// Mock useQuery
 vi.mock('@/hooks/use-optimized-query', () => ({
   useOptimizedQuery: vi.fn(),
 }));
@@ -169,7 +169,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       // Mock the query hook to return the expected data
       const mockRefetch = vi.fn();
@@ -209,7 +209,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useComments('parent-1', 'GAME_LOG'));
 
@@ -228,7 +228,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       const mockError = new Error('Network error');
 
@@ -242,7 +242,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useComments('parent-1', 'GAME_LOG'));
 
@@ -253,7 +253,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       const authError = new Error('Authentication error');
 
@@ -267,7 +267,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useComments());
 
@@ -283,7 +283,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       // Mock the query hook to return the expected data
       let onCompletedCallback: ((data: any) => void) | undefined;
@@ -321,7 +321,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() =>
         useComments('game-1', ParentType.GameLog, {}, { first: 10 })
@@ -339,7 +339,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       const mockRefetch = vi.fn();
 
@@ -359,7 +359,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useComments());
 
@@ -374,7 +374,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       const mockFetchMore = vi.fn();
 
@@ -394,7 +394,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useComments());
 
@@ -560,7 +560,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       // Mock the query hook to return the expected data
       let onCompletedCallback: ((data: any) => void) | undefined;
@@ -598,7 +598,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useGameLogComments('game-1', 3));
 
@@ -616,7 +616,7 @@ describe('use-comments hooks', () => {
       const { useOptimizedQuery } = await import('@/hooks/use-optimized-query');
       const { useOptimizedMutation } = await import('@/hooks/use-optimized-mutation');
       const mockUseOptimizedQuery = vi.mocked(useOptimizedQuery);
-      const mockUseOptimizedMutation = vi.mocked(useOptimizedMutation);
+      const mockUseMutation = vi.mocked(useOptimizedMutation);
 
       // Mock the query hook to return the expected data
       let onCompletedCallback: ((data: any) => void) | undefined;
@@ -654,7 +654,7 @@ describe('use-comments hooks', () => {
       });
 
       // Mock the mutation hook
-      mockUseOptimizedMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
+      mockUseMutation.mockReturnValue([vi.fn(), { loading: false, error: undefined }]);
 
       const { result } = renderHook(() => useCommentReplies('comment-1', 2));
 

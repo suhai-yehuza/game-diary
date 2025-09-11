@@ -59,7 +59,7 @@ export function MobileBottomNavigation() {
       icon: Search,
     },
     {
-      href: '/protected/user',
+      href: '/protected/dashboard',
       label: 'Dashboard',
       icon: User,
     },

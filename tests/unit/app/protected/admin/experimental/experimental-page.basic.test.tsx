@@ -107,6 +107,24 @@ vi.mock('@/types', () => ({
     WARN: 'warn',
     ERROR: 'error',
   },
+  ErrorCategory: {
+    API: 'api',
+    VALIDATION: 'validation',
+    NETWORK: 'network',
+    AUTHENTICATION: 'authentication',
+    AUTHORIZATION: 'authorization',
+    BUSINESS_LOGIC: 'business_logic',
+    SYSTEM: 'system',
+    DATABASE: 'database',
+    UI: 'ui',
+    UNKNOWN: 'unknown',
+  },
+  ErrorSeverity: {
+    LOW: 'low',
+    MEDIUM: 'medium',
+    HIGH: 'high',
+    CRITICAL: 'critical',
+  },
 }));
 
 describe('AdminExperimentalPage', () => {

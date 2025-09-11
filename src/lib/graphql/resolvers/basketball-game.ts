@@ -3,6 +3,9 @@ import { eq, and, desc, sql } from 'drizzle-orm';
 import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { basketball_games, publicComments, publicReactions } from '@/lib/db/schema';
+import { AuthorizationError } from '@/lib/graphql/errors';
+import { mapUserForGraphQL } from '@/lib/graphql/resolvers/utils/user-mapping';
+import { generateUUIDv7 } from '@/lib/utils/id-generator';
 import type { GraphQLContext, IGameTeamsDataResolver } from '@/types';
 
 // Define interfaces for JSONB data structures
@@ -29,9 +32,8 @@ export const gameQueryResolvers = {
       id: game.id,
       date: game.date,
       status: game.status,
-      game_type: game.game_type,
       season: game.season,
-      basketball_game_id: game.basketball_game_id,
+      game_id: game.game_id,
       teams: game.teams,
       home_team: homeTeam,
       away_team: awayTeam,
@@ -82,7 +84,19 @@ export const gameQueryResolvers = {
     }
 
     if (filters?.status) {
-      whereConditions.push(eq(basketball_games.status, filters.status));
+      // Handle status filtering for JSONB field - status is stored as JSONB with 'long' property
+      // Convert GraphQL enum values to database values
+      let statusValue = filters.status;
+      if (filters.status === 'FINISHED') {
+        statusValue = 'Finished';
+      } else if (filters.status === 'LIVE') {
+        statusValue = 'Live';
+      } else if (filters.status === 'SCHEDULED') {
+        statusValue = 'Scheduled';
+      } else if (filters.status === 'CANCELLED') {
+        statusValue = 'Cancelled';
+      }
+      whereConditions.push(sql`${basketball_games.status}->>'long' = ${statusValue}`);
     }
 
     if (filters?.teamId) {
@@ -122,9 +136,8 @@ export const gameQueryResolvers = {
             id: game.id,
             date: game.date,
             status: game.status,
-            game_type: game.game_type,
             season: game.season,
-            basketball_game_id: game.basketball_game_id,
+            game_id: game.game_id,
             teams: game.teams,
             home_team: homeTeam,
             away_team: awayTeam,
@@ -161,7 +174,7 @@ export const gameQueryResolvers = {
 
     // Get the paginated results
     const games = await db()?.query.basketball_games.findMany({
-      where: eq(basketball_games.status, 'LIVE'),
+      where: sql`${basketball_games.status}->>'long' = 'Live'`,
       limit,
       orderBy: [desc(basketball_games.date)],
     });
@@ -172,7 +185,7 @@ export const gameQueryResolvers = {
     const totalCountResult = await db()
       ?.select({ count: sql<number>`count(*)` })
       .from(basketball_games)
-      .where(eq(basketball_games.status, 'LIVE'));
+      .where(sql`${basketball_games.status}->>'long' = 'Live'`);
     const totalCount = totalCountResult?.[0]?.count ?? 0;
 
     const edges =
@@ -188,9 +201,8 @@ export const gameQueryResolvers = {
             id: game.id,
             date: game.date,
             status: game.status,
-            game_type: game.game_type,
             season: game.season,
-            basketball_game_id: game.basketball_game_id,
+            game_id: game.game_id,
             teams: game.teams,
             home_team: homeTeam,
             away_team: awayTeam,
@@ -264,15 +276,7 @@ export const gameResolver = {
         node: {
           id: comment.id,
           content: comment.content,
-          user: comment.user
-            ? {
-                id: comment.user.id,
-                username: comment.user.username,
-                first_name: comment.user.first_name,
-                last_name: comment.user.last_name,
-                image_url: comment.user.image_url,
-              }
-            : null,
+          user: mapUserForGraphQL(comment.user),
           user_id: comment.user_id,
           anonymous_name: comment.anonymous_name,
           anonymous_email: comment.anonymous_email,
@@ -370,5 +374,73 @@ export const gameResolver = {
         )
       );
     return result?.[0]?.count ?? 0;
+  },
+};
+
+// Game Mutation Resolvers
+export const gameMutationResolvers = {
+  // Create a new game
+  createGame: async (
+    _parent: unknown,
+    args: {
+      input: {
+        date: Date;
+        teams?: Record<string, unknown>;
+        game_id?: string;
+        season?: string;
+        status: string;
+        scores?: Record<string, unknown>;
+      };
+    },
+    context: GraphQLContext
+  ) => {
+    if (!context.user?.id) {
+      throw new AuthorizationError('Authentication required');
+    }
+
+    try {
+      // Generate the new formatted ID if we have season and game_id
+      let gameId: string;
+      if (args.input.season && args.input.game_id) {
+        gameId = `${args.input.season}-${args.input.game_id}`;
+      } else {
+        gameId = generateUUIDv7();
+      }
+
+      const newGame = await db()
+        ?.insert(basketball_games)
+        .values({
+          id: gameId,
+          date: args.input.date,
+          teams: args.input.teams,
+          season: args.input.season,
+          game_id: args.input.game_id,
+          status: args.input.status,
+          scores: args.input.scores,
+        })
+        .returning();
+
+      return {
+        game: newGame?.[0]
+          ? {
+              id: newGame[0].id,
+              date: newGame[0].date,
+              status: newGame[0].status,
+              season: newGame[0].season,
+              game_id: newGame[0].game_id,
+              teams: newGame[0].teams,
+              scores: newGame[0].scores,
+              created_at: newGame[0].created_at,
+              updated_at: newGame[0].updated_at,
+            }
+          : null,
+        errors: [],
+      };
+    } catch {
+      return {
+        game: null,
+        errors: [{ message: 'Failed to create game', code: 'CREATE_GAME_ERROR' }],
+      };
+    }
   },
 };
