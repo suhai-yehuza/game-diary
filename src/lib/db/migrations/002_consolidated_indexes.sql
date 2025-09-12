@@ -153,6 +153,17 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_logs_watched_date_range
 ON game_logs (watched_date, created_at DESC)
 WHERE deleted_at IS NULL;
 
+-- Additional indexes for landing page trending content performance
+-- Index for public game logs with engagement scoring
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_logs_public_engagement
+ON game_logs (classification, created_at DESC)
+WHERE deleted_at IS NULL AND classification = 'PUBLIC';
+
+-- Index for game logs with user data (for trending content joins)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_logs_user_game_public
+ON game_logs (user_id, game_id, classification, created_at DESC)
+WHERE deleted_at IS NULL AND classification = 'PUBLIC';
+
 -- ============================================================================
 -- COMMENTS TABLE INDEXES
 -- ============================================================================
@@ -170,6 +181,12 @@ WHERE deleted_at IS NULL;
 
 -- Index for childComments JSONB array operations
 CREATE INDEX IF NOT EXISTS "idx_comments_child_comments" ON "comments" USING gin ("childComments");
+
+-- Additional indexes for landing page engagement queries
+-- Index for game log comments count queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_game_log_count
+ON comments (parent_id, parent_type, deleted_at)
+WHERE deleted_at IS NULL AND parent_type = 'GAME_LOG';
 
 -- ============================================================================
 -- REACTIONS TABLE INDEXES
@@ -191,6 +208,41 @@ CREATE INDEX IF NOT EXISTS "idx_reactions_target_deleted" ON "reactions" ("targe
 WHERE "deleted_at" IS NULL;
 COMMENT ON INDEX "idx_reactions_target_deleted" IS 'Partial index for non-deleted reactions - improves query performance by excluding soft-deleted records';
 
+-- Additional indexes for landing page engagement queries
+-- Index for game log reactions count queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reactions_game_log_count
+ON reactions (target_id, target_type, deleted_at)
+WHERE deleted_at IS NULL AND target_type = 'GAME_LOG';
+
+-- Index for comment reactions count queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_reactions_comment_count
+ON reactions (target_id, target_type, deleted_at)
+WHERE deleted_at IS NULL AND target_type = 'COMMENT';
+
+-- ============================================================================
+-- GAME_RATINGS TABLE INDEXES (CRITICAL FOR LANDING PAGE PERFORMANCE)
+-- ============================================================================
+
+-- Primary index for game_ratings table - most critical for Popular Games
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_ratings_average_rating_desc
+ON game_ratings (average_rating DESC, total_ratings DESC)
+WHERE deleted_at IS NULL;
+
+-- Index for game_id lookups (foreign key)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_ratings_game_id
+ON game_ratings (game_id)
+WHERE deleted_at IS NULL;
+
+-- Index for total_ratings sorting
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_ratings_total_ratings_desc
+ON game_ratings (total_ratings DESC, average_rating DESC)
+WHERE deleted_at IS NULL;
+
+-- Composite index for popular games queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_game_ratings_popular_games
+ON game_ratings (average_rating DESC, total_ratings DESC, game_id)
+WHERE deleted_at IS NULL;
+
 -- ============================================================================
 -- BASKETBALL GAMES TABLE INDEXES
 -- ============================================================================
@@ -209,6 +261,22 @@ WHERE deleted_at IS NULL;
 -- Basketball games indexes for team name filtering
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_teams_gin
 ON basketball_games USING gin (teams)
+WHERE deleted_at IS NULL;
+
+-- Additional indexes for landing page performance
+-- Index for game status filtering (for Latest Results)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_status_date
+ON basketball_games (status, date DESC)
+WHERE deleted_at IS NULL;
+
+-- Index for finished games specifically
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_finished_date
+ON basketball_games (date DESC)
+WHERE deleted_at IS NULL AND status = 'finished';
+
+-- Index for game ratings join performance
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_id_deleted
+ON basketball_games (id, deleted_at)
 WHERE deleted_at IS NULL;
 
 -- ============================================================================
@@ -231,6 +299,22 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_last_name ON bask
 CREATE INDEX IF NOT EXISTS idx_basketball_players_height ON basketball_players (height);
 CREATE INDEX IF NOT EXISTS idx_basketball_players_weight ON basketball_players (weight);
 CREATE INDEX IF NOT EXISTS idx_basketball_players_deleted_at ON basketball_players (deleted_at) WHERE deleted_at IS NULL;
+
+-- Additional indexes for landing page performance
+-- Index for player name searches (for Popular Players)
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_name_search
+ON basketball_players (first_name, last_name)
+WHERE deleted_at IS NULL;
+
+-- Index for player team data JSONB queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_teams_gin
+ON basketball_players USING gin (teams)
+WHERE deleted_at IS NULL;
+
+-- Index for NBA data JSONB queries
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_nba_gin
+ON basketball_players USING gin (nba)
+WHERE deleted_at IS NULL;
 
 -- ============================================================================
 -- FRIENDSHIPS TABLE INDEXES
@@ -353,6 +437,31 @@ COMMENT ON INDEX "idx_basketball_players_first_name" IS 'Optimizes first name se
 COMMENT ON INDEX "idx_basketball_players_last_name" IS 'Optimizes last name searches';
 COMMENT ON INDEX "idx_basketball_players_teams" IS 'Optimizes JSON team data searches using GIN index';
 
+-- Game ratings index comments
+COMMENT ON INDEX idx_game_ratings_average_rating_desc IS 'Critical for Popular Games queries - orders by rating and total ratings';
+COMMENT ON INDEX idx_game_ratings_game_id IS 'Foreign key index for game_ratings.game_id lookups';
+COMMENT ON INDEX idx_game_ratings_total_ratings_desc IS 'Index for sorting by total ratings count';
+COMMENT ON INDEX idx_game_ratings_popular_games IS 'Composite index optimized for popular games queries';
+
+-- Basketball players additional index comments
+COMMENT ON INDEX idx_basketball_players_name_search IS 'Optimizes player name searches for Popular Players';
+COMMENT ON INDEX idx_basketball_players_teams_gin IS 'GIN index for JSONB teams data queries';
+COMMENT ON INDEX idx_basketball_players_nba_gin IS 'GIN index for JSONB NBA data queries';
+
+-- Basketball games additional index comments
+COMMENT ON INDEX idx_basketball_games_status_date IS 'Optimizes Latest Results queries by status and date';
+COMMENT ON INDEX idx_basketball_games_finished_date IS 'Optimizes finished games queries for Latest Results';
+COMMENT ON INDEX idx_basketball_games_id_deleted IS 'Optimizes game_ratings JOIN performance';
+
+-- Game logs additional index comments
+COMMENT ON INDEX idx_game_logs_public_engagement IS 'Optimizes Trending Content queries for public game logs';
+COMMENT ON INDEX idx_game_logs_user_game_public IS 'Optimizes trending content joins with user data';
+
+-- Comments and reactions additional index comments
+COMMENT ON INDEX idx_comments_game_log_count IS 'Optimizes comment count queries for game logs';
+COMMENT ON INDEX idx_reactions_game_log_count IS 'Optimizes reaction count queries for game logs';
+COMMENT ON INDEX idx_reactions_comment_count IS 'Optimizes reaction count queries for comments';
+
 -- ============================================================================
 -- ANALYZE TABLES TO UPDATE STATISTICS
 -- ============================================================================
@@ -361,6 +470,7 @@ COMMENT ON INDEX "idx_basketball_players_teams" IS 'Optimizes JSON team data sea
 ANALYZE game_logs;
 ANALYZE comments;
 ANALYZE reactions;
+ANALYZE game_ratings;
 ANALYZE basketball_games;
 ANALYZE basketball_teams;
 ANALYZE basketball_players;
@@ -380,6 +490,7 @@ ANALYZE rls_access_logs;
 -- Note: This consolidated indexes file replaces:
 -- - All indexes from 000_base_schema.sql
 -- - All indexes from 001_performance_indexes.sql
+-- - All indexes from 002_missing_indexes.sql (consolidated)
 -- - All indexes from triggers.sql
 --
 -- All indexes are optimized for:
@@ -387,8 +498,10 @@ ANALYZE rls_access_logs;
 -- - User search and authentication
 -- - Social features (comments, reactions, friendships)
 -- - Basketball data queries
+-- - Game ratings queries (critical for landing page)
 -- - Public content queries
 -- - Audit and security monitoring
+-- - Landing page performance (Popular Games, Popular Players, Latest Results, Trending Content)
 --
 -- Indexes use CONCURRENTLY where possible to avoid blocking operations
 -- and include proper WHERE clauses for partial indexes to improve performance.

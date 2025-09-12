@@ -2,6 +2,7 @@
 
 import { useUser } from '@clerk/nextjs';
 import { Search, UserPlus, Check, X, Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 
@@ -54,7 +55,7 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
 
       try {
         await sendFriendRequest({
-          variables: { recipientId: userId },
+          variables: { userId },
           context: {
             component: 'OptimizedFriendsTable',
             action: 'Send friend request',
@@ -138,7 +139,8 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
       <Button
         variant="outline"
         size="sm"
-        onClick={() => {
+        onClick={e => {
+          e?.stopPropagation();
           if (friendshipStatus.friendshipId) {
             void removeFriend({
               variables: { friendshipId: friendshipStatus.friendshipId },
@@ -166,7 +168,8 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => {
+          onClick={e => {
+            e?.stopPropagation();
             if (friendshipStatus.friendshipId) {
               void handleCancelFriendRequest(friendshipStatus.friendshipId);
             }
@@ -184,7 +187,8 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
+            onClick={e => {
+              e?.stopPropagation();
               if (friendshipStatus.friendshipId) {
                 void acceptFriendRequest({
                   variables: { friendshipId: friendshipStatus.friendshipId },
@@ -206,7 +210,8 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
+            onClick={e => {
+              e?.stopPropagation();
               if (friendshipStatus.friendshipId) {
                 void rejectFriendRequest({
                   variables: { friendshipId: friendshipStatus.friendshipId },
@@ -235,7 +240,10 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
     <Button
       variant="outline"
       size="sm"
-      onClick={() => void handleSendFriendRequest(userResult.id)}
+      onClick={e => {
+        e?.stopPropagation();
+        void handleSendFriendRequest(userResult.id);
+      }}
       disabled={sendingRequests.has(userResult.id)}
       className="text-blue-600 border-blue-200 hover:bg-blue-50 dark:text-blue-400 dark:border-blue-800 dark:hover:bg-blue-900/20"
     >
@@ -246,6 +254,8 @@ function UserFriendButton({ userResult }: { userResult: UserSummary }) {
 }
 
 export function OptimizedFriendsTable() {
+  const router = useRouter();
+
   // Handle case where Clerk is not configured (e.g., in test environment)
   let user = null;
   let _isLoaded = false;
@@ -262,15 +272,18 @@ export function OptimizedFriendsTable() {
   }
 
   const [userSearchTerm, setUserSearchTerm] = useState('');
-  const [showUserSearch, setShowUserSearch] = useState(false);
-  const [searchResults, setSearchResults] = useState<UserSummary[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [activeTab, setActiveTab] = useState('friends');
   const [cancelledRequests, setCancelledRequests] = useState<Set<string>>(new Set());
 
   // Optimized user search hook
-  const { loading: userSearchLoading, search } = useOptimizedUserSearch({
-    limit: 10,
+  const {
+    users: searchResults,
+    loading: userSearchLoading,
+    totalCount: searchTotalCount,
+    search,
+  } = useOptimizedUserSearch({
+    limit: 100, // Increased limit to show more results
     useCountsOnly: false,
     useDetailed: false,
   });
@@ -280,13 +293,14 @@ export function OptimizedFriendsTable() {
     friendships: acceptedFriends,
     loading: friendsLoading,
     totalCount: friendsCount,
+    refetch: refetchFriends,
   } = useOptimizedFriendships(
     {
       status: FriendshipStatus.Accepted,
     },
     {
       skip: activeTab !== 'friends',
-      limit: 10,
+      limit: 50, // Proper limit now that pagination is fixed
       useCountsOnly: false,
       useDetailed: false,
     }
@@ -299,7 +313,7 @@ export function OptimizedFriendsTable() {
     totalCount: pendingCount,
   } = useOptimizedFriendshipRequests({
     skip: activeTab !== 'requests',
-    limit: 10,
+    limit: 50, // Increased limit to show more requests
     useCountsOnly: false,
     useDetailed: false,
   });
@@ -316,7 +330,7 @@ export function OptimizedFriendsTable() {
     },
     {
       skip: activeTab !== 'sent',
-      limit: 10,
+      limit: 50, // Increased limit to show more sent requests
       useCountsOnly: false,
       useDetailed: false,
     }
@@ -354,6 +368,14 @@ export function OptimizedFriendsTable() {
       }
     },
     [removeFriend]
+  );
+
+  // Handle friend card click to navigate to user profile
+  const handleFriendCardClick = useCallback(
+    (friendId: string) => {
+      router.push(`/users/${friendId}`);
+    },
+    [router]
   );
 
   // Accept friend request handler
@@ -497,33 +519,50 @@ export function OptimizedFriendsTable() {
       }
 
       if (!searchTerm.trim()) {
-        setSearchResults([]);
+        // Clear search results by calling search with empty string
+        void search('');
         setIsTyping(false);
         return;
       }
 
       setIsTyping(true);
 
+      // Search immediately if we have 2+ characters, otherwise use a very short debounce
+      const shouldSearchImmediately = searchTerm.trim().length >= 2;
+      const debounceTime = shouldSearchImmediately ? 50 : 150; // Very responsive
+
       searchTimeoutRef.current = setTimeout(() => {
         try {
           void search(searchTerm);
           setIsTyping(false);
-        } catch (error) {
-          console.error('Search error:', error);
+        } catch (_error) {
           setIsTyping(false);
         }
-      }, 300); // 300ms debounce
+      }, debounceTime);
     },
     [search]
   );
 
-  // Update search results when search completes
+  // Force refresh friends data when switching to friends tab
   useEffect(() => {
-    if (!userSearchLoading && !isTyping) {
-      // This would need to be connected to the search results from the hook
-      // For now, we'll use the existing search results state
+    if (activeTab === 'friends' && refetchFriends) {
+      // Small delay to ensure the tab switch is complete
+      const timer = setTimeout(() => {
+        void refetchFriends();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [userSearchLoading, isTyping]);
+  }, [activeTab, refetchFriends]);
+
+  // Force refresh on component mount to ensure fresh data
+  useEffect(() => {
+    if (refetchFriends) {
+      const timer = setTimeout(() => {
+        void refetchFriends();
+      }, 500); // Slightly longer delay on mount
+      return () => clearTimeout(timer);
+    }
+  }, [refetchFriends]);
 
   return (
     <div className="space-y-6">
@@ -544,14 +583,14 @@ export function OptimizedFriendsTable() {
       </div>
 
       {/* User Search Section */}
-      <Card>
+      <Card className="h-auto">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Search className="h-5 w-5" />
             Find Friends
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="h-auto">
           <div className="space-y-4">
             <div className="flex gap-2">
               <input
@@ -564,53 +603,93 @@ export function OptimizedFriendsTable() {
                 }}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
-              <Button
-                variant="outline"
-                onClick={() => setShowUserSearch(!showUserSearch)}
-                className="px-4"
-              >
-                {showUserSearch ? 'Hide' : 'Show'} Results
-              </Button>
+              {userSearchTerm && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setUserSearchTerm('');
+                    void handleUserSearch('');
+                  }}
+                  className="px-4"
+                >
+                  Clear
+                </Button>
+              )}
             </div>
 
-            {showUserSearch && (
+            {/* Always show results when there's a search term */}
+            {userSearchTerm && (
               <div className="space-y-2">
                 {isTyping ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
-                    <p className="text-sm text-gray-500 mt-2">Searching...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                      Searching for &quot;{userSearchTerm}&quot;...
+                    </p>
                   </div>
                 ) : userSearchLoading ? (
                   <div className="text-center py-4">
                     <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto" />
-                    <p className="text-sm text-gray-500 mt-2">Loading results...</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                      Loading results...
+                    </p>
                   </div>
                 ) : searchResults.length > 0 ? (
                   <div className="space-y-2">
-                    {searchResults.map(userResult => (
-                      <div
-                        key={userResult.id}
-                        className="flex items-center justify-between p-3 border border-gray-200 rounded-lg"
-                      >
-                        <div className="flex items-center space-x-3">
-                          <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <span className="text-sm font-medium text-gray-600">
-                              {userResult.first_name?.[0] || userResult.username?.[0] || 'U'}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {userResult.first_name} {userResult.last_name}
-                            </p>
-                            <p className="text-sm text-gray-500">@{userResult.username}</p>
-                          </div>
-                        </div>
-                        <UserFriendButton userResult={userResult} />
+                    {/* Hit count display */}
+                    <div className="flex items-center justify-between px-3 py-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          Found {searchTotalCount || searchResults.length} user
+                          {(searchTotalCount || searchResults.length) !== 1 ? 's' : ''} matching
+                          &quot;
+                          {userSearchTerm}&quot;
+                        </span>
                       </div>
-                    ))}
+                      <div className="text-xs text-blue-600 dark:text-blue-400">
+                        Showing {searchResults.length} of {searchTotalCount || searchResults.length}
+                      </div>
+                    </div>
+
+                    {/* Search results */}
+                    <div className="overflow-y-auto max-h-[80vh]">
+                      {searchResults.map((userResult, index) => (
+                        <div
+                          key={userResult.id}
+                          className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <div
+                            className="flex items-center space-x-3 cursor-pointer flex-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md p-2 -m-2 transition-colors mr-4"
+                            onClick={() => {
+                              // Navigate to user profile
+                              router.push(`/users/${userResult.id}`);
+                            }}
+                          >
+                            <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                              <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                {userResult.first_name?.[0] || userResult.username?.[0] || 'U'}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-white">
+                                {userResult.first_name} {userResult.last_name}
+                                <span className="text-xs text-gray-400 ml-2">#{index + 1}</span>
+                              </p>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                @{userResult.username}
+                              </p>
+                            </div>
+                          </div>
+                          <UserFriendButton userResult={userResult} />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : userSearchTerm.trim() ? (
-                  <p className="text-center py-4 text-gray-500">No users found</p>
+                  <p className="text-center py-4 text-gray-500 dark:text-gray-400">
+                    No users found
+                  </p>
                 ) : null}
               </div>
             )}
@@ -652,17 +731,21 @@ export function OptimizedFriendsTable() {
                 <div className="space-y-3">
                   {acceptedFriends.map(friendship => {
                     // The friend is the other person in the friendship (not the current user)
+                    // We need to determine which user is NOT the current user
                     const friend =
-                      friendship.initiator?.id === user?.id
-                        ? friendship.recipient
-                        : friendship.initiator;
+                      friendship.recipient.id === user?.id
+                        ? friendship.initiator
+                        : friendship.recipient;
 
                     return (
                       <div
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <div className="flex items-center space-x-3">
+                        <div
+                          className="flex items-center space-x-3 cursor-pointer flex-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md p-2 -m-2 transition-colors mr-4"
+                          onClick={() => friend?.id && handleFriendCardClick(friend.id)}
+                        >
                           <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                               {friend?.first_name?.[0] || friend?.username?.[0] || 'F'}
@@ -677,15 +760,20 @@ export function OptimizedFriendsTable() {
                             </p>
                           </div>
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => void handleUnfriend(friendship.id)}
-                          className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
-                        >
-                          <X className="h-4 w-4 mr-1" />
-                          Unfriend
-                        </Button>
+                        <div className="flex-shrink-0">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={e => {
+                              e?.stopPropagation();
+                              void handleUnfriend(friendship.id);
+                            }}
+                            className="text-red-600 border-red-200 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-900/20"
+                          >
+                            <X className="h-4 w-4 mr-1" />
+                            Unfriend
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
@@ -725,7 +813,10 @@ export function OptimizedFriendsTable() {
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <div className="flex items-center space-x-3">
+                        <div
+                          className="flex items-center space-x-3 cursor-pointer flex-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md p-2 -m-2 transition-colors mr-4"
+                          onClick={() => requester?.id && handleFriendCardClick(requester.id)}
+                        >
                           <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                               {requester?.first_name?.[0] || requester?.username?.[0] || 'R'}
@@ -797,7 +888,10 @@ export function OptimizedFriendsTable() {
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <div className="flex items-center space-x-3">
+                        <div
+                          className="flex items-center space-x-3 cursor-pointer flex-1 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-md p-2 -m-2 transition-colors mr-4"
+                          onClick={() => recipient?.id && handleFriendCardClick(recipient.id)}
+                        >
                           <div className="w-10 h-10 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
                               {recipient?.first_name?.[0] || recipient?.username?.[0] || 'R'}

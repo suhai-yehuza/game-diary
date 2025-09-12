@@ -15,6 +15,7 @@ import {
   handleResetCommand,
   handleSetupCommand,
   handleCopyMigrationsCommand,
+  handleMigrateCommand,
   showHelp,
 } from './cli/commands';
 
@@ -37,8 +38,7 @@ async function main(): Promise<void> {
         break;
 
       case 'migrate':
-        logger.info('🚧 Migration functionality will be implemented in migration modules');
-        logger.info('💡 For now, use: pnpm db:reset --mode=drizzle --env=dev');
+        await handleMigrateCommand(args, options);
         break;
 
       case 'migrate-file':

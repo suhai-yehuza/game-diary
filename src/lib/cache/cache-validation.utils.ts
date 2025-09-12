@@ -1,3 +1,4 @@
+import { getAppUrl } from '@/lib/config/app.config';
 import { logger } from '@/lib/utils/logger';
 
 import { simpleCacheService } from './simple-cache-service';
@@ -23,7 +24,7 @@ export class CacheValidationUtils {
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
-      const response = await fetch('http://localhost:3000/api/nba-hub/counts');
+      const response = await fetch(`${getAppUrl()}/api/nba-hub/counts`);
       const data = await response.json();
       const databaseCount = data.counts?.players || 0;
 
@@ -69,7 +70,7 @@ export class CacheValidationUtils {
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
-      const response = await fetch('http://localhost:3000/api/nba-hub/counts');
+      const response = await fetch(`${getAppUrl()}/api/nba-hub/counts`);
       const data = await response.json();
       const databaseCount = data.counts?.games || 0;
 
@@ -115,7 +116,7 @@ export class CacheValidationUtils {
       const cachedCount = (cachedData as { response?: unknown[] })?.response?.length || 0;
 
       // Get database count from NBA Hub counts API
-      const response = await fetch('http://localhost:3000/api/nba-hub/counts');
+      const response = await fetch(`${getAppUrl()}/api/nba-hub/counts`);
       const data = await response.json();
       const databaseCount = data.counts?.teams || 0;
 
@@ -155,7 +156,7 @@ export class CacheValidationUtils {
   }> {
     try {
       // Test if NBA Hub counts API is working and returning data
-      const response = await fetch('http://localhost:3000/api/nba-hub/counts');
+      const response = await fetch(`${getAppUrl()}/api/nba-hub/counts`);
       const data = await response.json();
 
       // Check if we got valid counts data
@@ -297,9 +298,7 @@ export class CacheValidationUtils {
       simpleCacheService.invalidate({ pattern: 'players:*' });
 
       // Fetch fresh data with bypass cache
-      const response = await fetch(
-        'http://localhost:3000/api/players?limit=5000&bypass-cache=true'
-      );
+      const response = await fetch(`${getAppUrl()}/api/players?limit=5000&bypass-cache=true`);
       if (!response.ok) {
         throw new Error(`Failed to refresh players cache: ${response.status}`);
       }
@@ -322,7 +321,7 @@ export class CacheValidationUtils {
       simpleCacheService.invalidate({ pattern: 'games:*' });
 
       // Fetch fresh data with bypass cache
-      const response = await fetch('http://localhost:3000/api/games?limit=20000&bypass-cache=true');
+      const response = await fetch(`${getAppUrl()}/api/games?limit=20000&bypass-cache=true`);
       if (!response.ok) {
         throw new Error(`Failed to refresh games cache: ${response.status}`);
       }
@@ -345,7 +344,7 @@ export class CacheValidationUtils {
       simpleCacheService.invalidate({ pattern: 'teams:*' });
 
       // Fetch fresh data with bypass cache
-      const response = await fetch('http://localhost:3000/api/teams?bypass-cache=true');
+      const response = await fetch(`${getAppUrl()}/api/teams?bypass-cache=true`);
       if (!response.ok) {
         throw new Error(`Failed to refresh teams cache: ${response.status}`);
       }

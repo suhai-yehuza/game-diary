@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import type { IUseScrollAnimationProps } from '@/types';
 
 export function useScrollAnimation({
-  speed = 15,
+  speed = 3,
+  mobileSpeed = 2, // Slower on mobile for better readability
   pauseOnHover = true,
   autoStart = true,
-  mobileSpeed = 10, // Slower on mobile for better readability
 }: IUseScrollAnimationProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);

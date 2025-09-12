@@ -1,7 +1,5 @@
 import { pgTable, varchar, text, timestamp, boolean, jsonb, integer } from 'drizzle-orm/pg-core';
 
-import { baseTableConfig } from '@/lib/db/schema/base-schemas';
-
 // Audit log categories
 export const AUDIT_CATEGORIES = {
   KEY_MANAGEMENT: 'key_management',
@@ -109,8 +107,10 @@ export const audit_logs = pgTable(
     // Compliance
     compliance_tags: varchar('compliance_tags', { length: 500 }), // Comma-separated tags
 
-    // Use base table configuration for standard fields
-    ...baseTableConfig,
+    // Standard fields (without deleted_at since it doesn't exist in the actual table)
+    id: varchar('id', { length: 255 }).primaryKey(),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
   _table => ({
     // Constraints and checks can be added here if needed
@@ -153,8 +153,10 @@ export const key_rotation_logs = pgTable(
     details: jsonb('details'),
     error_message: text('error_message'),
 
-    // Use base table configuration for standard fields
-    ...baseTableConfig,
+    // Standard fields (without deleted_at since it doesn't exist in the actual table)
+    id: varchar('id', { length: 255 }).primaryKey(),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
   _table => ({
     // Constraints and checks can be added here if needed
@@ -198,8 +200,10 @@ export const rls_access_logs = pgTable(
     details: jsonb('details'),
     error_message: text('error_message'),
 
-    // Use base table configuration for standard fields
-    ...baseTableConfig,
+    // Standard fields (without deleted_at since it doesn't exist in the actual table)
+    id: varchar('id', { length: 255 }).primaryKey(),
+    created_at: timestamp('created_at').defaultNow().notNull(),
+    updated_at: timestamp('updated_at').defaultNow().notNull(),
   },
   _table => ({
     // Constraints and checks can be added here if needed

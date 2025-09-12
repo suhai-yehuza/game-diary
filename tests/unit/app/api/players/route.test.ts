@@ -73,12 +73,12 @@ describe('GET /api/players', () => {
     expect(getPlayers).toHaveBeenCalledWith({
       searchTerm: undefined,
       positionFilter: undefined,
-      teamFilter: undefined,
+      yearFilter: undefined,
       collegeFilter: undefined,
       countryFilter: undefined,
       sortBy: 'name',
       sortDirection: 'asc',
-      limit: 5000,
+      limit: 200,
       offset: 0,
     });
 
@@ -135,7 +135,7 @@ describe('GET /api/players', () => {
         positionFilter: 'PG',
         collegeFilter: 'Kentucky',
         countryFilter: 'USA',
-        limit: 5000,
+        limit: 200,
         offset: 0,
         sortBy: 'name',
         sortDirection: 'asc',
@@ -187,7 +187,7 @@ describe('GET /api/players', () => {
 
     expect(getPlayers).toHaveBeenCalledWith(
       expect.objectContaining({
-        limit: 5000, // Default value
+        limit: 200, // Default value
         offset: 0, // Default value
       })
     );

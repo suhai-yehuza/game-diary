@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useMemo, useEffect } from 'react';
 
 import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
 import { useOptimizedQuery } from '@/hooks/use-optimized-query';
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   SEND_FRIEND_REQUEST,
   ACCEPT_FRIEND_REQUEST,
@@ -12,16 +13,13 @@ import {
   GET_USER_FRIENDSHIPS,
   GET_FRIENDSHIP_STATUS,
   GET_FRIENDSHIP_REQUESTS,
-  SEARCH_USERS,
   GET_FRIENDSHIPS_COUNTS,
   GET_FRIENDSHIPS_WITH_COUNTS,
   GET_FRIENDSHIPS_DETAILED,
   GET_FRIENDSHIP_REQUESTS_COUNTS,
   GET_FRIENDSHIP_REQUESTS_WITH_COUNTS,
   GET_FRIENDSHIP_REQUESTS_DETAILED,
-  GET_USER_SEARCH_COUNTS,
-  GET_USER_SEARCH_WITH_COUNTS,
-  GET_USER_SEARCH_DETAILED,
+  GET_USER_SEARCH_SIMPLE,
 } from '@/lib/graphql/queries';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { ErrorCategory, ErrorSeverity } from '@/types';
@@ -48,6 +46,7 @@ import type {
 // ============================================================================
 // BASIC FRIENDSHIP HOOKS (Original functionality)
 // ============================================================================
+const defaultLimit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 
 export function useFriendships(filters: FriendshipFilters = {}, options: { skip?: boolean } = {}) {
   const [friendships, setFriendships] = useState<IFriendship[]>([]);
@@ -378,144 +377,6 @@ export function useFriendshipRequests(options: { skip?: boolean } = {}) {
   };
 }
 
-export function useUserSearch() {
-  const [users, setUsers] = useState<UserSummary[]>([]);
-  const [endCursor, setEndCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
-  const [totalCount, setTotalCount] = useState<number>(0);
-  const hasLoggedWarning = useRef(false);
-
-  // Memoize the onCompleted callback to prevent infinite re-renders
-  const onCompleted = useCallback((data: ISearchUsersResponse) => {
-    if (data?.searchUsers) {
-      setUsers(data.searchUsers.edges.map(edge => edge.node));
-      setTotalCount(data.searchUsers.totalCount);
-      setEndCursor(data.searchUsers.pageInfo.endCursor ?? null);
-      setHasNextPage(!!data.searchUsers.pageInfo.hasNextPage);
-    }
-  }, []);
-
-  // Memoize the context to prevent query recreation
-  const context = useMemo(
-    () => ({
-      component: 'useUserSearch',
-      action: 'Search users',
-      category: ErrorCategory.API,
-      severity: ErrorSeverity.MEDIUM,
-      timestamp: new Date(),
-    }),
-    []
-  );
-
-  const { loading, error, refetch, fetchMore } = useOptimizedQuery<ISearchUsersResponse>(
-    SEARCH_USERS,
-    {
-      variables: { searchField: '', pagination: { first: 10 } },
-      context,
-      onCompleted,
-    }
-  );
-
-  // Log slow queries for performance monitoring (only once per query, after 2 seconds)
-  useEffect(() => {
-    if (loading && !hasLoggedWarning.current) {
-      const timer = setTimeout(() => {
-        if (loading) {
-          console.warn(`Slow user search query detected: query is still loading`);
-          hasLoggedWarning.current = true;
-        }
-      }, 2000); // Wait 2 seconds before warning
-
-      return () => clearTimeout(timer);
-    } else if (!loading) {
-      hasLoggedWarning.current = false;
-    }
-  }, [loading]);
-
-  const search = useCallback(
-    async (searchTerm: string) => {
-      if (!searchTerm.trim()) {
-        setUsers([]);
-        return { data: { searchUsers: { edges: [], totalCount: 0 } } };
-      }
-
-      const startTime = performance.now();
-
-      try {
-        const result = await refetch();
-
-        const endTime = performance.now();
-        const queryTime = endTime - startTime;
-
-        // Log slow queries for performance monitoring
-        if (queryTime > 1000) {
-          // Log if query takes more than 1 second
-          console.warn(
-            `Slow user search query detected: ${queryTime.toFixed(2)}ms for term: "${searchTerm}"`
-          );
-        }
-
-        const typedResult = result as { data?: ISearchUsersResponse };
-        if (typedResult.data?.searchUsers) {
-          setUsers(typedResult.data.searchUsers.edges.map(edge => edge.node));
-          setTotalCount(typedResult.data.searchUsers.totalCount);
-          setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
-          setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
-        }
-
-        return result;
-      } catch (err) {
-        const endTime = performance.now();
-        const queryTime = endTime - startTime;
-        console.error(`Error searching users after ${queryTime.toFixed(2)}ms:`, err);
-        return { data: { searchUsers: { edges: [], totalCount: 0 } } };
-      }
-    },
-    [refetch]
-  );
-
-  const loadMore = useCallback(async () => {
-    if (!hasNextPage || !endCursor) return;
-
-    try {
-      const result = await fetchMore({
-        variables: {
-          pagination: {
-            first: 10,
-            after: endCursor,
-          },
-        },
-      });
-
-      const typedResult = result as { data?: ISearchUsersResponse };
-      if (typedResult.data?.searchUsers) {
-        const newUsers = typedResult.data.searchUsers.edges.map(edge => edge.node);
-        setUsers(prev => [...prev, ...newUsers]);
-        setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
-        setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
-      }
-    } catch (error) {
-      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-        component: 'useUserSearch',
-        action: 'Load more users',
-      });
-    }
-  }, [hasNextPage, endCursor, fetchMore]);
-
-  return {
-    users,
-    loading,
-    error: error ? new Error(error.message) : null,
-    search,
-    hasNextPage,
-    loadMore,
-    totalCount,
-    // Performance metrics
-    queryTime: loading,
-    isSlowQuery: loading,
-  };
-}
-
 export function useFriendRequestMutations() {
   const [sendFriendRequest, { loading: sendLoading, error: sendError }] = useOptimizedMutation<{
     sendFriendRequest?: IFriendshipMutationResponse;
@@ -591,7 +452,12 @@ export function useOptimizedFriendships(
   const [totalCount, setTotalCount] = useState<number>(0);
   const hasLoggedWarning = useRef(false);
 
-  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+  const {
+    limit = defaultLimit,
+    skip: _skip = false,
+    useCountsOnly = false,
+    useDetailed = false,
+  } = options;
 
   // Choose the appropriate query based on options
   const query = useMemo(() => {
@@ -740,7 +606,12 @@ export function useOptimizedFriendshipRequests(
   const [totalCount, setTotalCount] = useState<number>(0);
   const hasLoggedWarning = useRef(false);
 
-  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+  const {
+    limit = defaultLimit,
+    skip: _skip = false,
+    useCountsOnly = false,
+    useDetailed = false,
+  } = options;
 
   // Choose the appropriate query based on options
   const query = useMemo(() => {
@@ -881,19 +752,20 @@ export function useOptimizedUserSearch(
   options: IUseOptimizedUserSearchOptions = {}
 ): IUseOptimizedUserSearchReturn {
   const [users, setUsers] = useState<UserSummary[]>([]);
-  const [endCursor, setEndCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(true);
   const [totalCount, setTotalCount] = useState<number>(0);
+  const [_endCursor, setEndCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState<boolean>(false);
   const hasLoggedWarning = useRef(false);
 
-  const { limit = 10, skip: _skip = false, useCountsOnly = false, useDetailed = false } = options;
+  const {
+    limit = defaultLimit,
+    skip: _skip = false,
+    useCountsOnly = false,
+    useDetailed: _useDetailed = false,
+  } = options;
 
-  // Choose the appropriate query based on options
-  const query = useMemo(() => {
-    if (useCountsOnly) return GET_USER_SEARCH_COUNTS;
-    if (useDetailed) return GET_USER_SEARCH_DETAILED;
-    return GET_USER_SEARCH_WITH_COUNTS;
-  }, [useCountsOnly, useDetailed]);
+  // Use the simple search query
+  const query = GET_USER_SEARCH_SIMPLE;
 
   // Memoize the onCompleted callback to prevent infinite re-renders
   const onCompleted = useCallback(
@@ -927,12 +799,12 @@ export function useOptimizedUserSearch(
   const { loading, error, refetch, fetchMore } = useOptimizedQuery<ISearchUsersResponse>(query, {
     variables: {
       searchTerm: '',
-      searchField: 'all',
-      pagination: useCountsOnly ? { first: 1 } : { first: limit },
+      limit: useCountsOnly ? 1 : limit,
     },
     context,
     onCompleted,
     skip: true, // Always skip initial query, use search function instead
+    fetchPolicy: 'network-only', // Always fetch from network, bypass cache
   });
 
   // Log slow queries for performance monitoring (only once per query, after 2 seconds)
@@ -956,36 +828,40 @@ export function useOptimizedUserSearch(
       if (!searchTerm.trim()) {
         setUsers([]);
         setTotalCount(0);
-        return;
+        return { data: { searchUsers: { edges: [], totalCount: 0 } } };
       }
 
       const startTime = performance.now();
 
       try {
-        const result = await refetch();
+        const result = await refetch({
+          searchTerm,
+          limit,
+        });
 
         const endTime = performance.now();
         const queryTime = endTime - startTime;
 
         // Log slow queries for performance monitoring
         if (queryTime > 1000) {
-          // Log if query takes more than 1 second
           console.warn(
             `Slow optimized user search query detected: ${queryTime.toFixed(2)}ms for term: "${searchTerm}"`
           );
         }
 
         const typedResult = result as { data?: ISearchUsersResponse };
+
         if (typedResult.data?.searchUsers) {
           if (useCountsOnly) {
             setTotalCount(typedResult.data.searchUsers.totalCount);
           } else {
             setUsers(typedResult.data.searchUsers.edges.map(edge => edge.node));
             setTotalCount(typedResult.data.searchUsers.totalCount);
-            setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
-            setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
           }
+          return { data: typedResult.data };
         }
+
+        return { data: { searchUsers: { edges: [], totalCount: 0 } } };
       } catch (err) {
         const endTime = performance.now();
         const queryTime = endTime - startTime;
@@ -994,47 +870,47 @@ export function useOptimizedUserSearch(
           component: 'useOptimizedUserSearch',
           action: 'Search users',
         });
+        return { data: { searchUsers: { edges: [], totalCount: 0 } } };
       }
     },
-    [refetch, useCountsOnly]
+    [refetch, useCountsOnly, limit]
   );
-
-  const loadMore = useCallback(async () => {
-    if (!hasNextPage || !endCursor || useCountsOnly) return;
-
-    try {
-      const result = await fetchMore({
-        variables: {
-          pagination: {
-            first: limit,
-            after: endCursor,
-          },
-        },
-      });
-
-      const typedResult = result as { data?: ISearchUsersResponse };
-      if (typedResult.data?.searchUsers) {
-        const newUsers = typedResult.data.searchUsers.edges.map(edge => edge.node);
-        setUsers(prev => [...prev, ...newUsers]);
-        setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor ?? null);
-        setHasNextPage(!!typedResult.data.searchUsers.pageInfo.hasNextPage);
-      }
-    } catch (error) {
-      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-        component: 'useOptimizedUserSearch',
-        action: 'Load more optimized users',
-      });
-    }
-  }, [hasNextPage, endCursor, fetchMore, limit, useCountsOnly]);
 
   return {
     users,
     loading,
     error: error ? new Error(error.message) : null,
     search,
-    hasNextPage,
-    loadMore,
     totalCount,
+    hasNextPage,
+    loadMore: async () => {
+      if (!hasNextPage || !_endCursor) {
+        return;
+      }
+
+      try {
+        const result = await fetchMore({
+          variables: {
+            pagination: { first: limit, after: _endCursor },
+          },
+        });
+
+        const typedResult = result as { data?: ISearchUsersResponse };
+        if (typedResult.data?.searchUsers) {
+          const newUsers = typedResult.data.searchUsers.edges.map(
+            (edge: { node: UserSummary; cursor: string }) => edge.node
+          );
+          setUsers(prev => [...prev, ...newUsers]);
+          setEndCursor(typedResult.data.searchUsers.pageInfo.endCursor);
+          setHasNextPage(typedResult.data.searchUsers.pageInfo.hasNextPage);
+        }
+      } catch (error) {
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'useOptimizedUserSearch',
+          action: 'Load more users',
+        });
+      }
+    },
     // Performance metrics
     queryTime: loading,
     isSlowQuery: loading,

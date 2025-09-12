@@ -1,8 +1,13 @@
-import { sql } from 'drizzle-orm';
-
 import { simpleCacheService, CACHE_CONFIG } from '@/lib/cache';
-import { db } from '@/lib/db';
-import { getGameEngagementQuery } from '@/lib/db/queries';
+import {
+  getGameEngagementQuery,
+  debugDatabaseContentQuery,
+  debugNbaGamesContentQuery,
+  getTopPublicGameLogsQuery,
+  getRecentFinishedGamesQuery,
+  getPopularGamesQuery,
+  getPopularTeamsQuery,
+} from '@/lib/db/queries';
 import { logger } from '@/lib/utils/logger';
 import type {
   ITrendingGameLog,
@@ -32,54 +37,7 @@ export class LandingPageDataService {
     sampleGameLogs: Record<string, unknown>[];
   }> {
     try {
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
-
-      // Check total game logs
-      const totalGameLogsQuery = sql`SELECT COUNT(*) as count FROM game_logs WHERE deleted_at IS NULL`;
-      const totalGameLogsResult = await database.execute(totalGameLogsQuery);
-      const totalGameLogs = totalGameLogsResult.rows?.[0]?.count || 0;
-
-      // Check public game logs
-      const publicGameLogsQuery = sql`SELECT COUNT(*) as count FROM game_logs WHERE classification = 'PUBLIC' AND deleted_at IS NULL`;
-      const publicGameLogsResult = await database.execute(publicGameLogsQuery);
-      const publicGameLogs = publicGameLogsResult.rows?.[0]?.count || 0;
-
-      // Check total comments
-      const totalCommentsQuery = sql`SELECT COUNT(*) as count FROM comments WHERE deleted_at IS NULL`;
-      const totalCommentsResult = await database.execute(totalCommentsQuery);
-      const totalComments = totalCommentsResult.rows?.[0]?.count || 0;
-
-      // Check total reactions
-      const totalReactionsQuery = sql`SELECT COUNT(*) as count FROM reactions WHERE deleted_at IS NULL`;
-      const totalReactionsResult = await database.execute(totalReactionsQuery);
-      const totalReactions = totalReactionsResult.rows?.[0]?.count || 0;
-
-      // Get sample game logs
-      const sampleGameLogsQuery = sql`
-        SELECT
-          gl.id,
-          gl.classification,
-          gl.created_at,
-          u.username
-        FROM game_logs gl
-        LEFT JOIN users u ON gl.user_id = u.id
-        WHERE gl.deleted_at IS NULL
-        ORDER BY gl.created_at DESC
-        LIMIT 10
-      `;
-      const sampleGameLogsResult = await database.execute(sampleGameLogsQuery);
-      const sampleGameLogs = sampleGameLogsResult.rows || [];
-
-      return {
-        totalGameLogs: Number(totalGameLogs),
-        publicGameLogs: Number(publicGameLogs),
-        totalComments: Number(totalComments),
-        totalReactions: Number(totalReactions),
-        sampleGameLogs,
-      };
+      return await debugDatabaseContentQuery();
     } catch (error) {
       this.logger.error('Failed to debug database content', {
         error: error instanceof Error ? error.message : String(error),
@@ -104,84 +62,7 @@ export class LandingPageDataService {
     anyGames: Record<string, unknown>[];
   }> {
     try {
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
-
-      // Check total NBA games
-      const totalGamesQuery = sql`SELECT COUNT(*) as count FROM basketball_games WHERE deleted_at IS NULL`;
-      const totalGamesResult = await database.execute(totalGamesQuery);
-      const totalGames = totalGamesResult.rows?.[0]?.count || 0;
-
-      // Check finished games with different status patterns
-      const finishedGamesQuery = sql`
-        SELECT status, COUNT(*) as count
-        FROM basketball_games
-        WHERE deleted_at IS NULL
-        GROUP BY status
-        ORDER BY count DESC
-      `;
-      const finishedGamesResult = await database.execute(finishedGamesQuery);
-      const gameStatuses = (finishedGamesResult.rows || [])
-        .map((row: Record<string, unknown>) => row.status as string)
-        .filter(Boolean);
-
-      // Count games that might be considered "finished"
-      const finishedCountQuery = sql`
-        SELECT COUNT(*) as count
-        FROM basketball_games
-        WHERE deleted_at IS NULL
-        AND (status LIKE '%FT%' OR status LIKE '%Finish%' OR status IN ('Final', 'COMPLETED'))
-      `;
-      const finishedCountResult = await database.execute(finishedCountQuery);
-      const finishedGames = finishedCountResult.rows?.[0]?.count || 0;
-
-      // Get sample games with different statuses
-      const sampleGamesQuery = sql`
-        SELECT
-          g.id,
-          g.status,
-          g.date,
-          g.teams,
-          g.scores
-        FROM basketball_games g
-        WHERE g.deleted_at IS NULL
-        ORDER BY g.date DESC
-        LIMIT 10
-      `;
-      const sampleGamesResult = await database.execute(sampleGamesQuery);
-      const sampleGames = sampleGamesResult.rows || [];
-
-      // Very simple test - just get any NBA games without joins
-      const simpleTestQuery = sql`
-        SELECT id, status, date, teams
-        FROM basketball_games
-        WHERE deleted_at IS NULL
-        ORDER BY date DESC
-        LIMIT 5
-      `;
-      const simpleTestResult = await database.execute(simpleTestQuery);
-      const simpleTestGames = simpleTestResult.rows || [];
-
-      // Even simpler test - get ANY games, including soft-deleted ones
-      const anyGamesQuery = sql`
-        SELECT id, status, date, deleted_at
-        FROM basketball_games
-        ORDER BY date DESC
-        LIMIT 5
-      `;
-      const anyGamesResult = await database.execute(anyGamesQuery);
-      const anyGames = anyGamesResult.rows || [];
-
-      return {
-        totalGames: Number(totalGames),
-        finishedGames: Number(finishedGames),
-        gameStatuses,
-        sampleGames,
-        simpleTestGames,
-        anyGames,
-      };
+      return await debugNbaGamesContentQuery();
     } catch (error) {
       this.logger.error('Failed to debug NBA games content', {
         error: error instanceof Error ? error.message : String(error),
@@ -201,68 +82,7 @@ export class LandingPageDataService {
     try {
       const startTime = Date.now();
 
-      // Optimized query for public game logs with engagement scoring
-      // Simplified joins for better performance
-      const publicGameLogsQuery = sql`
-        SELECT
-          gl.id,
-          gl.rating_for_game,
-          gl.created_at,
-          u.username,
-          u.image_url,
-          g.teams,
-          -- Count reactions on the game log itself
-          COALESCE(gl_reactions.count, 0) as direct_reactions,
-          -- Count top-level comments
-          COALESCE(top_comments.count, 0) as top_level_comments,
-          -- Count reactions on top-level comments
-          COALESCE(top_comments.reaction_count, 0) as top_level_reactions
-        FROM game_logs gl
-        LEFT JOIN users u ON gl.user_id = u.id
-        LEFT JOIN basketball_games g ON gl.game_id = g.id
-        -- Teams data is now in JSONB, no need for joins
-
-        -- Count reactions on the game log itself (simplified)
-        LEFT JOIN (
-          SELECT target_id, COUNT(*) as count
-          FROM reactions
-          WHERE target_type = 'GAME_LOG' AND deleted_at IS NULL
-          GROUP BY target_id
-        ) gl_reactions ON gl.id = gl_reactions.target_id
-
-        -- Count top-level comments and their reactions (simplified)
-        LEFT JOIN (
-          SELECT
-            c.parent_id,
-            COUNT(c.id) as count,
-            COALESCE(SUM(comment_reactions.count), 0) as reaction_count
-          FROM comments c
-          LEFT JOIN (
-            SELECT target_id, COUNT(*) as count
-            FROM reactions
-            WHERE target_type = 'COMMENT' AND deleted_at IS NULL
-            GROUP BY target_id
-          ) comment_reactions ON c.id = comment_reactions.target_id
-          WHERE c.parent_type = 'GAME_LOG' AND c.deleted_at IS NULL
-          GROUP BY c.parent_id
-        ) top_comments ON gl.id = top_comments.parent_id
-
-        WHERE gl.classification = 'PUBLIC'
-          AND gl.deleted_at IS NULL
-          AND u.deleted_at IS NULL
-          AND g.deleted_at IS NULL
-        ORDER BY
-          (COALESCE(gl_reactions.count, 0) + COALESCE(top_comments.count, 0) * 2) DESC,
-          gl.created_at DESC
-        LIMIT 10
-      `;
-
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
-
-      const result = await database.execute(publicGameLogsQuery);
+      const result = await getTopPublicGameLogsQuery();
       if (!result) {
         throw new Error('Database query returned null result');
       }
@@ -270,11 +90,11 @@ export class LandingPageDataService {
       const queryTime = Date.now() - startTime;
 
       this.logger.database('query', 'getTopPublicGameLogs', queryTime, {
-        resultCount: result.rows?.length || 0,
+        resultCount: result.length || 0,
       });
 
       // Transform database rows to typed objects
-      const gameLogs = (result.rows || []).map((row: Record<string, unknown>) => ({
+      const gameLogs = result.map((row: Record<string, unknown>) => ({
         id: row.id as string,
         rating: row.rating_for_game as number,
         totalComments: row.top_level_comments as number,
@@ -321,27 +141,7 @@ export class LandingPageDataService {
     try {
       const startTime = Date.now();
 
-      // Simple query for recent games - get any recent games first, then filter by status
-      const recentGamesQuery = sql`
-        SELECT
-          g.id,
-          g.date,
-          g.status,
-          g.teams,
-          g.scores,
-          g.arena
-        FROM basketball_games g
-        WHERE g.deleted_at IS NULL
-        ORDER BY g.date DESC
-        LIMIT 20
-      `;
-
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
-
-      const result = await database.execute(recentGamesQuery);
+      const result = await getRecentFinishedGamesQuery();
       if (!result) {
         throw new Error('Database query returned null result');
       }
@@ -349,11 +149,11 @@ export class LandingPageDataService {
       const queryTime = Date.now() - startTime;
 
       this.logger.database('query', 'getRecentFinishedGames', queryTime, {
-        resultCount: result.rows?.length || 0,
+        resultCount: result.length || 0,
       });
 
       // Transform database rows to typed objects and filter for finished games
-      const allGames = (result.rows || []).map((row: Record<string, unknown>) => {
+      const allGames = result.map((row: Record<string, unknown>) => {
         // Handle JSONB arena field properly
         let arenaData: { name: string; city: string } | null = null;
         if (row.arena && typeof row.arena === 'object' && row.arena !== null) {
@@ -433,144 +233,43 @@ export class LandingPageDataService {
     try {
       const startTime = Date.now();
 
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
-
-      // Start simple: just count all rows in game_ratings
-      const totalCountQuery = sql`
-        SELECT COUNT(*) as total_count
-        FROM game_ratings
-      `;
-
-      const totalCountResult = await database.execute(totalCountQuery);
-      console.log(
-        '🔍 Total game_ratings count:',
-        totalCountResult.rows?.[0]?.total_count || 'No result'
-      );
+      const { totalCount, popularGameIds, games } = await getPopularGamesQuery();
 
       this.logger.info('Total game_ratings count', {
-        totalCount: totalCountResult.rows?.[0]?.total_count || 0,
-      });
-
-      // Now let's see some sample rows to understand the data structure
-      const sampleRowsQuery = sql`
-        SELECT *
-        FROM game_ratings
-        LIMIT 3
-      `;
-
-      const sampleRowsResult = await database.execute(sampleRowsQuery);
-      console.log('🔍 Sample game_ratings rows:', sampleRowsResult.rows || 'No rows');
-
-      this.logger.info('Sample game_ratings rows', {
-        sampleRows: sampleRowsResult.rows || [],
-        sampleRowCount: sampleRowsResult.rows?.length || 0,
-      });
-
-      // Now let's try to get popular game IDs
-      const popularGameIdsQuery = sql`
-        SELECT game_id, average_rating, total_ratings
-        FROM game_ratings
-        WHERE deleted_at IS NULL
-        ORDER BY average_rating DESC, total_ratings DESC
-        LIMIT 10
-      `;
-
-      const popularGameIdsResult = await database.execute(popularGameIdsQuery);
-      console.log('🔍 Popular game IDs result:', {
-        rowCount: popularGameIdsResult.rows?.length || 0,
-        rows: popularGameIdsResult.rows || [],
+        totalCount,
       });
 
       this.logger.info('Popular game IDs result', {
-        rowCount: popularGameIdsResult.rows?.length || 0,
-        rows: popularGameIdsResult.rows || [],
+        rowCount: popularGameIds.length,
       });
 
-      if (!popularGameIdsResult.rows || popularGameIdsResult.rows.length === 0) {
+      if (popularGameIds.length === 0) {
         this.logger.warn('No popular game IDs found');
         return {
           topRated: [],
           mostRated: [],
           mostPopular: [],
           debug: {
-            totalCount: totalCountResult.rows?.[0]?.total_count || 0,
-            sampleRows: sampleRowsResult.rows || [],
+            totalCount,
             popularGameIdsCount: 0,
             popularGameIdsResult: [],
           },
         };
       }
 
-      // Extract the game IDs
-      const popularGameIds = popularGameIdsResult.rows.map(row => row.game_id as string);
-      console.log('🔍 Extracted game IDs:', popularGameIds);
-
-      // First, let's check if these games exist in basketball_games without any joins
-      const simpleExistenceQuery = sql`
-        SELECT id, date, status, teams, deleted_at
-        FROM basketball_games
-        WHERE id IN (${popularGameIds.map(id => `'${id}'`).join(', ')})
-      `;
-
-      const simpleExistenceResult = await database.execute(simpleExistenceQuery);
-      console.log('🔍 Simple existence result:', {
-        rowCount: simpleExistenceResult.rows?.length || 0,
-        rows: simpleExistenceResult.rows || [],
-      });
-
-      this.logger.info('Simple existence result', {
-        rowCount: simpleExistenceResult.rows?.length || 0,
-        rows: simpleExistenceResult.rows || [],
-      });
-
-      // Let's also test a simple basketball_teams query to see what's in there
-      const basketball_teamsTestQuery = sql`
-        SELECT id, name, logo, deleted_at
-        FROM basketball_teams
-        WHERE id IN ('1', '2', '9', '10', '11', '23', '26', '27', '30')
-        LIMIT 5
-      `;
-
-      const basketball_teamsTestResult = await database.execute(basketball_teamsTestQuery);
-      console.log('🔍 Teams test result:', {
-        rowCount: basketball_teamsTestResult.rows?.length || 0,
-        rows: basketball_teamsTestResult.rows || [],
-      });
-
-      this.logger.info('Teams test result', {
-        rowCount: basketball_teamsTestResult.rows?.length || 0,
-        rows: basketball_teamsTestResult.rows || [],
-      });
-
-      // Now let's fetch the actual game data using these IDs - one by one for reliability
-      const games: Record<string, unknown>[] = [];
-      console.log('🔍 Starting individual game queries for', popularGameIds.length, 'games');
-
-      for (const gameId of popularGameIds) {
-        try {
-          const query = sql`SELECT * FROM basketball_games WHERE id = ${gameId}`;
-          const result = await database.execute(query);
-
-          if (result.rows?.[0]) {
-            games.push(result.rows[0]);
-            console.log(`✅ Found game ${gameId}`);
-          } else {
-            console.log(`❌ No game found for ${gameId}`);
-          }
-        } catch (error) {
-          console.log(`❌ Error querying game ${gameId}:`, error);
-        }
-      }
-
-      console.log('🔍 Individual queries completed. Found', games.length, 'games');
-
       this.logger.info('Individual game queries completed', {
         requestedGames: popularGameIds.length,
         foundGames: games.length,
         games: games.map(g => ({ id: g.id, date: g.date, status: g.status })),
+      });
+
+      // Get engagement data for all games in a single batch query
+      const gameIds = games.map(g => String(g.id));
+      const engagementPromises = gameIds.map(gameId => getGameEngagementQuery(gameId));
+      const engagementResults = await Promise.all(engagementPromises);
+      const engagementMap = new Map();
+      gameIds.forEach((gameId, index) => {
+        engagementMap.set(gameId, engagementResults[index]);
       });
 
       // Now let's enrich each game with team information and ratings
@@ -585,13 +284,14 @@ export class LandingPageDataService {
           const homeTeam = teamsData?.home;
           const awayTeam = teamsData?.visitors;
 
-          // Get rating information for this specific game
-          const ratingQuery = sql`SELECT average_rating, total_ratings FROM game_ratings WHERE game_id = ${game.id}`;
-          const ratingResult = await database.execute(ratingQuery);
-          const rating = ratingResult.rows?.[0];
+          // Rating information is already included in the main query
+          const rating = {
+            average_rating: game.average_rating,
+            total_ratings: game.total_ratings,
+          };
 
-          // Get public comment and reaction counts for this game using centralized query
-          const engagement = await getGameEngagementQuery(String(game.id));
+          // Get engagement data from the batch result
+          const engagement = engagementMap.get(String(game.id));
 
           // Parse arena data
           let arenaData: { name: string; city: string } | null = null;
@@ -661,12 +361,18 @@ export class LandingPageDataService {
             reactionCount: engagement?.total_all_reactions
               ? Number(engagement.total_all_reactions)
               : 0,
+            publicCommentCount: engagement?.total_public_comments
+              ? Number(engagement.total_public_comments)
+              : 0,
+            publicReactionCount: engagement?.total_public_reactions
+              ? Number(engagement.total_public_reactions)
+              : 0,
             arena: arenaData || undefined,
           };
 
           enrichedGames.push(enrichedGame);
           console.log(
-            `✅ Enriched game ${String(game.id)} with team, rating, and engagement data (${enrichedGame.commentCount} comments, ${enrichedGame.reactionCount} reactions)`
+            `✅ Enriched game ${String(game.id)} with team, rating, and engagement data (${enrichedGame.commentCount} total comments, ${enrichedGame.reactionCount} total reactions, ${enrichedGame.publicCommentCount} public comments, ${enrichedGame.publicReactionCount} public reactions)`
           );
         } catch (error) {
           console.log(`❌ Error enriching game ${String(game.id)}:`, error);
@@ -687,10 +393,8 @@ export class LandingPageDataService {
         const gameLogs = game.gameLogCount;
 
         // Use engagement data that's already stored in the game object
-        // Since we don't have detailed engagement breakdown in the game object,
-        // we'll use the total counts for the popularity calculation
-        const publicComments = 0; // We don't have this breakdown in the current structure
-        const publicReactions = 0; // We don't have this breakdown in the current structure
+        const publicComments = game.publicCommentCount;
+        const publicReactions = game.publicReactionCount;
         const allComments = comments;
         const allReactions = reactions;
         const uniqueUsers = 0; // We don't have this data in the current structure
@@ -746,17 +450,34 @@ export class LandingPageDataService {
       const mostRated = [...enrichedGames].sort(
         (a, b) => b.rating.totalRatings - a.rating.totalRatings
       );
-      // Most Popular now considers comprehensive engagement as primary factor
+      // Most Popular prioritizes comprehensive engagement including game ratings
       const mostPopular = [...enrichedGames].sort((a, b) => {
-        // Primary sort: total engagement score (all comments + reactions)
-        const aTotalEngagement = a.commentCount + a.reactionCount;
-        const bTotalEngagement = b.commentCount + b.reactionCount;
+        // Primary sort: comprehensive engagement score (comments + reactions + weighted ratings)
+        // Game ratings are weighted by both quantity and quality (totalRatings × averageRating)
+        const aTotalEngagement =
+          a.commentCount + a.reactionCount + a.rating.totalRatings * a.rating.average;
+        const bTotalEngagement =
+          b.commentCount + b.reactionCount + b.rating.totalRatings * b.rating.average;
 
         if (aTotalEngagement !== bTotalEngagement) {
           return bTotalEngagement - aTotalEngagement;
         }
 
-        // Secondary sort: popularity score (includes rating quality and user diversity)
+        // Secondary sort: public engagement score (public comments + reactions)
+        // This breaks ties by considering public community discussion
+        const aPublicEngagement = a.publicCommentCount + a.publicReactionCount;
+        const bPublicEngagement = b.publicCommentCount + b.publicReactionCount;
+
+        if (aPublicEngagement !== bPublicEngagement) {
+          return bPublicEngagement - aPublicEngagement;
+        }
+
+        // Tertiary sort: average rating quality (higher rated games break ties)
+        if (a.rating.average !== b.rating.average) {
+          return b.rating.average - a.rating.average;
+        }
+
+        // Final sort: popularity score (includes user diversity and other factors)
         return b.rating.popularityScore - a.rating.popularityScore;
       });
 
@@ -774,15 +495,10 @@ export class LandingPageDataService {
         mostRated: mostRated.slice(0, 5), // Top 5 by number of ratings
         mostPopular: mostPopular.slice(0, 5), // Top 5 by combined popularity score
         debug: {
-          totalCount: totalCountResult.rows?.[0]?.total_count || 0,
-          sampleRows: sampleRowsResult.rows || [],
+          totalCount,
           popularGameIdsCount: popularGameIds.length,
-          popularGameIdsResult: popularGameIdsResult.rows || [],
+          popularGameIdsResult: popularGameIds,
           extractedGameIds: popularGameIds,
-          simpleExistenceCount: simpleExistenceResult.rows?.length || 0,
-          simpleExistenceResult: simpleExistenceResult.rows || [],
-          basketball_teamsTestCount: basketball_teamsTestResult.rows?.length || 0,
-          basketball_teamsTestResult: basketball_teamsTestResult.rows || [],
           gamesDataCount: games.length,
           gamesDataResult: games,
           enrichedGamesCount: enrichedGames.length,
@@ -1078,7 +794,7 @@ export class LandingPageDataService {
   }
 
   /**
-   * Get popular teams directly from database
+   * Get popular teams based on engagement data
    */
   async getPopularTeams(): Promise<{
     mostPopular: Array<{
@@ -1090,60 +806,81 @@ export class LandingPageDataService {
       publicGameLogs: number;
       totalComments: number;
       totalReactions: number;
+      publicComments: number;
+      publicReactions: number;
       popularityScore: number;
     }>;
   }> {
     try {
-      const database = db();
-      if (!database) {
-        throw new Error('Database connection not available');
-      }
+      const startTime = Date.now();
 
-      // Get teams with basic engagement data - use nickname when name is empty
-      const teamsQuery = sql`
-        SELECT
-          t.id,
-          CASE
-            WHEN t.name IS NOT NULL AND t.name != '' THEN t.name
-            ELSE t.nickname
-          END as name,
-          t.city,
-          t.logo,
-          0 as total_game_logs,
-          0 as public_game_logs,
-          0 as total_comments,
-          0 as total_reactions
-        FROM basketball_teams t
-        WHERE t.deleted_at IS NULL
-        ORDER BY
-          CASE
-            WHEN t.name IS NOT NULL AND t.name != '' THEN t.name
-            ELSE t.nickname
-          END
-        LIMIT 10
-      `;
+      const teams = await getPopularTeamsQuery();
 
-      const teamsResult = await database.execute(teamsQuery);
-      const teams = teamsResult.rows || [];
+      // Transform teams data and apply comprehensive engagement sorting
+      const enrichedTeams = teams.map(team => ({
+        id: String(team.id),
+        name: String(team.name),
+        city: String(team.city),
+        logo: team.logo && typeof team.logo === 'string' ? team.logo : '',
+        totalGameLogs: Number(team.total_game_logs) || 0,
+        publicGameLogs: Number(team.public_game_logs) || 0,
+        totalComments: Number(team.total_comments) || 0,
+        totalReactions: Number(team.total_reactions) || 0,
+        publicComments: Number(team.total_public_comments) || 0,
+        publicReactions: Number(team.total_public_reactions) || 0,
+        popularityScore: 0, // Will be calculated below
+      }));
 
-      const mostPopular = teams.map((team: Record<string, unknown>) => {
-        const totalGameLogs = parseInt(String(team.total_game_logs)) || 0;
-        const publicGameLogs = parseInt(String(team.public_game_logs)) || 0;
-        const totalComments = parseInt(String(team.total_comments)) || 0;
-        const totalReactions = parseInt(String(team.total_reactions)) || 0;
-        const popularityScore = totalGameLogs + totalComments + totalReactions;
+      // Calculate popularity scores using similar algorithm to games and players
+      enrichedTeams.forEach(team => {
+        const publicComments = team.publicComments;
+        const publicReactions = team.publicReactions;
+        const allComments = team.totalComments;
+        const allReactions = team.totalReactions;
+        const gameLogs = team.totalGameLogs;
 
-        return {
-          id: String(team.id),
-          name: String(team.name),
-          city: String(team.city),
-          logo: team.logo && typeof team.logo === 'string' ? team.logo : '',
-          totalGameLogs,
-          publicGameLogs,
-          totalComments,
-          totalReactions,
-          popularityScore,
-        };
+        // Calculate popularity score using similar algorithm to games and players
+        const publicEngagementScore = publicComments * 2 + publicReactions * 1;
+        const totalEngagementScore = allComments * 1.5 + allReactions * 0.8;
+        const gameLogVolumeScore = Math.log(gameLogs + 1) * 1.5;
+
+        const popularityScore =
+          Math.log(publicEngagementScore + 1) * 0.4 +
+          Math.log(totalEngagementScore + 1) * 0.4 +
+          gameLogVolumeScore * 0.2;
+
+        team.popularityScore = popularityScore;
+      });
+
+      // Sort by comprehensive engagement score (same formula as games and players)
+      const mostPopular = [...enrichedTeams]
+        .sort((a, b) => {
+          // Primary sort: total engagement score (comments + reactions)
+          const aTotalEngagement = a.totalComments + a.totalReactions;
+          const bTotalEngagement = b.totalComments + b.totalReactions;
+
+          if (aTotalEngagement !== bTotalEngagement) {
+            return bTotalEngagement - aTotalEngagement;
+          }
+
+          // Secondary sort: public engagement score (public comments + reactions)
+          const aPublicEngagement = a.publicComments + a.publicReactions;
+          const bPublicEngagement = b.publicComments + b.publicReactions;
+
+          if (aPublicEngagement !== bPublicEngagement) {
+            return bPublicEngagement - aPublicEngagement;
+          }
+
+          // Tertiary sort: popularity score (includes user diversity and other factors)
+          return b.popularityScore - a.popularityScore;
+        })
+        .slice(0, 10);
+
+      const endTime = Date.now();
+      this.logger.info('Popular teams processed successfully', {
+        totalTeams: enrichedTeams.length,
+        mostPopular: mostPopular.length,
+        processingTimeMs: endTime - startTime,
       });
 
       return { mostPopular };
@@ -1249,7 +986,7 @@ export class LandingPageDataService {
 
       // Fetch from API endpoint
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/landing-page/data/popularPlayers`
+        `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/api/landing-page/data/popularPlayers`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch popular players: ${response.statusText}`);
@@ -1317,7 +1054,7 @@ export class LandingPageDataService {
 
       // Fetch from API endpoint
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/landing-page/data/activeFans`
+        `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/api/landing-page/data/activeFans`
       );
       if (!response.ok) {
         throw new Error(`Failed to fetch active fans: ${response.statusText}`);

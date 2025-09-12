@@ -40,21 +40,39 @@ export function encryptField(plain: string, keyOverride?: string | Buffer): IEnc
   let encrypted = cipher.update(plain, 'utf8', 'hex');
   encrypted += cipher.final('hex');
   const tag = cipher.getAuthTag();
+
+  // Handle empty string case - ensure content is not empty
+  if (encrypted === '') {
+    encrypted = '00'; // Use a non-empty placeholder for empty strings
+  }
+
   return {
     iv: iv.toString('hex'),
-    encrypted: encrypted,
+    content: encrypted, // Always use 'content' for new encryptions
     tag: tag.toString('hex'),
   };
 }
 
 export function decryptField(
-  { iv, encrypted, tag }: IEncryptedField,
+  { iv, content, encrypted, tag }: IEncryptedField,
   keyOverride?: string | Buffer
 ): string {
   const key = getKey(keyOverride);
   const decipher = crypto.createDecipheriv(algorithm, key, Buffer.from(iv, 'hex'));
   decipher.setAuthTag(Buffer.from(tag, 'hex'));
-  let decrypted = decipher.update(encrypted, 'hex', 'utf8');
+
+  // Handle both old format (encrypted) and new format (content)
+  const dataToDecrypt = content || encrypted;
+  if (dataToDecrypt === null || dataToDecrypt === undefined || dataToDecrypt === '') {
+    throw new Error('No encrypted data found in field');
+  }
+
+  // Handle special case for empty string placeholder
+  if (dataToDecrypt === '00') {
+    return '';
+  }
+
+  let decrypted = decipher.update(dataToDecrypt, 'hex', 'utf8');
   decrypted += decipher.final('utf8');
   return decrypted;
 }
@@ -77,8 +95,8 @@ export function isEncrypted(value: string | null): boolean {
       parsed &&
       typeof parsed === 'object' &&
       'iv' in parsed &&
-      'encrypted' in parsed &&
-      'tag' in parsed
+      'tag' in parsed &&
+      ('content' in parsed || 'encrypted' in parsed) // Support both formats
     );
   } catch {
     return false;

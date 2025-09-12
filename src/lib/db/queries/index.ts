@@ -26,3 +26,4 @@ export * from './search.queries';
 export * from './analytics.queries';
 export * from './cache.queries';
 export * from './engagement.queries';
+export * from './landing-page.queries';

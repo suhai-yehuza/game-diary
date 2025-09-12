@@ -19,8 +19,8 @@ export function GameLogsTableWithSearch() {
     { key: 'created_at' as string, label: 'created_at', sortable: true },
   ];
 
-  const getTableName = (classification: (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]) => {
-    return `game_logs_${classification.toLowerCase()}`;
+  const getTableName = (_classification: (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]) => {
+    return 'game_logs';
   };
 
   const getItemLabel = (classification: (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION]) => {
@@ -61,6 +61,7 @@ export function GameLogsTableWithSearch() {
             columns={columns}
             itemLabel={getItemLabel('PUBLIC')}
             tableName={getTableName('PUBLIC')}
+            additionalParams={{ classification: 'PUBLIC' }}
           />
         </TabsContent>
 
@@ -69,6 +70,7 @@ export function GameLogsTableWithSearch() {
             columns={columns}
             itemLabel={getItemLabel('PRIVATE')}
             tableName={getTableName('PRIVATE')}
+            additionalParams={{ classification: 'PRIVATE' }}
           />
         </TabsContent>
 
@@ -77,6 +79,7 @@ export function GameLogsTableWithSearch() {
             columns={columns}
             itemLabel={getItemLabel('PROTECTED')}
             tableName={getTableName('PROTECTED')}
+            additionalParams={{ classification: 'PROTECTED' }}
           />
         </TabsContent>
       </Tabs>

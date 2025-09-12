@@ -96,7 +96,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   } = useOptimizedQuery<GetUserNotificationsQuery>(GET_USER_NOTIFICATIONS, {
     variables: {
       filters: { read: false }, // Only fetch unread notifications
-      pagination: { first: 50 },
+      pagination: { first: 20 },
     },
     skip: shouldSkipQueries || !user?.id, // Double-check user ID
     fetchPolicy: 'cache-first',

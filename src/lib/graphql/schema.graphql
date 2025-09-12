@@ -8,14 +8,7 @@ type Query {
   me: UserSummary
   user(id: ID!): UserSummary
   users(filters: UserFilters, pagination: PaginationInput): [UserSummary!]!
-  searchUsers(
-    first: Int
-    after: String
-    searchTerm: String
-    searchField: String
-    filters: UserSearchFilters
-    pagination: PaginationInput
-  ): UserConnection!
+  searchUsers(searchTerm: String, limit: Int): UserConnection!
   searchGameLogs(
     first: Int
     after: String

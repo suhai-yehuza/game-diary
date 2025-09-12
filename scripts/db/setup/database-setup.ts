@@ -11,7 +11,7 @@ import { setupFunctions } from './function-setup';
 import { setupTriggers } from './trigger-setup';
 import { setupRLS } from './rls-setup';
 import { setupData } from './data-setup';
-import { runMigrationsInOrder, validateMigrationFiles } from './migration-runner';
+import { runMigrationsInOrder, validateMigrationFiles } from '../core/migration-runner';
 
 /**
  * Setup database with complete schema, functions, triggers, and RLS
@@ -94,16 +94,21 @@ async function performCompleteSetup(environment: string, skipSchemaCheck: boolea
 
   if (!allTablesExist) {
     logger.info(`🔧 Missing tables detected: ${missingTables.join(', ')}`);
-    logger.info('📋 Generating and applying migrations...');
+    logger.info('📋 Generating and applying migrations safely...');
 
-    // Generate migrations
-    await runCommand('pnpm db:generate:safe', 'Generate safe migrations');
+    // Use the safe migration approach that preserves data
+    const { applyAllMigrations } = await import('../core/migration-runner');
+    const result = await applyAllMigrations(environment, false);
 
-    // Copy custom migrations
-    await runCommand('pnpm db:copy-custom-migrations', 'Copy custom migrations');
+    if (!result.success) {
+      throw new Error(`Migration failed: ${result.errors.join(', ')}`);
+    }
 
-    // Apply migrations using drizzle-kit push
-    await runInteractiveCommand('pnpm exec drizzle-kit push --force', 'Apply schema to database');
+    if (!result.dataPreserved) {
+      logger.warn('⚠️  WARNING: Data may have been lost during migration');
+    } else {
+      logger.info('✅ Data was preserved during migration');
+    }
   } else {
     logger.info('✅ Database schema already exists - all expected tables present');
   }

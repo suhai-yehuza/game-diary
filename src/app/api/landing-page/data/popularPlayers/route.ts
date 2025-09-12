@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import { NextResponse } from 'next/server';
 
+import { simpleCacheService, CACHE_CONFIG } from '@/lib/cache';
 import { db } from '@/lib/db';
 import { getPlayerEngagementQuery } from '@/lib/db/queries/engagement.queries';
 import { logger } from '@/lib/utils/logger';
@@ -9,6 +10,23 @@ import type { IPopularPlayer } from '@/types';
 export async function GET() {
   try {
     const startTime = Date.now();
+    const cacheKey = 'landingPage:popularPlayers';
+
+    // Check cache first
+    const cachedData = simpleCacheService.get(cacheKey);
+    if (cachedData) {
+      logger.cache('hit', cacheKey);
+      return NextResponse.json({
+        success: true,
+        data: cachedData,
+        performance: {
+          totalTime: Date.now() - startTime,
+          itemCount: Array.isArray(cachedData) ? cachedData.length : 0,
+        },
+        timestamp: new Date().toISOString(),
+      });
+    }
+
     const database = db();
 
     if (!database) {
@@ -36,12 +54,21 @@ export async function GET() {
 
     logger.info(`Found ${players.length} players`);
 
+    // Batch process engagement data for all players
+    const playerIds = players.map(p => String(p.id));
+    const engagementPromises = playerIds.map(playerId => getPlayerEngagementQuery(playerId));
+    const engagementResults = await Promise.all(engagementPromises);
+    const engagementMap = new Map<string, Awaited<ReturnType<typeof getPlayerEngagementQuery>>>();
+    playerIds.forEach((playerId, index) => {
+      engagementMap.set(playerId, engagementResults[index]);
+    });
+
     // Enrich each player with engagement data
     const enrichedPlayers: IPopularPlayer[] = [];
 
     for (const player of players) {
       try {
-        const engagement = await getPlayerEngagementQuery(String(player.id));
+        const engagement = engagementMap.get(String(player.id));
 
         const publicComments = engagement?.total_public_comments
           ? Number(engagement.total_public_comments)
@@ -155,11 +182,31 @@ export async function GET() {
       }
     }
 
-    // Sort by popularity score
-    // For now, include all players even without engagement to show some data
-    // TODO: Once engagement data is available, filter by player.engagement.total > 0
+    // Sort by comprehensive engagement score (same formula as games)
+    // Primary sort: total engagement (comments + reactions)
+    // Secondary sort: public engagement (public comments + reactions)
+    // Tertiary sort: popularity score (includes user diversity and other factors)
     const mostPopular = [...enrichedPlayers]
-      .sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0))
+      .sort((a, b) => {
+        // Primary sort: total engagement score (comments + reactions)
+        const aTotalEngagement = (a.commentCount || 0) + (a.reactionCount || 0);
+        const bTotalEngagement = (b.commentCount || 0) + (b.reactionCount || 0);
+
+        if (aTotalEngagement !== bTotalEngagement) {
+          return bTotalEngagement - aTotalEngagement;
+        }
+
+        // Secondary sort: public engagement score (public comments + reactions)
+        const aPublicEngagement = a.engagement?.public || 0;
+        const bPublicEngagement = b.engagement?.public || 0;
+
+        if (aPublicEngagement !== bPublicEngagement) {
+          return bPublicEngagement - aPublicEngagement;
+        }
+
+        // Tertiary sort: popularity score (includes user diversity and other factors)
+        return (b.popularityScore || 0) - (a.popularityScore || 0);
+      })
       .slice(0, 10);
 
     const endTime = Date.now();
@@ -169,6 +216,13 @@ export async function GET() {
       mostPopular: mostPopular.length,
       processingTimeMs: endTime - startTime,
     });
+
+    // Cache the results
+    simpleCacheService.set(cacheKey, mostPopular, {
+      ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
+      tags: ['landing-page', 'popular-players'],
+    });
+    logger.cache('miss', cacheKey);
 
     return NextResponse.json({
       success: true,

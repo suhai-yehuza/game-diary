@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { toast } from 'sonner';
 
+import { BulkActionsBar } from '@/app/protected/admin/database/components/ui/bulk-actions-bar';
+import { BulkDeleteDialog } from '@/app/protected/admin/database/components/ui/bulk-delete-dialog';
 import { ErrorBoundary } from '@/app/protected/admin/database/components/ui/error-boundary';
 import { ErrorDisplay } from '@/app/protected/admin/database/components/ui/error-display';
 import { PaginationControls } from '@/app/protected/admin/database/components/ui/pagination-controls';
@@ -9,11 +12,13 @@ import { PaginationInfo } from '@/app/protected/admin/database/components/ui/pag
 import { SortableHeader } from '@/app/protected/admin/database/components/ui/sortable-header';
 import { TableSearch } from '@/app/protected/admin/database/components/ui/table-search';
 import { API_CONFIG } from '@/lib/config/app.config';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import type { ITableWithSearchProps } from '@/types';
+import { ErrorCategory, ErrorSeverity } from '@/types';
 
 export default function TableWithSearch<
   T extends Record<string, unknown> & { id: string | number },
->({ tableName, columns, itemLabel }: ITableWithSearchProps<T>) {
+>({ tableName, columns, itemLabel, additionalParams }: ITableWithSearchProps<T>) {
   const typedColumns = columns;
   const [rawData, setRawData] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);
@@ -25,6 +30,11 @@ export default function TableWithSearch<
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [fetchTrigger, setFetchTrigger] = useState(0);
   const isInitialMount = useRef(true);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string | number>>(new Set());
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const currentValues = useRef({
     page: 1,
     limit: API_CONFIG.pagination.DEFAULT_PAGE_SIZE,
@@ -158,6 +168,117 @@ export default function TableWithSearch<
     setFetchTrigger(prev => prev + 1);
   }, [totalCount, setCurrentPage, setFetchTrigger]);
 
+  // Bulk selection handlers
+  const handleSelectAll = useCallback(() => {
+    const allIds = new Set(sortedData.map(item => item.id));
+    setSelectedIds(allIds);
+
+    // Show selection feedback
+    if (allIds.size > 0) {
+      toast.info(`Selected all ${allIds.size} ${itemLabel}`, {
+        duration: 2000,
+      });
+    }
+  }, [sortedData, itemLabel]);
+
+  const handleDeselectAll = useCallback(() => {
+    setSelectedIds(new Set());
+
+    // Show deselection feedback
+    toast.info(`Deselected all ${itemLabel}`, {
+      duration: 2000,
+    });
+  }, [itemLabel]);
+
+  const handleSelectItem = useCallback((id: string | number) => {
+    setSelectedIds(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleBulkDelete = useCallback(() => {
+    setShowDeleteDialog(true);
+
+    // Show confirmation feedback
+    toast.info(`Preparing to delete ${selectedIds.size} ${itemLabel}`, {
+      description: 'Please confirm the deletion in the dialog.',
+      duration: 3000,
+    });
+  }, [selectedIds.size, itemLabel]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (selectedIds.size === 0) return;
+
+    setIsDeleting(true);
+
+    // Show loading toast
+    const loadingToast = toast.loading(`Deleting ${selectedIds.size} ${itemLabel}...`, {
+      description: 'Please wait while the items are being removed.',
+    });
+
+    try {
+      const response = await fetch(`/api/admin/database/${tableName}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: Array.from(selectedIds).map(id => String(id)),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete items');
+      }
+
+      const result = await response.json();
+      console.log('Bulk delete result:', result);
+
+      // Dismiss loading toast and show success
+      toast.dismiss(loadingToast);
+      const deletedCount = result.data?.deletedCount || selectedIds.size;
+      toast.success(`Successfully deleted ${deletedCount} ${itemLabel}`, {
+        description: `${deletedCount} ${itemLabel} have been permanently removed from the database.`,
+        duration: 5000,
+      });
+
+      // Clear selection and refresh data
+      setSelectedIds(new Set());
+      setShowDeleteDialog(false);
+      setFetchTrigger(prev => prev + 1);
+    } catch (error) {
+      const errorObj = error instanceof Error ? error : new Error('Failed to delete items');
+      errorHandlers.api(errorObj, {
+        component: 'TableWithSearch',
+        action: 'Bulk delete items',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.HIGH,
+        timestamp: new Date().toISOString(),
+      });
+      setError(errorObj.message);
+
+      // Dismiss loading toast and show error
+      toast.dismiss(loadingToast);
+      toast.error(`Failed to delete ${itemLabel}`, {
+        description: errorObj.message,
+        duration: 7000,
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [selectedIds, tableName, setFetchTrigger, itemLabel]);
+
+  const handleCloseDeleteDialog = useCallback(() => {
+    setShowDeleteDialog(false);
+  }, []);
+
   const fetchData = useCallback(async () => {
     const values = currentValues.current;
     setLoading(true);
@@ -174,7 +295,28 @@ export default function TableWithSearch<
         params.append('searchField', values.searchField);
       }
 
+      // Add additional parameters if provided
+      if (additionalParams) {
+        Object.entries(additionalParams).forEach(([key, value]) => {
+          params.append(key, value);
+        });
+      }
+
       const response = await fetch(`/api/admin/database/${tableName}?${params}`);
+
+      // Check if response is ok before trying to parse JSON
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error ?? errorMessage;
+        } catch {
+          // If JSON parsing fails, use the status text
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
       const result = (await response.json()) as {
         success: boolean;
         data: T[];
@@ -186,10 +328,6 @@ export default function TableWithSearch<
         };
         error?: string;
       };
-
-      if (!response.ok) {
-        throw new Error(result.error ?? 'Failed to fetch data');
-      }
 
       if (!result.success) {
         throw new Error(result.error ?? 'API returned success: false');
@@ -204,36 +342,57 @@ export default function TableWithSearch<
         endCursor: null,
       });
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
-      setError(errorMessage);
+      const error = err instanceof Error ? err : new Error('An unknown error occurred');
+      errorHandlers.api(error, {
+        component: 'TableWithSearch',
+        action: 'Fetch table data',
+        category: ErrorCategory.API,
+        severity: ErrorSeverity.MEDIUM,
+        timestamp: new Date().toISOString(),
+      });
+      setError(error.message);
       console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
       isInitialMount.current = false;
     }
-  }, [tableName]);
+  }, [tableName, additionalParams]);
 
   // Memoized table row component to prevent unnecessary re-renders
-  const TableRow = React.memo(({ row, index }: { row: T; index: number }) => (
-    <tr
-      key={row.id}
-      className="transition-all duration-200 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
-    >
-      <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
-        {index + 1}
-      </td>
-      {typedColumns.map(col => (
-        <td
-          key={String(col.key)}
-          className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
-        >
-          <div className="max-w-20 sm:max-w-32 truncate" title={String(row[col.key])}>
-            {col.render ? col.render(row[col.key], row) : (row[col.key] as React.ReactNode)}
-          </div>
+  const TableRow = React.memo(({ row, index }: { row: T; index: number }) => {
+    const isSelected = selectedIds.has(row.id);
+
+    return (
+      <tr
+        key={row.id}
+        className={`transition-all duration-200 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
+          isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        }`}
+      >
+        <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => handleSelectItem(row.id)}
+            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+          />
         </td>
-      ))}
-    </tr>
-  ));
+        <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
+          {index + 1}
+        </td>
+        {typedColumns.map(col => (
+          <td
+            key={String(col.key)}
+            className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm text-slate-700 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 last:border-r-0"
+          >
+            <div className="max-w-20 sm:max-w-32 truncate" title={String(row[col.key])}>
+              {col.render ? col.render(row[col.key], row) : (row[col.key] as React.ReactNode)}
+            </div>
+          </td>
+        ))}
+      </tr>
+    );
+  });
 
   // Single useEffect to handle all data fetching
   useEffect(() => {
@@ -256,6 +415,17 @@ export default function TableWithSearch<
 
         {/* Error Display */}
         <ErrorDisplay error={error ?? ''} />
+
+        {/* Bulk Actions Bar */}
+        <BulkActionsBar
+          selectedCount={selectedIds.size}
+          totalCount={sortedData.length}
+          onSelectAll={handleSelectAll}
+          onDeselectAll={handleDeselectAll}
+          onBulkDelete={handleBulkDelete}
+          isDeleting={isDeleting}
+          itemLabel={itemLabel}
+        />
 
         {/* Pagination Info - Top */}
         <PaginationInfo
@@ -292,6 +462,18 @@ export default function TableWithSearch<
                 >
                   <thead className="bg-gradient-to-r from-emerald-600 to-teal-700 dark:from-emerald-800 dark:to-teal-900 border-b-2 border-emerald-500 dark:border-emerald-600">
                     <tr>
+                      <th className="px-2 sm:px-6 py-2 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 whitespace-nowrap">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.size === sortedData.length && sortedData.length > 0}
+                          onChange={
+                            selectedIds.size === sortedData.length
+                              ? handleDeselectAll
+                              : handleSelectAll
+                          }
+                          className="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+                        />
+                      </th>
                       <th className="px-2 sm:px-6 py-2 sm:py-4 text-left text-xs sm:text-sm font-semibold text-white tracking-wide border-r border-emerald-500/30 dark:border-emerald-400/30 last:border-r-0 whitespace-nowrap">
                         #
                       </th>
@@ -313,7 +495,7 @@ export default function TableWithSearch<
                     {loading && isInitialMount.current ? (
                       <tr>
                         <td
-                          colSpan={typedColumns.length + 1}
+                          colSpan={typedColumns.length + 2}
                           className="px-2 sm:px-6 py-2 sm:py-4 text-center"
                         >
                           <div className="flex items-center justify-center">
@@ -325,7 +507,7 @@ export default function TableWithSearch<
                     ) : sortedData.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={typedColumns.length + 1}
+                          colSpan={typedColumns.length + 2}
                           className="px-2 sm:px-6 py-2 sm:py-4 text-center text-xs sm:text-sm"
                         >
                           {searchTerm
@@ -357,6 +539,16 @@ export default function TableWithSearch<
           onPrev={handlePrev}
           onNext={handleNext}
           onLast={handleLast}
+        />
+
+        {/* Bulk Delete Dialog */}
+        <BulkDeleteDialog
+          isOpen={showDeleteDialog}
+          onClose={handleCloseDeleteDialog}
+          onConfirm={() => void handleConfirmDelete()}
+          selectedCount={selectedIds.size}
+          itemLabel={itemLabel}
+          isDeleting={isDeleting}
         />
       </div>
     </ErrorBoundary>

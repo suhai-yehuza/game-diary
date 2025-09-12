@@ -30,7 +30,7 @@ export function AdminAuditLogsContent() {
   });
 
   // Calculate pagination range
-  const pageSize = 20; // Default page size
+  const pageSize = API_CONFIG.pagination.DEFAULT_PAGE_SIZE; // Use consistent page size
   const startItem = (currentPage - 1) * pageSize + 1;
   const endItem = Math.min(currentPage * pageSize, totalCount);
 
@@ -212,7 +212,7 @@ export function AdminAuditLogsContent() {
 
   useEffect(() => {
     void fetchLogs();
-  }, [fetchLogs]);
+  }, [fetchLogs]); // Include fetchLogs in dependencies
 
   const getCategoryColor = (category: string | undefined) => {
     if (!category) {

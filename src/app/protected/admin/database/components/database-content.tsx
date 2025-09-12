@@ -17,9 +17,12 @@ import { GameRatingsTableWithSearch } from '@/app/protected/admin/database/compo
 import { NotificationsTableWithSearch } from '@/app/protected/admin/database/components/notifications-table';
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { API_CONFIG } from '@/lib/config/app.config';
+import { errorHandlers } from '@/lib/utils/error-handler';
 import type { IApiResponse } from '@/types';
 import { CommentsTableWithSearch } from '@src/app/protected/admin/database/components/comments-table';
 import { GameLogsTableWithSearch } from '@src/app/protected/admin/database/components/game-logs-table';
+import { PublicCommentsTableWithSearch } from '@src/app/protected/admin/database/components/public-comments-table';
+import { PublicReactionsTableWithSearch } from '@src/app/protected/admin/database/components/public-reactions-table';
 import { ReactionsTableWithSearch } from '@src/app/protected/admin/database/components/reactions-table';
 import { ErrorBoundary } from '@src/app/protected/admin/database/components/ui';
 import { Badge } from '@src/app/protected/admin/database/components/ui/badge';
@@ -77,6 +80,28 @@ const tableConfigs = {
     endpoint: '/api/admin/database/notifications',
     fields: ['id', 'user_id', 'type', 'title', 'read', 'created_at'],
   },
+  public_comments: {
+    title: 'Public Comments',
+    description: 'Public comments on NBA games, players, and teams',
+    icon: MessageSquare,
+    endpoint: '/api/admin/database/public_comments',
+    fields: [
+      'id',
+      'user_id',
+      'anonymous_name',
+      'parent_id',
+      'parent_type',
+      'content',
+      'created_at',
+    ],
+  },
+  public_reactions: {
+    title: 'Public Reactions',
+    description: 'Public reactions to NBA games, players, and teams',
+    icon: Heart,
+    endpoint: '/api/admin/database/public_reactions',
+    fields: ['id', 'user_id', 'anonymous_name', 'target_type', 'target_id', 'emoji', 'created_at'],
+  },
 } as const;
 
 export function AdminDatabaseContent() {
@@ -94,7 +119,7 @@ export function AdminDatabaseContent() {
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [error, setError] = useState<Record<string, string>>({});
 
-  const { handleAsync, handleSync } = useCentralizedErrorHandler({
+  const { handleAsync: _handleAsync, handleSync } = useCentralizedErrorHandler({
     context: { component: 'AdminDatabaseContent', action: 'Fetch table data' },
   });
 
@@ -103,46 +128,45 @@ export function AdminDatabaseContent() {
       setLoading(prev => ({ ...prev, [tableName]: true }));
       setError(prev => ({ ...prev, [tableName]: '' }));
 
-      const result = await handleAsync(
-        async () => {
-          const config = tableConfigs[tableName as keyof typeof tableConfigs];
-          const response = await fetch(`${config.endpoint}?page=${page}&limit=${limit}`);
-          const data = (await response.json()) as IApiResponse;
+      try {
+        const config = tableConfigs[tableName as keyof typeof tableConfigs];
+        const response = await fetch(`${config.endpoint}?page=${page}&limit=${limit}`);
+        const data = (await response.json()) as IApiResponse;
 
-          if (data.success && data.data) {
-            setTableData(prev => ({
+        if (data.success && data.data) {
+          setTableData(prev => ({
+            ...prev,
+            [tableName]: data.data as Record<string, unknown>[],
+          }));
+          if (data.pagination) {
+            setPagination(prev => ({
               ...prev,
-              [tableName]: data.data as Record<string, unknown>[],
+              [tableName]: {
+                page: data.pagination?.page || 1,
+                limit: data.pagination?.limit || 10,
+                total: data.pagination?.total || 0,
+                pages: data.pagination?.totalPages || 1,
+              },
             }));
-            if (data.pagination) {
-              setPagination(prev => ({
-                ...prev,
-                [tableName]: {
-                  page: data.pagination?.page || 1,
-                  limit: data.pagination?.limit || 10,
-                  total: data.pagination?.total || 0,
-                  pages: data.pagination?.totalPages || 1,
-                },
-              }));
-            }
-            setCurrentPage(prev => ({ ...prev, [tableName]: page }));
-            return data;
-          } else {
-            throw new Error(typeof data.error === 'string' ? data.error : 'Failed to fetch data');
           }
-        },
-        {
-          action: `Fetch ${tableName} data`,
+          setCurrentPage(prev => ({ ...prev, [tableName]: page }));
+        } else {
+          throw new Error(typeof data.error === 'string' ? data.error : 'Failed to fetch data');
         }
-      );
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch data';
+        setError(prev => ({ ...prev, [tableName]: errorMessage }));
 
-      if (!result) {
-        setError(prev => ({ ...prev, [tableName]: 'Failed to fetch data' }));
+        // Use centralized error handling
+        errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+          component: 'AdminDatabaseContent',
+          action: `Fetch ${tableName} data`,
+        });
+      } finally {
+        setLoading(prev => ({ ...prev, [tableName]: false }));
       }
-
-      setLoading(prev => ({ ...prev, [tableName]: false }));
     },
-    [handleAsync]
+    [] // Empty dependency array since we're not using any external dependencies
   );
 
   useEffect(() => {
@@ -384,6 +408,12 @@ export function AdminDatabaseContent() {
                 <div style={{ display: activeTab === 'game_ratings' ? 'block' : 'none' }}>
                   <GameRatingsTableWithSearch />
                 </div>
+                <div style={{ display: activeTab === 'public_comments' ? 'block' : 'none' }}>
+                  <PublicCommentsTableWithSearch />
+                </div>
+                <div style={{ display: activeTab === 'public_reactions' ? 'block' : 'none' }}>
+                  <PublicReactionsTableWithSearch />
+                </div>
                 <div
                   style={{
                     display: ![
@@ -394,6 +424,8 @@ export function AdminDatabaseContent() {
                       'friendships',
                       'notifications',
                       'game_ratings',
+                      'public_comments',
+                      'public_reactions',
                     ].includes(activeTab)
                       ? 'block'
                       : 'none',

@@ -95,7 +95,7 @@ export async function GET(request: Request) {
         category: log.category ?? 'unknown',
         action: log.action ?? 'unknown',
         severity: log.severity ?? 'low',
-        user_id: log.user_id ?? 'unknown',
+        userId: log.user_id ?? 'unknown', // Map user_id to userId for frontend compatibility
         description: log.description ?? 'No description',
         success: log.success ?? true,
         error_message: log.error_message ?? null,
@@ -189,7 +189,7 @@ export async function POST(request: Request) {
         category: log.category ?? 'unknown',
         action: log.action ?? 'unknown',
         severity: log.severity ?? 'low',
-        user_id: log.user_id ?? 'unknown',
+        userId: log.user_id ?? 'unknown', // Map user_id to userId for consistency
         description: log.description ?? 'No description',
         success: log.success ?? true,
         error_message: log.error_message ?? null,
@@ -216,7 +216,7 @@ export async function POST(request: Request) {
       log.category,
       log.action,
       log.severity,
-      log.user_id ?? 'N/A',
+      log.userId ?? 'N/A',
       log.description ?? 'N/A',
       log.success ? 'Yes' : 'No',
       log.error_message ?? 'N/A',

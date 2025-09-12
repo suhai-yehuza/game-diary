@@ -40,10 +40,10 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('encrypted');
+      expect(encrypted).toHaveProperty('content');
       expect(encrypted).toHaveProperty('tag');
       expect(typeof encrypted.iv).toBe('string');
-      expect(typeof encrypted.encrypted).toBe('string');
+      expect(typeof encrypted.content).toBe('string');
       expect(typeof encrypted.tag).toBe('string');
     });
 
@@ -53,7 +53,7 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext, keyOverride);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('encrypted');
+      expect(encrypted).toHaveProperty('content');
       expect(encrypted).toHaveProperty('tag');
     });
 
@@ -66,7 +66,7 @@ describe('encryption utils', () => {
       const encrypted = encryptField(plaintext, keyOverride);
 
       expect(encrypted).toHaveProperty('iv');
-      expect(encrypted).toHaveProperty('encrypted');
+      expect(encrypted).toHaveProperty('content');
       expect(encrypted).toHaveProperty('tag');
     });
 

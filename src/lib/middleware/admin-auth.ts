@@ -37,6 +37,8 @@ export async function adminAuthMiddleware(
   request: NextRequest
 ): Promise<NextResponse | IAdminAuthContext> {
   try {
+    // Admin routes require proper authentication - no mock mode bypass
+
     const { userId, sessionClaims } = await auth();
 
     if (!userId) {
@@ -119,7 +121,12 @@ export async function adminAuthMiddleware(
 }
 
 export function withAdminAuth<T extends unknown[]>(
-  handler: (context: IAdminAuthContext, request: NextRequest, ...args: T) => Promise<Response>
+  handler: (
+    authContext: IAdminAuthContext,
+    request: NextRequest,
+    context: { params: Promise<{ [key: string]: string }> },
+    ...args: T
+  ) => Promise<Response>
 ) {
   return async (
     request: NextRequest,
@@ -132,6 +139,6 @@ export function withAdminAuth<T extends unknown[]>(
       return authResult;
     }
 
-    return handler(authResult, request, ...args);
+    return handler(authResult, request, context, ...args);
   };
 }

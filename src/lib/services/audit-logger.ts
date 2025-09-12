@@ -98,6 +98,7 @@ export class AuditLogger {
         error_code: data.errorCode,
         duration_ms: data.durationMs ?? Date.now() - startTime,
         compliance_tags: data.complianceTags?.join(',') || null,
+        // Note: deleted_at is not included as it doesn't exist in the audit_logs table
       };
 
       await db()?.insert(audit_logs).values(auditData);

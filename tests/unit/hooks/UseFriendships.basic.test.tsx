@@ -6,7 +6,7 @@ import {
   useFriendships,
   useFriendshipRequests,
   useFriendshipStatus,
-  useUserSearch,
+  useOptimizedUserSearch,
   useFriendRequestMutations,
 } from '@/hooks/use-friendships';
 
@@ -136,7 +136,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith();
+      expect(mockRefetch).toHaveBeenCalledWith(undefined);
     });
 
     it('should handle refetch error', async () => {
@@ -362,7 +362,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith();
+      expect(mockRefetch).toHaveBeenCalledWith(undefined);
     });
 
     it('should handle loadMore functionality', async () => {
@@ -463,7 +463,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith();
+      expect(mockRefetch).toHaveBeenCalledWith(undefined);
     });
 
     it('should handle refetch with null data', async () => {
@@ -484,7 +484,7 @@ describe('Friendship Hooks', () => {
         await result.current.refetch();
       });
 
-      expect(mockRefetch).toHaveBeenCalledWith();
+      expect(mockRefetch).toHaveBeenCalledWith(undefined);
     });
 
     it('should skip query when userId is empty', () => {
@@ -499,9 +499,9 @@ describe('Friendship Hooks', () => {
     });
   });
 
-  describe('useUserSearch', () => {
+  describe('useOptimizedUserSearch', () => {
     it('should be a function', () => {
-      expect(typeof useUserSearch).toBe('function');
+      expect(typeof useOptimizedUserSearch).toBe('function');
     });
 
     it('should return an object with expected properties', () => {
@@ -513,7 +513,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       expect(result.current).toHaveProperty('users');
       expect(result.current).toHaveProperty('loading');
@@ -525,7 +525,7 @@ describe('Friendship Hooks', () => {
     });
 
     it('should handle empty search term', () => {
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       expect(result.current.users).toEqual([]);
       expect(result.current.loading).toBe(false);
@@ -549,7 +549,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
@@ -574,7 +574,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       expect(result.current.error).toStrictEqual(mockError);
     });
@@ -606,7 +606,7 @@ describe('Friendship Hooks', () => {
         fetchMore: mockFetchMore,
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
@@ -622,7 +622,7 @@ describe('Friendship Hooks', () => {
 
       expect(mockFetchMore).toHaveBeenCalledWith({
         variables: {
-          pagination: { first: 10, after: 'cursor1' },
+          pagination: { first: 20, after: 'cursor1' },
         },
       });
     });
@@ -636,7 +636,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       await act(async () => {
         const searchResult = await result.current.search('');
@@ -664,7 +664,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       await act(async () => {
         const searchResult = await result.current.search('user1');
@@ -681,7 +681,7 @@ describe('Friendship Hooks', () => {
 
       // The users state should be updated after the search completes
       expect(result.current.users).toEqual([{ id: '1', username: 'user1' }]);
-      expect(mockRefetch).toHaveBeenCalledWith();
+      expect(mockRefetch).toHaveBeenCalledWith({ searchTerm: 'user1', limit: 20 });
     });
 
     it('should handle search error', async () => {
@@ -696,7 +696,7 @@ describe('Friendship Hooks', () => {
         fetchMore: vi.fn(),
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       await act(async () => {
         const searchResult = await result.current.search('user1');
@@ -731,7 +731,7 @@ describe('Friendship Hooks', () => {
         fetchMore: mockFetchMore,
       });
 
-      const { result } = renderHook(() => useUserSearch());
+      const { result } = renderHook(() => useOptimizedUserSearch());
 
       // Trigger onCompleted callback manually to set up internal state
       act(() => {
