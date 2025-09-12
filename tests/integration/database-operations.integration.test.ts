@@ -87,13 +87,19 @@ const createMockDatabase = () => {
             id,
             username: row?.username || 'integration-test-basic-user',
             email_address: row?.email_address || 'integration-test-basic@example.com',
-            first_name: row?.first_name,
-            last_name: row?.last_name,
+            first_name: row?.first_name || 'Test',
+            last_name: row?.last_name || 'User',
             created_at: nowIso(),
             updated_at: nowIso(),
           };
           users.set(id, user);
-          return { id: user.id, username: user.username, email_address: user.email_address };
+          return {
+            id: user.id,
+            username: user.username,
+            email_address: user.email_address,
+            first_name: user.first_name,
+            last_name: user.last_name,
+          };
         });
         return { rows };
       }
@@ -104,16 +110,25 @@ const createMockDatabase = () => {
         const rows = inserts.map((row, idx) => {
           const id =
             row?.id || `integration-test-gamelog-basic-${Date.now()}${idx ? `-${idx}` : ''}`;
+
+          // Check if user exists before creating game log
+          const userId = row?.user_id || 'integration-test-user-basic';
+          if (!users.has(userId)) {
+            throw new Error(
+              `Foreign key constraint violation: user_id '${userId}' does not exist in users table`
+            );
+          }
+
           const gl: GameLog = {
             id,
-            user_id: row?.user_id || 'integration-test-user-basic',
-            game_id: 'integration-test-game-basic',
-            classification: 'PROTECTED',
-            watched_setting: 'TV',
-            watched_scope: 'FULL_GAME',
-            watched_date: nowIso(),
-            watched_location: 'Home',
-            rating_for_game: 5,
+            user_id: userId,
+            game_id: row?.game_id || 'integration-test-game-basic',
+            classification: (row?.classification as any) || 'PROTECTED',
+            watched_setting: row?.watched_setting || 'TV',
+            watched_scope: row?.watched_scope || 'FULL_GAME',
+            watched_date: row?.watched_date || nowIso(),
+            watched_location: row?.watched_location || 'Home',
+            rating_for_game: parseInt(row?.rating_for_game || '5'),
             notes: row?.notes || 'Test Game Log Content',
             created_at: nowIso(),
             updated_at: nowIso(),
@@ -162,6 +177,26 @@ const createMockDatabase = () => {
           };
           notifications.push(n);
           return { id: n.id, user_id: n.user_id, type: n.type, title: n.title, message: n.message };
+        });
+        return { rows };
+      }
+
+      if (/INSERT\s+INTO\s+basketball_teams/i.test(query)) {
+        const ins = parseInsert(query);
+        const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
+        const rows = inserts.map((row, idx) => {
+          const id = row?.id || `integration-test-team-${Date.now()}-${idx}`;
+          return { id, name: row?.name || 'Test Team' };
+        });
+        return { rows };
+      }
+
+      if (/INSERT\s+INTO\s+basketball_games/i.test(query)) {
+        const ins = parseInsert(query);
+        const inserts = ins?.rows && ins.rows.length > 0 ? ins.rows : [ins?.rows?.[0] ?? {}];
+        const rows = inserts.map((row, idx) => {
+          const id = row?.id || `integration-test-game-${Date.now()}-${idx}`;
+          return { id, teams: row?.teams || '{}', season: row?.season || '2024-25' };
         });
         return { rows };
       }
@@ -241,6 +276,14 @@ const createMockDatabase = () => {
         });
         return { rows: [{ id }] };
       }
+      if (/DELETE\s+FROM\s+basketball_games/i.test(query)) {
+        const id = extractWhereIdEq(query) as string;
+        return { rows: [{ id }] };
+      }
+      if (/DELETE\s+FROM\s+basketball_teams/i.test(query)) {
+        const id = extractWhereIdEq(query) as string;
+        return { rows: [{ id }] };
+      }
 
       // SELECTS
       if (
@@ -256,12 +299,22 @@ const createMockDatabase = () => {
           return { rows };
         }
         const id = extractWhereIdEq(query) as string;
-        const u = users.get(id) || {
-          id,
-          username: 'integration-test-basic-user',
-          email: 'integration-test-basic@example.com',
-        };
-        return { rows: [u] };
+        const u = users.get(id);
+        if (u) {
+          return {
+            rows: [
+              {
+                id: u.id,
+                username: u.username,
+                email_address: u.email_address,
+                first_name: u.first_name,
+                last_name: u.last_name,
+              },
+            ],
+          };
+        }
+        // Return empty array if user not found (instead of creating a fake user)
+        return { rows: [] };
       }
 
       if (/SELECT\s+[\s\S]*?\bFROM\s+game_logs/i.test(query)) {
@@ -423,7 +476,10 @@ describe('Database Operations Integration Tests', () => {
       usingRealDatabase = false;
     }
 
-    await cleanupTestData();
+    // Only cleanup if using real database
+    if (usingRealDatabase) {
+      await cleanupTestData();
+    }
   });
 
   // Remove afterEach cleanup to prevent premature data deletion
@@ -546,15 +602,36 @@ describe('Database Operations Integration Tests', () => {
       testGameLogId = `integration-test-gamelog-${Date.now()}`;
       gameId = `integration-test-game-${Date.now()}`;
 
+      // Create test user and verify it was created
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES ('${testUserId}', 'integration-test-basic-user-${Date.now()}', 'integration-test-basic-${Date.now()}@example.com', 'Test', 'User', NOW(), NOW())
       `);
 
+      // Verify user was created successfully
+      const userCheck = (await db.execute(`
+        SELECT id FROM users WHERE id = '${testUserId}'
+      `)) as unknown as { rows: Array<{ id: string }> };
+
+      if (userCheck.rows.length === 0) {
+        throw new Error(`Failed to create test user: ${testUserId}`);
+      }
+
+      // Create test teams first
+      const homeTeamId = `integration-test-home-team-${Date.now()}`;
+      const awayTeamId = `integration-test-away-team-${Date.now()}`;
+
+      await db.execute(`
+        INSERT INTO basketball_teams (id, name, created_at, updated_at)
+        VALUES
+          ('${homeTeamId}', 'Test Home Team', NOW(), NOW()),
+          ('${awayTeamId}', 'Test Away Team', NOW(), NOW())
+      `);
+
       // Create a basketball game
       await db.execute(`
         INSERT INTO basketball_games (id, teams, date, season, status, created_at, updated_at)
-        VALUES ('${gameId}', '{"home":{"id":"test-home-team"},"away":{"id":"test-away-team"}}', NOW(), '2024-25', '{"status": "scheduled"}', NOW(), NOW())
+        VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', '{"status": "scheduled"}', NOW(), NOW())
       `);
 
       // Create the game log
@@ -855,11 +932,22 @@ describe('Database Operations Integration Tests', () => {
       const homeTeamId = `integration-test-home-team-${timestamp}`;
       const awayTeamId = `integration-test-away-team-${timestamp}`;
 
+      // Clean up any existing test data first
+      await db.execute(`DELETE FROM game_logs WHERE id = '${gameLogId}'`);
+      await db.execute(`DELETE FROM basketball_games WHERE id = '${gameId}'`);
+      await db.execute(
+        `DELETE FROM basketball_teams WHERE id IN ('${homeTeamId}', '${awayTeamId}')`
+      );
+      await db.execute(`DELETE FROM users WHERE id = '${userId}'`);
+
       // Create user first
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
         VALUES ('${userId}', 'cascadeuser${timestamp}', 'cascade${timestamp}@example.com', 'Cascade', 'User', NOW(), NOW())
       `);
+
+      // Wait a moment to ensure user is committed
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Verify user was created
       const userCheck = (await db.execute(`
@@ -881,6 +969,9 @@ describe('Database Operations Integration Tests', () => {
         INSERT INTO basketball_games (id, teams, date, season, status, created_at, updated_at)
         VALUES ('${gameId}', '{"home":{"id":"${homeTeamId}"},"away":{"id":"${awayTeamId}"}}', NOW(), '2024-25', '{"status": "scheduled"}', NOW(), NOW())
       `);
+
+      // Wait a moment to ensure game is committed
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Create game log
       await db.execute(`
@@ -1126,7 +1217,7 @@ describe('Database Operations Integration Tests', () => {
       const result = (await db.execute(`
         SELECT id, username, email_address
         FROM users
-        WHERE id LIKE 'integration-test-perf-user-%'
+        WHERE id LIKE 'integration-test-perf-user-${timestamp}-%'
         ORDER BY created_at DESC
       `)) as unknown as { rows: Array<{ id: string; username: string; email_address: string }> };
 

@@ -1,20 +1,26 @@
 NOTES
 
-# Nuke and setup db and tables
+# Database Setup Options
 ===== ===== ===== ===== =====
 # This creates a new migration file in drizzle/ directory
-> pnpm db:generate:unsafe
+> pnpm db:generate:dev
 
-# Seed with external api data
+# HARD RESET (Destructive - wipes everything)
+# Use when you want a completely fresh start
 > pnpm hard:reseed:dev
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm hard:reseed:prod
+
+# SOFT RESET (Non-destructive - preserves data)
+# Use when you want to apply migrations safely
+> pnpm soft:reseed:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm soft:reseed:prod
 
 # seed user data (for dev only)
 > pnpm seed:user-data:large-pareto:dev
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true DISABLE_USER_SEEDING=false pnpm seed:user-data:large-pareto:prod
 
-> pnpm seed:test-user-interactions:dev
-# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm seed:test-user-interactions:prod
+> pnpm seed:test-user-interactions:clean:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm seed:test-user-interactions:clean:prod
 
 
 # [Optional 1] Test clerk webhook locally
@@ -34,13 +40,16 @@ NOTES
 ===== ===== ===== ===== =====
 # 1. Edit schema files (src/lib/db/schema/*) or custom db files (src/lib/db/migrations/*)
 
-# 2. Generate migration
-> pnpm db:generate:dev
-# The above creates a new migration file in drizzle/ directory
-
-# 3. Apply migration
+# 2. Development - preserves data by default
 > pnpm db:migrate:dev
 
+# 3. Production - preserves data by default
+> pnpm db:migrate:prod
+
+# Alternative: Use soft reseed for complete setup with external data
+> pnpm soft:reseed:dev
+
 # 4. Test everything works
+> pnpm db:test:integrity
 > pnpm db:test:all-triggers
 ===== ===== ===== ===== =====

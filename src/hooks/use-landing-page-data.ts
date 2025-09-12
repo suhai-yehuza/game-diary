@@ -3,6 +3,7 @@
 import { useQuery } from '@apollo/client';
 import { useCallback, useMemo } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   GET_LANDING_PAGE_TRENDING_CONTENT,
   GET_LANDING_PAGE_LATEST_GAMES,
@@ -10,8 +11,10 @@ import {
 } from '@/lib/graphql/queries';
 import type { ILandingPageData, IUseOptimizedLandingPageDataOptions } from '@/types';
 
+const defaultLimit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
+
 export function useOptimizedLandingPageData(options: IUseOptimizedLandingPageDataOptions = {}) {
-  const { limit = 10, skip = false } = options;
+  const { limit = defaultLimit, skip = false } = options;
 
   // Fetch trending content (game logs)
   const {
@@ -33,7 +36,7 @@ export function useOptimizedLandingPageData(options: IUseOptimizedLandingPageDat
     error: latestGamesError,
     refetch: refetchLatestGames,
   } = useQuery(GET_LANDING_PAGE_LATEST_GAMES, {
-    variables: { limit: 5 },
+    variables: { limit: defaultLimit },
     skip,
     fetchPolicy: 'cache-first',
     errorPolicy: 'all',
@@ -46,7 +49,7 @@ export function useOptimizedLandingPageData(options: IUseOptimizedLandingPageDat
     error: popularGamesError,
     refetch: refetchPopularGames,
   } = useQuery(GET_LANDING_PAGE_POPULAR_GAMES, {
-    variables: { limit: 5 },
+    variables: { limit: defaultLimit },
     skip,
     fetchPolicy: 'cache-first',
     errorPolicy: 'all',
@@ -95,11 +98,11 @@ export function useOptimizedLandingPageData(options: IUseOptimizedLandingPageDat
     // Sort popular games by different criteria
     const topRated = [...popularGames]
       .sort((a, b) => (b.average_rating || 0) - (a.average_rating || 0))
-      .slice(0, 5);
+      .slice(0, defaultLimit);
 
     const mostRated = [...popularGames]
       .sort((a, b) => (b.total_ratings || 0) - (a.total_ratings || 0))
-      .slice(0, 5);
+      .slice(0, defaultLimit);
 
     const mostPopular = [...popularGames]
       .sort(
@@ -109,7 +112,7 @@ export function useOptimizedLandingPageData(options: IUseOptimizedLandingPageDat
           (a.totalPublicCommentCount || 0) -
           (a.totalPublicReactionCount || 0)
       )
-      .slice(0, 5);
+      .slice(0, defaultLimit);
 
     return {
       id: 'optimized-landing-page-data',

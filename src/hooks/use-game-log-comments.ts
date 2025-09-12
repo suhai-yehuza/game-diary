@@ -3,6 +3,7 @@
 import { useQuery } from '@apollo/client';
 import { useCallback, useMemo } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   GET_GAME_LOG_COMMENTS_COUNTS,
   GET_GAME_LOG_COMMENTS_WITH_COUNTS,
@@ -10,11 +11,17 @@ import {
 } from '@/lib/graphql/queries';
 import type { IUseGameLogCommentsOptions, IUseGameLogCommentsReturn } from '@/types';
 
+const defaultLimit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 export function useGameLogComments(
   gameLogId: string,
   options: IUseGameLogCommentsOptions = {}
 ): IUseGameLogCommentsReturn {
-  const { limit = 10, skip = false, useCountsOnly = false, useDetailed = false } = options;
+  const {
+    limit = defaultLimit,
+    skip = false,
+    useCountsOnly = false,
+    useDetailed = false,
+  } = options;
 
   // Determine which query to use based on optimization level
   const query = useCountsOnly

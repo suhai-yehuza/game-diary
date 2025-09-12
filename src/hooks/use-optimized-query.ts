@@ -1,4 +1,4 @@
-import { useQuery, useLazyQuery, type DocumentNode } from '@apollo/client';
+import { useQuery, useLazyQuery, type DocumentNode, type OperationVariables } from '@apollo/client';
 import { useCallback, useMemo, useRef, useState } from 'react';
 
 import { logger } from '@/lib/utils/logger';
@@ -83,37 +83,43 @@ export function useOptimizedQuery<T = unknown>(
   );
 
   // Enhanced refetch with retry logic
-  const refetch = useCallback(async () => {
-    try {
-      const result = await apolloRefetch();
-      setRetryAttempts(0);
-      return result;
-    } catch (error) {
-      handleError(error as Error);
-      throw error;
-    }
-  }, [apolloRefetch, handleError]);
+  const refetch = useCallback(
+    async (newVariables?: unknown) => {
+      try {
+        const result = await apolloRefetch(newVariables as Partial<OperationVariables> | undefined);
+        setRetryAttempts(0);
+        return result;
+      } catch (error) {
+        handleError(error as Error);
+        throw error;
+      }
+    },
+    [apolloRefetch, handleError]
+  );
 
   // Debounced refetch function
-  const debouncedRefetch = useCallback(() => {
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
+  const debouncedRefetch = useCallback(
+    (newVariables?: unknown) => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
 
-    return new Promise((resolve, reject) => {
-      debounceTimeoutRef.current = setTimeout(() => {
-        void (async () => {
-          try {
-            const result = await refetch();
-            setRetryAttempts(0); // Reset retry count on success
-            resolve(result);
-          } catch (error) {
-            reject(error);
-          }
-        })();
-      }, debounceMs);
-    });
-  }, [debounceMs, refetch]);
+      return new Promise((resolve, reject) => {
+        debounceTimeoutRef.current = setTimeout(() => {
+          void (async () => {
+            try {
+              const result = await refetch(newVariables);
+              setRetryAttempts(0); // Reset retry count on success
+              resolve(result);
+            } catch (error) {
+              reject(error);
+            }
+          })();
+        }, debounceMs);
+      });
+    },
+    [debounceMs, refetch]
+  );
 
   // Cleanup debounce timeout on unmount
   useCallback(() => {

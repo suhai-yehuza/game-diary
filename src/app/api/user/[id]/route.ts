@@ -5,9 +5,19 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/lib/db';
 import { users, friendships } from '@/lib/db/schema';
-import { decryptField, deserializeEncryptedField, isEncrypted } from '@/lib/utils/encryption';
+import {
+  decryptField,
+  deserializeEncryptedField,
+  isEncrypted,
+  encryptField,
+  serializeEncryptedField,
+} from '@/lib/utils/encryption';
+import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { FRIENDSHIP_STATUS } from '@/types';
+
+// Ensure environment variables are loaded
+loadEnvironmentVariables();
 
 // Helper function to safely decrypt a field
 function safeDecrypt(encryptedValue: string | null | undefined): string | null {
@@ -86,23 +96,48 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         username: targetUser.username,
         first_name: targetUser.first_name,
         last_name: targetUser.last_name,
-        // Show full user details, but mask sensitive info for non-friends
-        email_address: showSensitiveInfo
-          ? decryptedEmail
-          : decryptedEmail && decryptedEmail !== 'null'
-            ? '***@***.***'
-            : null,
-        phone_number: showSensitiveInfo
-          ? decryptedPhone
-          : decryptedPhone && decryptedPhone !== 'null'
-            ? '***-***-****'
-            : null,
+        // Show full user details for own profile, mask sensitive info for others based on friendship
+        email_address: isOwnUser
+          ? decryptedEmail &&
+            decryptedEmail !== targetUser.email_address &&
+            !decryptedEmail.includes('{"iv"')
+            ? decryptedEmail
+            : '*****'
+          : showSensitiveInfo
+            ? decryptedEmail &&
+              decryptedEmail !== targetUser.email_address &&
+              !decryptedEmail.includes('{"iv"')
+              ? decryptedEmail
+              : '*****'
+            : '*****',
+        phone_number: isOwnUser
+          ? decryptedPhone &&
+            decryptedPhone !== targetUser.phone_number &&
+            !decryptedPhone.includes('{"iv"')
+            ? decryptedPhone
+            : targetUser.phone_number
+              ? '*****'
+              : '000-000-0000'
+          : showSensitiveInfo
+            ? decryptedPhone &&
+              decryptedPhone !== targetUser.phone_number &&
+              !decryptedPhone.includes('{"iv"')
+              ? decryptedPhone
+              : '*****'
+            : '*****',
         image_url: targetUser.image_url,
+        profile_image_url: targetUser.profile_image_url,
+        has_image: targetUser.has_image,
+        bio: targetUser.bio,
+        timezone: targetUser.timezone,
+        preferred_language: targetUser.preferred_language,
+        last_active_at: targetUser.last_active_at,
+        last_sign_in_at: targetUser.last_sign_in_at,
         created_at: targetUser.created_at,
         // Additional metadata for the frontend
         is_own_profile: isOwnUser,
         is_friend: areFriends,
-        can_view_details: showSensitiveInfo,
+        can_view_details: isOwnUser || showSensitiveInfo,
       });
     }
 
@@ -114,23 +149,141 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         return NextResponse.json({ error: 'User not found' }, { status: 404 });
       }
 
-      // Return Clerk user data for current user
-      return NextResponse.json({
-        id: currentUserData.id,
-        email_address: currentUserData.emailAddresses?.[0]?.emailAddress || null,
-        phone_number: currentUserData.phoneNumbers?.[0]?.phoneNumber || null,
-        username: currentUserData.username,
-        first_name: currentUserData.firstName,
-        last_name: currentUserData.lastName,
-        image_url: currentUserData.imageUrl,
-        created_at: currentUserData.createdAt
-          ? new Date(currentUserData.createdAt).toISOString()
-          : null,
-        // Metadata for own profile from Clerk
-        is_own_profile: true,
-        is_friend: true, // User is always "friends" with themselves
-        can_view_details: true,
-      });
+      // Try to create or update the user in the database
+      try {
+        // Extract email and phone from Clerk data
+        const email = currentUserData.emailAddresses?.[0]?.emailAddress;
+        const phone = currentUserData.phoneNumbers?.[0]?.phoneNumber;
+
+        // Encrypt sensitive fields
+        const encryptedEmail = email ? serializeEncryptedField(encryptField(email)) : null;
+        const encryptedPhone = phone ? serializeEncryptedField(encryptField(phone)) : null;
+
+        const userData = {
+          id: currentUserData.id,
+          object: 'user',
+          username:
+            currentUserData.username ||
+            `${currentUserData.firstName || 'User'}-${currentUserData.lastName || 'Name'}`.toLowerCase(),
+          first_name: currentUserData.firstName || '',
+          last_name: currentUserData.lastName || '',
+          image_url: currentUserData.imageUrl,
+          has_image: !!currentUserData.imageUrl,
+          profile_image_url: currentUserData.imageUrl,
+          primary_email_address_id: currentUserData.emailAddresses?.[0]?.id || '',
+          primary_phone_number_id: currentUserData.phoneNumbers?.[0]?.id || '',
+          email_address: encryptedEmail,
+          phone_number: encryptedPhone,
+          external_id: currentUserData.externalId || '',
+          last_active_at: currentUserData.lastActiveAt
+            ? new Date(currentUserData.lastActiveAt)
+            : null,
+          last_sign_in_at: currentUserData.lastSignInAt
+            ? new Date(currentUserData.lastSignInAt)
+            : null,
+          bio: null,
+          timezone: null,
+          preferred_language: 'en',
+          isAdmin: false,
+          inbound_friendship_ids: [],
+          outbound_friendship_ids: [],
+          created_at: new Date(currentUserData.createdAt),
+          updated_at: new Date(),
+          deleted_at: null,
+        };
+
+        // Check if user already exists in database
+        const existingUser = await db()?.query.users.findFirst({
+          where: eq(users.id, currentUserData.id),
+        });
+
+        if (existingUser) {
+          // User exists - update with latest Clerk data
+          await db()
+            ?.update(users)
+            .set({
+              username: userData.username,
+              first_name: userData.first_name,
+              last_name: userData.last_name,
+              image_url: userData.image_url,
+              has_image: userData.has_image,
+              profile_image_url: userData.profile_image_url,
+              primary_email_address_id: userData.primary_email_address_id,
+              primary_phone_number_id: userData.primary_phone_number_id,
+              email_address: encryptedEmail || existingUser.email_address, // Keep existing if no new email
+              phone_number: encryptedPhone || existingUser.phone_number, // Keep existing if no new phone
+              external_id: userData.external_id,
+              last_active_at: userData.last_active_at,
+              last_sign_in_at: userData.last_sign_in_at,
+              updated_at: new Date(),
+            })
+            .where(eq(users.id, currentUserData.id));
+        } else {
+          // User doesn't exist - create new user
+          await db()?.insert(users).values(userData);
+        }
+
+        // Determine the final email and phone to return
+        const finalEmail = existingUser
+          ? (encryptedEmail
+              ? safeDecrypt(encryptedEmail)
+              : safeDecrypt(existingUser.email_address)) || '*****'
+          : (encryptedEmail ? safeDecrypt(encryptedEmail) : null) || '*****';
+        const finalPhone = existingUser
+          ? (encryptedPhone
+              ? safeDecrypt(encryptedPhone)
+              : safeDecrypt(existingUser.phone_number)) ||
+            (existingUser.phone_number ? '*****' : '000-000-0000')
+          : (encryptedPhone ? safeDecrypt(encryptedPhone) : null) || '000-000-0000';
+
+        // Now return the user data with proper privacy settings
+        return NextResponse.json({
+          id: currentUserData.id,
+          username: userData.username,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          email_address: finalEmail,
+          phone_number: finalPhone,
+          image_url: currentUserData.imageUrl,
+          profile_image_url: currentUserData.imageUrl,
+          has_image: !!currentUserData.imageUrl,
+          bio: existingUser?.bio || null,
+          timezone: existingUser?.timezone || null,
+          preferred_language: existingUser?.preferred_language || 'en',
+          last_active_at: currentUserData.lastActiveAt
+            ? new Date(currentUserData.lastActiveAt).toISOString()
+            : null,
+          last_sign_in_at: currentUserData.lastSignInAt
+            ? new Date(currentUserData.lastSignInAt).toISOString()
+            : null,
+          created_at: existingUser?.created_at
+            ? new Date(existingUser.created_at).toISOString()
+            : new Date(currentUserData.createdAt).toISOString(),
+          // Additional metadata for the frontend
+          is_own_profile: true,
+          is_friend: false,
+          can_view_details: true, // User can see their own data
+        });
+      } catch (error) {
+        // If database creation fails, return basic Clerk data
+        console.error('Failed to create user in database:', error);
+        return NextResponse.json({
+          id: currentUserData.id,
+          username: currentUserData.username,
+          first_name: currentUserData.firstName,
+          last_name: currentUserData.lastName,
+          email_address: currentUserData.emailAddresses?.[0]?.emailAddress || '*****',
+          phone_number: currentUserData.phoneNumbers?.[0]?.phoneNumber || '*****',
+          image_url: currentUserData.imageUrl,
+          created_at: currentUserData.createdAt
+            ? new Date(currentUserData.createdAt).toISOString()
+            : null,
+          // Additional metadata for the frontend
+          is_own_profile: true,
+          is_friend: false,
+          can_view_details: true, // User can see their own data
+        });
+      }
     }
 
     // User not found anywhere

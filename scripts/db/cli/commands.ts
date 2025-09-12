@@ -6,6 +6,7 @@ import { logger } from '@src/lib/utils/logger';
 import { setupDatabase } from '../setup/database-setup';
 import { parseScriptArgs, parseResetArgs } from './argument-parser';
 import { runCommand } from '../core/command-utils';
+import { applyAllMigrations } from '../core/migration-runner';
 
 /**
  * Run canonical reset using the reset-with-env.ts script
@@ -68,6 +69,51 @@ export async function handleSetupCommand(
 }
 
 /**
+ * Handle migrate command
+ */
+export async function handleMigrateCommand(
+  args: string[],
+  options: ReturnType<typeof parseScriptArgs>
+): Promise<void> {
+  const dryRun = args.includes('--dry-run');
+  const preserveData = args.includes('--preserve-data');
+
+  logger.info(`🔄 Starting migration for ${options.environment} environment...`);
+  if (dryRun) {
+    logger.info('🔍 DRY RUN MODE - No changes will be made');
+  }
+  if (preserveData) {
+    logger.info('🛡️  DATA PRESERVATION MODE - Will attempt to preserve existing data');
+  }
+
+  try {
+    const result = await applyAllMigrations(options.environment, dryRun, preserveData);
+
+    if (result.success) {
+      logger.info('✅ Migration completed successfully');
+      logger.info(`📊 Applied migrations: ${result.appliedMigrations.join(', ')}`);
+
+      if (!result.dataPreserved) {
+        logger.warn('⚠️  WARNING: Data may have been lost during migration');
+        logger.warn('⚠️  This should not happen with the safe migration system');
+      } else {
+        logger.info('✅ Data was preserved during migration');
+      }
+    } else {
+      logger.error('❌ Migration failed');
+      result.errors.forEach(error => logger.error(`  • ${error}`));
+      throw new Error('Migration failed');
+    }
+  } catch (error) {
+    logger.error(
+      '❌ Migration command failed:',
+      error instanceof Error ? error : new Error(String(error))
+    );
+    throw error;
+  }
+}
+
+/**
  * Handle copy migrations command
  */
 export async function handleCopyMigrationsCommand(): Promise<void> {
@@ -122,7 +168,7 @@ Database Manager - Unified database operations
 Usage: tsx scripts/db/database-manager.ts <command> [options]
 
 Commands:
-  migrate [--dry-run]           Apply all pending migrations
+  migrate [--dry-run] [--preserve-data] Apply all pending migrations safely
   migrate-file <path> [--dry-run] Apply a specific migration file
   view                         View migration history
   validate                     Validate migration files
@@ -137,9 +183,11 @@ Options:
   --env=<environment>          Environment (default: development)
   --test                      Run tests after setup
   --dry-run                   Show what would be done without making changes
+  --preserve-data             Explicitly preserve existing data during migration
 
 Examples:
-  tsx scripts/db/database-manager.ts migrate
+  tsx scripts/db/database-manager.ts migrate --preserve-data
+  tsx scripts/db/database-manager.ts migrate --dry-run
   tsx scripts/db/database-manager.ts migrate-file drizzle/000_schema_with_cascade.sql
   tsx scripts/db/database-manager.ts setup complete
   tsx scripts/db/database-manager.ts truncate --scope=internal

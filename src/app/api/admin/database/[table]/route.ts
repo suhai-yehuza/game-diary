@@ -30,7 +30,11 @@ function sanitizeGameLogData(gameLog: Record<string, unknown>) {
 }
 
 export const GET = withAdminAuth(
-  async (authContext, request: Request, context: { params: Promise<{ table: string }> }) => {
+  async (
+    authContext,
+    request: Request,
+    context: { params: Promise<{ [key: string]: string }> }
+  ) => {
     try {
       const { table } = await context.params;
       const { searchParams } = new URL(request.url);
@@ -40,29 +44,7 @@ export const GET = withAdminAuth(
       const limit = parseInt(searchParams.get('limit') ?? '10', 10);
       const offset = (page - 1) * limit;
 
-      // Check if we're in test/mock mode
-      if (process.env.MOCK_MODE === 'true' || process.env.NODE_ENV === 'test') {
-        // Return mock data for test environment
-        return NextResponse.json({
-          success: true,
-          data: [],
-          table,
-          schema: {
-            columns: ['id', 'created_at'],
-            rowCount: 0,
-            lastUpdated: new Date().toISOString(),
-          },
-          rowCount: 0,
-          lastUpdated: new Date().toISOString(),
-          pagination: {
-            page,
-            limit,
-            total: 0,
-            pages: 0,
-          },
-          filters: search ? { search, searchField } : undefined,
-        });
-      }
+      // Admin routes use real database - no mock mode
 
       let db;
       try {
@@ -99,18 +81,33 @@ export const GET = withAdminAuth(
           break;
         }
 
-        case 'game_logs':
-        case 'game_logs_public':
-        case 'game_logs_private':
-        case 'game_logs_protected': {
+        case 'game_logs': {
           const gameLogColumns = ['id', 'user_id', 'game_id', 'title', 'content'];
           const gameLogSearchCondition = buildSearchCondition(search, searchField, gameLogColumns);
           const orderByClause = buildOrderByClause('created_at');
+
+          // Check if we need to filter by classification
+          const classification = searchParams.get('classification');
+          let classificationFilter = '';
+          if (classification) {
+            classificationFilter = `WHERE classification = '${classification}'`;
+          }
+
+          // Combine search and classification filters
+          let whereClause = '';
+          if (gameLogSearchCondition && classificationFilter) {
+            whereClause = `${classificationFilter} AND ${gameLogSearchCondition.replace('WHERE ', '')}`;
+          } else if (gameLogSearchCondition) {
+            whereClause = gameLogSearchCondition;
+          } else if (classificationFilter) {
+            whereClause = classificationFilter;
+          }
+
           // Use the base table name for all game log variants
           const baseTableName = 'game_logs';
           // Only select safe, non-encrypted fields for display
-          query = sql`SELECT id, user_id, game_id, rating_for_game, classification, watched_setting, watched_scope, created_at, updated_at FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
-          countQuery = sql`SELECT COUNT(*) as total FROM ${sql.raw(baseTableName)} ${gameLogSearchCondition ? sql.raw(gameLogSearchCondition) : sql``}`;
+          query = sql`SELECT id, user_id, game_id, rating_for_game, classification, watched_setting, watched_scope, created_at, updated_at FROM ${sql.raw(baseTableName)} ${whereClause ? sql.raw(whereClause) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+          countQuery = sql`SELECT COUNT(*) as total FROM ${sql.raw(baseTableName)} ${whereClause ? sql.raw(whereClause) : sql``}`;
           break;
         }
 
@@ -175,6 +172,46 @@ export const GET = withAdminAuth(
           break;
         }
 
+        case 'public_comments': {
+          const publicCommentColumns = [
+            'id',
+            'user_id',
+            'anonymous_name',
+            'parent_id',
+            'parent_type',
+            'content',
+          ];
+          const publicCommentSearchCondition = buildSearchCondition(
+            search,
+            searchField,
+            publicCommentColumns
+          );
+          const orderByClause = buildOrderByClause('created_at');
+          query = sql`SELECT * FROM public_comments ${publicCommentSearchCondition ? sql.raw(publicCommentSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+          countQuery = sql`SELECT COUNT(*) as total FROM public_comments ${publicCommentSearchCondition ? sql.raw(publicCommentSearchCondition) : sql``}`;
+          break;
+        }
+
+        case 'public_reactions': {
+          const publicReactionColumns = [
+            'id',
+            'user_id',
+            'anonymous_name',
+            'target_type',
+            'target_id',
+            'emoji',
+          ];
+          const publicReactionSearchCondition = buildSearchCondition(
+            search,
+            searchField,
+            publicReactionColumns
+          );
+          const orderByClause = buildOrderByClause('created_at');
+          query = sql`SELECT * FROM public_reactions ${publicReactionSearchCondition ? sql.raw(publicReactionSearchCondition) : sql``} ${sql.raw(orderByClause)} LIMIT ${limit} OFFSET ${offset}`;
+          countQuery = sql`SELECT COUNT(*) as total FROM public_reactions ${publicReactionSearchCondition ? sql.raw(publicReactionSearchCondition) : sql``}`;
+          break;
+        }
+
         case 'basketball_games': {
           const nbaGameColumns = ['id', 'date', 'status', 'teams', 'scores'];
           const nbaGameSearchCondition = buildSearchCondition(search, searchField, nbaGameColumns);
@@ -235,7 +272,11 @@ export const GET = withAdminAuth(
 );
 
 export const POST = withAdminAuth(
-  async (authContext, request: Request, context: { params: Promise<{ table: string }> }) => {
+  async (
+    authContext,
+    request: Request,
+    context: { params: Promise<{ [key: string]: string }> }
+  ) => {
     try {
       const { table } = await context.params;
       const body = (await request.json()) as { operation: string };
@@ -270,15 +311,184 @@ export const POST = withAdminAuth(
 );
 
 export const PUT = withAdminAuth(
-  async (_authContext, _request: Request, _context: { params: Promise<{ table: string }> }) => {
+  async (
+    _authContext,
+    _request: Request,
+    _context: { params: Promise<{ [key: string]: string }> }
+  ) => {
     await Promise.resolve(); // Satisfy async requirement
     return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
   }
 );
 
 export const DELETE = withAdminAuth(
-  async (_authContext, _request: Request, _context: { params: Promise<{ table: string }> }) => {
-    await Promise.resolve(); // Satisfy async requirement
-    return NextResponse.json({ error: 'Method not allowed' }, { status: 405 });
+  async (
+    authContext,
+    request: Request,
+    context: { params: Promise<{ [key: string]: string }> }
+  ) => {
+    try {
+      const { table } = await context.params;
+      const body = (await request.json()) as { ids: (string | number)[] };
+
+      if (!body.ids || !Array.isArray(body.ids) || body.ids.length === 0) {
+        return NextResponse.json(
+          { error: 'Invalid request: ids array is required and must not be empty' },
+          { status: 400 }
+        );
+      }
+
+      let db;
+      try {
+        db = createDatabaseClient();
+      } catch (_dbError) {
+        return NextResponse.json({ error: 'Database service unavailable' }, { status: 503 });
+      }
+
+      // Use a different approach - execute individual deletes for now
+      let deletedCount = 0;
+      let tableName: string;
+
+      // Set table name based on the table parameter
+      switch (table) {
+        case 'users':
+          tableName = 'users';
+          break;
+        case 'game_logs':
+          tableName = 'game_logs';
+          break;
+        case 'comments':
+          tableName = 'comments';
+          break;
+        case 'reactions':
+          tableName = 'reactions';
+          break;
+        case 'friendships':
+          tableName = 'friendships';
+          break;
+        case 'notifications':
+          tableName = 'notifications';
+          break;
+        case 'game_ratings':
+          tableName = 'game_ratings';
+          break;
+        case 'public_comments':
+          tableName = 'public_comments';
+          break;
+        case 'public_reactions':
+          tableName = 'public_reactions';
+          break;
+        default:
+          return NextResponse.json(
+            { error: `Table '${table}' is not supported for bulk deletion` },
+            { status: 400 }
+          );
+      }
+
+      for (const id of body.ids) {
+        let deleteQuery: ReturnType<typeof sql>;
+
+        switch (table) {
+          case 'users': {
+            // For users, first check if the user exists
+            const userExistsQuery = sql`SELECT id FROM users WHERE id = ${id}`;
+            const userExistsResult = await db.execute(userExistsQuery);
+
+            if (userExistsResult.rows.length === 0) {
+              // User doesn't exist, skip this deletion
+              continue;
+            }
+
+            deleteQuery = sql`DELETE FROM users WHERE id = ${id}`;
+            break;
+          }
+          case 'game_logs':
+            deleteQuery = sql`DELETE FROM game_logs WHERE id = ${id}`;
+            break;
+          case 'comments':
+            deleteQuery = sql`DELETE FROM comments WHERE id = ${id}`;
+            break;
+          case 'reactions':
+            deleteQuery = sql`DELETE FROM reactions WHERE id = ${id}`;
+            break;
+          case 'friendships':
+            deleteQuery = sql`DELETE FROM friendships WHERE id = ${id}`;
+            break;
+          case 'notifications':
+            deleteQuery = sql`DELETE FROM notifications WHERE id = ${id}`;
+            break;
+          case 'game_ratings':
+            deleteQuery = sql`DELETE FROM game_ratings WHERE id = ${id}`;
+            break;
+          case 'public_comments':
+            deleteQuery = sql`DELETE FROM public_comments WHERE id = ${id}`;
+            break;
+          case 'public_reactions':
+            deleteQuery = sql`DELETE FROM public_reactions WHERE id = ${id}`;
+            break;
+          default:
+            return NextResponse.json(
+              { error: `Table '${String(table)}' is not supported for bulk deletion` },
+              { status: 400 }
+            );
+        }
+
+        try {
+          // Execute the delete query
+          const result = await db.execute(deleteQuery);
+          deletedCount += result.rowCount || 0;
+        } catch (error) {
+          // Log the error but continue with other deletions
+          console.error(`Failed to delete ${id} from ${tableName}:`, error);
+
+          // If it's a constraint violation (foreign key, not null, etc.), skip this deletion
+          const isConstraintError =
+            error instanceof Error &&
+            (error.message.includes('foreign key constraint') ||
+              error.message.includes('not-null constraint') ||
+              error.message.includes('violates not-null constraint') ||
+              error.message.includes('constraint') ||
+              error.message.includes('23502') || // NOT NULL violation
+              error.message.includes('23503') || // FOREIGN KEY violation
+              error.message.includes('Key (user_id)=') || // Specific FK error pattern
+              error.message.includes('is not present in table') || // Missing reference error
+              (error as Error & { cause?: { code?: string } }).cause?.code === '23502' || // NOT NULL violation code
+              (error as Error & { cause?: { code?: string } }).cause?.code === '23503'); // FOREIGN KEY violation code
+
+          if (isConstraintError) {
+            console.warn(
+              `Skipping deletion of ${id} due to constraint violation: ${error.message}`
+            );
+            continue;
+          }
+
+          // Re-throw other errors
+          throw error;
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: `Successfully deleted ${deletedCount} records from ${tableName}`,
+        data: {
+          table: tableName,
+          deletedCount,
+          requestedIds: body.ids,
+        },
+      });
+    } catch (error) {
+      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+        component: 'API',
+        action: 'DELETE /api/admin/database/[table]',
+      });
+
+      const errorMessage = error instanceof Error ? error.message : 'Internal Server Error';
+      return NextResponse.json(
+        {
+          error: errorMessage,
+        },
+        { status: 500 }
+      );
+    }
   }
 );

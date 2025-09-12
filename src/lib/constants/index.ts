@@ -146,15 +146,15 @@ export const API_LIMITS = {
 
   // Sports data limits
   GAMES: {
-    DEFAULT: 100,
-    LARGE: 20000, // For getting total games count
-    MAX: 100000,
+    DEFAULT: 50,
+    LARGE: 500,
+    MAX: 2000,
   },
 
   PLAYERS: {
-    DEFAULT: 100,
-    LARGE: 5000, // For getting total players count
-    MAX: 250000,
+    DEFAULT: 50,
+    LARGE: 200,
+    MAX: 1000,
   },
 
   TEAMS: {
@@ -164,21 +164,21 @@ export const API_LIMITS = {
   },
 
   GAME_LOGS: {
-    DEFAULT: 100,
-    LARGE: 25000,
-    MAX: 1000000,
+    DEFAULT: 50,
+    LARGE: 500,
+    MAX: 2000,
   },
 
   USERS: {
-    DEFAULT: 100,
-    LARGE: 25000,
-    MAX: 1000000,
+    DEFAULT: 50,
+    LARGE: 500,
+    MAX: 2000,
   },
 
   SEARCH: {
-    DEFAULT: 100,
-    LARGE: 10000,
-    MAX: 1000000,
+    DEFAULT: 50,
+    LARGE: 200,
+    MAX: 1000,
   },
 } as const;
 
@@ -412,7 +412,7 @@ export function buildApiUrl(
 ): string {
   const url = new URL(
     endpoint,
-    typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+    typeof window !== 'undefined' ? window.location.origin : 'https://www.game-diary.io'
   );
 
   Object.entries(params).forEach(([key, value]) => {

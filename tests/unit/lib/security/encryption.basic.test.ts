@@ -43,10 +43,10 @@ const maybeIt = encryptionAvailable() ? it : it.skip;
 
       expect(encrypted).toBeDefined();
       expect(encrypted.iv).toBeDefined();
-      expect(encrypted.encrypted).toBeDefined();
+      expect(encrypted.content).toBeDefined();
       expect(encrypted.tag).toBeDefined();
       expect(typeof encrypted.iv).toBe('string');
-      expect(typeof encrypted.encrypted).toBe('string');
+      expect(typeof encrypted.content).toBe('string');
       expect(typeof encrypted.tag).toBe('string');
     });
 
@@ -56,7 +56,7 @@ const maybeIt = encryptionAvailable() ? it : it.skip;
       const encrypted1 = encryptField(plaintext, TEST_KEY);
       const encrypted2 = encryptField(plaintext, TEST_KEY);
 
-      expect(encrypted1.encrypted).not.toBe(encrypted2.encrypted);
+      expect(encrypted1.content).not.toBe(encrypted2.content);
       expect(encrypted1.iv).not.toBe(encrypted2.iv);
     });
 
@@ -219,7 +219,7 @@ const maybeIt = encryptionAvailable() ? it : it.skip;
       const encrypted1 = encryptField(plaintext, TEST_KEY);
       const encrypted2 = encryptField(plaintext, TEST_KEY);
 
-      expect(encrypted1.encrypted).not.toBe(encrypted2.encrypted);
+      expect(encrypted1.content).not.toBe(encrypted2.content);
     });
 
     maybeIt('should maintain confidentiality', () => {

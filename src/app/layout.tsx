@@ -44,7 +44,7 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'),
   alternates: {
     canonical: '/',
   },
@@ -122,12 +122,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               name: 'Game Diary',
               description:
                 'Track your gaming watching experiences, connect with fellow sports fans, and share your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.',
-              url: process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app',
+              url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io',
               potentialAction: {
                 '@type': 'SearchAction',
                 target: {
                   '@type': 'EntryPoint',
-                  urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'}/search?q={search_term_string}`,
+                  urlTemplate: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/search?q={search_term_string}`,
                 },
                 'query-input': 'required name=search_term_string',
               },
@@ -136,7 +136,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 name: 'Game Diary',
                 logo: {
                   '@type': 'ImageObject',
-                  url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app'}/logos/gamelog-large.svg`,
+                  url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/logos/gamelog-large.svg`,
                 },
               },
             }),
@@ -155,7 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               description:
                 'A community platform for sports fans to track and share their game watching experiences',
               sport: ['Basketball', 'Football', 'Baseball', 'Hockey', 'Soccer'],
-              url: process.env.NEXT_PUBLIC_APP_URL || 'https://gamediary.app',
+              url: process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io',
             }),
           }}
         />

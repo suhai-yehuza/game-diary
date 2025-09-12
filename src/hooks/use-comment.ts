@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client';
 import { useUser } from '@clerk/nextjs';
 import { useMemo, useCallback } from 'react';
 
+import { API_CONFIG } from '@/lib/config/app.config';
 import {
   GET_COMMENT,
   GET_COMMENT_WITH_COUNTS,
@@ -21,9 +22,10 @@ import type {
   IPublicReactionGroup,
 } from '@/types';
 
+const defaultLimit = API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
 // Comment Hook (protected comments)
 export function useComment(commentId: string, options: IUseCommentOptions = {}): IUseCommentReturn {
-  const { limit = 10, skip = false, useDetailed = false } = options;
+  const { limit = defaultLimit, skip = false, useDetailed = false } = options;
   const { user } = useUser();
 
   const query = useDetailed ? GET_COMMENT : GET_COMMENT_WITH_COUNTS;
@@ -170,7 +172,7 @@ export function usePublicComment(
   commentId: string,
   options: IUseCommentOptions = {}
 ): IUsePublicCommentReturn {
-  const { limit = 10, skip = false, useDetailed = false } = options;
+  const { limit = defaultLimit, skip = false, useDetailed = false } = options;
   const { user } = useUser();
 
   const query = useDetailed ? GET_PUBLIC_COMMENT : GET_PUBLIC_COMMENT_WITH_COUNTS;

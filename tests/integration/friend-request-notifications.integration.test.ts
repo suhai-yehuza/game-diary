@@ -14,6 +14,7 @@ describe('Friend Request Notifications Integration Tests', () => {
   let usingRealDatabase = false;
 
   beforeAll(async () => {
+    console.log('[Friend Request Tests] DATABASE_URL:', databaseUrl ? 'Found' : 'Not found');
     if (!databaseUrl) {
       console.warn('[Friend Request Tests] No DATABASE_URL found. Skipping database tests.');
       return;
@@ -52,6 +53,7 @@ describe('Friend Request Notifications Integration Tests', () => {
   });
 
   test('should create notification when friend request is sent', async () => {
+    console.log('[Friend Request Test] usingRealDatabase:', usingRealDatabase);
     if (!usingRealDatabase) {
       console.log('Skipping test - no database connection');
       return;
@@ -62,6 +64,14 @@ describe('Friend Request Notifications Integration Tests', () => {
     const recipientId = `test-friend-recipient-${timestamp}`;
     const friendshipId = `test-friendship-${timestamp}`;
 
+    // Clean up any existing test data first
+    await db.execute(`DELETE FROM notifications WHERE target_id = '${friendshipId}'`);
+    await db.execute(`DELETE FROM friendships WHERE id = '${friendshipId}'`);
+    await db.execute(`DELETE FROM users WHERE id IN ('${requesterId}', '${recipientId}')`);
+
+    // Wait a moment to ensure cleanup is committed
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     // Create test users
     await db.execute(`
       INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
@@ -70,11 +80,33 @@ describe('Friend Request Notifications Integration Tests', () => {
         ('${recipientId}', 'recipient${timestamp}', 'recipient${timestamp}@example.com', 'Test', 'Recipient', NOW(), NOW())
     `);
 
+    // Wait a moment to ensure users are committed
+    await new Promise(resolve => setTimeout(resolve, 200));
+
+    // Verify users were created
+    const userCheck = (await db.execute(`
+      SELECT id FROM users WHERE id IN ('${requesterId}', '${recipientId}')
+    `)) as unknown as { rows: Array<{ id: string }> };
+
+    // Debug: Log the actual user count
+    console.log(`Found ${userCheck.rows.length} users out of 2 expected`);
+    if (userCheck.rows.length < 2) {
+      console.log(
+        'Available users:',
+        userCheck.rows.map(r => r.id)
+      );
+    }
+
+    expect(userCheck.rows).toHaveLength(2);
+
     // Send friend request (this should trigger notification)
     await db.execute(`
       INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
       VALUES ('${friendshipId}', '${requesterId}', '${recipientId}', 'PENDING', NOW(), NOW())
     `);
+
+    // Wait a moment to ensure friendship and notification are committed
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Check if notification was created
     const notificationResult = (await db.execute(`
@@ -83,15 +115,47 @@ describe('Friend Request Notifications Integration Tests', () => {
       WHERE user_id = '${recipientId}' AND type = 'friend_request'
     `)) as unknown as { rows: Array<any> };
 
-    expect(notificationResult.rows).toHaveLength(1);
-    expect(notificationResult.rows[0].user_id).toBe(recipientId);
-    expect(notificationResult.rows[0].type).toBe('friend_request');
-    expect(notificationResult.rows[0].title).toBe('Friend Request');
-    expect(notificationResult.rows[0].message).toContain(
-      'Test Requester sent you a friend request'
-    );
-    expect(notificationResult.rows[0].target_id).toBe(friendshipId);
-    expect(notificationResult.rows[0].target_type).toBe('friendship');
+    // Test behavior based on MOCK_MODE
+    const isMockMode = process.env.MOCK_MODE === 'true';
+    console.log(`[Friend Request Test] MOCK_MODE: ${isMockMode}`);
+
+    if (isMockMode) {
+      // In mock mode, notifications should be empty (mocked by GraphQL resolver)
+      // The database trigger still creates the notification, but the API returns empty
+      console.log(
+        '[Friend Request Test] Testing mock mode behavior - notifications should be empty via API'
+      );
+
+      // Verify the notification was created in the database (trigger still works)
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(recipientId);
+      expect(notificationResult.rows[0].type).toBe('friend_request');
+      expect(notificationResult.rows[0].title).toBe('Friend Request');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Requester sent you a friend request'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+
+      console.log('[Friend Request Test] ✅ Mock mode: Database notification created correctly');
+    } else {
+      // In real mode, notifications should work normally
+      console.log(
+        '[Friend Request Test] Testing real mode behavior - notifications should work normally'
+      );
+
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(recipientId);
+      expect(notificationResult.rows[0].type).toBe('friend_request');
+      expect(notificationResult.rows[0].title).toBe('Friend Request');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Requester sent you a friend request'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+
+      console.log('[Friend Request Test] ✅ Real mode: Notification created correctly');
+    }
   });
 
   test('should create notification when friend request is accepted', async () => {
@@ -109,15 +173,12 @@ describe('Friend Request Notifications Integration Tests', () => {
     await db.execute(`DELETE FROM friendships WHERE id = '${friendshipId}'`);
     await db.execute(`DELETE FROM users WHERE id IN ('${requesterId}', '${recipientId}')`);
 
-    // Create test users one by one to ensure proper creation
+    // Create test users in a single transaction to ensure both are created
     await db.execute(`
       INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-      VALUES ('${requesterId}', 'acceptrequester${timestamp}', 'acceptrequester${timestamp}@example.com', 'Test', 'Requester', NOW(), NOW())
-    `);
-
-    await db.execute(`
-      INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-      VALUES ('${recipientId}', 'acceptrecipient${timestamp}', 'acceptrecipient${timestamp}@example.com', 'Test', 'Recipient', NOW(), NOW())
+      VALUES
+        ('${requesterId}', 'acceptrequester${timestamp}', 'acceptrequester${timestamp}@example.com', 'Test', 'Requester', NOW(), NOW()),
+        ('${recipientId}', 'acceptrecipient${timestamp}', 'acceptrecipient${timestamp}@example.com', 'Test', 'Recipient', NOW(), NOW())
     `);
 
     // Wait a moment to ensure users are committed
@@ -150,15 +211,41 @@ describe('Friend Request Notifications Integration Tests', () => {
       WHERE user_id = '${requesterId}' AND type = 'friend_accepted'
     `)) as unknown as { rows: Array<any> };
 
-    expect(notificationResult.rows).toHaveLength(1);
-    expect(notificationResult.rows[0].user_id).toBe(requesterId);
-    expect(notificationResult.rows[0].type).toBe('friend_accepted');
-    expect(notificationResult.rows[0].title).toBe('Friend Request Accepted');
-    expect(notificationResult.rows[0].message).toContain(
-      'Test Recipient accepted your friend request'
-    );
-    expect(notificationResult.rows[0].target_id).toBe(friendshipId);
-    expect(notificationResult.rows[0].target_type).toBe('friendship');
+    // Test behavior based on MOCK_MODE
+    const isMockMode = process.env.MOCK_MODE === 'true';
+    console.log(`[Friend Accept Test] MOCK_MODE: ${isMockMode}`);
+
+    if (isMockMode) {
+      // In mock mode, verify database notification was created (trigger still works)
+      console.log(
+        '[Friend Accept Test] Testing mock mode behavior - database notification should exist'
+      );
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(requesterId);
+      expect(notificationResult.rows[0].type).toBe('friend_accepted');
+      expect(notificationResult.rows[0].title).toBe('Friend Request Accepted');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Recipient accepted your friend request'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+      console.log('[Friend Accept Test] ✅ Mock mode: Database notification created correctly');
+    } else {
+      // In real mode, notifications should work normally
+      console.log(
+        '[Friend Accept Test] Testing real mode behavior - notifications should work normally'
+      );
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(requesterId);
+      expect(notificationResult.rows[0].type).toBe('friend_accepted');
+      expect(notificationResult.rows[0].title).toBe('Friend Request Accepted');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Recipient accepted your friend request'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+      console.log('[Friend Accept Test] ✅ Real mode: Notification created correctly');
+    }
   });
 
   test('should create notification when accepted friendship is removed', async () => {
@@ -196,13 +283,41 @@ describe('Friend Request Notifications Integration Tests', () => {
       WHERE user_id = '${recipientId}' AND type = 'friend_removed'
     `)) as unknown as { rows: Array<any> };
 
-    expect(notificationResult.rows).toHaveLength(1);
-    expect(notificationResult.rows[0].user_id).toBe(recipientId);
-    expect(notificationResult.rows[0].type).toBe('friend_removed');
-    expect(notificationResult.rows[0].title).toBe('Friend Removed');
-    expect(notificationResult.rows[0].message).toContain('Test Requester removed you as a friend');
-    expect(notificationResult.rows[0].target_id).toBe(friendshipId);
-    expect(notificationResult.rows[0].target_type).toBe('friendship');
+    // Test behavior based on MOCK_MODE
+    const isMockMode = process.env.MOCK_MODE === 'true';
+    console.log(`[Friend Remove Test] MOCK_MODE: ${isMockMode}`);
+
+    if (isMockMode) {
+      // In mock mode, verify database notification was created (trigger still works)
+      console.log(
+        '[Friend Remove Test] Testing mock mode behavior - database notification should exist'
+      );
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(recipientId);
+      expect(notificationResult.rows[0].type).toBe('friend_removed');
+      expect(notificationResult.rows[0].title).toBe('Friend Removed');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Requester removed you as a friend'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+      console.log('[Friend Remove Test] ✅ Mock mode: Database notification created correctly');
+    } else {
+      // In real mode, notifications should work normally
+      console.log(
+        '[Friend Remove Test] Testing real mode behavior - notifications should work normally'
+      );
+      expect(notificationResult.rows).toHaveLength(1);
+      expect(notificationResult.rows[0].user_id).toBe(recipientId);
+      expect(notificationResult.rows[0].type).toBe('friend_removed');
+      expect(notificationResult.rows[0].title).toBe('Friend Removed');
+      expect(notificationResult.rows[0].message).toContain(
+        'Test Requester removed you as a friend'
+      );
+      expect(notificationResult.rows[0].target_id).toBe(friendshipId);
+      expect(notificationResult.rows[0].target_type).toBe('friendship');
+      console.log('[Friend Remove Test] ✅ Real mode: Notification created correctly');
+    }
   });
 
   test('should NOT create notification when pending friendship is removed', async () => {
@@ -245,15 +360,42 @@ describe('Friend Request Notifications Integration Tests', () => {
     `)) as unknown as { rows: Array<{ count: string }> };
     const afterNotificationCount = parseInt(afterCount.rows[0].count);
 
-    // Should not have created a notification for pending friendship removal
-    // The count should remain the same (no additional notification created)
-    expect(afterNotificationCount).toBe(beforeNotificationCount);
+    // Test behavior based on MOCK_MODE
+    const isMockMode = process.env.MOCK_MODE === 'true';
+    console.log(`[Friend Cancel Test] MOCK_MODE: ${isMockMode}`);
 
-    // Also verify no friend_removed notification was created
-    const friendRemovedCount = (await db.execute(`
-      SELECT COUNT(*) as count FROM notifications
-      WHERE user_id = '${recipientId}' AND type = 'friend_removed'
-    `)) as unknown as { rows: Array<{ count: string }> };
-    expect(parseInt(friendRemovedCount.rows[0].count)).toBe(0);
+    if (isMockMode) {
+      // In mock mode, verify no additional notification was created (trigger behavior is the same)
+      console.log(
+        '[Friend Cancel Test] Testing mock mode behavior - no notification should be created for pending removal'
+      );
+      expect(afterNotificationCount).toBe(beforeNotificationCount);
+
+      // Also verify no friend_removed notification was created
+      const friendRemovedCount = (await db.execute(`
+        SELECT COUNT(*) as count FROM notifications
+        WHERE user_id = '${recipientId}' AND type = 'friend_removed'
+      `)) as unknown as { rows: Array<{ count: string }> };
+      expect(parseInt(friendRemovedCount.rows[0].count)).toBe(0);
+      console.log(
+        '[Friend Cancel Test] ✅ Mock mode: No notification created for pending removal (correct behavior)'
+      );
+    } else {
+      // In real mode, same behavior - no notification for pending removal
+      console.log(
+        '[Friend Cancel Test] Testing real mode behavior - no notification should be created for pending removal'
+      );
+      expect(afterNotificationCount).toBe(beforeNotificationCount);
+
+      // Also verify no friend_removed notification was created
+      const friendRemovedCount = (await db.execute(`
+        SELECT COUNT(*) as count FROM notifications
+        WHERE user_id = '${recipientId}' AND type = 'friend_removed'
+      `)) as unknown as { rows: Array<{ count: string }> };
+      expect(parseInt(friendRemovedCount.rows[0].count)).toBe(0);
+      console.log(
+        '[Friend Cancel Test] ✅ Real mode: No notification created for pending removal (correct behavior)'
+      );
+    }
   });
 });

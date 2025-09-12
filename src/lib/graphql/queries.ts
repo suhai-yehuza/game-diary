@@ -418,18 +418,8 @@ export const GET_USER = gql`
 
 // Optimized search query
 export const SEARCH_USERS = gql`
-  query SearchUsers(
-    $searchTerm: String
-    $searchField: String
-    $filters: UserSearchFilters
-    $pagination: PaginationInput
-  ) {
-    searchUsers(
-      searchTerm: $searchTerm
-      searchField: $searchField
-      filters: $filters
-      pagination: $pagination
-    ) {
+  query SearchUsers($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           ...UserSummaryFragment
@@ -478,8 +468,8 @@ export const GET_REACTIONS = gql`
 
 // Admin queries with minimal fields
 export const SEARCH_USERS_ADMIN = gql`
-  query SearchUsersAdmin($first: Int, $after: String, $searchTerm: String, $searchField: String) {
-    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, searchField: $searchField) {
+  query SearchUsersAdmin($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           id
@@ -504,18 +494,8 @@ export const SEARCH_USERS_ADMIN = gql`
 `;
 
 export const SEARCH_GAME_LOGS_ADMIN = gql`
-  query SearchGameLogsAdmin(
-    $first: Int
-    $after: String
-    $searchTerm: String
-    $searchField: String
-  ) {
-    searchGameLogs(
-      first: $first
-      after: $after
-      searchTerm: $searchTerm
-      searchField: $searchField
-    ) {
+  query SearchGameLogsAdmin($searchTerm: String, $first: Int) {
+    searchGameLogs(searchTerm: $searchTerm, first: $first) {
       edges {
         node {
           id
@@ -1590,44 +1570,10 @@ export const GET_FRIENDSHIP_REQUESTS_DETAILED = gql`
 `;
 
 // Optimized user search queries
-export const GET_USER_SEARCH_COUNTS = gql`
-  query GetUserSearchCounts($searchTerm: String, $searchField: String) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: { first: 1 }) {
-      totalCount
-    }
-  }
-`;
 
-export const GET_USER_SEARCH_WITH_COUNTS = gql`
-  query GetUserSearchWithCounts(
-    $searchTerm: String
-    $searchField: String
-    $pagination: PaginationInput
-  ) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
-      edges {
-        node {
-          ...UserSummaryFragment
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      totalCount
-    }
-  }
-  ${USER_SUMMARY_FRAGMENT}
-`;
-
-export const GET_USER_SEARCH_DETAILED = gql`
-  query GetUserSearchDetailed(
-    $searchTerm: String
-    $searchField: String
-    $pagination: PaginationInput
-  ) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+export const GET_USER_SEARCH_SIMPLE = gql`
+  query GetUserSearchSimple($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           ...UserSummaryFragment

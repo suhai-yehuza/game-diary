@@ -255,7 +255,7 @@ describe('Admin Audit Logs API Route', () => {
       expect(responseData.logs[0].category).toBe('unknown');
       expect(responseData.logs[0].action).toBe('unknown');
       expect(responseData.logs[0].severity).toBe('low');
-      expect(responseData.logs[0].user_id).toBe('unknown');
+      expect(responseData.logs[0].userId).toBe('unknown');
       expect(responseData.logs[0].description).toBe('No description');
       expect(responseData.logs[0].success).toBe(true);
       expect(responseData.logs[0].error_message).toBe(null);

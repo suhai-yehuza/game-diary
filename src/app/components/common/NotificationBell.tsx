@@ -7,6 +7,8 @@ import React, { useState, useEffect } from 'react';
 import { useNotifications } from '@/app/components/providers/NotificationProvider';
 import { Button } from '@/app/components/ui/button';
 import { Card } from '@/app/components/ui/Card';
+import { useNotificationNavigation } from '@/lib/utils/notification-navigation';
+import type { IAppNotification } from '@/types';
 
 // Mobile detection hook
 function useMobileDetection() {
@@ -41,6 +43,9 @@ export function NotificationBell() {
 
   // Always call the hook to satisfy React rules
   const notificationsContext = useNotifications();
+
+  // Always call the navigation hook to maintain hook order
+  const { navigateToNotificationSource } = useNotificationNavigation();
 
   // Ensure we're on the client side before using the hook
   React.useEffect(() => {
@@ -92,6 +97,19 @@ export function NotificationBell() {
 
   const handleClose = () => {
     setIsOpen(false);
+  };
+
+  const handleNotificationClick = (notification: IAppNotification) => {
+    // Mark as read when clicked
+    if (!notification.read) {
+      handleMarkAsRead(notification.id);
+    }
+
+    // Navigate to the notification source
+    navigateToNotificationSource(notification);
+
+    // Close the notification panel
+    handleClose();
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -196,9 +214,10 @@ export function NotificationBell() {
                       {notifications.map(notification => (
                         <div
                           key={notification.id}
-                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
                             !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                           }`}
+                          onClick={() => handleNotificationClick(notification)}
                         >
                           <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0 text-xl">
@@ -217,7 +236,10 @@ export function NotificationBell() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      onClick={e => {
+                                        e?.stopPropagation();
+                                        handleMarkAsRead(notification.id);
+                                      }}
                                       className="h-8 w-8 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                                     >
                                       <Check className="h-4 w-4" />
@@ -270,9 +292,10 @@ export function NotificationBell() {
                       {notifications.map(notification => (
                         <div
                           key={notification.id}
-                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                          className={`p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer ${
                             !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                           }`}
+                          onClick={() => handleNotificationClick(notification)}
                         >
                           <div className="flex items-start space-x-3">
                             <div className="flex-shrink-0 text-lg">
@@ -291,7 +314,10 @@ export function NotificationBell() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => handleMarkAsRead(notification.id)}
+                                      onClick={e => {
+                                        e?.stopPropagation();
+                                        handleMarkAsRead(notification.id);
+                                      }}
                                       className="h-6 w-6 p-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                                     >
                                       <Check className="h-3 w-3" />

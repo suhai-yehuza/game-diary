@@ -298,7 +298,11 @@ describe('User GraphQL Resolvers', () => {
         ];
         mockDb.query.users.findMany.mockResolvedValue(mockUsers);
 
-        const result = await userQueryResolvers.searchUsers({}, {}, mockContext);
+        const result = await userQueryResolvers.searchUsers(
+          {},
+          { searchTerm: 'test' },
+          mockContext
+        );
 
         expect(result.edges).toHaveLength(2);
         expect(result.pageInfo).toBeDefined();

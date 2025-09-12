@@ -810,11 +810,7 @@ export type QuerySearchGameLogsArgs = {
 };
 
 export type QuerySearchUsersArgs = {
-  after?: InputMaybe<Scalars['String']['input']>;
-  filters?: InputMaybe<UserSearchFilters>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  pagination?: InputMaybe<PaginationInput>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -2144,9 +2140,7 @@ export type GetUserQuery = {
 
 export type SearchUsersQueryVariables = Exact<{
   searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
-  filters?: InputMaybe<UserSearchFilters>;
-  pagination?: InputMaybe<PaginationInput>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 export type SearchUsersQuery = {
@@ -2237,10 +2231,8 @@ export type GetReactionsQuery = {
 };
 
 export type SearchUsersAdminQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 export type SearchUsersAdminQuery = {
@@ -2273,10 +2265,8 @@ export type SearchUsersAdminQuery = {
 };
 
 export type SearchGameLogsAdminQueryVariables = Exact<{
-  first?: InputMaybe<Scalars['Int']['input']>;
-  after?: InputMaybe<Scalars['String']['input']>;
   searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
 export type SearchGameLogsAdminQuery = {
@@ -4055,52 +4045,12 @@ export type GetFriendshipRequestsDetailedQuery = {
   };
 };
 
-export type GetUserSearchCountsQueryVariables = Exact<{
+export type GetUserSearchSimpleQueryVariables = Exact<{
   searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
 }>;
 
-export type GetUserSearchCountsQuery = {
-  __typename?: 'Query';
-  searchUsers: { __typename?: 'UserConnection'; totalCount: number };
-};
-
-export type GetUserSearchWithCountsQueryVariables = Exact<{
-  searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
-  pagination?: InputMaybe<PaginationInput>;
-}>;
-
-export type GetUserSearchWithCountsQuery = {
-  __typename?: 'Query';
-  searchUsers: {
-    __typename?: 'UserConnection';
-    totalCount: number;
-    edges: Array<{
-      __typename?: 'UserEdge';
-      cursor: string;
-      node: {
-        __typename?: 'UserSummary';
-        id: string;
-        username: string;
-        first_name: string;
-        last_name: string;
-        email_address?: string | null;
-        image_url?: string | null;
-        isAdmin: boolean;
-      };
-    }>;
-    pageInfo: { __typename?: 'PageInfo'; hasNextPage: boolean; endCursor?: string | null };
-  };
-};
-
-export type GetUserSearchDetailedQueryVariables = Exact<{
-  searchTerm?: InputMaybe<Scalars['String']['input']>;
-  searchField?: InputMaybe<Scalars['String']['input']>;
-  pagination?: InputMaybe<PaginationInput>;
-}>;
-
-export type GetUserSearchDetailedQuery = {
+export type GetUserSearchSimpleQuery = {
   __typename?: 'Query';
   searchUsers: {
     __typename?: 'UserConnection';
@@ -6697,18 +6647,8 @@ export type GetUserLazyQueryHookResult = ReturnType<typeof useGetUserLazyQuery>;
 export type GetUserSuspenseQueryHookResult = ReturnType<typeof useGetUserSuspenseQuery>;
 export type GetUserQueryResult = Apollo.QueryResult<GetUserQuery, GetUserQueryVariables>;
 export const SearchUsersDocument = gql`
-  query SearchUsers(
-    $searchTerm: String
-    $searchField: String
-    $filters: UserSearchFilters
-    $pagination: PaginationInput
-  ) {
-    searchUsers(
-      searchTerm: $searchTerm
-      searchField: $searchField
-      filters: $filters
-      pagination: $pagination
-    ) {
+  query SearchUsers($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           ...UserSummaryFragment
@@ -6738,9 +6678,7 @@ export const SearchUsersDocument = gql`
  * const { data, loading, error } = useSearchUsersQuery({
  *   variables: {
  *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
- *      filters: // value for 'filters'
- *      pagination: // value for 'pagination'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
@@ -6913,8 +6851,8 @@ export type GetReactionsQueryResult = Apollo.QueryResult<
   GetReactionsQueryVariables
 >;
 export const SearchUsersAdminDocument = gql`
-  query SearchUsersAdmin($first: Int, $after: String, $searchTerm: String, $searchField: String) {
-    searchUsers(first: $first, after: $after, searchTerm: $searchTerm, searchField: $searchField) {
+  query SearchUsersAdmin($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           id
@@ -6950,10 +6888,8 @@ export const SearchUsersAdminDocument = gql`
  * @example
  * const { data, loading, error } = useSearchUsersAdminQuery({
  *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
  *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
@@ -6997,18 +6933,8 @@ export type SearchUsersAdminQueryResult = Apollo.QueryResult<
   SearchUsersAdminQueryVariables
 >;
 export const SearchGameLogsAdminDocument = gql`
-  query SearchGameLogsAdmin(
-    $first: Int
-    $after: String
-    $searchTerm: String
-    $searchField: String
-  ) {
-    searchGameLogs(
-      first: $first
-      after: $after
-      searchTerm: $searchTerm
-      searchField: $searchField
-    ) {
+  query SearchGameLogsAdmin($searchTerm: String, $first: Int) {
+    searchGameLogs(searchTerm: $searchTerm, first: $first) {
       edges {
         node {
           id
@@ -7053,10 +6979,8 @@ export const SearchGameLogsAdminDocument = gql`
  * @example
  * const { data, loading, error } = useSearchGameLogsAdminQuery({
  *   variables: {
- *      first: // value for 'first'
- *      after: // value for 'after'
  *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
+ *      first: // value for 'first'
  *   },
  * });
  */
@@ -10108,82 +10032,9 @@ export type GetFriendshipRequestsDetailedQueryResult = Apollo.QueryResult<
   GetFriendshipRequestsDetailedQuery,
   GetFriendshipRequestsDetailedQueryVariables
 >;
-export const GetUserSearchCountsDocument = gql`
-  query GetUserSearchCounts($searchTerm: String, $searchField: String) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: { first: 1 }) {
-      totalCount
-    }
-  }
-`;
-
-/**
- * __useGetUserSearchCountsQuery__
- *
- * To run a query within a React component, call `useGetUserSearchCountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserSearchCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserSearchCountsQuery({
- *   variables: {
- *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
- *   },
- * });
- */
-export function useGetUserSearchCountsQuery(
-  baseOptions?: Apollo.QueryHookOptions<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
-    GetUserSearchCountsDocument,
-    options
-  );
-}
-export function useGetUserSearchCountsLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetUserSearchCountsQuery,
-    GetUserSearchCountsQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
-    GetUserSearchCountsDocument,
-    options
-  );
-}
-export function useGetUserSearchCountsSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetUserSearchCountsQuery, GetUserSearchCountsQueryVariables>(
-    GetUserSearchCountsDocument,
-    options
-  );
-}
-export type GetUserSearchCountsQueryHookResult = ReturnType<typeof useGetUserSearchCountsQuery>;
-export type GetUserSearchCountsLazyQueryHookResult = ReturnType<
-  typeof useGetUserSearchCountsLazyQuery
->;
-export type GetUserSearchCountsSuspenseQueryHookResult = ReturnType<
-  typeof useGetUserSearchCountsSuspenseQuery
->;
-export type GetUserSearchCountsQueryResult = Apollo.QueryResult<
-  GetUserSearchCountsQuery,
-  GetUserSearchCountsQueryVariables
->;
-export const GetUserSearchWithCountsDocument = gql`
-  query GetUserSearchWithCounts(
-    $searchTerm: String
-    $searchField: String
-    $pagination: PaginationInput
-  ) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
+export const GetUserSearchSimpleDocument = gql`
+  query GetUserSearchSimple($searchTerm: String, $limit: Int) {
+    searchUsers(searchTerm: $searchTerm, limit: $limit) {
       edges {
         node {
           ...UserSummaryFragment
@@ -10201,165 +10052,65 @@ export const GetUserSearchWithCountsDocument = gql`
 `;
 
 /**
- * __useGetUserSearchWithCountsQuery__
+ * __useGetUserSearchSimpleQuery__
  *
- * To run a query within a React component, call `useGetUserSearchWithCountsQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserSearchWithCountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useGetUserSearchSimpleQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetUserSearchSimpleQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useGetUserSearchWithCountsQuery({
+ * const { data, loading, error } = useGetUserSearchSimpleQuery({
  *   variables: {
  *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
- *      pagination: // value for 'pagination'
+ *      limit: // value for 'limit'
  *   },
  * });
  */
-export function useGetUserSearchWithCountsQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetUserSearchWithCountsQuery,
-    GetUserSearchWithCountsQueryVariables
-  >
+export function useGetUserSearchSimpleQuery(
+  baseOptions?: Apollo.QueryHookOptions<GetUserSearchSimpleQuery, GetUserSearchSimpleQueryVariables>
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetUserSearchWithCountsQuery, GetUserSearchWithCountsQueryVariables>(
-    GetUserSearchWithCountsDocument,
+  return Apollo.useQuery<GetUserSearchSimpleQuery, GetUserSearchSimpleQueryVariables>(
+    GetUserSearchSimpleDocument,
     options
   );
 }
-export function useGetUserSearchWithCountsLazyQuery(
+export function useGetUserSearchSimpleLazyQuery(
   baseOptions?: Apollo.LazyQueryHookOptions<
-    GetUserSearchWithCountsQuery,
-    GetUserSearchWithCountsQueryVariables
+    GetUserSearchSimpleQuery,
+    GetUserSearchSimpleQueryVariables
   >
 ) {
   const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetUserSearchWithCountsQuery, GetUserSearchWithCountsQueryVariables>(
-    GetUserSearchWithCountsDocument,
+  return Apollo.useLazyQuery<GetUserSearchSimpleQuery, GetUserSearchSimpleQueryVariables>(
+    GetUserSearchSimpleDocument,
     options
   );
 }
-export function useGetUserSearchWithCountsSuspenseQuery(
+export function useGetUserSearchSimpleSuspenseQuery(
   baseOptions?:
     | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetUserSearchWithCountsQuery,
-        GetUserSearchWithCountsQueryVariables
-      >
+    | Apollo.SuspenseQueryHookOptions<GetUserSearchSimpleQuery, GetUserSearchSimpleQueryVariables>
 ) {
   const options =
     baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<
-    GetUserSearchWithCountsQuery,
-    GetUserSearchWithCountsQueryVariables
-  >(GetUserSearchWithCountsDocument, options);
-}
-export type GetUserSearchWithCountsQueryHookResult = ReturnType<
-  typeof useGetUserSearchWithCountsQuery
->;
-export type GetUserSearchWithCountsLazyQueryHookResult = ReturnType<
-  typeof useGetUserSearchWithCountsLazyQuery
->;
-export type GetUserSearchWithCountsSuspenseQueryHookResult = ReturnType<
-  typeof useGetUserSearchWithCountsSuspenseQuery
->;
-export type GetUserSearchWithCountsQueryResult = Apollo.QueryResult<
-  GetUserSearchWithCountsQuery,
-  GetUserSearchWithCountsQueryVariables
->;
-export const GetUserSearchDetailedDocument = gql`
-  query GetUserSearchDetailed(
-    $searchTerm: String
-    $searchField: String
-    $pagination: PaginationInput
-  ) {
-    searchUsers(searchTerm: $searchTerm, searchField: $searchField, pagination: $pagination) {
-      edges {
-        node {
-          ...UserSummaryFragment
-        }
-        cursor
-      }
-      pageInfo {
-        hasNextPage
-        endCursor
-      }
-      totalCount
-    }
-  }
-  ${UserSummaryFragmentFragmentDoc}
-`;
-
-/**
- * __useGetUserSearchDetailedQuery__
- *
- * To run a query within a React component, call `useGetUserSearchDetailedQuery` and pass it any options that fit your needs.
- * When your component renders, `useGetUserSearchDetailedQuery` returns an object from Apollo Client that contains loading, error, and data properties
- * you can use to render your UI.
- *
- * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
- *
- * @example
- * const { data, loading, error } = useGetUserSearchDetailedQuery({
- *   variables: {
- *      searchTerm: // value for 'searchTerm'
- *      searchField: // value for 'searchField'
- *      pagination: // value for 'pagination'
- *   },
- * });
- */
-export function useGetUserSearchDetailedQuery(
-  baseOptions?: Apollo.QueryHookOptions<
-    GetUserSearchDetailedQuery,
-    GetUserSearchDetailedQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
-    GetUserSearchDetailedDocument,
+  return Apollo.useSuspenseQuery<GetUserSearchSimpleQuery, GetUserSearchSimpleQueryVariables>(
+    GetUserSearchSimpleDocument,
     options
   );
 }
-export function useGetUserSearchDetailedLazyQuery(
-  baseOptions?: Apollo.LazyQueryHookOptions<
-    GetUserSearchDetailedQuery,
-    GetUserSearchDetailedQueryVariables
-  >
-) {
-  const options = { ...defaultOptions, ...baseOptions };
-  return Apollo.useLazyQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
-    GetUserSearchDetailedDocument,
-    options
-  );
-}
-export function useGetUserSearchDetailedSuspenseQuery(
-  baseOptions?:
-    | Apollo.SkipToken
-    | Apollo.SuspenseQueryHookOptions<
-        GetUserSearchDetailedQuery,
-        GetUserSearchDetailedQueryVariables
-      >
-) {
-  const options =
-    baseOptions === Apollo.skipToken ? baseOptions : { ...defaultOptions, ...baseOptions };
-  return Apollo.useSuspenseQuery<GetUserSearchDetailedQuery, GetUserSearchDetailedQueryVariables>(
-    GetUserSearchDetailedDocument,
-    options
-  );
-}
-export type GetUserSearchDetailedQueryHookResult = ReturnType<typeof useGetUserSearchDetailedQuery>;
-export type GetUserSearchDetailedLazyQueryHookResult = ReturnType<
-  typeof useGetUserSearchDetailedLazyQuery
+export type GetUserSearchSimpleQueryHookResult = ReturnType<typeof useGetUserSearchSimpleQuery>;
+export type GetUserSearchSimpleLazyQueryHookResult = ReturnType<
+  typeof useGetUserSearchSimpleLazyQuery
 >;
-export type GetUserSearchDetailedSuspenseQueryHookResult = ReturnType<
-  typeof useGetUserSearchDetailedSuspenseQuery
+export type GetUserSearchSimpleSuspenseQueryHookResult = ReturnType<
+  typeof useGetUserSearchSimpleSuspenseQuery
 >;
-export type GetUserSearchDetailedQueryResult = Apollo.QueryResult<
-  GetUserSearchDetailedQuery,
-  GetUserSearchDetailedQueryVariables
+export type GetUserSearchSimpleQueryResult = Apollo.QueryResult<
+  GetUserSearchSimpleQuery,
+  GetUserSearchSimpleQueryVariables
 >;
 export const GetUserNotificationsDocument = gql`
   query GetUserNotifications($filters: NotificationFilters, $pagination: PaginationInput) {

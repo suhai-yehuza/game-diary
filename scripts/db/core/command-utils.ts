@@ -5,9 +5,8 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { logger } from '@src/lib/utils/logger';
-import { verifyTableCreation } from './table-operations';
 
-const execAsync = promisify(exec);
+export const execAsync = promisify(exec);
 
 /**
  * Run command with proper error handling
@@ -60,26 +59,7 @@ export async function runInteractiveCommand(command: string, description: string
   logger.info(`\n📌 ${description}...`);
 
   try {
-    if (command.includes('drizzle-kit push --force')) {
-      logger.info('🔧 Running drizzle-kit push --force...');
-      const { stdout, stderr } = await execAsync(command);
-
-      if (stdout) {
-        logger.info('📄 Drizzle-kit output:');
-        logger.info(stdout);
-      }
-
-      if (stderr && !stderr.includes('Warning') && !stderr.includes('deprecat')) {
-        logger.warn('⚠️  Drizzle-kit warnings:');
-        logger.warn(stderr);
-      }
-
-      logger.info('🔍 Verifying table creation...');
-      await verifyTableCreation();
-    } else {
-      await runCommand(command, description);
-    }
-
+    await runCommand(command, description);
     logger.info(`✅ ${description} completed`);
   } catch (error: unknown) {
     logger.error(

@@ -22,7 +22,7 @@
 #   help         - Show this help message
 #
 # Options:
-#   --skip-db-tests     - Skip database trigger tests
+#   --skip-db-tests     - Skip database tests (triggers and integrity)
 #   --skip-e2e-tests    - Skip E2E tests
 #   --skip-unit-tests   - Skip unit tests
 #   --skip-size-check   - Skip bundle size check
@@ -299,7 +299,7 @@ show_usage() {
     echo "  help         - Show this help message"
     echo ""
     echo "Options:"
-    echo "  --skip-db-tests     - Skip database trigger tests"
+    echo "  --skip-db-tests     - Skip database tests (triggers and integrity)"
 echo "  --skip-e2e-tests    - Skip E2E tests"
 echo "  --skip-unit-tests   - Skip unit tests"
 echo "  --skip-size-check   - Skip bundle size check"
@@ -467,6 +467,7 @@ get_task_command() {
 
         # Infrastructure tasks
         "db_triggers") echo "db:test:all-triggers" ;;
+        "db_integrity") echo "db:test:integrity" ;;
         "rapidapi") echo "validate:rapidapi" ;;
 
         # Test tasks
@@ -546,9 +547,9 @@ run_task() {
         return 0
     fi
 
-    # Skip database trigger tasks if SKIP_DB_TESTS is true
-    if [[ "$task_name" == db_triggers ]] && [ "$SKIP_DB_TESTS" = true ]; then
-        log_warning "Skipping database trigger task: $task_name (SKIP_DB_TESTS=true)"
+    # Skip database tasks if SKIP_DB_TESTS is true
+    if [[ "$task_name" == db_triggers || "$task_name" == db_integrity ]] && [ "$SKIP_DB_TESTS" = true ]; then
+        log_warning "Skipping database task: $task_name (SKIP_DB_TESTS=true)"
         return 0
     fi
 
@@ -572,7 +573,7 @@ run_task() {
 
     if [ -z "$cmd" ]; then
         log_error "Unknown task: $task_name"
-        log_info "Available tasks: prebuild, postbuild, build, format_check, format, lint, lint_fix, typecheck, circular, dead_code, size, codegen, db_triggers, rapidapi, test_unit, test_strict, test_integration, test_e2e_*, security_*"
+        log_info "Available tasks: prebuild, postbuild, build, format_check, format, lint, lint_fix, typecheck, circular, dead_code, size, codegen, db_triggers, db_integrity, rapidapi, test_unit, test_strict, test_integration, test_e2e_*, security_*"
         return 1
     fi
 
@@ -894,7 +895,7 @@ get_e2e_tasks() {
 
 # Infrastructure tasks
 get_infrastructure_tasks() {
-    echo "db_triggers rapidapi"
+    echo "db_triggers db_integrity rapidapi"
 }
 
 # =============================================================================

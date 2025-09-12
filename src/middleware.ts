@@ -92,6 +92,12 @@ export const middleware = (
 
   // Check for admin routes - these require special handling
   if (isAdminRoute(req)) {
+    // Skip authentication checks in E2E test/mock mode for admin routes
+    if (isTestOrCIEnvironment() || process.env.MOCK_MODE === 'true') {
+      logger.info('🧪 Mock mode detected - skipping auth checks for admin route');
+      return NextResponse.next();
+    }
+
     // For admin routes, we'll let the individual API endpoints handle authentication
     // This allows for more granular control and proper error responses
     return NextResponse.next();

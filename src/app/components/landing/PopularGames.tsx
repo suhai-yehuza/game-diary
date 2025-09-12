@@ -15,10 +15,8 @@ export function PopularGames({ data }: IPopularGamesProps) {
     'mostPopular'
   );
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 4, // Desktop speed - slowed down
-    mobileSpeed: 2, // Mobile speed - slower for better readability
-    pauseOnHover: true,
-    autoStart: true,
+    speed: 2,
+    mobileSpeed: 1,
   });
 
   // Extract popular games from cached data

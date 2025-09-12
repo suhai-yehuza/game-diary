@@ -1,6 +1,5 @@
-import { eq, isNull, sql, or, ilike, and, desc } from 'drizzle-orm';
+import { eq, isNull, or, ilike, and, desc } from 'drizzle-orm';
 
-import { API_CONFIG } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { users } from '@/lib/db/schema';
 import { AuthorizationError } from '@/lib/graphql/errors';
@@ -10,7 +9,6 @@ import {
   isEncrypted as isEncryptedField,
 } from '@/lib/utils/encryption';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import { logger } from '@/lib/utils/logger';
 import type { GraphQLContext, IUserParent, IUserArgs } from '@/types';
 
 // Use the proper encryption utility function
@@ -177,122 +175,94 @@ export const userQueryResolvers = {
     );
   },
 
-  // Search users (optimized with database-level filtering)
+  // User search - return all results with scrollability
   searchUsers: async (
     _parent: unknown,
-    args: { first?: number; after?: string; searchTerm?: string; searchField?: string },
-    context: GraphQLContext
+    args: { searchTerm?: string; limit?: number },
+    _context: GraphQLContext
   ) => {
-    const limit = args.first ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE;
-    const searchTerm = args.searchTerm ?? '';
-    const searchField = args.searchField ?? 'all';
+    const searchTerm = args.searchTerm?.trim() || '';
+    const limit = Math.min(args.limit || 100, 200); // Cap at 200 results total
 
-    // Build WHERE conditions for database-level filtering
-    const whereConditions = [isNull(users.deleted_at)];
-
-    // Add search conditions if searchTerm is provided
-    if (searchTerm?.trim()) {
-      const searchPattern = `%${searchTerm.trim()}%`;
-
-      switch (searchField) {
-        case 'username':
-          whereConditions.push(ilike(users.username, searchPattern));
-          break;
-        case 'first_name':
-          whereConditions.push(ilike(users.first_name, searchPattern));
-          break;
-        case 'last_name':
-          whereConditions.push(ilike(users.last_name, searchPattern));
-          break;
-        case 'email_address':
-          whereConditions.push(ilike(users.email_address, searchPattern));
-          break;
-        case 'all':
-        default: {
-          // Search across all fields using OR conditions
-          const orCondition = or(
-            ilike(users.username, searchPattern),
-            ilike(users.first_name, searchPattern),
-            ilike(users.last_name, searchPattern),
-            ilike(users.email_address, searchPattern)
-          );
-          if (orCondition) {
-            whereConditions.push(orCondition);
-          }
-          break;
-        }
-      }
+    // If no search term, return empty results
+    if (!searchTerm) {
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
     }
 
-    // Build the base query with proper WHERE conditions
-    const baseQuery = db()?.query.users.findMany({
-      where: and(...whereConditions),
-      orderBy: [desc(users.created_at)],
-      limit: limit + 1, // Get one extra to check if there's a next page
-    });
+    // Simple search across username, first_name, last_name
+    const searchPattern = `%${searchTerm}%`;
 
-    // Execute the query
-    const allUsers = (await baseQuery) ?? [];
+    try {
+      const results =
+        (await db()?.query.users.findMany({
+          where: and(
+            isNull(users.deleted_at),
+            or(
+              ilike(users.username, searchPattern),
+              ilike(users.first_name, searchPattern),
+              ilike(users.last_name, searchPattern)
+            )
+          ),
+          orderBy: [desc(users.created_at)],
+          limit,
+        })) ?? [];
 
-    // Check if there are more results (for hasNextPage)
-    const hasNextPage = allUsers.length > limit;
-    const limitedUsers = hasNextPage ? allUsers.slice(0, limit) : allUsers;
+      const edges = results.map(user => {
+        const userParent = {
+          ...user,
+          name: user.username || '',
+          email_address: user.email_address || undefined,
+          phone_number: user.phone_number || undefined,
+        };
 
-    // Apply cursor-based pagination if needed
-    let paginatedUsers = limitedUsers;
-    if (args.after) {
-      const afterIndex = limitedUsers.findIndex(user => user.id === args.after);
-      if (afterIndex !== -1) {
-        paginatedUsers = limitedUsers.slice(afterIndex + 1);
-      }
-    }
-
-    // Get total count for the search (only if search term is provided)
-    let totalCount = paginatedUsers.length;
-    if (searchTerm?.trim()) {
-      const countQuery = db()
-        ?.select({ count: sql<number>`count(*)` })
-        .from(users)
-        .where(and(...whereConditions));
-      const countResult = await countQuery;
-      totalCount = countResult?.[0]?.count ?? 0;
-    }
-
-    const edges = paginatedUsers.map(user => {
-      const requestingUserId = context.user?.id;
-      const isOwnUser = requestingUserId === user.id;
+        return {
+          node: {
+            id: user.id,
+            username: user.username,
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email_address: userSummaryResolver.email_address(userParent, { id: user.id }, _context),
+            phone_number: userSummaryResolver.phone_number(userParent, { id: user.id }, _context),
+            image_url: user.image_url,
+            isAdmin: user.isAdmin,
+            created_at: user.created_at,
+            updated_at: user.updated_at,
+          },
+          cursor: user.id,
+        };
+      });
 
       return {
-        cursor: user.id,
-        node: {
-          id: user.id,
-          username: user.username,
-          first_name: user.first_name,
-          last_name: user.last_name,
-          email_address: isOwnUser ? safeDecrypt(user.email_address) : null,
-          phone_number: isOwnUser ? safeDecrypt(user.phone_number) : null,
-          image_url: user.image_url,
-          isAdmin: user.isAdmin ?? false,
-          created_at: user.created_at,
+        edges,
+        pageInfo: {
+          hasNextPage: false, // No pagination - show all results
+          hasPreviousPage: false,
+          startCursor: edges[0]?.cursor ?? null,
+          endCursor: edges[edges.length - 1]?.cursor ?? null,
         },
+        totalCount: results.length,
       };
-    });
-
-    // Debug logging for performance monitoring
-    if (searchTerm?.trim()) {
-      logger.debug(`Optimized search: "${searchTerm}" in field "${searchField}"`);
-      logger.debug(`Results: ${edges.length} users found, hasNextPage: ${hasNextPage}`);
+    } catch (error) {
+      console.error('Search error:', error);
+      return {
+        edges: [],
+        pageInfo: {
+          hasNextPage: false,
+          hasPreviousPage: false,
+          startCursor: null,
+          endCursor: null,
+        },
+        totalCount: 0,
+      };
     }
-
-    return {
-      edges,
-      pageInfo: {
-        hasNextPage,
-        hasPreviousPage: !!args.after,
-        startCursor: edges[0]?.cursor ?? null,
-        endCursor: edges[edges.length - 1]?.cursor ?? null,
-      },
-      totalCount,
-    };
   },
 };

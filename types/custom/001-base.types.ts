@@ -135,6 +135,14 @@ export interface IUserProfile extends IUser {
   can_view_details?: boolean;
   is_friend?: boolean;
   is_own_profile?: boolean;
+  // Additional user profile fields
+  profile_image_url?: string;
+  has_image?: boolean;
+  bio?: string;
+  timezone?: string;
+  preferred_language?: string;
+  last_active_at?: string;
+  last_sign_in_at?: string;
 }
 
 export interface IFriendshipStatus {
@@ -366,6 +374,8 @@ export type INotificationType =
   | 'comment_added'
   | 'comment_updated'
   | 'comment_deleted'
+  | 'game_log_created'
+  | 'game_log_updated'
   | 'friend_request'
   | 'friend_accepted'
   | 'friend_rejected'
@@ -475,6 +485,8 @@ export interface IEngagementMetrics {
   gameLogCount: number;
   commentCount: number;
   reactionCount: number;
+  publicCommentCount: number;
+  publicReactionCount: number;
 }
 
 export interface IRating {
@@ -1347,7 +1359,7 @@ export interface ITeamFiltersProps {
 // Admin Component Props
 export interface IAdminButtonProps extends IButtonProps {
   children: React.ReactNode;
-  variant?: 'default' | 'outline';
+  variant?: 'default' | 'outline' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -1361,6 +1373,7 @@ export interface ITableWithSearchProps<T = any> {
   }>;
   itemLabel: string;
   tableName: string;
+  additionalParams?: Record<string, string>;
 }
 
 export interface IErrorBoundaryState {
@@ -2271,7 +2284,8 @@ export interface IRapidAPIConfig {
 }
 
 export interface IEncryptedField {
-  encrypted: string;
+  content: string; // Standard field for new encryptions
+  encrypted?: string; // Legacy field for backward compatibility
   iv: string;
   tag: string;
 }
@@ -5303,7 +5317,12 @@ export interface IUseOptimizedUserSearchReturn {
   users: UserSummary[];
   loading: boolean;
   error: Error | null;
-  search: (searchTerm: string) => Promise<void>;
+  search: (
+    searchTerm: string
+  ) => Promise<
+    | { data: { searchUsers: { edges: never[]; totalCount: number } } }
+    | { data: ISearchUsersResponse }
+  >;
   hasNextPage: boolean;
   loadMore: () => Promise<void>;
   totalCount: number;
@@ -5628,8 +5647,49 @@ export interface IOptimizedQueryResult<T> {
   data: T | undefined;
   loading: boolean;
   error: Error | undefined;
-  refetch: () => Promise<unknown>;
+  refetch: (newVariables?: unknown) => Promise<unknown>;
   fetchMore: (options: FetchMoreQueryOptions<unknown, unknown>) => Promise<unknown>;
   networkStatus: number;
   called: boolean;
+}
+
+// Component Props Interfaces
+export interface FriendshipActionButtonProps {
+  userId: string;
+  friendshipStatus?: {
+    status: string | null;
+    friendshipId?: string;
+    isInitiator?: boolean;
+  } | null;
+  onStatusChange?: () => void;
+  className?: string;
+}
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  image_url?: string;
+  created_at: string;
+  isAdmin: boolean;
+}
+
+export interface BulkDeleteDialogProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  selectedCount: number;
+  itemLabel: string;
+  isDeleting: boolean;
+}
+
+export interface BulkActionsBarProps {
+  selectedCount: number;
+  totalCount: number;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
+  onBulkDelete: () => void;
+  isDeleting: boolean;
+  itemLabel: string;
 }
