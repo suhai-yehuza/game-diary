@@ -6,7 +6,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { createDataLoaderContext } from '@/lib/graphql/dataloaders';
 import {
   gameQueryResolvers,
-  gameResolver,
+  gameResolver as _gameResolver,
   gameMutationResolvers,
 } from '@/lib/graphql/resolvers/basketball-game';
 import {
@@ -82,7 +82,7 @@ const resolvers = {
   },
   UserSummary: userSummaryResolver,
   DBUser: dbUserResolver,
-  Game: gameResolver,
+  // Game: gameResolver, // Disabled to prevent overriding GameLog.game resolver data
   NBAPlayer: nbaPlayerResolver,
   Team: teamResolver,
   GameLog: {
@@ -94,12 +94,8 @@ const resolvers = {
       // Use the existing user query resolver
       return userQueryResolvers.user(null, { id: parent.user_id }, context);
     },
-    // Use the existing game query resolver instead of custom field resolver
-    game: async (parent: { game_id: string }, _args: unknown, context: GraphQLContext) => {
-      if (!parent.game_id) return null;
-      // Use the existing game query resolver
-      return gameQueryResolvers.game(null, { id: parent.game_id }, context);
-    },
+    // Use the gameLogResolver.game instead of gameQueryResolvers.game
+    game: gameLogResolver.game,
     comments: gameLogResolver.comments,
     reactions: gameLogResolver.reactions,
     totalCommentCount: gameLogResolver.totalCommentCount,

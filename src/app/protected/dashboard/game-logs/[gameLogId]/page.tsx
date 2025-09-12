@@ -423,12 +423,24 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
     });
   };
 
-  const getStatusBgColor = (status: string | null | undefined): string => {
-    if (!status || typeof status !== 'string') {
+  const getStatusBgColor = (
+    status: string | { long?: string; short?: number } | null | undefined
+  ): string => {
+    if (!status) {
       return '#4B5563'; // gray-600
     }
 
-    switch (status.toLowerCase()) {
+    // Handle different status formats
+    let statusString: string;
+    if (typeof status === 'string') {
+      statusString = status;
+    } else if (typeof status === 'object' && status?.long) {
+      statusString = status.long;
+    } else {
+      return '#4B5563'; // gray-600
+    }
+
+    switch (statusString.toLowerCase()) {
       case 'ft':
       case 'finished':
         return '#15803D'; // green-700
@@ -466,7 +478,7 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
   const getDisplayStatus = (
     game:
       | {
-          status?: string;
+          status?: string | { long?: string; short?: number } | null;
           date?: string;
           scores?: {
             home?: { points?: number | null };
@@ -478,7 +490,16 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
   ): string => {
     if (!game?.status) return 'Unknown';
 
-    const status = game.status;
+    // Handle different status formats
+    let status: string;
+    if (typeof game.status === 'string') {
+      status = game.status;
+    } else if (typeof game.status === 'object' && game.status?.long) {
+      status = game.status.long;
+    } else {
+      return 'Unknown';
+    }
+
     const gameDate = new Date(game.date || '1970-01-01'); // use a default value of 0 epoch time
     const now = new Date();
 

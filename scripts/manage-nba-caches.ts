@@ -49,7 +49,7 @@ async function warmCache(target?: string) {
     console.log('🔥 Warming all NBA caches...');
 
     const warmPromises = [
-      fetch(`${baseUrl}/api/teams`),
+      fetch(`${baseUrl}/api/teams?limit=100&sortBy=name&sortDirection=asc`),
       fetch(`${baseUrl}/api/games?season=2024`),
       fetch(`${baseUrl}/api/players?options=true`),
       fetch(`${baseUrl}/api/players?limit=50`),
@@ -62,7 +62,7 @@ async function warmCache(target?: string) {
 
     switch (target) {
       case 'teams':
-        await fetch(`${baseUrl}/api/teams`);
+        await fetch(`${baseUrl}/api/teams?limit=100&sortBy=name&sortDirection=asc`);
         break;
       case 'games':
         await fetch(`${baseUrl}/api/games?season=2024`);

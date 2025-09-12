@@ -83,8 +83,88 @@ describe('useLiveGames', () => {
 
       const { result } = renderHook(() => useLiveGames({ initialData }));
 
-      expect(result.current.liveGames).toEqual(initialData.response);
-      expect(result.current.games).toEqual(initialData.response);
+      // liveGames should be the transformed internal format
+      expect(result.current.liveGames).toEqual([
+        {
+          id: '1',
+          date: { start: '2024-01-01T20:00:00Z' },
+          home_team: 'Home Team',
+          away_team: 'Away Team',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '1',
+              name: 'Home Team',
+              nickname: 'Home',
+              code: 'HOME',
+              logo: 'logo.png',
+            },
+            visitors: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+            away: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena', city: 'Test City', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+      ]);
+      // games should also be the transformed internal format
+      expect(result.current.games).toEqual([
+        {
+          id: '1',
+          date: { start: '2024-01-01T20:00:00Z' },
+          home_team: 'Home Team',
+          away_team: 'Away Team',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '1',
+              name: 'Home Team',
+              nickname: 'Home',
+              code: 'HOME',
+              logo: 'logo.png',
+            },
+            visitors: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+            away: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena', city: 'Test City', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+      ]);
       expect(result.current.loading).toBe(false);
       expect(result.current.error).toBeNull();
       expect(typeof result.current.refetch).toBe('function');
@@ -253,8 +333,164 @@ describe('useLiveGames', () => {
 
       const { result } = renderHook(() => useLiveGames({ initialData }));
 
-      expect(result.current.liveGames).toEqual(initialData.response);
-      expect(result.current.games).toEqual(initialData.response);
+      // liveGames should be the transformed internal format
+      expect(result.current.liveGames).toEqual([
+        {
+          id: '1',
+          date: { start: '2024-01-01T20:00:00Z' },
+          home_team: 'Home Team',
+          away_team: 'Away Team',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '1',
+              name: 'Home Team',
+              nickname: 'Home',
+              code: 'HOME',
+              logo: 'logo.png',
+            },
+            visitors: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+            away: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena', city: 'Test City', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+        {
+          id: '2',
+          date: { start: '2024-01-01T21:00:00Z' },
+          home_team: 'Home Team 2',
+          away_team: 'Away Team 2',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '3',
+              name: 'Home Team 2',
+              nickname: 'Home2',
+              code: 'HOME2',
+              logo: 'logo2.png',
+            },
+            visitors: {
+              id: '4',
+              name: 'Away Team 2',
+              nickname: 'Away2',
+              code: 'AWAY2',
+              logo: 'logo2.png',
+            },
+            away: {
+              id: '4',
+              name: 'Away Team 2',
+              nickname: 'Away2',
+              code: 'AWAY2',
+              logo: 'logo2.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena 2', city: 'Test City 2', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+      ]);
+      // games should also be the transformed internal format
+      expect(result.current.games).toEqual([
+        {
+          id: '1',
+          date: { start: '2024-01-01T20:00:00Z' },
+          home_team: 'Home Team',
+          away_team: 'Away Team',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '1',
+              name: 'Home Team',
+              nickname: 'Home',
+              code: 'HOME',
+              logo: 'logo.png',
+            },
+            visitors: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+            away: {
+              id: '2',
+              name: 'Away Team',
+              nickname: 'Away',
+              code: 'AWAY',
+              logo: 'logo.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena', city: 'Test City', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+        {
+          id: '2',
+          date: { start: '2024-01-01T21:00:00Z' },
+          home_team: 'Home Team 2',
+          away_team: 'Away Team 2',
+          home_score: 0,
+          away_score: 0,
+          status: { short: 'Q1', long: '1st Quarter', clock: '12:00' },
+          teams: {
+            home: {
+              id: '3',
+              name: 'Home Team 2',
+              nickname: 'Home2',
+              code: 'HOME2',
+              logo: 'logo2.png',
+            },
+            visitors: {
+              id: '4',
+              name: 'Away Team 2',
+              nickname: 'Away2',
+              code: 'AWAY2',
+              logo: 'logo2.png',
+            },
+            away: {
+              id: '4',
+              name: 'Away Team 2',
+              nickname: 'Away2',
+              code: 'AWAY2',
+              logo: 'logo2.png',
+            },
+          },
+          scores: { home: { points: 0 }, visitors: { points: 0 } },
+          season: 2024,
+          stage: 1,
+          nugget: undefined,
+          arena: { name: 'Test Arena 2', city: 'Test City 2', state: '' },
+          periods: { current: 1, total: 4 },
+        },
+      ]);
       expect(result.current.games).toHaveLength(2);
       expect(result.current.hasLiveGames).toBe(true);
     });

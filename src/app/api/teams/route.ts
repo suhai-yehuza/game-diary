@@ -50,15 +50,35 @@ export async function GET(request: NextRequest) {
       throw new Error('Database connection not available');
     }
 
-    // Cache key based on all parameters
-    const cacheKey = `teams:${page}:${limit}:${search}:${conference}:${division}:${sortBy}:${sortDirection}:${league || 'all'}`;
-    const cacheTTL = 24 * 60 * 60 * 1000; // 24 hour cache for teams data
+    // Special handling for "all teams" requests (no filters, high limit)
+    const isAllTeamsRequest =
+      !search &&
+      conference === 'all' &&
+      division === 'all' &&
+      sortBy === 'name' &&
+      sortDirection === 'asc' &&
+      limit >= 100 &&
+      page === 1;
+
+    // Cache key based on request type
+    let cacheKey: string;
+    let cacheTTL: number;
+
+    if (isAllTeamsRequest) {
+      // Use a dedicated cache key for all teams
+      cacheKey = 'teams:all';
+      cacheTTL = 24 * 60 * 60 * 1000; // 24 hour cache for all teams
+    } else {
+      // Use specific cache key for filtered/paginated requests
+      cacheKey = `teams:${page}:${limit}:${search}:${conference}:${division}:${sortBy}:${sortDirection}:${league || 'all'}`;
+      cacheTTL = 24 * 60 * 60 * 1000; // 24 hour cache for teams data
+    }
 
     // Try to get from cache first (unless bypass is requested)
     if (!bypassCache) {
       const cachedData = simpleCacheService.get(cacheKey);
       if (cachedData) {
-        logger.info('Teams cache hit', { key: cacheKey });
+        logger.info('Teams cache hit', { key: cacheKey, isAllTeamsRequest });
         return NextResponse.json(cachedData);
       }
     }
@@ -200,6 +220,8 @@ export async function GET(request: NextRequest) {
       cacheInfo: {
         cached: false,
         source: 'database',
+        cacheKey,
+        isAllTeamsRequest,
       },
     };
 

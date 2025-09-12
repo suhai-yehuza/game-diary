@@ -9,13 +9,18 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { CreateGameLogModal, EditGameLogModal } from '@/app/components/game-logs/GameLogModal';
 import { SportsPageLayout } from '@/app/components/sports';
+import { GameStats } from '@/app/components/sports/game-stats';
+import { PlayerStats } from '@/app/components/sports/player-stats';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { useGameLogs } from '@/hooks/use-game-logs';
-import { useLatestGames } from '@/hooks/use-latest-games';
+import { useGameStats } from '@/hooks/use-game-stats';
+import { usePlayerStats } from '@/hooks/use-player-stats';
+import { useTeamPlayers } from '@/hooks/use-team-players';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
+import { getCurrentNbaSeason } from '@/lib/utils/season-filter.utils';
 import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
@@ -33,11 +38,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
   const [error, setError] = useState<string | null>(null);
   const [isCreateGameLogModalOpen, setIsCreateGameLogModalOpen] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<IGameLog | null>(null);
-
-  const { latestGames } = useLatestGames({
-    limit: 1000,
-    forceRealData: false, // Use mock data instead of external API
-  });
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   // Note: userGameLogs and refetchUserGameLogs are now derived from memoized values below
 
@@ -104,6 +105,69 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
   const userGameLogs = memoizedGameLogs;
   const refetchUserGameLogs = memoizedForceRefresh;
 
+  // Get current season for statistics
+  const currentSeason = getCurrentNbaSeason().toString();
+
+  // Fetch game statistics
+  const {
+    gameStats,
+    loading: gameStatsLoading,
+    error: gameStatsError,
+  } = useGameStats({
+    gameId: gameId || '',
+    skip: !gameId,
+  });
+
+  // Get team IDs for fetching players
+  const homeTeamId = game?.teams?.home?.id?.toString();
+  const awayTeamId = game?.teams?.visitors?.id?.toString();
+
+  // Fetch team players for both teams
+  const {
+    teamPlayers: homeTeamPlayers,
+    loading: homeTeamPlayersLoading,
+    error: homeTeamPlayersError,
+  } = useTeamPlayers({
+    teamId: homeTeamId || '',
+    season: currentSeason,
+    skip: !homeTeamId || !game,
+  });
+
+  const {
+    teamPlayers: awayTeamPlayers,
+    loading: awayTeamPlayersLoading,
+    error: awayTeamPlayersError,
+  } = useTeamPlayers({
+    teamId: awayTeamId || '',
+    season: currentSeason,
+    skip: !awayTeamId || !game,
+  });
+
+  // Combine both teams' players
+  const allTeamPlayers = useMemo(() => {
+    const players = [];
+    if (homeTeamPlayers) players.push(...homeTeamPlayers);
+    if (awayTeamPlayers) players.push(...awayTeamPlayers);
+    return players;
+  }, [homeTeamPlayers, awayTeamPlayers]);
+
+  // Fetch player statistics for selected player
+  const {
+    playerStats,
+    loading: playerStatsLoading,
+    error: playerStatsError,
+  } = usePlayerStats({
+    playerId: selectedPlayerId || '',
+    season: currentSeason,
+    gameId: gameId || '',
+    skip: !selectedPlayerId || !gameId,
+  });
+
+  // Handle player selection
+  const handlePlayerSelect = useCallback((playerId: string) => {
+    setSelectedPlayerId(playerId);
+  }, []);
+
   // Debug when userGameLogs data changes
   useEffect(() => {
     setTimeout(() => {
@@ -123,7 +187,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
     []
   );
 
-  const { handleAsync } = useCentralizedErrorHandler({
+  const { handleAsync: _handleAsync } = useCentralizedErrorHandler({
     context: errorHandlerContext,
   });
 
@@ -133,44 +197,40 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         return; // Wait for params to be resolved
       }
 
-      const result = await handleAsync(async () => {
-        // First try to find the game in the latest games array
-        let foundGame = latestGames.find(g => g.id.toString() === gameId);
+      console.log(`🔍 Fetching game ${gameId} directly from database...`);
 
-        // If not found in latest games, try to fetch it directly from the API
-        if (!foundGame) {
-          try {
-            const response = await fetch(`/api/games?season=all&limit=20000`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.response && Array.isArray(data.response)) {
-                foundGame = data.response.find((g: IGameResponse) => g.id.toString() === gameId);
-              }
-            }
-          } catch (error) {
-            console.warn('Failed to fetch game from API:', error);
+      try {
+        const response = await fetch(`/api/games/${gameId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.response) {
+            console.log(`✅ Found game ${gameId} via API`);
+            setGame(data.response);
+            setError(null);
+          } else {
+            console.log(`❌ No game data in API response for ${gameId}`);
+            setError('Game data not found');
           }
+        } else if (response.status === 404) {
+          console.log(`❌ Game ${gameId} not found in database`);
+          setError(`Game not found: ${gameId}`);
+        } else {
+          console.warn(`❌ API request failed: ${response.status} ${response.statusText}`);
+          setError(`Failed to fetch game: ${response.status} ${response.statusText}`);
         }
-
-        if (!foundGame) {
-          throw new Error('Game not found');
-        }
-
-        return foundGame;
-      });
-
-      if (result) {
-        setGame(result);
-      } else {
+      } catch (error) {
+        console.warn('Failed to fetch game from API:', error);
         setError('Failed to load game');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (latestGames.length > 0 && gameId) {
+    // Always try to load the game if we have a gameId
+    if (gameId) {
       void loadGame();
     }
-  }, [gameId, latestGames, handleAsync]);
+  }, [gameId]);
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -579,6 +639,20 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
           </CardContent>
         </Card>
       )}
+
+      {/* Game Statistics */}
+      <div className="mt-6 space-y-6">
+        <GameStats gameStats={gameStats} loading={gameStatsLoading} error={gameStatsError} />
+
+        <PlayerStats
+          playerStats={playerStats}
+          teamPlayers={allTeamPlayers}
+          loading={playerStatsLoading || homeTeamPlayersLoading || awayTeamPlayersLoading}
+          error={playerStatsError || homeTeamPlayersError || awayTeamPlayersError}
+          onPlayerSelect={handlePlayerSelect}
+          selectedPlayerId={selectedPlayerId}
+        />
+      </div>
 
       {/* Create Game Log Modal */}
       <CreateGameLogModal

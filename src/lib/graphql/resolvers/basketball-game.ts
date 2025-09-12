@@ -34,7 +34,7 @@ export const gameQueryResolvers = {
       status: game.status,
       season: game.season,
       game_id: game.game_id,
-      teams: game.teams,
+      teams: game.teams || {},
       home_team: homeTeam,
       away_team: awayTeam,
       scores: game.scores,
@@ -232,6 +232,12 @@ export const gameQueryResolvers = {
 
 // Game Type Resolvers
 export const gameResolver = {
+  // Ensure teams field is properly resolved - don't override if already present
+  teams: (parent: { teams: unknown }) => {
+    // If teams is already defined, return it; otherwise return null
+    return parent.teams !== undefined ? parent.teams : null;
+  },
+
   // Get public comments for a game
   publicComments: async (
     parent: { id: string },

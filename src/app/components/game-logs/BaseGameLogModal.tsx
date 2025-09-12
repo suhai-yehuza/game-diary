@@ -16,7 +16,7 @@ import { useOptimizedMutation } from '@/hooks/use-optimized-mutation';
 import { CLASSIFICATION, WATCHED_SETTING, WATCHED_SCOPE } from '@/lib/constants';
 import { CREATE_GAME_LOG, UPDATE_GAME_LOG } from '@/lib/graphql/mutations';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import { getCurrentNbaSeason, getRecentNbaSeasonsArray } from '@/lib/utils/season-filter.utils';
 import { createGameLogSchema, updateGameLogSchema, ErrorCategory, ErrorSeverity } from '@/types';
 import type {
   IGameLogModalProps,
@@ -49,8 +49,8 @@ function getGameDate(date: string | { start?: string } | unknown): string {
   return '';
 }
 
-const LATEST_SEASON = getLatestNbaSeason();
-const SEASONS = getRecentNbaSeasons(10);
+const LATEST_SEASON = getCurrentNbaSeason();
+const SEASONS = getRecentNbaSeasonsArray(10);
 
 // Helper function to generate optimistic game log data
 function generateOptimisticGameLog(

@@ -41,6 +41,16 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
     mobileSpeed: 1,
   });
 
+  // Safety check for data - after hooks
+  if (!data?.mostPopular) {
+    return (
+      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+        <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+        <p>No popular players data available yet</p>
+      </div>
+    );
+  }
+
   const formatEngagement = (count: number | undefined | null) => {
     if (count === undefined || count === null || isNaN(count)) return '0';
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
@@ -99,68 +109,68 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
         onMouseLeave={handleMouseLeave}
       >
         <div ref={contentRef} className="space-y-3 scroll-content">
-          {data.mostPopular.map((player, index) => (
-            <div
-              key={player.id}
-              className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-6">
-                  #{index + 1}
-                </span>
-                <Image
-                  src={getTeamLogo(player.team)}
-                  alt={`${player.team.name} logo`}
-                  width={32}
-                  height={32}
-                  className="w-8 h-8 rounded-full object-cover"
-                  onError={e => {
-                    (e.target as HTMLImageElement).src = '/logos/default-team-logo.svg';
-                  }}
-                />
-              </div>
-
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <h4 className="font-medium text-gray-900 dark:text-white truncate">
-                    {player.name}
-                  </h4>
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded font-medium ${getPositionColor(player.position)}`}
-                  >
-                    {player.position}
+          {data.mostPopular && data.mostPopular.length > 0 ? (
+            data.mostPopular.map((player, index) => (
+              <div
+                key={player.id}
+                className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-500 dark:text-gray-400 w-6">
+                    #{index + 1}
                   </span>
+                  <Image
+                    src={getTeamLogo(player.team)}
+                    alt={`${player.team.name} logo`}
+                    width={32}
+                    height={32}
+                    className="w-8 h-8 rounded-full object-cover"
+                    onError={e => {
+                      (e.target as HTMLImageElement).src = '/logos/default-team-logo.svg';
+                    }}
+                  />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-                  {player.team.name} ({player.team.code})
-                </p>
-              </div>
 
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <MessageCircle className="w-4 h-4" />
-                  <span>{formatEngagement(player.commentCount)}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-medium text-gray-900 dark:text-white truncate">
+                      {player.name}
+                    </h4>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded font-medium ${getPositionColor(player.position)}`}
+                    >
+                      {player.position}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {player.team.name} ({player.team.code})
+                  </p>
                 </div>
-                <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
-                  <Heart className="w-4 h-4" />
-                  <span>{formatEngagement(player.reactionCount)}</span>
-                </div>
-                <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
-                  <Star className="w-4 h-4" />
-                  <span className="font-medium">{(player.popularityScore || 0).toFixed(1)}</span>
+
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                    <MessageCircle className="w-4 h-4" />
+                    <span>{formatEngagement(player.commentCount)}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-gray-600 dark:text-gray-400">
+                    <Heart className="w-4 h-4" />
+                    <span>{formatEngagement(player.reactionCount)}</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <Star className="w-4 h-4" />
+                    <span className="font-medium">{(player.popularityScore || 0).toFixed(1)}</span>
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No popular players data available yet</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
-
-      {data.mostPopular.length === 0 && (
-        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-          <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No popular players data available yet</p>
-        </div>
-      )}
 
       {/* View All Players Button */}
       <div className="mt-auto pt-4">

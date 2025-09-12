@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/app/components/ui/Card';
 import type { IGameCardProps, IGameResponse } from '@/types';
 
-export function GameCard({ game }: IGameCardProps) {
+export function GameCard({ game, highlightTeam }: IGameCardProps) {
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -123,6 +123,17 @@ export function GameCard({ game }: IGameCardProps) {
     }
   };
 
+  const isTeamHighlighted = (teamId: string) => {
+    return highlightTeam && teamId === highlightTeam;
+  };
+
+  const getTeamHighlightClass = (teamId: string) => {
+    if (isTeamHighlighted(teamId)) {
+      return 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600';
+    }
+    return '';
+  };
+
   const handleCardClick = () => {
     window.location.href = `/sports/nba/games/${game.id}`;
   };
@@ -149,21 +160,20 @@ export function GameCard({ game }: IGameCardProps) {
             <div className="flex-1 flex flex-col">
               <div className="flex items-center justify-center mb-2 sm:mb-3 flex-1">
                 <div className="flex items-center gap-2 sm:gap-3 lg:gap-6 w-full">
-                  <div className="text-center min-w-0 flex-1">
+                  <div
+                    className={`text-center min-w-0 flex-1 ${getTeamHighlightClass(game.teams.visitors.id)}`}
+                  >
                     {/* Away Team Logo */}
                     <div className="flex justify-center mb-2">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative">
+                      <div
+                        className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative ${getTeamHighlightClass(game.teams.visitors.id)}`}
+                      >
                         <Image
-                          src={game.teams.visitors.logo || '/logos/default-nba-team-logo.svg'}
+                          src={game.teams.visitors.logo || '/defaults/team-logo.svg'}
                           alt={`${game.teams.visitors.name} logo`}
                           width={80}
                           height={80}
                           className="w-full h-full object-contain animate-fade-in"
-                          onError={() => {
-                            // Next.js Image handles fallbacks automatically
-                          }}
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </div>
                     </div>
@@ -177,21 +187,20 @@ export function GameCard({ game }: IGameCardProps) {
                   <div className="game-meta-text text-base sm:text-lg font-medium flex-shrink-0 px-1">
                     @
                   </div>
-                  <div className="text-center min-w-0 flex-1">
+                  <div
+                    className={`text-center min-w-0 flex-1 ${getTeamHighlightClass(game.teams.home.id)}`}
+                  >
                     {/* Home Team Logo */}
                     <div className="flex justify-center mb-2">
-                      <div className="w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative">
+                      <div
+                        className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative ${getTeamHighlightClass(game.teams.home.id)}`}
+                      >
                         <Image
-                          src={game.teams.home.logo || '/logos/default-nba-team-logo.svg'}
+                          src={game.teams.home.logo || '/defaults/team-logo.svg'}
                           alt={`${game.teams.home.name} logo`}
                           width={80}
                           height={80}
                           className="w-full h-full object-contain animate-fade-in"
-                          onError={() => {
-                            // Next.js Image handles fallbacks automatically
-                          }}
-                          placeholder="blur"
-                          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                       </div>
                     </div>

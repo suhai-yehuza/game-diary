@@ -25,7 +25,71 @@ function getDisplayGames(realGames: IGameResponse[] | null): IGameResponse[] {
   const shouldShowMockGames = isMockModeEnabled() || isTestOrCIEnvironment();
 
   if (shouldShowMockGames) {
-    return MOCK_LIVE_GAMES.response || [];
+    // Transform external API format to internal format
+    return (MOCK_LIVE_GAMES.response || []).map(game => ({
+      id: game.id.toString(),
+      date:
+        typeof game.date === 'string' ? { start: game.date } : { start: game.date?.start || '' },
+      home_team: game.teams?.home?.name || '',
+      away_team: game.teams?.visitors?.name || '',
+      home_score: game.scores?.home?.points || 0,
+      away_score: game.scores?.visitors?.points || 0,
+      status:
+        typeof game.status === 'string'
+          ? { short: game.status }
+          : { short: game.status?.short || '', long: game.status?.long, clock: game.status?.clock },
+      teams: game.teams
+        ? {
+            home: {
+              id: game.teams.home?.id?.toString() || '',
+              name: game.teams.home?.name || '',
+              nickname: game.teams.home?.nickname || '',
+              code: game.teams.home?.code || '',
+              logo: game.teams.home?.logo || '',
+            },
+            visitors: {
+              id: game.teams.visitors?.id?.toString() || '',
+              name: game.teams.visitors?.name || '',
+              nickname: game.teams.visitors?.nickname || '',
+              code: game.teams.visitors?.code || '',
+              logo: game.teams.visitors?.logo || '',
+            },
+            away: {
+              id: game.teams.visitors?.id?.toString() || '',
+              name: game.teams.visitors?.name || '',
+              nickname: game.teams.visitors?.nickname || '',
+              code: game.teams.visitors?.code || '',
+              logo: game.teams.visitors?.logo || '',
+            },
+          }
+        : undefined,
+      scores: game.scores
+        ? {
+            home: {
+              points: game.scores.home?.points || 0,
+            },
+            visitors: {
+              points: game.scores.visitors?.points || 0,
+            },
+          }
+        : undefined,
+      season: game.season,
+      stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
+      nugget: game.nugget,
+      arena: game.arena
+        ? {
+            name: game.arena.name || '',
+            city: game.arena.city || '',
+            state: game.arena.state || '',
+          }
+        : undefined,
+      periods: game.periods
+        ? {
+            current: game.periods.current || 0,
+            total: game.periods.total || 0,
+          }
+        : undefined,
+    }));
   }
 
   return [];

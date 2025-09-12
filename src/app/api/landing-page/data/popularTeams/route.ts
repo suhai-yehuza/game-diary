@@ -20,11 +20,20 @@ export async function GET() {
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
-    logger.error('Error fetching popular teams:', { error: String(error) });
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    logger.error('Error fetching popular teams:', {
+      error: errorMessage,
+      stack: errorStack,
+      name: error instanceof Error ? error.name : 'Unknown',
+    });
+
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to fetch popular teams',
+        details: errorMessage,
         timestamp: new Date().toISOString(),
       },
       { status: 500 }

@@ -9,8 +9,14 @@ export function Tabs({
   defaultTab,
   className = '',
   showLiveGamesTab = true,
+  activeTab: externalActiveTab,
+  onTabChange: externalOnTabChange,
 }: ISportsTabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id || '');
+  const [internalActiveTab, setInternalActiveTab] = useState(defaultTab || tabs[0]?.id || '');
+
+  // Use external state if provided, otherwise use internal state
+  const activeTab = externalActiveTab !== undefined ? externalActiveTab : internalActiveTab;
+  const setActiveTab = externalOnTabChange || setInternalActiveTab;
 
   const activeTabContent = tabs.find(tab => tab.id === activeTab)?.content;
 

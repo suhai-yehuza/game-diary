@@ -2127,6 +2127,24 @@ button {
   z-index: 30;
 }
 
+/* === Head-to-Head Filters - Beautiful Design === */
+/* Custom styling for the head-to-head filters to match Game Logs design */
+.head2head-filters-card {
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.dark .head2head-filters-card {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+  border: 1px solid #475569 !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
 /* === E2E Test Overlay Hiding === */
 /* Hide specific debug overlays during E2E tests to prevent pointer event interception */
 .playwright-test .fixed[class*='font-mono'],

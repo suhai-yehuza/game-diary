@@ -155,11 +155,10 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                      src={game.teams?.visitors?.logo || '/defaults/team-logo.svg'}
                       alt={game.teams?.visitors?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
-                      sizes="40px"
                       loading="lazy"
                     />
                   </div>
@@ -185,11 +184,10 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                      src={game.teams?.home?.logo || '/defaults/team-logo.svg'}
                       alt={game.teams?.home?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
-                      sizes="40px"
                       loading="lazy"
                     />
                   </div>

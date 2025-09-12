@@ -186,7 +186,7 @@ export function TeamCard({ team }: ITeamCardProps) {
                 View Team
               </Button>
               <Button
-                onClick={() => (window.location.href = `/sports/nba/players?team=${team.id}`)}
+                onClick={() => (window.location.href = `/sports/nba/teams/${team.id}#players`)}
                 variant="outline"
                 size="default"
                 className="bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base team-card-button"

@@ -1,11 +1,12 @@
 'use client';
 
-import { ArrowRight, Calendar, Trophy, RefreshCw, Newspaper, Users } from 'lucide-react';
+import { ArrowRight, Calendar, Trophy, RefreshCw, Newspaper, Users, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useCallback } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { NBANews } from '@/app/components/sports/nba-news';
+import { Standings } from '@/app/components/sports/standings';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
@@ -148,6 +149,16 @@ export default function NBAPage() {
         : `${formatNumberShort(totalCounts?.totalPlayers || 0)} players`,
       loading: countsAreLoading,
     },
+    {
+      icon: BarChart3,
+      title: 'Standings',
+      description: 'View team standings and rankings',
+      count: 30, // NBA has 30 teams
+      href: '#standings', // Scroll to standings section
+      color: TAILWIND_CLASSES.sports.nba, // Using NBA orange for Standings
+      formattedCount: '30 teams',
+      loading: false,
+    },
   ];
 
   const hasErrors = gamesError || teamsError || playersError;
@@ -220,7 +231,7 @@ export default function NBAPage() {
       )}
 
       {/* Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
         {countsAreLoading ? (
           // Show skeleton loading for navigation cards - only when counts are loading
           <>
@@ -268,6 +279,23 @@ export default function NBAPage() {
           })
         )}
       </div>
+
+      {/* NBA Standings Section */}
+      <section id="standings" aria-labelledby="nba-standings-heading" className="mt-8 sm:mt-12">
+        <div className="flex items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
+          <div className="p-2 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+            <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600 dark:text-orange-400" />
+          </div>
+          <h2
+            id="nba-standings-heading"
+            className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
+          >
+            NBA Standings
+          </h2>
+        </div>
+
+        <Standings />
+      </section>
 
       {/* NBA News Section */}
       <section aria-labelledby="nba-news-heading" className="mt-8 sm:mt-12">

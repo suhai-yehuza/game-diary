@@ -1013,7 +1013,7 @@ export function* generatePublicCommentsStream(
       : generateCommentCount();
 
     // Limit to available users and reasonable bounds
-    const maxComments = Math.min(commentCount, users.length, 15);
+    const maxComments = Math.min(commentCount, users.length, 8);
     const actualCommentCount = Math.max(0, maxComments);
 
     // Generate comments for this target
@@ -1131,7 +1131,7 @@ export function* generatePublicReactionsStream(
       : generateCommentCount();
 
     // Limit to available users and reasonable bounds
-    const maxReactions = Math.min(reactionCount, users.length, 20);
+    const maxReactions = Math.min(reactionCount, users.length, 10);
     const actualReactionCount = Math.max(0, maxReactions);
 
     // Generate reactions for this target

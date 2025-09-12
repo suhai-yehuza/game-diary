@@ -11,6 +11,8 @@ import {
   Building2,
 } from 'lucide-react';
 
+import { getSeasonFilterOptions } from '@/lib/utils/season-filter.utils';
+
 // Common filter options for NBA pages
 export const NBA_FILTERS = {
   // Page size options
@@ -31,21 +33,8 @@ export const NBA_FILTERS = {
     { value: 'cancelled', label: 'Cancelled', icon: <XCircle className="w-4 h-4" /> },
   ],
 
-  // Season options - Last 10+1 seasons (11 total)
-  seasonOptions: [
-    { value: 'all', label: 'All Seasons', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2024', label: '2024-25', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2023', label: '2023-24', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2022', label: '2022-23', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2021', label: '2021-22', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2020', label: '2020-21', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2019', label: '2019-20', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2018', label: '2018-19', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2017', label: '2017-18', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2016', label: '2016-17', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2015', label: '2015-16', icon: <Calendar className="w-4 h-4" /> },
-    { value: '2014', label: '2014-15', icon: <Calendar className="w-4 h-4" /> },
-  ],
+  // Season options - Current season + 10 previous seasons (11 total)
+  seasonOptions: getSeasonFilterOptions(11, true),
 
   // Player position options
   playerPositionOptions: [

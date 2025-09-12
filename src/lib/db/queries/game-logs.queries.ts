@@ -506,7 +506,8 @@ export async function executeUltraFastGameLogQuery(whereClause: string, limit = 
     throw new Error('Database connection not available');
   }
 
-  const query = `
+  // Get basic game log data with actual game data
+  const basicQuery = sql`
     SELECT
       gl.id,
       gl.game_id,
@@ -521,22 +522,21 @@ export async function executeUltraFastGameLogQuery(whereClause: string, limit = 
       gl.classification,
       gl.created_at,
       gl.updated_at,
-      u.username,
-      u.display_name,
-      u.avatar_url,
-      bg.date as game_date,
-      bg.teams as game_teams,
-      bg.status as game_status,
-      bg.season as game_season,
-      bg.stage as game_week
+      'sports-data' as username,
+      'Sports Data' as display_name,
+      '' as avatar_url,
+             bg.date as game_date,
+             bg.teams as teams,
+             bg.status as game_status,
+             bg.season as game_season,
+             bg.stage as game_week
     FROM game_logs gl
-    LEFT JOIN users u ON gl.user_id = u.id
     LEFT JOIN basketball_games bg ON gl.game_id = bg.id
-    ${whereClause}
+    ${sql.raw(whereClause)}
     ORDER BY gl.created_at DESC
     LIMIT ${limit}
   `;
 
-  const result = await database.execute(sql.raw(query));
-  return result;
+  const result = await database.execute(basicQuery);
+  return result.rows || [];
 }

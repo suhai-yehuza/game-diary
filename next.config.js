@@ -46,6 +46,9 @@ const nextConfig = {
   },
 
   images: {
+    formats: ['image/webp', 'image/avif'],
+    dangerouslyAllowSVG: true,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
     remotePatterns: [
       {
         protocol: 'https',
@@ -92,8 +95,27 @@ const nextConfig = {
         hostname: 'media.api-sports.io',
       },
       {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/api/images/**',
+      },
+      {
         protocol: 'https',
         hostname: 'images.unsplash.com',
+      },
+      // Avatar generation services
+      {
+        protocol: 'https',
+        hostname: 'api.dicebear.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'source.boringavatars.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'ui-avatars.com',
       },
     ],
   },

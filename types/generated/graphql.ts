@@ -1052,7 +1052,7 @@ export type CreateGameLogMutation = {
       classification: Classification;
       created_at: string;
       user: { __typename?: 'UserSummary'; id: string; username: string };
-      game: { __typename?: 'Game'; id: string; date: string; teams?: any | null };
+      game: { __typename?: 'Game'; id: string; date: string };
     } | null;
     errors?: Array<{
       __typename?: 'ErrorResult';
@@ -4845,7 +4845,6 @@ export const CreateGameLogDocument = gql`
         game {
           id
           date
-          teams
         }
       }
       errors {

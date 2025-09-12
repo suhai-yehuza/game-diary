@@ -294,7 +294,7 @@ export async function getPopularGamesQuery() {
       gr.total_ratings
     FROM basketball_games bg
     LEFT JOIN game_ratings gr ON bg.id = gr.game_id
-    WHERE bg.id = ANY(${popularGameIds})
+    WHERE bg.id = ANY(${sql.raw(`ARRAY[${popularGameIds.map(id => `'${id}'`).join(',')}]`)})
     AND bg.deleted_at IS NULL
     ORDER BY gr.average_rating DESC, gr.total_ratings DESC
   `;
@@ -338,8 +338,8 @@ export async function getPopularTeamsQuery() {
     LEFT JOIN (
       SELECT
         CASE
-          WHEN (bg.teams->>'home'->>'id')::text IS NOT NULL THEN (bg.teams->>'home'->>'id')::text
-          WHEN (bg.teams->>'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->>'visitors'->>'id')::text
+          WHEN (bg.teams->'home'->>'id')::text IS NOT NULL THEN (bg.teams->'home'->>'id')::text
+          WHEN (bg.teams->'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->'visitors'->>'id')::text
         END as team_id,
         COUNT(DISTINCT gl.id) as total_game_logs,
         COUNT(DISTINCT CASE WHEN gl.classification = 'PUBLIC' THEN gl.id END) as public_game_logs,
@@ -371,8 +371,8 @@ export async function getPopularTeamsQuery() {
       ) gl_engagement ON gl.id = gl_engagement.id
       WHERE gl.deleted_at IS NULL
         AND (
-          (bg.teams->>'home'->>'id')::text IS NOT NULL OR
-          (bg.teams->>'visitors'->>'id')::text IS NOT NULL
+          (bg.teams->'home'->>'id')::text IS NOT NULL OR
+          (bg.teams->'visitors'->>'id')::text IS NOT NULL
         )
       GROUP BY team_id
     ) team_engagement ON t.id = team_engagement.team_id

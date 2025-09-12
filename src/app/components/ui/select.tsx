@@ -1,5 +1,6 @@
 import { ChevronDown } from 'lucide-react';
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 
 import { cn } from '@/lib/utils';
 import type { ISelectProps } from '@/types';
@@ -8,12 +9,21 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
   ({ className, children, placeholder, value, onValueChange, disabled, ...props }, ref) => {
     const [isOpen, setIsOpen] = React.useState(false);
     const [selectedValue, setSelectedValue] = React.useState(value || '');
+    const [buttonRect, setButtonRect] = React.useState<DOMRect | null>(null);
+    const buttonRef = React.useRef<HTMLButtonElement>(null);
 
     const handleSelect = (newValue: string) => {
       setSelectedValue(newValue);
       onValueChange?.(newValue);
       setIsOpen(false);
     };
+
+    // Update button position when dropdown opens
+    React.useEffect(() => {
+      if (isOpen && buttonRef.current) {
+        setButtonRect(buttonRef.current.getBoundingClientRect());
+      }
+    }, [isOpen]);
 
     const selectedChild = React.Children.toArray(children).find(
       child =>
@@ -25,15 +35,27 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
         <button
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           {...(props as any)}
-          ref={ref}
+          ref={node => {
+            buttonRef.current = node;
+            if (typeof ref === 'function') {
+              ref(node);
+            } else if (ref) {
+              ref.current = node;
+            }
+          }}
           type="button"
           role="combobox"
           aria-expanded={isOpen}
           className={cn(
-            'flex h-11 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex items-center justify-between text-sm disabled:cursor-not-allowed disabled:opacity-50',
             className
           )}
-          onClick={() => !disabled && setIsOpen(!isOpen)}
+          onClick={() => {
+            if (!disabled) {
+              console.log('Toggle dropdown, current state:', isOpen);
+              setIsOpen(!isOpen);
+            }
+          }}
           disabled={disabled}
           {...props}
         >
@@ -45,24 +67,41 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
           </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </button>
-        {isOpen && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border bg-popover text-popover-foreground shadow-md">
-            {React.Children.map(children, child => {
-              if (React.isValidElement(child)) {
-                const childProps = child.props as { value?: string };
-                if (typeof childProps.value === 'string') {
-                  return React.cloneElement(
-                    child as React.ReactElement<{ value: string; onClick?: () => void }>,
-                    {
-                      onClick: () => handleSelect(childProps.value || ''),
+        {isOpen &&
+          buttonRect &&
+          createPortal(
+            <>
+              {/* Backdrop */}
+              <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
+              {/* Dropdown */}
+              <div
+                className="fixed z-[9999] max-h-60 overflow-auto rounded-md border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-2xl"
+                style={{
+                  top: buttonRect.bottom + window.scrollY + 4,
+                  left: buttonRect.left + window.scrollX,
+                  width: buttonRect.width,
+                  minWidth: '200px',
+                }}
+              >
+                {React.Children.map(children, child => {
+                  if (React.isValidElement(child)) {
+                    const childProps = child.props as { value?: string };
+                    if (typeof childProps.value === 'string') {
+                      console.log('Rendering item:', childProps.value);
+                      return React.cloneElement(
+                        child as React.ReactElement<{ value: string; onClick?: () => void }>,
+                        {
+                          onClick: () => handleSelect(childProps.value || ''),
+                        }
+                      );
                     }
-                  );
-                }
-              }
-              return child;
-            })}
-          </div>
-        )}
+                  }
+                  return child;
+                })}
+              </div>
+            </>,
+            document.body
+          )}
       </div>
     );
   }
@@ -95,7 +134,7 @@ const SelectItem = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 px-4 text-sm font-medium text-gray-900 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/30 focus:bg-blue-50 dark:focus:bg-blue-900/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors duration-150',
       className
     )}
     onClick={onClick}

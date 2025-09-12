@@ -21,11 +21,11 @@ import { CustomSelect } from '@/app/components/ui/custom-select';
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { GAME_STATUS_VALUES } from '@/lib/constants';
-import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import { getSeasonFilterOptions } from '@/lib/utils/season-filter.utils';
 import type { IGameFiltersProps } from '@/types';
 
-const LATEST_SEASON = getLatestNbaSeason();
-const SEASONS = getRecentNbaSeasons(10);
+// Get season filter options (current + 10 previous seasons)
+const SEASON_OPTIONS = getSeasonFilterOptions(11, true);
 
 export function GameFilters({
   filters,
@@ -128,14 +128,7 @@ export function GameFilters({
           <CustomSelect
             value={filters.seasonFilter}
             onChange={value => onUpdateFilter('seasonFilter', value)}
-            options={[
-              { value: 'all', label: 'All Seasons', icon: <List className="w-4 h-4" /> },
-              ...SEASONS.map(season => ({
-                value: season.toString(),
-                label: `${season}-${season + 1} Season${season === LATEST_SEASON ? ' (Latest)' : ''}`,
-                icon: <Clock className="w-4 h-4" />,
-              })),
-            ]}
+            options={SEASON_OPTIONS}
             size="lg"
             variant="default"
             className="min-w-[180px]"

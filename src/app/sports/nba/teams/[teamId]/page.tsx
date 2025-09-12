@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Building2, MapPin, Target, Trophy, User } from 'lucide-react';
+import { ArrowLeft, Building2, Calendar, MapPin, Target, Trophy, User, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { notFound, useParams } from 'next/navigation';
@@ -8,11 +8,23 @@ import { useState, useEffect, useMemo } from 'react';
 
 import { SportsPageLayout } from '@/app/components/sports';
 import { GameCard } from '@/app/components/sports/game-card';
+import { Head2HeadGames } from '@/app/components/sports/head2head-games';
+import { PaginatedGrid } from '@/app/components/sports/paginated-grid';
 import { PlayerCard } from '@/app/components/sports/player-card';
+import { SeasonPlayerStats } from '@/app/components/sports/season-player-stats';
 import { Tabs } from '@/app/components/sports/tabs';
+import { TeamFilters } from '@/app/components/sports/team-filters';
+import { TeamStats } from '@/app/components/sports/team-stats';
+// import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { errorHandlers } from '@/lib/utils/error-handler';
-import type { ITeamResponse, IPlayerResponse, ITeamDetailPageProps } from '@/types';
+import { getCurrentNbaSeason, getSeasonFilterOptionsSimple } from '@/lib/utils/season-filter.utils';
+import type {
+  ITeamResponse,
+  IPlayerResponse as _IPlayerResponse,
+  ITeamPlayersPlayer,
+  ITeamDetailPageProps,
+} from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
 
@@ -24,13 +36,62 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
   // Fetch team data from database
   const [team, setTeam] = useState<ITeamResponse | null>(null);
   const [teamGames, setTeamGames] = useState<unknown[]>([]);
-  const [teamPlayers, setTeamPlayers] = useState<IPlayerResponse[]>([]);
+  const [teamPlayers, setTeamPlayers] = useState<ITeamPlayersPlayer[]>([]);
   const [teamsLoading, setTeamsLoading] = useState(true);
   const [gamesLoading, setGamesLoading] = useState(false);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [teamsError, setTeamsError] = useState<string | null>(null);
   const [gamesError, setGamesError] = useState<string | null>(null);
-  const [_playersError, _setPlayersError] = useState<string | null>(null);
+  const [playersError, setPlayersError] = useState<string | null>(null);
+
+  // Pagination state for games
+  const [gamesPage, setGamesPage] = useState(1);
+  const [gamesPageSize] = useState(20);
+  const [gamesPagination, setGamesPagination] = useState<{
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  } | null>(null);
+
+  // Season filtering for players and games
+  const currentSeason = getCurrentNbaSeason().toString();
+  const [selectedSeason, setSelectedSeason] = useState<string>(currentSeason);
+  const [selectedGamesSeason, setSelectedGamesSeason] = useState<string>(currentSeason);
+
+  // Get season filter options (current + 10 previous seasons)
+  const seasonOptions = useMemo(() => getSeasonFilterOptionsSimple(11, false), []);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState<string>('overview');
+
+  // Handle URL hash for direct navigation to players tab
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (window.location.hash === '#players') {
+        setActiveTab('players');
+      }
+    };
+
+    // Check initial hash
+    handleHashChange();
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  // Reset games page when season changes
+  useEffect(() => {
+    setGamesPage(1);
+  }, [selectedGamesSeason]);
+
+  // Handle games page change
+  const handleGamesPageChange = (newPage: number) => {
+    setGamesPage(newPage);
+  };
 
   // Fetch team data from database
   useEffect(() => {
@@ -67,7 +128,7 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
     void fetchTeamData();
   }, [teamId]);
 
-  // Fetch team games from database
+  // Fetch team games from external API
   useEffect(() => {
     if (!teamId) return;
 
@@ -76,13 +137,20 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
       setGamesError(null);
 
       try {
-        const response = await fetch(`/api/teams/${teamId}/games`);
+        const response = await fetch(
+          `/api/teams/${teamId}/games?season=${selectedGamesSeason}&page=${gamesPage}&limit=${gamesPageSize}`
+        );
         if (!response.ok) {
           throw new Error(`Failed to fetch team games: ${response.statusText}`);
         }
 
         const gamesData = await response.json();
-        setTeamGames(gamesData);
+        if (gamesData.success && gamesData.data) {
+          setTeamGames(gamesData.data);
+          setGamesPagination(gamesData.pagination);
+        } else {
+          throw new Error(gamesData.error || 'Failed to fetch team games');
+        }
       } catch (err) {
         errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
           component: 'NBATeamDetailPage',
@@ -91,27 +159,61 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch team games';
         setGamesError(errorMessage);
         setTeamGames([]);
+        setGamesPagination(null);
       } finally {
         setGamesLoading(false);
       }
     };
 
     void fetchTeamGames();
-  }, [teamId]);
+  }, [teamId, selectedGamesSeason, gamesPage, gamesPageSize]);
 
-  // For now, set empty array for players since we don't have team-specific data yet
+  // Fetch team players from external API
   useEffect(() => {
-    setTeamPlayers([]);
-    setPlayersLoading(false);
-  }, [teamId]);
+    if (!teamId) return;
+
+    const fetchTeamPlayers = async () => {
+      setPlayersLoading(true);
+      setPlayersError(null);
+
+      try {
+        const response = await fetch(`/api/teams/${teamId}/players?season=${selectedSeason}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch team players: ${response.statusText}`);
+        }
+
+        const playersData = await response.json();
+        if (playersData.success && playersData.data?.response) {
+          setTeamPlayers(playersData.data.response);
+        } else {
+          throw new Error(playersData.error || 'Failed to fetch team players');
+        }
+      } catch (err) {
+        errorHandlers.api(err instanceof Error ? err : new Error(String(err)), {
+          component: 'NBATeamDetailPage',
+          action: 'Fetch team players',
+        });
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch team players';
+        setPlayersError(errorMessage);
+        setTeamPlayers([]);
+      } finally {
+        setPlayersLoading(false);
+      }
+    };
+
+    void fetchTeamPlayers();
+  }, [teamId, selectedSeason]);
 
   // Memoize counts to prevent tab re-rendering
-  const gamesCount = useMemo(() => teamGames.length, [teamGames.length]);
-  const _playersCount = useMemo(() => teamPlayers.length, [teamPlayers.length]);
+  const gamesCount = useMemo(
+    () => gamesPagination?.totalCount || teamGames.length,
+    [gamesPagination?.totalCount, teamGames.length]
+  );
+  const playersCount = useMemo(() => teamPlayers.length, [teamPlayers.length]);
 
   // Determine loading and error states
   const isLoading = teamsLoading || !teamId;
-  const error = teamsError || gamesError || _playersError;
+  const error = teamsError || gamesError || playersError;
 
   // Show loading state
   if (isLoading) {
@@ -245,10 +347,8 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
         <Tabs
           defaultTab="overview"
           showLiveGamesTab={false}
-          activeTab="overview"
-          onTabChange={() => {
-            // Tab change functionality not implemented yet
-          }}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
           tabs={[
             {
               id: 'overview',
@@ -470,30 +570,88 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
               id: 'games',
               label: `Games (${gamesCount})`,
               content: (
-                <div className="space-y-4">
-                  {gamesLoading ? (
-                    <div className="flex justify-center py-8">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-primary" />
-                    </div>
-                  ) : teamGames.length > 0 ? (
-                    <div className="grid gap-4">
-                      {teamGames.map(game => (
-                        <GameCard key={(game as { id: string }).id} game={game} />
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No games found for this team.
-                    </div>
-                  )}
+                <div className="space-y-6">
+                  {/* Beautiful Games Filter */}
+                  <TeamFilters
+                    title="Games Filters"
+                    description="Filter games by season and other criteria"
+                    icon={<Trophy className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+                    filters={[
+                      {
+                        label: 'Season',
+                        value: selectedGamesSeason,
+                        onChange: setSelectedGamesSeason,
+                        options: seasonOptions,
+                        icon: <Calendar className="w-4 h-4 text-gray-500" />,
+                      },
+                    ]}
+                    onRefresh={() => {
+                      // Refresh games data
+                      window.location.reload();
+                    }}
+                    error={gamesError}
+                  />
+
+                  {/* Games Content with Pagination */}
+                  <PaginatedGrid
+                    items={teamGames}
+                    loading={gamesLoading}
+                    error={gamesError}
+                    pagination={gamesPagination}
+                    onPageChange={handleGamesPageChange}
+                    renderItem={(game: unknown) => (
+                      <GameCard key={(game as { id: string }).id} game={game} />
+                    )}
+                    renderEmptyState={() => (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        {gamesError
+                          ? `Error loading games: ${gamesError}`
+                          : `No games found for this team in ${selectedGamesSeason}.`}
+                      </div>
+                    )}
+                    gridClassName="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6"
+                    showPagination={true}
+                  />
                 </div>
               ),
             },
             {
+              id: 'head2head',
+              label: 'Head 2 Head',
+              content: <Head2HeadGames teamId={teamId} teamName={team.name} />,
+            },
+            {
+              id: 'stats',
+              label: 'Team Stats',
+              content: <TeamStats teamId={teamId} teamName={team.name} />,
+            },
+            {
               id: 'players',
-              label: `Players (${_playersCount})`,
+              label: `Players (${playersCount})`,
               content: (
-                <div className="space-y-4">
+                <div className="space-y-6">
+                  {/* Beautiful Players Filter */}
+                  <TeamFilters
+                    title="Players Filters"
+                    description="Filter players by season and other criteria"
+                    icon={<Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />}
+                    filters={[
+                      {
+                        label: 'Season',
+                        value: selectedSeason,
+                        onChange: setSelectedSeason,
+                        options: seasonOptions,
+                        icon: <Calendar className="w-4 h-4 text-gray-500" />,
+                      },
+                    ]}
+                    onRefresh={() => {
+                      // Refresh players data
+                      window.location.reload();
+                    }}
+                    error={playersError}
+                  />
+
+                  {/* Players Content */}
                   {playersLoading ? (
                     <div className="flex justify-center py-8">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-brand-primary" />
@@ -506,10 +664,23 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
                     </div>
                   ) : (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                      No players found for this team.
+                      {playersError
+                        ? `Error loading players: ${playersError}`
+                        : `No players found for this team in ${selectedSeason}.`}
                     </div>
                   )}
                 </div>
+              ),
+            },
+            {
+              id: 'player-season-stats',
+              label: 'Player Stats',
+              content: (
+                <SeasonPlayerStats
+                  teamPlayers={teamPlayers}
+                  loading={playersLoading}
+                  error={playersError}
+                />
               ),
             },
           ]}

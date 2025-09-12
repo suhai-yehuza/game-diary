@@ -297,7 +297,81 @@ export async function seedGames(
       );
 
       let gamesInserted = 0;
-      for (const game of gamesData.response || []) {
+      for (const externalGame of gamesData.response || []) {
+        // Transform external game to internal format
+        const game: IGameResponse = {
+          id: externalGame.id.toString(),
+          date:
+            typeof externalGame.date === 'string'
+              ? { start: externalGame.date }
+              : { start: externalGame.date?.start || '' },
+          home_team: externalGame.teams?.home?.name || '',
+          away_team: externalGame.teams?.visitors?.name || '',
+          home_score: externalGame.scores?.home?.points || 0,
+          away_score: externalGame.scores?.visitors?.points || 0,
+          status:
+            typeof externalGame.status === 'string'
+              ? { short: externalGame.status }
+              : {
+                  short: externalGame.status?.short || '',
+                  long: externalGame.status?.long,
+                  clock: externalGame.status?.clock,
+                },
+          teams: externalGame.teams
+            ? {
+                home: {
+                  id: externalGame.teams.home?.id?.toString() || '',
+                  name: externalGame.teams.home?.name || '',
+                  nickname: externalGame.teams.home?.nickname || '',
+                  code: externalGame.teams.home?.code || '',
+                  logo: externalGame.teams.home?.logo || '',
+                },
+                visitors: {
+                  id: externalGame.teams.visitors?.id?.toString() || '',
+                  name: externalGame.teams.visitors?.name || '',
+                  nickname: externalGame.teams.visitors?.nickname || '',
+                  code: externalGame.teams.visitors?.code || '',
+                  logo: externalGame.teams.visitors?.logo || '',
+                },
+                away: {
+                  id: externalGame.teams.visitors?.id?.toString() || '',
+                  name: externalGame.teams.visitors?.name || '',
+                  nickname: externalGame.teams.visitors?.nickname || '',
+                  code: externalGame.teams.visitors?.code || '',
+                  logo: externalGame.teams.visitors?.logo || '',
+                },
+              }
+            : undefined,
+          scores: externalGame.scores
+            ? {
+                home: {
+                  points: externalGame.scores.home?.points || 0,
+                },
+                visitors: {
+                  points: externalGame.scores.visitors?.points || 0,
+                },
+              }
+            : undefined,
+          season: externalGame.season,
+          stage:
+            typeof externalGame.stage === 'string'
+              ? parseInt(externalGame.stage) || 0
+              : externalGame.stage || 0,
+          nugget: externalGame.nugget,
+          arena: externalGame.arena
+            ? {
+                name: externalGame.arena.name || '',
+                city: externalGame.arena.city || '',
+                state: externalGame.arena.state || '',
+              }
+            : undefined,
+          periods: externalGame.periods
+            ? {
+                current: externalGame.periods.current || 0,
+                total: externalGame.periods.total || 0,
+              }
+            : undefined,
+        };
         const gameData = createGameInsertData(game, season);
 
         if (isSafeMode) {
@@ -371,8 +445,35 @@ export async function seedPlayers(
           componentName
         );
 
-        for (const player of playersData.response) {
-          const playerId = player.id.toString();
+        for (const externalPlayer of playersData.response) {
+          // Transform external player to internal format
+          const player: IPlayerResponse = {
+            id: externalPlayer.id.toString(),
+            name: `${externalPlayer.firstname || ''} ${externalPlayer.lastname || ''}`.trim(),
+            position:
+              externalPlayer.leagues?.standard?.position ||
+              externalPlayer.leagues?.standard?.pos ||
+              '',
+            team: externalPlayer.leagues?.standard?.team || team.name,
+            first_name: externalPlayer.firstname || '',
+            last_name: externalPlayer.lastname || '',
+            birth: externalPlayer.birth,
+            nba: externalPlayer.nba,
+            height:
+              typeof externalPlayer.height === 'string'
+                ? { feets: externalPlayer.height, inches: '', meters: '' }
+                : externalPlayer.height,
+            weight:
+              typeof externalPlayer.weight === 'string'
+                ? { pounds: externalPlayer.weight, kilograms: '' }
+                : externalPlayer.weight,
+            college: externalPlayer.college || '',
+            affiliation: externalPlayer.affiliation || '',
+            leagues: externalPlayer.leagues,
+            image_url: externalPlayer.leagues?.standard?.logo || '',
+          };
+
+          const playerId = player.id;
 
           if (isSafeMode) {
             // Check if player already exists
@@ -566,7 +667,7 @@ export async function syncReactionEmojis(db: Database, componentName = 'Reaction
     const existingEmojiSet = new Set(existingEmojis.map(e => e.emoji));
 
     // Get all emojis from the application constants
-    const constantEmojis = Object.values(REACTION_EMOJIS);
+    const constantEmojis = Object.values(REACTION_EMOJIS) as string[];
     const constantEmojiSet = new Set(constantEmojis);
 
     // Find emojis to add (in constants but not in database)
@@ -637,13 +738,13 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
     const seasonYear = latestSeason[0].year;
     console.log(`📅 Using season ${seasonYear} for comments seeding`);
 
-    // Get 10% of games from the latest season
+    // Get 2% of games from the latest season
     const allGames = await db
       .select()
       .from(schema.basketball_games)
       .where(eq(schema.basketball_games.season, seasonYear.toString()));
 
-    const gamesToComment = Math.max(1, Math.floor(allGames.length * 0.05));
+    const gamesToComment = Math.max(1, Math.floor(allGames.length * 0.02));
     const selectedGames = faker.helpers.arrayElements(allGames, gamesToComment);
 
     console.log(
@@ -655,8 +756,8 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
 
     // Generate realistic comments for each selected game
     for (const game of selectedGames) {
-      // Generate 5-50 comments per game
-      const numComments = faker.number.int({ min: 5, max: 10 });
+      // Generate 2-5 comments per game
+      const numComments = faker.number.int({ min: 2, max: 5 });
 
       for (let i = 0; i < numComments; i++) {
         const commentId = faker.string.uuid();
@@ -684,13 +785,13 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
     // Generate child comments (replies) for some of the created comments
     const commentsToReplyTo = faker.helpers.arrayElements(
       createdComments,
-      Math.floor(createdComments.length * 0.3)
+      Math.floor(createdComments.length * 0.2)
     );
     let childCommentCount = 0;
 
     for (const parentComment of commentsToReplyTo) {
-      // Generate 1-3 replies per parent comment
-      const numReplies = faker.number.int({ min: 1, max: 3 });
+      // Generate 1-2 replies per parent comment
+      const numReplies = faker.number.int({ min: 1, max: 2 });
 
       for (let i = 0; i < numReplies; i++) {
         const replyId = faker.string.uuid();
@@ -717,13 +818,13 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
     // Generate reactions for some comments
     const commentsToReactTo = faker.helpers.arrayElements(
       createdComments,
-      Math.floor(createdComments.length * 0.4)
+      Math.floor(createdComments.length * 0.3)
     );
     let commentReactionCount = 0;
 
     for (const comment of commentsToReactTo) {
-      // Generate 1-5 reactions per comment
-      const numReactions = faker.number.int({ min: 1, max: 5 });
+      // Generate 1-3 reactions per comment
+      const numReactions = faker.number.int({ min: 1, max: 3 });
 
       for (let i = 0; i < numReactions; i++) {
         const reactionId = faker.string.uuid();
