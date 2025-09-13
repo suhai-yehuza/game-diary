@@ -58,14 +58,14 @@ export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPag
   return (
     <div className="flex flex-col items-center gap-6 mt-12">
       {/* Main pagination controls */}
-      <div className="flex items-center gap-1 sm:gap-2 bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700">
+      <div className="flex items-center gap-1 sm:gap-2 bg-surface-card rounded-xl p-2 shadow-lg border border-theme-primary">
         {/* First page button */}
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onPageChange(1)}
           disabled={currentPage === 1}
-          className="h-9 w-9 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="h-9 w-9 p-0 hover:bg-bg-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           <SkipBack className="h-4 w-4" />
         </Button>
@@ -76,7 +76,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPag
           size="sm"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className="h-9 px-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="h-9 px-3 hover:bg-semantic-info/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           <span className="hidden sm:inline">Previous</span>
@@ -88,7 +88,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPag
             <div key={page === '...' ? `ellipsis-${index}` : `page-${page}`}>
               {page === '...' ? (
                 <div className="flex items-center justify-center h-9 w-9">
-                  <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                  <MoreHorizontal className="h-4 w-4 text-theme-muted" />
                 </div>
               ) : (
                 <Button
@@ -114,7 +114,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPag
           size="sm"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
-          className="h-9 px-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="h-9 px-3 hover:bg-semantic-info/10 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           <span className="hidden sm:inline">Next</span>
           <ChevronRight className="h-4 w-4 ml-1" />
@@ -126,7 +126,7 @@ export function Pagination({ currentPage, totalPages, onPageChange }: ISportsPag
           size="sm"
           onClick={() => onPageChange(totalPages)}
           disabled={currentPage === totalPages}
-          className="h-9 w-9 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="h-9 w-9 p-0 hover:bg-bg-theme-secondary disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
           <SkipForward className="h-4 w-4" />
         </Button>

@@ -40,8 +40,8 @@ export default function EnhancedAuthGuard({
         <Card className="max-w-md mx-auto">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-100 dark:bg-amber-900/20 rounded-full">
-                <AlertTriangle className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+              <div className="p-2 bg-semantic-warning/10 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-semantic-warning" />
               </div>
               <div>
                 <CardTitle className="text-xl text-amber-900 dark:text-amber-100">
@@ -80,8 +80,8 @@ export default function EnhancedAuthGuard({
         <Card className="max-w-md mx-auto">
           <CardHeader>
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-full">
-                <Shield className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="p-2 bg-semantic-info/10 rounded-full">
+                <Shield className="w-6 h-6 text-semantic-info" />
               </div>
               <div>
                 <CardTitle className="text-xl">Sign In Required</CardTitle>

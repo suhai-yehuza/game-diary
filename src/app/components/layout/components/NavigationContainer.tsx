@@ -67,14 +67,14 @@ export function NavigationContainer({
           onClick={onMenuToggle}
           className={`md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
             isMenuExpanded
-              ? 'fixed top-4 left-4 bg-neutral-50/90 border border-neutral-200 shadow-lg'
+              ? 'fixed top-4 left-4 bg-surface-card/90 border border-theme-primary shadow-lg'
               : 'mr-4 relative'
-          } hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-brand-primary dark:hover:bg-neutral-800`}
+          } hover:bg-bg-theme-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary`}
           style={{ pointerEvents: 'auto' }}
           data-testid="mobile-menu-button"
         >
           {isMenuExpanded ? (
-            <X className="h-7 w-7 text-neutral-900" />
+            <X className="h-7 w-7 text-theme-primary" />
           ) : (
             <Menu className="h-5 w-5" />
           )}
@@ -95,7 +95,7 @@ export function NavigationContainer({
         {isMenuExpanded && !isCompactViewport && (
           <div
             ref={overlayRef}
-            className="fixed inset-0 z-40 flex flex-col bg-background dark:bg-black/90 lg:hidden"
+            className="fixed inset-0 z-40 flex flex-col bg-background lg:hidden"
             data-testid="mobile-menu-overlay"
             role="dialog"
             aria-modal="true"

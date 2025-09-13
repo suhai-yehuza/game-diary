@@ -35,9 +35,9 @@ const formatDate = (dateString: string): string => {
 
 export function ContentPreviewBannerOptimized() {
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-blue-950 dark:via-gray-900 dark:to-green-950 rounded-2xl p-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-semantic-info/5 via-surface-card to-semantic-success/5 rounded-2xl p-6">
       <div className="text-center mb-8">
-        <p className="text-base sm:text-lg text-gray-600 dark:text-white max-w-2xl mx-auto mb-4 px-4 sm:px-0">
+        <p className="text-base sm:text-lg text-theme-secondary max-w-2xl mx-auto mb-4 px-4 sm:px-0">
           Join thousands of sports fans sharing their game experiences
         </p>
       </div>
@@ -46,13 +46,13 @@ export function ContentPreviewBannerOptimized() {
         dataKey="contentPreview"
         fallback={
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 mb-2" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full" />
+            <div className="bg-gradient-to-r from-semantic-success/10 to-semantic-success/20 rounded-lg p-4 border border-semantic-success/30 animate-pulse">
+              <div className="h-4 bg-bg-theme-secondary rounded w-24 mb-2" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-full" />
             </div>
-            <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 animate-pulse">
-              <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 mb-2" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full" />
+            <div className="bg-gradient-to-r from-semantic-info/10 to-semantic-warning/10 rounded-lg p-4 border border-semantic-info/30 animate-pulse">
+              <div className="h-4 bg-bg-theme-secondary rounded w-24 mb-2" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-full" />
             </div>
           </div>
         }
@@ -62,19 +62,17 @@ export function ContentPreviewBannerOptimized() {
             {/* Trending Preview */}
             <Link
               href="/protected/dashboard"
-              className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 hover:from-green-100 hover:to-emerald-100 dark:hover:from-green-900/30 dark:hover:to-emerald-900/30 transition-all duration-200 group animate-in zoom-in-50 fade-in hover:scale-105 hover:shadow-lg"
+              className="bg-gradient-to-r from-semantic-success/10 to-semantic-success/20 rounded-lg p-4 border border-semantic-success/30 hover:from-semantic-success/20 hover:to-semantic-success/30 transition-all duration-200 group animate-in zoom-in-50 fade-in hover:scale-105 hover:shadow-lg"
             >
               <div className="flex items-center gap-2 mb-2">
-                <TrendingUp className="w-4 h-4 text-green-600 dark:text-green-400 animate-pulse" />
-                <span className="text-sm font-medium text-green-800 dark:text-green-200">
-                  Trending Now
-                </span>
+                <TrendingUp className="w-4 h-4 text-semantic-success animate-pulse" />
+                <span className="text-sm font-medium text-semantic-success">Trending Now</span>
               </div>
 
               {data.mostActiveGameLog ? (
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
+                    <div className="w-6 h-6 bg-bg-theme-secondary rounded-full flex items-center justify-center overflow-hidden">
                       {data.mostActiveGameLog.user?.image_url ? (
                         <Image
                           src={data.mostActiveGameLog.user.image_url}
@@ -84,20 +82,20 @@ export function ContentPreviewBannerOptimized() {
                           className="rounded-full"
                         />
                       ) : (
-                        <User className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                        <User className="w-3 h-3 text-theme-muted" />
                       )}
                     </div>
-                    <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <span className="text-sm font-medium text-theme-primary truncate">
                       {data.mostActiveGameLog.user?.username || 'Anonymous'}
                     </span>
                   </div>
 
-                  <div className="text-sm text-gray-700 dark:text-gray-300">
+                  <div className="text-sm text-theme-secondary">
                     {data.mostActiveGameLog.game?.home_team?.name} vs{' '}
                     {data.mostActiveGameLog.game?.away_team?.name}
                   </div>
 
-                  <div className="flex items-center gap-3 text-xs text-gray-600 dark:text-gray-400">
+                  <div className="flex items-center gap-3 text-xs text-theme-muted">
                     {(parseInt(data.mostActiveGameLog.totalComments) || 0) > 0 && (
                       <div className="flex items-center gap-1">
                         <MessageCircle className="w-3 h-3" />
@@ -117,7 +115,7 @@ export function ContentPreviewBannerOptimized() {
                     <span>⭐ {data.mostActiveGameLog.rating}/5</span>
                   </div>
 
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                  <div className="text-xs text-theme-muted">
                     {formatDate(data.mostActiveGameLog.created_at)}
                   </div>
                 </div>
@@ -131,20 +129,18 @@ export function ContentPreviewBannerOptimized() {
             {/* Recent Games Preview */}
             <Link
               href="/sports/all-sports"
-              className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800 hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-900/30 dark:hover:to-purple-900/30 transition-all duration-200 group animate-in bounce-in fade-in delay-200 hover:scale-105 hover:shadow-lg"
+              className="bg-gradient-to-r from-semantic-info/10 to-semantic-warning/10 rounded-lg p-4 border border-semantic-info/30 hover:from-semantic-info/20 hover:to-semantic-warning/20 transition-all duration-200 group animate-in bounce-in fade-in delay-200 hover:scale-105 hover:shadow-lg"
             >
               <div className="flex items-center gap-2 mb-2">
-                <Calendar className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-bounce" />
-                <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                  Latest Results
-                </span>
+                <Calendar className="w-4 h-4 text-semantic-info animate-bounce" />
+                <span className="text-sm font-medium text-semantic-info">Latest Results</span>
               </div>
 
               {data.latestFinishedGame ? (
                 <div className="space-y-2">
                   {/* Arena Information */}
                   {data.latestFinishedGame.arena && (
-                    <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400 mb-2">
+                    <div className="flex items-center gap-1 text-xs text-theme-muted mb-2">
                       <MapPin className="w-3 h-3" />
                       <span className="truncate">
                         {data.latestFinishedGame.arena.name}
@@ -167,11 +163,11 @@ export function ContentPreviewBannerOptimized() {
                             className="rounded-sm"
                           />
                         )}
-                        <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <span className="text-sm font-medium text-theme-primary truncate">
                           {data.latestFinishedGame.teams?.home?.name}
                         </span>
                       </div>
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      <span className="text-sm font-bold text-theme-primary">
                         {data.latestFinishedGame.scores?.home?.points || 0}
                       </span>
                     </div>
@@ -187,26 +183,26 @@ export function ContentPreviewBannerOptimized() {
                             className="rounded-sm"
                           />
                         )}
-                        <span className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <span className="text-sm font-medium text-theme-primary truncate">
                           {data.latestFinishedGame.teams?.visitors?.name}
                         </span>
                       </div>
-                      <span className="text-sm font-bold text-gray-900 dark:text-white">
+                      <span className="text-sm font-bold text-theme-primary">
                         {data.latestFinishedGame.scores?.visitors?.points || 0}
                       </span>
                     </div>
                   </div>
 
                   {/* Game Status and Date */}
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                  <div className="flex items-center justify-between text-xs text-theme-muted">
                     <span>{formatDate(data.latestFinishedGame.date)}</span>
-                    <span className="font-medium text-green-600 dark:text-green-400">
+                    <span className="font-medium text-semantic-success">
                       {data.latestFinishedGame.status?.long || 'Final'}
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-700 dark:text-gray-300">No recent games yet</div>
+                <div className="text-sm text-theme-secondary">No recent games yet</div>
               )}
             </Link>
           </div>

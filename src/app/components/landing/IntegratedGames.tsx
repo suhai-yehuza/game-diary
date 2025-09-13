@@ -22,20 +22,20 @@ export function IntegratedGames({ data }: IIntegratedGamesProps) {
     return (
       <div className="space-y-3 flex flex-col h-full">
         {Array.from({ length: 5 }, (_, i) => `game-skeleton-${i}-${Date.now()}`).map(uniqueId => (
-          <div key={uniqueId} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 animate-pulse">
+          <div key={uniqueId} className="bg-bg-theme-secondary rounded-lg p-4 animate-pulse">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full" />
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20" />
+                <div className="w-6 h-6 bg-bg-theme-secondary rounded-full" />
+                <div className="h-4 bg-bg-theme-secondary rounded w-20" />
               </div>
-              <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-8" />
+              <div className="h-6 bg-bg-theme-secondary rounded w-8" />
             </div>
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mb-3">vs</div>
             <div className="flex items-center justify-between">
-              <div className="h-6 bg-gray-200 dark:bg-gray-600 rounded w-8" />
+              <div className="h-6 bg-bg-theme-secondary rounded w-8" />
               <div className="flex items-center gap-2">
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-20" />
-                <div className="w-6 h-6 bg-gray-200 dark:bg-gray-600 rounded-full" />
+                <div className="h-4 bg-bg-theme-secondary rounded w-20" />
+                <div className="w-6 h-6 bg-bg-theme-secondary rounded-full" />
               </div>
             </div>
             <div className="text-center text-sm text-gray-500 dark:text-gray-400 mt-2">

@@ -123,7 +123,7 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl lg:hidden max-h-[85vh] flex flex-col transform transition-transform duration-300 ease-out"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-surface-card rounded-t-3xl shadow-2xl lg:hidden max-h-[85vh] flex flex-col transform transition-transform duration-300 ease-out"
         style={{
           transform: `translateY(${translateY}px)`,
           paddingBottom: 'env(safe-area-inset-bottom)',
@@ -137,23 +137,23 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
       >
         {/* Drag Handle */}
         <div className="flex justify-center pt-4 pb-3">
-          <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
+          <div className="w-12 h-1 bg-theme-muted rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Menu</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-theme-primary">
+          <h2 className="text-xl font-semibold text-theme-primary">Menu</h2>
           <button
             onClick={() => setIsMenuExpanded(false)}
-            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="p-2 rounded-full hover:bg-bg-theme-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
             aria-label="Close menu"
           >
-            <X className="w-6 h-6 text-gray-800 dark:text-gray-200" />
+            <X className="w-6 h-6 text-theme-primary" />
           </button>
         </div>
 
         {/* Navigation Content */}
-        <div className="flex-1 px-6 py-6 overflow-y-auto text-gray-900 dark:text-gray-100">
+        <div className="flex-1 px-6 py-6 overflow-y-auto text-theme-primary">
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={isMenuExpanded}
@@ -164,8 +164,8 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-          <div className="text-sm text-gray-500 dark:text-gray-400 text-center flex items-center justify-center gap-2">
+        <div className="px-6 py-4 border-t border-theme-primary bg-bg-theme-secondary">
+          <div className="text-sm text-theme-muted text-center flex items-center justify-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"

@@ -14,7 +14,6 @@ import { useOptimizedNBAHubCounts } from '@/hooks/use-nba-hub-counts';
 import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { API_LIMITS } from '@/lib/constants';
-import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 
 // Skeleton components for better loading states
 const NavigationCardSkeleton = () => (
@@ -119,7 +118,7 @@ export default function NBAPage() {
       description: 'Browse and filter NBA games',
       count: totalCounts?.totalGames || 0,
       href: '/sports/nba/games',
-      color: TAILWIND_CLASSES.sports.nba,
+      color: 'bg-brand-primary',
       formattedCount: countsLoading
         ? 'Loading...'
         : `${formatNumberShort(totalCounts?.totalGames || 0)} games`,
@@ -131,7 +130,7 @@ export default function NBAPage() {
       description: 'Explore all NBA teams',
       count: totalCounts?.totalTeams || 0,
       href: '/sports/nba/teams',
-      color: TAILWIND_CLASSES.sports.nfl, // Using NFL blue for Teams
+      color: 'bg-brand-secondary', // Using secondary color for Teams
       formattedCount: countsAreLoading
         ? 'Loading...'
         : `${formatNumberShort(totalCounts?.totalTeams || 0)} teams`,
@@ -143,7 +142,7 @@ export default function NBAPage() {
       description: 'Discover NBA players',
       count: totalCounts?.totalPlayers || 0,
       href: '/sports/nba/players',
-      color: TAILWIND_CLASSES.sports.mls, // Using MLS green for Players
+      color: 'bg-semantic-success', // Using success color for Players
       formattedCount: countsAreLoading
         ? 'Loading...'
         : `${formatNumberShort(totalCounts?.totalPlayers || 0)} players`,
@@ -155,7 +154,7 @@ export default function NBAPage() {
       description: 'View team standings and rankings',
       count: 30, // NBA has 30 teams
       href: '#standings', // Scroll to standings section
-      color: TAILWIND_CLASSES.sports.nba, // Using NBA orange for Standings
+      color: 'bg-brand-primary', // Using NBA orange for Standings
       formattedCount: '30 teams',
       loading: false,
     },

@@ -59,7 +59,7 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
           disabled={disabled}
           {...props}
         >
-          <span className={selectedValue ? 'text-foreground' : 'text-muted-foreground'}>
+          <span className={selectedValue ? 'text-theme-primary' : 'text-theme-muted'}>
             {selectedChild
               ? React.isValidElement(selectedChild) &&
                 (selectedChild.props as { children?: React.ReactNode }).children
@@ -75,7 +75,7 @@ const Select = React.forwardRef<HTMLButtonElement, ISelectProps>(
               <div className="fixed inset-0 z-[9998]" onClick={() => setIsOpen(false)} />
               {/* Dropdown */}
               <div
-                className="fixed z-[9999] max-h-60 overflow-auto rounded-md border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-2xl"
+                className="fixed z-[9999] max-h-60 overflow-auto rounded-md border-2 border-theme-primary bg-surface-popover text-theme-primary shadow-2xl"
                 style={{
                   top: buttonRect.bottom + window.scrollY + 4,
                   left: buttonRect.left + window.scrollX,
@@ -134,7 +134,7 @@ const SelectItem = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 px-4 text-sm font-medium text-gray-900 dark:text-white hover:bg-blue-50 dark:hover:bg-blue-900/30 focus:bg-blue-50 dark:focus:bg-blue-900/30 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors duration-150',
+      'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 px-4 text-sm font-medium text-theme-primary hover:bg-bg-theme-secondary focus:bg-bg-theme-secondary data-[disabled]:pointer-events-none data-[disabled]:opacity-50 transition-colors duration-150',
       className
     )}
     onClick={onClick}

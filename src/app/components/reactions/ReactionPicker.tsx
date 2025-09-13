@@ -102,7 +102,7 @@ export const ReactionPicker = memo(function ReactionPicker({
           onClick={handleToggle}
           onMouseDown={e => e.stopPropagation()}
           onMouseUp={e => e.stopPropagation()}
-          className="flex items-center gap-1 px-2 py-1 text-sm text-gray-300 hover:text-white hover:bg-gray-700 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-700 rounded-md transition-colors"
+          className="flex items-center gap-1 px-2 py-1 text-sm text-theme-muted hover:text-text-inverse hover:bg-theme-muted rounded-md transition-colors"
           title={isOpen ? 'Hide Reactions' : 'Show Reactions'}
           aria-label="Add reaction"
         >
@@ -113,7 +113,7 @@ export const ReactionPicker = memo(function ReactionPicker({
         {/* Enhanced Reaction Picker Dropdown */}
         {isOpen && (
           <div
-            className="absolute bottom-full left-0 mb-2 w-80 bg-white dark:bg-gray-50 border border-gray-200 dark:border-gray-300 rounded-xl shadow-2xl z-[9999] backdrop-blur-sm"
+            className="absolute bottom-full left-0 mb-2 w-80 bg-surface-card border border-theme-primary rounded-xl shadow-2xl z-[9999] backdrop-blur-sm"
             style={{
               boxShadow:
                 '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(255, 255, 255, 0.05)',
@@ -126,12 +126,12 @@ export const ReactionPicker = memo(function ReactionPicker({
               {/* Primary Reactions with Close Button */}
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-xs font-medium text-gray-600 dark:text-gray-500 uppercase tracking-wide">
+                  <h4 className="text-xs font-medium text-theme-muted uppercase tracking-wide">
                     Quick Reactions
                   </h4>
                   <button
                     onClick={closePicker}
-                    className="text-gray-600 dark:text-gray-700 hover:text-gray-800 dark:hover:text-gray-900 p-1.5 hover:bg-white dark:hover:bg-gray-300 rounded-lg transition-all duration-200"
+                    className="text-theme-muted hover:text-theme-primary p-1.5 hover:bg-bg-theme-secondary rounded-lg transition-all duration-200"
                     aria-label="Close"
                   >
                     <X className="w-3 h-3" />
@@ -147,10 +147,10 @@ export const ReactionPicker = memo(function ReactionPicker({
                       <button
                         key={emoji}
                         onClick={() => void handleReactionClick(emoji)}
-                        className={`group flex flex-col items-center p-2.5 hover:bg-gray-100 dark:hover:bg-gray-200 rounded-xl transition-all duration-200 hover:scale-105 ${
+                        className={`group flex flex-col items-center p-2.5 hover:bg-bg-theme-secondary rounded-xl transition-all duration-200 hover:scale-105 ${
                           userHasReacted
-                            ? 'bg-blue-50 border-2 border-blue-300 shadow-sm'
-                            : 'hover:shadow-sm border border-transparent hover:border-gray-200'
+                            ? 'bg-semantic-info/10 border-2 border-semantic-info/30 shadow-sm'
+                            : 'hover:shadow-sm border border-transparent hover:border-theme-primary'
                         }`}
                         title={`${emoji} ${reactionCount > 0 ? `(${reactionCount})` : ''}`}
                         data-testid={`reaction-${emoji}`}
@@ -173,15 +173,15 @@ export const ReactionPicker = memo(function ReactionPicker({
                     console.log('More reactions button clicked, current state:', showMoreReactions);
                     setShowMoreReactions(!showMoreReactions);
                   }}
-                  className="flex items-center justify-between w-full mb-3 p-2 hover:bg-gray-100 dark:hover:bg-gray-200 rounded-lg transition-colors cursor-pointer"
+                  className="flex items-center justify-between w-full mb-3 p-2 hover:bg-bg-theme-secondary rounded-lg transition-colors cursor-pointer"
                   type="button"
                   aria-expanded={showMoreReactions}
                   aria-label={showMoreReactions ? 'Hide more reactions' : 'Show more reactions'}
                 >
-                  <h4 className="text-xs font-medium text-gray-600 dark:text-gray-500 uppercase tracking-wide">
+                  <h4 className="text-xs font-medium text-theme-muted uppercase tracking-wide">
                     More Reactions
                   </h4>
-                  <span className="text-gray-600 dark:text-gray-700 text-sm font-medium">
+                  <span className="text-theme-muted text-sm font-medium">
                     {showMoreReactions ? '−' : '+'}
                   </span>
                 </button>
@@ -198,10 +198,10 @@ export const ReactionPicker = memo(function ReactionPicker({
                           <button
                             key={emoji}
                             onClick={() => void handleReactionClick(emoji)}
-                            className={`group flex flex-col items-center p-2 hover:bg-gray-100 dark:hover:bg-gray-200 rounded-lg transition-all duration-200 hover:scale-105 ${
+                            className={`group flex flex-col items-center p-2 hover:bg-bg-theme-secondary rounded-lg transition-all duration-200 hover:scale-105 ${
                               userHasReacted
-                                ? 'bg-blue-50 border-2 border-blue-300 shadow-sm'
-                                : 'hover:shadow-sm border border-transparent hover:border-gray-200'
+                                ? 'bg-semantic-info/10 border-2 border-semantic-info/30 shadow-sm'
+                                : 'hover:shadow-sm border border-transparent hover:border-theme-primary'
                             }`}
                             title={`${emoji} ${reactionCount > 0 ? `(${reactionCount})` : ''}`}
                             data-testid={`reaction-${emoji}`}

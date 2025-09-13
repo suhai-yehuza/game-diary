@@ -38,19 +38,19 @@ export function GameLogsTableWithSearch() {
         <TabsList className="grid w-full grid-cols-3 gap-2 bg-transparent p-0 mb-4">
           <TabsTrigger
             value="PUBLIC"
-            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            className="px-6 py-3 border border-theme-primary bg-surface-card text-theme-primary data-[state=active]:border-b-4 data-[state=active]:border-brand-primary data-[state=active]:text-brand-primary data-[state=active]:bg-surface-card rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary hover:bg-bg-theme-secondary shadow-none"
           >
             Public Logs
           </TabsTrigger>
           <TabsTrigger
             value="PRIVATE"
-            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            className="px-6 py-3 border border-theme-primary bg-surface-card text-theme-primary data-[state=active]:border-b-4 data-[state=active]:border-brand-primary data-[state=active]:text-brand-primary data-[state=active]:bg-surface-card rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary hover:bg-bg-theme-secondary shadow-none"
           >
             Private Logs
           </TabsTrigger>
           <TabsTrigger
             value="PROTECTED"
-            className="px-6 py-3 border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 data-[state=active]:border-b-4 data-[state=active]:border-blue-500 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400 data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 hover:bg-gray-100 dark:hover:bg-gray-800 shadow-none"
+            className="px-6 py-3 border border-theme-primary bg-surface-card text-theme-primary data-[state=active]:border-b-4 data-[state=active]:border-brand-primary data-[state=active]:text-brand-primary data-[state=active]:bg-surface-card rounded-t-lg transition font-semibold focus:outline-none focus:ring-2 focus:ring-brand-primary hover:bg-bg-theme-secondary shadow-none"
           >
             Protected Logs
           </TabsTrigger>

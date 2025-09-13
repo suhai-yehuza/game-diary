@@ -76,18 +76,16 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
   const hasActiveFilters = Object.values(filters).some(value => value !== '');
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 mb-8 border border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="bg-surface-card rounded-xl p-6 mb-8 border border-theme-primary shadow-sm">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-            <Filter className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+          <div className="w-10 h-10 rounded-full bg-semantic-info/10 flex items-center justify-center">
+            <Filter className="w-5 h-5 text-semantic-info" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-              Game Logs Filters
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <h3 className="text-lg font-semibold text-theme-primary">Game Logs Filters</h3>
+            <p className="text-sm text-theme-secondary">
               Filter game logs by team, user, dates, and more
             </p>
           </div>
@@ -110,7 +108,7 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
               variant="outline"
               size="sm"
               onClick={clearAllFilters}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              className="flex items-center gap-2 text-semantic-error hover:text-semantic-error/80 border-semantic-error/30 hover:border-semantic-error/50"
             >
               Clear All
             </Button>
@@ -124,30 +122,26 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
           {/* Row 1: Team and User */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <Users className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-                Team:
-              </span>
+              <Users className="w-4 h-4 text-theme-muted" />
+              <span className="text-sm font-medium text-theme-secondary min-w-[80px]">Team:</span>
               <input
                 type="text"
                 placeholder="Search by team name..."
                 value={filters.teamName}
                 onChange={e => updateFilter('teamName', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <User className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-                User:
-              </span>
+              <User className="w-4 h-4 text-theme-muted" />
+              <span className="text-sm font-medium text-theme-secondary min-w-[80px]">User:</span>
               <input
                 type="text"
                 placeholder="Search by username or name..."
                 value={filters.username}
                 onChange={e => updateFilter('username', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -155,24 +149,20 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
           {/* Row 2: Tags and Rating */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <Tag className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-                Tags:
-              </span>
+              <Tag className="w-4 h-4 text-theme-muted" />
+              <span className="text-sm font-medium text-theme-secondary min-w-[80px]">Tags:</span>
               <input
                 type="text"
                 placeholder="Search by tags..."
                 value={filters.tags}
                 onChange={e => updateFilter('tags', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <Star className="w-4 h-4 text-gray-500" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-                Rating:
-              </span>
+              <Star className="w-4 h-4 text-theme-muted" />
+              <span className="text-sm font-medium text-theme-secondary min-w-[80px]">Rating:</span>
               <CustomSelect
                 value={filters.rating}
                 onChange={value => updateFilter('rating', value)}
@@ -186,7 +176,7 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
           {/* Row 3: Watched Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4 text-theme-muted" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">
                 Watched From:
               </span>
@@ -194,12 +184,12 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
                 type="date"
                 value={filters.watchedDateFrom}
                 onChange={e => updateFilter('watchedDateFrom', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4 text-theme-muted" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">
                 Watched To:
               </span>
@@ -207,7 +197,7 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
                 type="date"
                 value={filters.watchedDateTo}
                 onChange={e => updateFilter('watchedDateTo', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
           </div>
@@ -215,7 +205,7 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
           {/* Row 4: Game Date Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4 text-theme-muted" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">
                 Game From:
               </span>
@@ -223,12 +213,12 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
                 type="date"
                 value={filters.gameDateFrom}
                 onChange={e => updateFilter('gameDateFrom', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
 
             <div className="flex items-center gap-3">
-              <Calendar className="w-4 h-4 text-gray-500" />
+              <Calendar className="w-4 h-4 text-theme-muted" />
               <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[100px]">
                 Game To:
               </span>
@@ -236,7 +226,7 @@ export function GameLogsFilters({ onFiltersChange, initialFilters = {} }: IGameL
                 type="date"
                 value={filters.gameDateTo}
                 onChange={e => updateFilter('gameDateTo', e.target.value)}
-                className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 px-3 py-2 text-sm border border-theme-primary rounded-md bg-surface-card text-theme-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent"
               />
             </div>
           </div>

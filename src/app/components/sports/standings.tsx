@@ -93,15 +93,15 @@ export function Standings({ className = '' }: IStandingsProps) {
   };
 
   const getStreakIcon = (streak: number, winStreak: boolean) => {
-    if (streak === 0) return <Minus className="w-4 h-4 text-gray-500" />;
-    if (winStreak) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    return <TrendingDown className="w-4 h-4 text-red-500" />;
+    if (streak === 0) return <Minus className="w-4 h-4 text-theme-muted" />;
+    if (winStreak) return <TrendingUp className="w-4 h-4 text-semantic-success" />;
+    return <TrendingDown className="w-4 h-4 text-semantic-error" />;
   };
 
   const getStreakColor = (streak: number, winStreak: boolean) => {
-    if (streak === 0) return 'text-gray-600 dark:text-gray-400';
-    if (winStreak) return 'text-green-600 dark:text-green-400';
-    return 'text-red-600 dark:text-red-400';
+    if (streak === 0) return 'text-theme-muted';
+    if (winStreak) return 'text-semantic-success';
+    return 'text-semantic-error';
   };
 
   // Sort standings by conference rank
@@ -127,13 +127,13 @@ export function Standings({ className = '' }: IStandingsProps) {
       <div className={`space-y-6 ${className}`}>
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">NBA Standings</h3>
-          <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+          <div className="h-9 w-24 bg-bg-theme-secondary rounded animate-pulse" />
         </div>
         <div className="space-y-4">
           {Array.from({ length: 5 }, () => Math.random().toString(36).substr(2, 9)).map(id => (
             <div
               key={`skeleton-${id}`}
-              className="h-16 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+              className="h-16 bg-bg-theme-secondary rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -153,8 +153,8 @@ export function Standings({ className = '' }: IStandingsProps) {
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 mb-4">Error loading standings</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-semantic-error mb-4">Error loading standings</p>
+            <p className="text-sm text-theme-muted">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -173,11 +173,9 @@ export function Standings({ className = '' }: IStandingsProps) {
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <Trophy className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <Trophy className="w-12 h-12 mx-auto mb-4 text-theme-muted" />
             <h3 className="text-lg font-medium mb-2">No Standings Available</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              No standings found for the selected filters.
-            </p>
+            <p className="text-theme-muted">No standings found for the selected filters.</p>
           </CardContent>
         </Card>
       </div>
@@ -191,14 +189,12 @@ export function Standings({ className = '' }: IStandingsProps) {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="w-10 h-10 rounded-full bg-semantic-info/10 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-semantic-info" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                NBA Standings Filters
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h3 className="text-lg font-semibold text-theme-primary">NBA Standings Filters</h3>
+              <p className="text-sm text-theme-muted">
                 Filter standings by season, conference, division, team, and league
               </p>
             </div>
@@ -222,10 +218,8 @@ export function Standings({ className = '' }: IStandingsProps) {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Season Filter */}
           <div className="flex items-center gap-3">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[60px]">
-              Season:
-            </span>
+            <Calendar className="w-4 h-4 text-theme-muted" />
+            <span className="text-sm font-medium text-theme-secondary min-w-[60px]">Season:</span>
             <CustomSelect
               value={selectedSeason}
               onChange={handleSeasonChange}
@@ -237,8 +231,8 @@ export function Standings({ className = '' }: IStandingsProps) {
 
           {/* Conference Filter */}
           <div className="flex items-center gap-3">
-            <Users className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+            <Users className="w-4 h-4 text-theme-muted" />
+            <span className="text-sm font-medium text-theme-secondary min-w-[80px]">
               Conference:
             </span>
             <CustomSelect
@@ -252,10 +246,8 @@ export function Standings({ className = '' }: IStandingsProps) {
 
           {/* Division Filter */}
           <div className="flex items-center gap-3">
-            <Building2 className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[70px]">
-              Division:
-            </span>
+            <Building2 className="w-4 h-4 text-theme-muted" />
+            <span className="text-sm font-medium text-theme-secondary min-w-[70px]">Division:</span>
             <CustomSelect
               value={selectedDivision}
               onChange={handleDivisionChange}
@@ -267,10 +259,8 @@ export function Standings({ className = '' }: IStandingsProps) {
 
           {/* Team Filter */}
           <div className="flex items-center gap-3">
-            <Target className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[50px]">
-              Team:
-            </span>
+            <Target className="w-4 h-4 text-theme-muted" />
+            <span className="text-sm font-medium text-theme-secondary min-w-[50px]">Team:</span>
             <CustomSelect
               value={selectedTeam}
               onChange={handleTeamChange}
@@ -290,7 +280,7 @@ export function Standings({ className = '' }: IStandingsProps) {
             <Trophy className="w-5 h-5" />
             NBA Standings
             {standings.results > 0 && (
-              <span className="text-sm font-normal text-gray-500 dark:text-gray-400">
+              <span className="text-sm font-normal text-theme-muted">
                 ({standings.results} teams)
               </span>
             )}
@@ -300,37 +290,17 @@ export function Standings({ className = '' }: IStandingsProps) {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-gray-700">
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    Rank
-                  </th>
-                  <th className="text-left py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    Team
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    W
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    L
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    PCT
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    GB
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    Home
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    Away
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    L10
-                  </th>
-                  <th className="text-center py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
-                    Streak
-                  </th>
+                <tr className="border-b border-theme-primary">
+                  <th className="text-left py-3 px-4 font-medium text-theme-primary">Rank</th>
+                  <th className="text-left py-3 px-4 font-medium text-theme-primary">Team</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">W</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">L</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">PCT</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">GB</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">Home</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">Away</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">L10</th>
+                  <th className="text-center py-3 px-4 font-medium text-theme-primary">Streak</th>
                 </tr>
               </thead>
               <tbody>
@@ -346,10 +316,10 @@ export function Standings({ className = '' }: IStandingsProps) {
                     <React.Fragment key={team.team.id}>
                       {/* Conference Header */}
                       {(isFirstEastTeam || isFirstWestTeam) && (
-                        <tr className="bg-gray-100 dark:bg-gray-800">
+                        <tr className="bg-bg-theme-secondary">
                           <td
                             colSpan={10}
-                            className="py-3 px-4 font-semibold text-gray-900 dark:text-gray-100 text-center"
+                            className="py-3 px-4 font-semibold text-theme-primary text-center"
                           >
                             {team.conference.name === 'east'
                               ? 'Eastern Conference'
@@ -358,8 +328,8 @@ export function Standings({ className = '' }: IStandingsProps) {
                         </tr>
                       )}
 
-                      <tr className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        <td className="py-3 px-4 text-gray-900 dark:text-gray-100 font-medium">
+                      <tr className="border-b border-theme-primary hover:bg-bg-theme-secondary">
+                        <td className="py-3 px-4 text-theme-primary font-medium">
                           {team.conference.rank}
                         </td>
                         <td className="py-3 px-4">
@@ -376,34 +346,32 @@ export function Standings({ className = '' }: IStandingsProps) {
                               }}
                             />
                             <div>
-                              <div className="font-medium text-gray-900 dark:text-gray-100">
-                                {team.team.name}
-                              </div>
-                              <div className="text-sm text-gray-500 dark:text-gray-400">
+                              <div className="font-medium text-theme-primary">{team.team.name}</div>
+                              <div className="text-sm text-theme-muted">
                                 {team.division.name} • {team.conference.name}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100 font-medium">
+                        <td className="py-3 px-4 text-center text-theme-primary font-medium">
                           {team.win.total}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100 font-medium">
+                        <td className="py-3 px-4 text-center text-theme-primary font-medium">
                           {team.loss.total}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100 font-medium">
+                        <td className="py-3 px-4 text-center text-theme-primary font-medium">
                           {formatPercentage(team.win.percentage)}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-900 dark:text-gray-100">
+                        <td className="py-3 px-4 text-center text-theme-primary">
                           {team.gamesBehind || '-'}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-600 dark:text-gray-400">
+                        <td className="py-3 px-4 text-center text-theme-muted">
                           {team.win.home}-{team.loss.home}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-600 dark:text-gray-400">
+                        <td className="py-3 px-4 text-center text-theme-muted">
                           {team.win.away}-{team.loss.away}
                         </td>
-                        <td className="py-3 px-4 text-center text-gray-600 dark:text-gray-400">
+                        <td className="py-3 px-4 text-center text-theme-muted">
                           {team.win.lastTen}-{team.loss.lastTen}
                         </td>
                         <td className="py-3 px-4 text-center">

@@ -73,17 +73,17 @@ export function PlayerStats({
         <CardContent>
           <div className="text-center py-8">
             {isNoDataError ? (
-              <div className="text-gray-500">
+              <div className="text-theme-muted">
                 <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No player data available for this game</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-theme-muted mt-1">
                   Player statistics may not be available for this game yet
                 </p>
               </div>
             ) : (
-              <div className="text-red-500">
+              <div className="text-semantic-error">
                 <p>Failed to load player statistics</p>
-                <p className="text-sm text-gray-500 mt-1">{error}</p>
+                <p className="text-sm text-theme-muted mt-1">{error}</p>
               </div>
             )}
           </div>
@@ -102,7 +102,7 @@ export function PlayerStats({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-theme-muted">
             <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No team players available</p>
           </div>
@@ -126,9 +126,7 @@ export function PlayerStats({
         <div className="space-y-4">
           {/* Player Selector */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-              Select Player
-            </label>
+            <label className="text-sm font-medium text-theme-secondary">Select Player</label>
             <CustomSelect
               options={playerOptions}
               value={selectedPlayerId || ''}
@@ -142,15 +140,15 @@ export function PlayerStats({
           {selectedPlayer && stats ? (
             <div className="space-y-4">
               {/* Player Header */}
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                  <User className="w-6 h-6 text-gray-500" />
+              <div className="flex items-center gap-3 p-4 bg-bg-theme-secondary rounded-lg">
+                <div className="w-12 h-12 bg-bg-theme-secondary rounded-full flex items-center justify-center">
+                  <User className="w-6 h-6 text-theme-muted" />
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-lg">
                     {selectedPlayer.firstname} {selectedPlayer.lastname}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <p className="text-sm text-theme-muted">
                     #{selectedPlayer.leagues?.standard?.jersey || 'N/A'} •{' '}
                     {selectedPlayer.leagues?.standard?.pos || 'N/A'}
                   </p>

@@ -153,7 +153,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-gray-900 to-blue-900 text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-lg"
+      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-theme-muted to-brand-primary text-text-inverse py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-lg"
       style={
         {
           position: 'fixed',
@@ -173,9 +173,9 @@ export function LiveGamesBanner() {
       <div className="relative h-full flex items-center px-2 xs:px-3 sm:px-4">
         {/* Loading indicator */}
         {isLoading && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-20">
+          <div className="absolute inset-0 flex items-center justify-center bg-theme-muted/20 backdrop-blur-sm z-20">
             <div className="flex items-center space-x-1 xs:space-x-2 text-xs sm:text-sm">
-              <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 border-2 border-text-inverse/30 border-t-text-inverse rounded-full animate-spin" />
               <span>Loading live games...</span>
             </div>
           </div>
@@ -184,7 +184,7 @@ export function LiveGamesBanner() {
         {/* Live Games Info Panel - Simplified */}
         <div className="flex-shrink-0 mr-2 xs:mr-3 sm:mr-4">
           <div
-            className="flex items-center gap-3 px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 sm:py-3 rounded-lg cursor-pointer hover:bg-white/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="flex items-center gap-3 px-3 xs:px-4 sm:px-5 py-2 xs:py-2.5 sm:py-3 rounded-lg cursor-pointer hover:bg-text-inverse/5 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30"
             tabIndex={0}
             role="button"
             aria-label={`${displayGames.length} live games currently playing, last updated at ${lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}, click to view all`}
@@ -208,10 +208,10 @@ export function LiveGamesBanner() {
             <div className="relative flex items-center">
               <div
                 data-testid="live-indicator"
-                className="w-3 h-3 bg-red-500 rounded-full shadow-lg shadow-red-500/50 animate-live-dot-glow"
+                className="w-3 h-3 bg-semantic-error rounded-full shadow-lg shadow-semantic-error/50 animate-live-dot-glow"
               />
-              <div className="absolute w-3 h-3 bg-red-500 rounded-full animate-ping opacity-75" />
-              <div className="absolute inset-0 w-3 h-3 bg-red-500/20 rounded-full blur-sm scale-150" />
+              <div className="absolute w-3 h-3 bg-semantic-error rounded-full animate-ping opacity-75" />
+              <div className="absolute inset-0 w-3 h-3 bg-semantic-error/20 rounded-full blur-sm scale-150" />
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs font-bold leading-none">
@@ -230,7 +230,7 @@ export function LiveGamesBanner() {
         <div className="flex-shrink-0 mr-2 xs:mr-3 sm:mr-4">
           <Link
             href="/sports/live"
-            className="inline-flex items-center px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 text-xs font-medium text-white bg-white/10 hover:bg-white/20 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-white/30"
+            className="inline-flex items-center px-2 xs:px-3 sm:px-4 py-1 xs:py-1.5 sm:py-2 text-xs font-medium text-text-inverse bg-text-inverse/10 hover:bg-text-inverse/20 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30"
             aria-label="View all live games"
           >
             View All
@@ -238,7 +238,7 @@ export function LiveGamesBanner() {
         </div>
 
         {/* Scrolling games area - takes up remaining space */}
-        <div className="flex-1 overflow-hidden bg-black/10">
+        <div className="flex-1 overflow-hidden bg-theme-muted/10">
           <div
             className={`flex items-center space-x-1 xs:space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6 h-full ${
               isPaused ? 'animate-none' : 'animate-scroll-left'
@@ -250,7 +250,7 @@ export function LiveGamesBanner() {
               <React.Fragment key={game.id}>
                 <div
                   data-testid="game"
-                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-white/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
                   onClick={() => handleGameClick(game)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -279,7 +279,7 @@ export function LiveGamesBanner() {
                   </div>
 
                   {/* @ */}
-                  <span className="text-xs text-gray-200">@</span>
+                  <span className="text-xs text-text-inverse/80">@</span>
 
                   {/* Home Team */}
                   <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
@@ -322,7 +322,7 @@ export function LiveGamesBanner() {
                 <div className="w-px h-2.5 xs:h-3 sm:h-4 bg-gray-600 flex-shrink-0" />
                 <div
                   data-testid="game"
-                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-white/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white/30 focus:ring-offset-2 focus:ring-offset-gray-900"
+                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
                   onClick={() => handleGameClick(game)}
                   onKeyDown={e => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -351,7 +351,7 @@ export function LiveGamesBanner() {
                   </div>
 
                   {/* @ */}
-                  <span className="text-xs text-gray-200">@</span>
+                  <span className="text-xs text-text-inverse/80">@</span>
 
                   {/* Home Team */}
                   <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">

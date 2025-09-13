@@ -28,28 +28,28 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
 
   const getStatusColor = (status: string | null | undefined) => {
     if (!status || typeof status !== 'string') {
-      return 'text-neutral-700 bg-neutral-200 dark:text-neutral-300 dark:bg-neutral-800';
+      return 'text-theme-muted bg-bg-theme-secondary';
     }
 
     switch (status.toLowerCase()) {
       case 'ft':
       case 'finished':
-        return 'text-green-900 bg-green-100 dark:text-green-300 dark:bg-green-900/30';
+        return 'text-semantic-success bg-semantic-success/10';
       case 'live':
       case 'q1':
       case 'q2':
       case 'q3':
       case 'q4':
       case 'ot':
-        return 'text-red-900 bg-red-100 dark:text-red-300 dark:bg-red-900/30';
+        return 'text-semantic-error bg-semantic-error/10';
       case 'scheduled':
       case 'ns':
-        return 'text-blue-900 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30';
+        return 'text-semantic-info bg-semantic-info/10';
       case 'cancelled':
       case 'postponed':
-        return 'text-orange-900 bg-orange-100 dark:text-orange-300 dark:bg-orange-900/30';
+        return 'text-semantic-warning bg-semantic-warning/10';
       default:
-        return 'text-gray-900 bg-gray-200 dark:text-gray-300 dark:bg-gray-800';
+        return 'text-theme-muted bg-bg-theme-secondary';
     }
   };
 
@@ -99,27 +99,27 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
 
   const getStatusIcon = (status: string | null | undefined) => {
     if (!status || typeof status !== 'string')
-      return <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />;
+      return <Clock className="w-4 h-4 text-theme-muted" />;
 
     switch (status.toLowerCase()) {
       case 'ft':
       case 'finished':
-        return <Trophy className="w-4 h-4 text-green-700 dark:text-green-400" />;
+        return <Trophy className="w-4 h-4 text-semantic-success" />;
       case 'live':
       case 'q1':
       case 'q2':
       case 'q3':
       case 'q4':
       case 'ot':
-        return <Star className="w-4 h-4 text-red-700 dark:text-red-400" />;
+        return <Star className="w-4 h-4 text-semantic-error" />;
       case 'scheduled':
       case 'ns':
-        return <CalendarDays className="w-4 h-4 text-blue-700 dark:text-blue-400" />;
+        return <CalendarDays className="w-4 h-4 text-semantic-info" />;
       case 'cancelled':
       case 'postponed':
-        return <X className="w-4 h-4 text-orange-700 dark:text-orange-400" />;
+        return <X className="w-4 h-4 text-semantic-warning" />;
       default:
-        return <Clock className="w-4 h-4 text-gray-600 dark:text-gray-400" />;
+        return <Clock className="w-4 h-4 text-theme-muted" />;
     }
   };
 
@@ -129,7 +129,7 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
 
   const getTeamHighlightClass = (teamId: string) => {
     if (isTeamHighlighted(teamId)) {
-      return 'ring-2 ring-blue-500 dark:ring-blue-400 bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600';
+      return 'ring-2 ring-brand-primary bg-brand-primary/10 border-brand-primary';
     }
     return '';
   };
@@ -153,9 +153,9 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
       aria-label={`View details for ${game.teams.visitors.name} vs ${game.teams.home.name}`}
       data-testid="game-card"
     >
-      <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 game-card-enhanced h-full flex flex-col">
-        <CardContent className="p-3 sm:p-4 lg:p-6 flex flex-col h-full">
-          <div className="flex flex-col gap-3 sm:gap-4 h-full">
+      <Card className="hover:shadow-lg transition-all duration-200 bg-surface-card shadow-md border border-theme-primary game-card-enhanced h-full flex flex-col">
+        <CardContent className="p-3 xs:p-4 sm:p-4 md:p-5 lg:p-6 flex flex-col h-full">
+          <div className="flex flex-col gap-2 xs:gap-3 sm:gap-4 h-full">
             {/* Teams and Score */}
             <div className="flex-1 flex flex-col">
               <div className="flex items-center justify-center mb-2 sm:mb-3 flex-1">
@@ -166,7 +166,7 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                     {/* Away Team Logo */}
                     <div className="flex justify-center mb-2">
                       <div
-                        className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative ${getTeamHighlightClass(game.teams.visitors.id)}`}
+                        className={`w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-bg-theme-secondary rounded-full flex items-center justify-center p-1 border-2 border-theme-primary shadow-sm transition-all duration-200 hover:bg-bg-theme-tertiary hover:scale-105 hover:border-theme-secondary hover:shadow-md relative ${getTeamHighlightClass(game.teams.visitors.id)}`}
                       >
                         <Image
                           src={game.teams.visitors.logo || '/defaults/team-logo.svg'}
@@ -177,10 +177,10 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                         />
                       </div>
                     </div>
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[3.5rem] flex items-center justify-center">
+                    <div className="font-semibold text-xs xs:text-sm sm:text-base md:text-lg text-theme-primary break-words leading-tight min-h-[2rem] xs:min-h-[2.5rem] sm:min-h-[3rem] md:min-h-[3.5rem] flex items-center justify-center">
                       {game.teams.visitors.name ?? 'Away Team'}
                     </div>
-                    <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-theme-primary">
                       {game.scores?.visitors?.points ?? '-'}
                     </div>
                   </div>
@@ -193,7 +193,7 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                     {/* Home Team Logo */}
                     <div className="flex justify-center mb-2">
                       <div
-                        className={`w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center p-1 border-2 border-gray-200 dark:border-gray-600 shadow-sm transition-all duration-200 hover:bg-gray-200 dark:hover:bg-gray-600 hover:scale-105 hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-md relative ${getTeamHighlightClass(game.teams.home.id)}`}
+                        className={`w-10 h-10 xs:w-12 xs:h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-20 lg:h-20 bg-bg-theme-secondary rounded-full flex items-center justify-center p-1 border-2 border-theme-primary shadow-sm transition-all duration-200 hover:bg-bg-theme-tertiary hover:scale-105 hover:border-theme-secondary hover:shadow-md relative ${getTeamHighlightClass(game.teams.home.id)}`}
                       >
                         <Image
                           src={game.teams.home.logo || '/defaults/team-logo.svg'}
@@ -204,10 +204,10 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                         />
                       </div>
                     </div>
-                    <div className="font-semibold text-sm sm:text-base lg:text-lg text-gray-900 dark:text-white break-words leading-tight min-h-[2.5rem] sm:min-h-[3rem] lg:min-h-[3.5rem] flex items-center justify-center">
+                    <div className="font-semibold text-xs xs:text-sm sm:text-base md:text-lg text-theme-primary break-words leading-tight min-h-[2rem] xs:min-h-[2.5rem] sm:min-h-[3rem] md:min-h-[3.5rem] flex items-center justify-center">
                       {game.teams.home.name ?? 'Home Team'}
                     </div>
-                    <div className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-theme-primary">
                       {game.scores?.home?.points ?? '-'}
                     </div>
                   </div>

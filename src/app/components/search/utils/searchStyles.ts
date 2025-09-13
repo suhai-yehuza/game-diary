@@ -8,64 +8,62 @@
 export const SEARCH_STYLES = {
   // Base container styles
   container: {
-    base: 'group relative bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-6 hover:shadow-lg hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-300 cursor-pointer overflow-hidden',
+    base: 'group relative bg-surface-card border border-theme-primary rounded-xl p-6 hover:shadow-lg hover:border-theme-secondary transition-all duration-300 cursor-pointer overflow-hidden',
   },
 
   // Background gradients for different result types
   gradients: {
-    game: 'from-blue-50/30 to-transparent dark:from-blue-900/10',
-    player: 'from-blue-50/30 to-transparent dark:from-blue-900/10',
-    team: 'from-red-50/30 to-transparent dark:from-red-900/10',
-    user: 'from-green-50/30 to-transparent dark:from-green-900/10',
-    gameLog: 'from-purple-50/30 to-transparent dark:from-purple-900/10',
-    default: 'from-gray-50/30 to-transparent dark:from-gray-900/10',
+    game: 'from-semantic-info/30 to-transparent',
+    player: 'from-semantic-info/30 to-transparent',
+    team: 'from-semantic-error/30 to-transparent',
+    user: 'from-semantic-success/30 to-transparent',
+    gameLog: 'from-semantic-warning/30 to-transparent',
+    default: 'from-bg-theme-secondary/30 to-transparent',
   },
 
   // Avatar styles
   avatar: {
     base: 'w-14 h-14 rounded-xl flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow duration-300',
-    game: 'bg-gradient-to-br from-blue-400 to-blue-600',
-    player: 'bg-gradient-to-br from-blue-400 to-blue-600',
-    team: 'bg-gradient-to-br from-red-400 to-red-600',
-    user: 'bg-gradient-to-br from-green-400 to-green-600',
-    gameLog: 'bg-gradient-to-br from-purple-400 to-purple-600',
+    game: 'bg-gradient-to-br from-semantic-info to-semantic-info/80',
+    player: 'bg-gradient-to-br from-semantic-info to-semantic-info/80',
+    team: 'bg-gradient-to-br from-semantic-error to-semantic-error/80',
+    user: 'bg-gradient-to-br from-semantic-success to-semantic-success/80',
+    gameLog: 'bg-gradient-to-br from-semantic-warning to-semantic-warning/80',
   },
 
   // Badge styles
   badge: {
     base: 'inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border',
-    game: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-    player:
-      'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-    team: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800',
-    user: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
-    gameLog:
-      'bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+    game: 'bg-semantic-info/10 text-semantic-info border-semantic-info/30',
+    player: 'bg-semantic-info/10 text-semantic-info border-semantic-info/30',
+    team: 'bg-semantic-error/10 text-semantic-error border-semantic-error/30',
+    user: 'bg-semantic-success/10 text-semantic-success border-semantic-success/30',
+    gameLog: 'bg-semantic-warning/10 text-semantic-warning border-semantic-warning/30',
   },
 
   // Badge dot colors
   badgeDot: {
-    game: 'bg-blue-500',
-    player: 'bg-blue-500',
-    team: 'bg-red-500',
-    user: 'bg-green-500',
-    gameLog: 'bg-purple-500',
+    game: 'bg-semantic-info',
+    player: 'bg-semantic-info',
+    team: 'bg-semantic-error',
+    user: 'bg-semantic-success',
+    gameLog: 'bg-semantic-warning',
   },
 
   // Action indicator styles
   actionIndicator: {
     base: 'flex-shrink-0 ml-4 flex flex-col items-end',
-    icon: 'w-5 h-5 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors duration-300',
-    text: 'text-xs text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300',
+    icon: 'w-5 h-5 text-theme-muted group-hover:text-theme-secondary transition-colors duration-300',
+    text: 'text-xs text-theme-muted group-hover:text-theme-secondary mt-1 opacity-0 group-hover:opacity-100 transition-all duration-300',
   },
 
   // Content styles
   content: {
     base: 'relative flex items-start space-x-4',
     info: 'flex-1 min-w-0',
-    title: 'text-lg font-semibold text-gray-900 dark:text-white',
-    subtitle: 'text-sm text-gray-500 dark:text-gray-400',
-    meta: 'flex items-center flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400',
+    title: 'text-lg font-semibold text-theme-primary',
+    subtitle: 'text-sm text-theme-muted',
+    meta: 'flex items-center flex-wrap gap-4 text-sm text-theme-muted',
   },
 } as const;
 

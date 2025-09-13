@@ -23,8 +23,8 @@ export function ScrollToContentButton() {
         onClick={handleScroll}
         className="flex flex-col items-center gap-2 animate-bounce hover:scale-105 transition-transform duration-200 cursor-pointer group"
       >
-        <ArrowDown className="w-5 h-5 text-black group-hover:text-gray-800 dark:text-gray-400 dark:group-hover:text-gray-200 transition-colors duration-200" />
-        <span className="text-xs text-black dark:text-white group-hover:text-gray-800 dark:group-hover:text-gray-200 transition-colors duration-200">
+        <ArrowDown className="w-5 h-5 text-theme-primary group-hover:text-theme-secondary transition-colors duration-200" />
+        <span className="text-xs text-theme-primary group-hover:text-theme-secondary transition-colors duration-200">
           See what&apos;s happening
         </span>
       </button>

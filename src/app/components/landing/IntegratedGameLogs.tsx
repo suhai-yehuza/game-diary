@@ -1,6 +1,6 @@
 'use client';
 
-import { MessageCircle, Heart, User } from 'lucide-react';
+import { MessageCircle, Heart, User, Calendar, Clock } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 
@@ -24,19 +24,19 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
     return (
       <div className="space-y-3 flex flex-col h-full">
         {Array.from({ length: 5 }, (_, i) => `skeleton-${i}-${Date.now()}`).map(uniqueId => (
-          <div key={uniqueId} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 animate-pulse">
+          <div key={uniqueId} className="bg-bg-theme-secondary rounded-lg p-4 animate-pulse">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-8 h-8 bg-gray-200 dark:bg-gray-600 rounded-full" />
+              <div className="w-8 h-8 bg-bg-theme-secondary rounded-full" />
               <div className="flex-1">
-                <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-24 mb-2" />
-                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
+                <div className="h-4 bg-bg-theme-secondary rounded w-24 mb-2" />
+                <div className="h-3 bg-bg-theme-secondary rounded w-20" />
               </div>
             </div>
-            <div className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-3" />
+            <div className="h-4 bg-bg-theme-secondary rounded w-full mb-3" />
             <div className="flex gap-4">
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-16" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-20" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-18" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-16" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-20" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-18" />
             </div>
           </div>
         ))}
@@ -47,10 +47,10 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
   if (error || !topGameLogs.length) {
     return (
       <div className="text-center py-8">
-        <div className="text-gray-500 dark:text-gray-400 mb-4">No trending game logs available</div>
+        <div className="text-theme-muted mb-4">No trending game logs available</div>
         <Link
           href="/protected/dashboard"
-          className="inline-block px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+          className="inline-block px-6 py-2 bg-semantic-success text-text-inverse rounded-lg hover:bg-semantic-success/90 transition-colors"
         >
           Create Your First Log
         </Link>
@@ -73,10 +73,10 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
   };
 
   const getActivityColor = (activity: number) => {
-    if (activity >= 50) return 'text-red-600 dark:text-red-400';
-    if (activity >= 20) return 'text-orange-600 dark:text-orange-400';
-    if (activity >= 10) return 'text-yellow-600 dark:text-yellow-400';
-    return 'text-green-600 dark:text-green-400';
+    if (activity >= 50) return 'text-semantic-error';
+    if (activity >= 20) return 'text-semantic-warning';
+    if (activity >= 10) return 'text-semantic-warning';
+    return 'text-semantic-success';
   };
 
   const formatShort = (num: number): string => {
@@ -106,14 +106,12 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
             return (
               <div
                 key={`trending-${String(gameLog.id)}`}
-                className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                className="bg-bg-theme-secondary rounded-lg p-4 hover:bg-bg-theme-tertiary transition-colors"
               >
                 {/* Game Log Header with Rank and Activity */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                      #{index + 1}
-                    </span>
+                    <span className="text-sm font-medium text-theme-muted">#{index + 1}</span>
                     <div
                       className={`text-sm font-medium flex items-center gap-1 ${getActivityColor(totalActivity)}`}
                     >
@@ -121,14 +119,12 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
                       {formatShort(totalActivity)} activity
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatDate(gameLog.created_at)}
-                  </div>
+                  <div className="text-xs text-theme-muted">{formatDate(gameLog.created_at)}</div>
                 </div>
 
                 {/* User Info */}
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
+                  <div className="w-8 h-8 bg-bg-theme-secondary rounded-full flex items-center justify-center overflow-hidden">
                     {gameLog.user?.image_url ? (
                       <Image
                         src={gameLog.user.image_url}
@@ -138,68 +134,120 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
                         className="rounded-full"
                       />
                     ) : (
-                      <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                      <User className="w-4 h-4 text-theme-muted" />
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white text-sm">
+                    <div className="font-semibold text-theme-primary text-sm">
                       {gameLog.user?.username || 'Anonymous'}
                     </div>
                   </div>
                 </div>
 
                 {/* Game Info */}
-                <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mb-3">
-                  <div className="flex items-center justify-between mb-2">
+                <div className="bg-surface-card rounded-lg p-3 mb-3">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-bg-theme-secondary rounded-full flex items-center justify-center">
                         {gameLog.game?.home_team?.logo ? (
                           <Image
                             src={gameLog.game.home_team.logo}
                             alt={gameLog.game.home_team.name}
-                            width={20}
-                            height={20}
+                            width={24}
+                            height={24}
                             className="rounded-full"
                           />
                         ) : (
-                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                          <span className="text-xs font-semibold text-theme-muted">
                             {gameLog.game?.home_team?.name?.charAt(0)}
                           </span>
                         )}
                       </div>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                      <span className="font-medium text-theme-primary text-sm">
                         {gameLog.game?.home_team?.name}
                       </span>
-                      <span className="text-gray-500 text-sm">vs</span>
-                      <span className="font-medium text-gray-900 dark:text-white text-sm">
+                      <span className="text-theme-muted text-sm">vs</span>
+                      <span className="font-medium text-theme-primary text-sm">
                         {gameLog.game?.away_team?.name}
                       </span>
-                      <div className="w-5 h-5 bg-gray-200 dark:bg-gray-600 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 bg-bg-theme-secondary rounded-full flex items-center justify-center">
                         {gameLog.game?.away_team?.logo ? (
                           <Image
                             src={gameLog.game.away_team.logo}
                             alt={gameLog.game.away_team.name}
-                            width={20}
-                            height={20}
+                            width={24}
+                            height={24}
                             className="rounded-full"
                             style={{ width: 'auto', height: 'auto' }}
                           />
                         ) : (
-                          <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                          <span className="text-xs font-semibold text-theme-muted">
                             {gameLog.game?.away_team?.name?.charAt(0)}
                           </span>
                         )}
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                    <span>Rating: {gameLog.rating_for_game}/5 ⭐</span>
-                    <span>{gameLog.watched_setting}</span>
+
+                  {/* Game Details */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs text-theme-muted">
+                      <span>Rating: {gameLog.rating_for_game}/5 ⭐</span>
+                      <span>{gameLog.watched_setting}</span>
+                    </div>
+
+                    {/* Game Date and Time */}
+                    {gameLog.game?.date && (
+                      <div className="flex items-center gap-1 text-xs text-theme-muted">
+                        <Calendar className="w-3 h-3" />
+                        <span>
+                          {new Date(gameLog.game.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                          })}
+                        </span>
+                        <Clock className="w-3 h-3 ml-2" />
+                        <span>
+                          {new Date(gameLog.game.date).toLocaleTimeString('en-US', {
+                            hour: 'numeric',
+                            minute: '2-digit',
+                            hour12: true,
+                          })}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Arena Info */}
+                    {gameLog.game?.arena && (
+                      <div className="flex items-center gap-1 text-xs text-theme-muted">
+                        <div className="w-4 h-4 bg-semantic-info/10 rounded-full flex items-center justify-center">
+                          <span className="text-xs font-semibold text-semantic-info">🏟️</span>
+                        </div>
+                        <span className="truncate">
+                          {gameLog.game.arena.name}
+                          {gameLog.game.arena.city && `, ${gameLog.game.arena.city}`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
+                {/* Comment Preview */}
+                {gameLog.comments?.edges?.length > 0 && (
+                  <div className="bg-bg-theme-secondary rounded-lg p-2 mb-3">
+                    <div className="text-xs text-theme-secondary italic">
+                      &ldquo;
+                      {gameLog.comments.edges[0].node.content.length > 100
+                        ? `${gameLog.comments.edges[0].node.content.substring(0, 100)}...`
+                        : gameLog.comments.edges[0].node.content}
+                      &rdquo;
+                    </div>
+                  </div>
+                )}
+
                 {/* Activity Stats */}
-                <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-between text-xs text-theme-muted">
                   <div className="flex items-center gap-2">
                     {(gameLog.totalCommentCount || 0) > 0 && (
                       <>
@@ -216,6 +264,27 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
                         <span>{formatShort(gameLog.totalReactionCount || 0)} reactions</span>
                       </div>
                     )}
+                  </div>
+
+                  {/* Engagement Level Indicator */}
+                  <div
+                    className={`text-xs font-medium px-2 py-1 rounded-full ${
+                      totalActivity >= 50
+                        ? 'bg-semantic-error/10 text-semantic-error'
+                        : totalActivity >= 20
+                          ? 'bg-semantic-warning/10 text-semantic-warning'
+                          : totalActivity >= 10
+                            ? 'bg-semantic-warning/10 text-semantic-warning'
+                            : 'bg-semantic-success/10 text-semantic-success'
+                    }`}
+                  >
+                    {totalActivity >= 50
+                      ? '🔥 Hot'
+                      : totalActivity >= 20
+                        ? '📈 Trending'
+                        : totalActivity >= 10
+                          ? '👀 Active'
+                          : '💤 Quiet'}
                   </div>
                 </div>
               </div>

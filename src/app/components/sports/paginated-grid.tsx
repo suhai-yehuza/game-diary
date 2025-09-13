@@ -44,10 +44,8 @@ export function PaginatedGrid<T>({
   // Show error state
   if (error) {
     return (
-      <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 sm:p-4 mb-6 mt-8">
-        <p className="text-red-800 dark:text-red-200 text-sm sm:text-base">
-          Error loading data: {error}
-        </p>
+      <div className="bg-semantic-error/10 border border-semantic-error/30 rounded-lg p-3 sm:p-4 mb-6 mt-8">
+        <p className="text-semantic-error text-sm sm:text-base">Error loading data: {error}</p>
       </div>
     );
   }
@@ -60,7 +58,7 @@ export function PaginatedGrid<T>({
 
     return (
       <div className="text-center py-8 sm:py-12">
-        <p className="text-gray-500 dark:text-gray-400 text-base sm:text-lg">No items available.</p>
+        <p className="text-theme-muted text-base sm:text-lg">No items available.</p>
       </div>
     );
   }

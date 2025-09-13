@@ -7,7 +7,6 @@ import { CacheStatusDashboard } from '@/app/components/sports/cache-status-dashb
 import { PaginatedGrid } from '@/app/components/sports/paginated-grid';
 import { QuickFilters } from '@/app/components/sports/quick-filters';
 import { Button } from '@/app/components/ui/button';
-import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
 import type { INBAPageLayoutProps } from '@/types';
 
@@ -61,7 +60,7 @@ export function NBAPageLayout<T>({
           {showGamesButton && (
             <Link
               href="/sports/nba/games"
-              className={`inline-flex items-center px-3 sm:px-4 py-2 ${TAILWIND_CLASSES.sports.nba} text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm`}
+              className="inline-flex items-center px-3 sm:px-4 py-2 bg-brand-primary text-white rounded-md hover:opacity-90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 text-xs sm:text-sm"
             >
               Games
             </Link>

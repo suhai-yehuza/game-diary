@@ -5,10 +5,7 @@ import type { ISkeletonProps } from '@/types';
 
 export function Skeleton({ className, children, ...props }: ISkeletonProps) {
   return (
-    <div
-      className={cn('animate-pulse rounded-md bg-gray-200 dark:bg-gray-700', className)}
-      {...props}
-    >
+    <div className={cn('animate-pulse rounded-md bg-bg-theme-secondary', className)} {...props}>
       {children}
     </div>
   );
@@ -17,9 +14,9 @@ export function Skeleton({ className, children, ...props }: ISkeletonProps) {
 // Game Log Card Skeleton
 export function GameLogCardSkeleton() {
   return (
-    <article className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+    <article className="bg-surface-card rounded-lg shadow-sm border border-theme-primary overflow-hidden">
       {/* Header */}
-      <header className="px-6 py-4 border-b border-gray-200 dark:border-gray-600">
+      <header className="px-6 py-4 border-b border-theme-primary">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Skeleton className="h-8 w-8 rounded-full" />
@@ -68,7 +65,7 @@ export function GameLogCardSkeleton() {
       </section>
 
       {/* Footer */}
-      <footer className="px-6 py-4 border-t border-gray-200 dark:border-gray-600">
+      <footer className="px-6 py-4 border-t border-theme-primary">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Skeleton className="h-8 w-8 rounded-full" />

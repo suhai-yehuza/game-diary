@@ -25,12 +25,12 @@ export function TeamFilters({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-full bg-semantic-info/10 flex items-center justify-center">
             {icon}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{description}</p>
+            <h3 className="text-lg font-semibold text-theme-primary">{title}</h3>
+            <p className="text-sm text-theme-muted">{description}</p>
           </div>
         </div>
 
@@ -75,7 +75,7 @@ export function TeamFilters({
                   }
                 );
               }}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 border-red-200 hover:border-red-300"
+              className="flex items-center gap-2 text-semantic-error hover:text-semantic-error/80 border-semantic-error/30 hover:border-semantic-error/50"
             >
               Clear All
             </Button>
@@ -100,8 +100,8 @@ export function TeamFilters({
                   key={`filter-${filter.label}-${filter.value}`}
                   className="flex items-center gap-3"
                 >
-                  {filter.icon && <div className="text-gray-500">{filter.icon}</div>}
-                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
+                  {filter.icon && <div className="text-theme-muted">{filter.icon}</div>}
+                  <span className="text-sm font-medium text-theme-secondary min-w-[80px]">
                     {filter.label}:
                   </span>
                   <CustomSelect

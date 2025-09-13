@@ -44,7 +44,7 @@ export function CommentList({
 
   if (comments.length === 0 && !loading) {
     return (
-      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+      <div className="text-center py-8 text-theme-muted">
         <MessageCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
         <p>No comments yet. Be the first to comment!</p>
       </div>
@@ -83,7 +83,7 @@ export function CommentList({
       {/* Loading State */}
       {loading && (
         <div className="text-center py-4">
-          <div className="text-sm text-gray-500 dark:text-gray-400">Loading comments...</div>
+          <div className="text-sm text-theme-muted">Loading comments...</div>
         </div>
       )}
 
@@ -93,7 +93,7 @@ export function CommentList({
           <Button
             variant="outline"
             onClick={handleLoadMore}
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-semantic-info hover:text-semantic-info/80"
           >
             Load more comments
           </Button>
@@ -106,7 +106,7 @@ export function CommentList({
           <Button
             variant="outline"
             onClick={() => setShowCommentForm(true)}
-            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-semantic-info hover:text-semantic-info/80"
           >
             Add a comment
           </Button>

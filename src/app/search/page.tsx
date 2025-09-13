@@ -4,7 +4,6 @@ import * as Icons from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
 
-import { useMobileDetection, SearchBar } from '@/app/components/layout/components/SearchBar';
 import { SearchEmptyState } from '@/app/components/search/SearchEmptyState';
 import { SearchResults } from '@/app/components/search/SearchResults';
 import type { ISearchResponse } from '@/types';
@@ -12,19 +11,18 @@ import type { ISearchResponse } from '@/types';
 function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const isMobile = useMobileDetection();
   const query = searchParams.get('q') ?? '';
-  const [_searchInput, _setSearchInput] = useState(query);
   const [results, setResults] = useState<ISearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     if (query && query.length >= 2) {
       void performSearch(query);
     } else {
       setResults(null);
+      setLoading(false);
+      setError(null);
     }
   }, [query]);
 
@@ -56,28 +54,8 @@ function SearchPageContent() {
     router.push(`/search?${params.toString()}`);
   };
 
-  // Auto-focus search on mobile when page loads
-  useEffect(() => {
-    if (isMobile && !query) {
-      setIsSearchFocused(true);
-    }
-  }, [isMobile, query]);
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Search Input - Show prominently on mobile or when no query */}
-      {(isMobile || !query) && (
-        <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-4">
-          <div className="max-w-2xl mx-auto">
-            <SearchBar
-              autoFocus={isMobile && !query}
-              isFocused={isSearchFocused}
-              setIsFocused={setIsSearchFocused}
-            />
-          </div>
-        </div>
-      )}
-
       {/* Search Results */}
       <div className="px-4 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto">
@@ -112,12 +90,10 @@ function SearchPageContent() {
           )}
 
           {/* Search Results */}
-          {results && query && (
-            <SearchResults results={{ ...results, page: 1, limit: 20 }} query={query} />
-          )}
+          {results && query && <SearchResults results={results} query={query} />}
 
-          {/* Empty State - Only show when no query and not on mobile (mobile has search input above) */}
-          {!query && !loading && !isMobile && <SearchEmptyState hasQuery={false} />}
+          {/* Empty State - Show when no query */}
+          {!query && !loading && <SearchEmptyState hasQuery={false} />}
         </div>
       </div>
     </div>

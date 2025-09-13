@@ -51,15 +51,15 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
   };
 
   const getTrendIcon = (diff: number) => {
-    if (diff > 0) return <TrendingUp className="w-4 h-4 text-green-500" />;
-    if (diff < 0) return <TrendingDown className="w-4 h-4 text-red-500" />;
-    return <Minus className="w-4 h-4 text-gray-500" />;
+    if (diff > 0) return <TrendingUp className="w-4 h-4 text-semantic-success" />;
+    if (diff < 0) return <TrendingDown className="w-4 h-4 text-semantic-error" />;
+    return <Minus className="w-4 h-4 text-theme-muted" />;
   };
 
   const getTrendColor = (diff: number) => {
-    if (diff > 0) return 'text-green-600 dark:text-green-400';
-    if (diff < 0) return 'text-red-600 dark:text-red-400';
-    return 'text-gray-600 dark:text-gray-400';
+    if (diff > 0) return 'text-semantic-success';
+    if (diff < 0) return 'text-semantic-error';
+    return 'text-theme-muted';
   };
 
   if (loading) {
@@ -68,15 +68,15 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Team Statistics</h3>
           <div className="flex items-center space-x-2">
-            <div className="h-9 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-9 w-32 bg-bg-theme-secondary rounded animate-pulse" />
+            <div className="h-9 w-24 bg-bg-theme-secondary rounded animate-pulse" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }, () => Math.random().toString(36).substr(2, 9)).map(id => (
             <div
               key={`skeleton-stats-${id}`}
-              className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+              className="h-48 bg-bg-theme-secondary rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -96,8 +96,8 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 mb-4">Error loading team statistics</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-semantic-error mb-4">Error loading team statistics</p>
+            <p className="text-sm text-theme-muted">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -116,9 +116,9 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <Trophy className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+            <Trophy className="w-12 h-12 mx-auto mb-4 text-theme-muted" />
             <h3 className="text-lg font-medium mb-2">No Statistics Available</h3>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-theme-muted">
               No team statistics found for {showAllTime ? 'all time' : `${selectedSeason} season`}.
             </p>
           </CardContent>

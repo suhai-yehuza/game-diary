@@ -45,6 +45,7 @@ export async function GET(
 
     // Transform the data to match expected format
     const teams = (gameData.teams as Record<string, unknown>) || {};
+    const scores = (gameData.scores as Record<string, unknown>) || {};
     const transformedData = {
       id: gameData.id,
       date: gameData.date,
@@ -55,9 +56,10 @@ export async function GET(
           (teams.away as Record<string, unknown>) ||
           {},
       },
-      scores: gameData.scores || {
-        home: 0,
-        away: 0,
+      scores: {
+        home: (scores.home as Record<string, unknown>) || { points: 0 },
+        away: (scores.visitors as Record<string, unknown>) ||
+          (scores.away as Record<string, unknown>) || { points: 0 },
       },
       status: gameData.status || {
         long: 'Completed',

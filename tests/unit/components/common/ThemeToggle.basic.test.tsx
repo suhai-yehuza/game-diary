@@ -91,7 +91,11 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       const darkButton = screen.getByLabelText('Dark');
-      expect(darkButton).toHaveClass('bg-[#232329]', 'text-white', 'shadow');
+      expect(darkButton).toHaveClass(
+        'bg-brand-primary',
+        'text-theme-toggle-active',
+        'shadow-theme-toggle'
+      );
     });
 
     it('shows inactive themes with correct styling', () => {
@@ -104,8 +108,8 @@ describe('ThemeToggle', () => {
 
       const darkButton = screen.getByLabelText('Dark');
       const systemButton = screen.getByLabelText('System');
-      expect(darkButton).toHaveClass('text-[#71717a]');
-      expect(systemButton).toHaveClass('text-[#71717a]');
+      expect(darkButton).toHaveClass('text-theme-toggle-inactive');
+      expect(systemButton).toHaveClass('text-theme-toggle-inactive');
     });
   });
 
@@ -217,12 +221,11 @@ describe('ThemeToggle', () => {
       expect(container).toHaveClass(
         'inline-flex',
         'items-center',
-        'bg-[#18181b]',
-        'dark:bg-[#18181b]',
         'rounded-full',
         'p-0.5',
         'border',
-        'border-[#27272a]'
+        'bg-theme-toggle-container',
+        'border-theme-toggle-border'
       );
     });
 
@@ -256,12 +259,7 @@ describe('ThemeToggle', () => {
       render(<ThemeToggle />);
 
       const darkButton = screen.getByLabelText('Dark');
-      expect(darkButton).toHaveClass(
-        'focus:outline-none',
-        'focus:ring-2',
-        'focus:ring-brand-primary',
-        'focus:ring-offset-2'
-      );
+      expect(darkButton).toHaveClass('focus:outline-none', 'focus:ring-2', 'focus:ring-offset-2');
     });
   });
 

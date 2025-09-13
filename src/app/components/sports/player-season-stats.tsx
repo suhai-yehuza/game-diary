@@ -171,9 +171,9 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-red-500">
+          <div className="text-center py-8 text-semantic-error">
             <p>Failed to load player statistics</p>
-            <p className="text-sm text-gray-500 mt-1">{playerStatsError}</p>
+            <p className="text-sm text-theme-muted mt-1">{playerStatsError}</p>
           </div>
         </CardContent>
       </Card>
@@ -190,9 +190,9 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-theme-muted">
             <p>No statistics available for this season</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-theme-muted mt-1">
               Player statistics may not be available for {selectedSeason}
             </p>
           </div>
@@ -216,7 +216,7 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
         <div className="space-y-6">
           {/* Season Selection */}
           <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Season:</label>
+            <label className="text-sm font-medium text-theme-secondary">Season:</label>
             <CustomSelect
               options={seasonOptions}
               value={selectedSeason}
@@ -227,11 +227,11 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
           </div>
 
           {/* Player Header */}
-          <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          <div className="flex items-center gap-3 p-4 bg-bg-theme-secondary rounded-lg">
             <PlayerImage player={player} size="md" className="rounded-full" />
             <div>
               <h3 className="font-semibold text-lg">{playerName}</h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-sm text-theme-muted">
                 Season {selectedSeason} • {seasonTotals?.games || 0} games
               </p>
             </div>
@@ -244,29 +244,29 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {/* Scoring Stats */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                    <Target className="w-5 h-5 text-blue-500" />
+                  <h4 className="font-semibold text-lg text-theme-primary flex items-center gap-2">
+                    <Target className="w-5 h-5 text-semantic-info" />
                     Scoring
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Points</span>
+                      <span className="text-theme-muted">Points</span>
                       <span className="font-semibold">{seasonTotals.points}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">FG</span>
+                      <span className="text-theme-muted">FG</span>
                       <span className="font-semibold">
                         {seasonTotals.fgm}/{seasonTotals.fga} ({percentages.fgPct}%)
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">3PT</span>
+                      <span className="text-theme-muted">3PT</span>
                       <span className="font-semibold">
                         {seasonTotals.fg3m}/{seasonTotals.fg3a} ({percentages.fg3Pct}%)
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">FT</span>
+                      <span className="text-theme-muted">FT</span>
                       <span className="font-semibold">
                         {seasonTotals.ftm}/{seasonTotals.fta} ({percentages.ftPct}%)
                       </span>
@@ -276,21 +276,21 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
 
                 {/* Rebounding Stats */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                  <h4 className="font-semibold text-lg text-theme-primary flex items-center gap-2">
                     <Users className="w-5 h-5 text-green-500" />
                     Rebounding
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Total</span>
+                      <span className="text-theme-muted">Total</span>
                       <span className="font-semibold">{seasonTotals.reb}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Offensive</span>
+                      <span className="text-theme-muted">Offensive</span>
                       <span className="font-semibold">{seasonTotals.oreb}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Defensive</span>
+                      <span className="text-theme-muted">Defensive</span>
                       <span className="font-semibold">{seasonTotals.dreb}</span>
                     </div>
                   </div>
@@ -298,25 +298,25 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
 
                 {/* Other Stats */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                  <h4 className="font-semibold text-lg text-theme-primary flex items-center gap-2">
                     <Zap className="w-5 h-5 text-purple-500" />
                     Other
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Assists</span>
+                      <span className="text-theme-muted">Assists</span>
                       <span className="font-semibold">{seasonTotals.ast}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Steals</span>
+                      <span className="text-theme-muted">Steals</span>
                       <span className="font-semibold">{seasonTotals.stl}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Blocks</span>
+                      <span className="text-theme-muted">Blocks</span>
                       <span className="font-semibold">{seasonTotals.blk}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Turnovers</span>
+                      <span className="text-theme-muted">Turnovers</span>
                       <span className="font-semibold">{seasonTotals.turnover}</span>
                     </div>
                   </div>
@@ -324,21 +324,21 @@ export function PlayerSeasonStats({ player, playerId, playerName }: IPlayerSeaso
 
                 {/* Advanced Stats */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                  <h4 className="font-semibold text-lg text-theme-primary flex items-center gap-2">
                     <Clock className="w-5 h-5 text-orange-500" />
                     Advanced
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Minutes</span>
+                      <span className="text-theme-muted">Minutes</span>
                       <span className="font-semibold">{formatMinutes(seasonTotals.min)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Games</span>
+                      <span className="text-theme-muted">Games</span>
                       <span className="font-semibold">{seasonTotals.games}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600 dark:text-gray-400">Fouls</span>
+                      <span className="text-theme-muted">Fouls</span>
                       <span className="font-semibold">{seasonTotals.pf}</span>
                     </div>
                   </div>

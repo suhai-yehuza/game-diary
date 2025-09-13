@@ -39,8 +39,8 @@ export const ReactionButton = memo(function ReactionButton({
         'group inline-flex items-center gap-2 rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         sizeClasses[size],
         hasReacted
-          ? 'border-blue-500 bg-blue-100 text-blue-700 shadow-sm ring-1 ring-blue-100 dark:border-blue-300 dark:bg-blue-50 dark:text-blue-700 dark:ring-blue-200'
-          : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-gray-50 hover:shadow-sm dark:border-gray-300 dark:bg-white dark:text-gray-700 dark:hover:border-gray-400 dark:hover:bg-gray-50',
+          ? 'border-semantic-info bg-semantic-info/10 text-semantic-info shadow-sm ring-1 ring-semantic-info/20'
+          : 'border-theme-primary bg-surface-card text-theme-primary hover:border-theme-secondary hover:bg-bg-theme-secondary hover:shadow-sm',
         isPressed && 'scale-95',
         className
       )}
@@ -52,7 +52,7 @@ export const ReactionButton = memo(function ReactionButton({
     >
       <span className="text-base transition-transform group-hover:scale-110">{emoji}</span>
       {showCount && count > 0 && (
-        <span className="font-medium text-xs bg-gray-100 text-gray-800 px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
+        <span className="font-medium text-xs bg-bg-theme-secondary text-theme-primary px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
           {formatReactionCount(count)}
         </span>
       )}

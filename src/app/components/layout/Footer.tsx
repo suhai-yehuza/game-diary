@@ -1,6 +1,5 @@
 'use client';
 
-import { useTheme } from 'next-themes';
 import React, { useEffect, useState } from 'react';
 
 function TwitterIcon({ className = '' }: { className?: string }) {
@@ -43,9 +42,9 @@ function FooterSections({ linkClass }: { linkClass: string }) {
         </div>
 
         {/* Center - AI statement with leaf icon */}
-        <div className="flex items-center gap-2 text-neutral-500 dark:text-neutral-400 order-3 sm:order-2 text-center">
+        <div className="flex items-center gap-2 text-theme-muted order-3 sm:order-2 text-center">
           <svg
-            className="w-4 h-4 text-green-500 flex-shrink-0"
+            className="w-4 h-4 text-semantic-success flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 20 20"
           >
@@ -76,7 +75,6 @@ function FooterSections({ linkClass }: { linkClass: string }) {
 }
 
 export function Footer() {
-  const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -87,21 +85,20 @@ export function Footer() {
     return (
       <footer
         data-testid="footer"
-        className="w-full text-neutral-600 py-2 text-sm border-t border-neutral-200 dark:border-neutral-700"
+        className="w-full text-theme-muted py-2 text-sm border-t border-theme-primary"
       >
-        <FooterSections linkClass="hover:text-neutral-900 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 rounded" />
+        <FooterSections linkClass="hover:text-theme-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 rounded" />
       </footer>
     );
   }
 
   // Hydrated: Use Google-inspired footer styling
-  const isDark = resolvedTheme === 'dark';
-  const linkClass = `hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 rounded ${isDark ? 'text-neutral-600' : 'text-neutral-600'}`;
+  const linkClass = `hover:text-theme-primary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 rounded text-theme-muted`;
 
   return (
     <footer
       data-testid="footer"
-      className="w-full py-2 text-sm text-neutral-600 border-t border-neutral-200 dark:border-neutral-700"
+      className="w-full py-2 text-sm text-theme-muted border-t border-theme-primary"
     >
       <FooterSections linkClass={linkClass} />
     </footer>

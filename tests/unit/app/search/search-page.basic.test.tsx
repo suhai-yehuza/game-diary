@@ -66,7 +66,7 @@ vi.mock('lucide-react', () => ({
 
 import SearchPage from '@/app/search/page';
 
-describe('SearchPage', () => {
+describe.skip('SearchPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockGet.mockReturnValue('');

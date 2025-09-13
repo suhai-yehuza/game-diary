@@ -35,7 +35,7 @@ export function PlayerImageLarge({ player, className }: Omit<IPlayerImageProps, 
   // Since player images are not available from the API, always show fallback avatar
   return (
     <div
-      className={`relative w-48 h-48 md:w-64 md:h-64 rounded-2xl overflow-hidden bg-gray-100 dark:bg-gray-800 shadow-lg ${className || ''}`}
+      className={`relative w-48 h-48 md:w-64 md:h-64 rounded-2xl overflow-hidden bg-bg-theme-secondary shadow-lg ${className || ''}`}
     >
       <PlayerFallbackAvatar name={playerName} size="xl" className="w-full h-full rounded-2xl" />
     </div>

@@ -79,7 +79,7 @@ export function MobileBottomNavigation() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 bg-black dark:bg-black border-t border-neutral-800 dark:border-neutral-700 transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 right-0 z-50 bg-theme-primary border-t border-theme-primary transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{
@@ -96,10 +96,10 @@ export function MobileBottomNavigation() {
               <button
                 key={href}
                 onClick={action}
-                className={`flex flex-col items-center justify-center min-h-[56px] min-w-[56px] rounded-lg transition-all duration-200 ${
+                className={`flex flex-col items-center justify-center min-h-touch-xl min-w-touch-xl rounded-lg transition-all duration-200 touch-target ${
                   isMenuActive
-                    ? 'text-brand-primary dark:text-brand-primary bg-brand-primary/20 dark:bg-brand-primary/30'
-                    : 'text-white dark:text-white hover:text-white dark:hover:text-white'
+                    ? 'text-brand-primary bg-brand-primary/20'
+                    : 'text-text-inverse hover:text-text-inverse'
                 }`}
                 aria-label={label}
                 aria-expanded={isMenuActive}
@@ -118,10 +118,10 @@ export function MobileBottomNavigation() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center justify-center min-h-[56px] min-w-[56px] rounded-lg transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center min-h-touch-xl min-w-touch-xl rounded-lg transition-all duration-200 touch-target ${
                 active
-                  ? 'text-brand-primary dark:text-brand-primary bg-brand-primary/20 dark:bg-brand-primary/30'
-                  : 'text-white dark:text-white hover:text-white dark:hover:text-white'
+                  ? 'text-brand-primary bg-brand-primary/20'
+                  : 'text-text-inverse hover:text-text-inverse'
               }`}
               onClick={handleTouch}
               aria-label={label}

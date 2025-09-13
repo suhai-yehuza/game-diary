@@ -117,13 +117,13 @@ export function FallbackAvatar({
   const getIcon = () => {
     switch (variant) {
       case 'player':
-        return <Circle size={iconSizes[size]} className="text-gray-400" />;
+        return <Circle size={iconSizes[size]} className="text-theme-muted" />;
       case 'team':
-        return <Circle size={iconSizes[size]} className="text-gray-400" />;
+        return <Circle size={iconSizes[size]} className="text-theme-muted" />;
       case 'league':
-        return <Circle size={iconSizes[size]} className="text-gray-400" />;
+        return <Circle size={iconSizes[size]} className="text-theme-muted" />;
       default:
-        return <User size={iconSizes[size]} className="text-gray-400" />;
+        return <User size={iconSizes[size]} className="text-theme-muted" />;
     }
   };
 

@@ -73,10 +73,14 @@ const port = getPort();
 const webServerConfig = {
   command: `NODE_ENV=development pnpm dev:mock -p ${port}`,
   url: `http://localhost:${port}`,
-  reuseExistingServer: !process.env.CI, // Don't reuse in CI to avoid conflicts
+  reuseExistingServer: true, // Always reuse existing server to avoid port conflicts
   timeout: APP_CONFIG.DEV_SERVER_TIMEOUT,
   stdout: 'pipe' as const,
   stderr: 'pipe' as const,
+  // Add health check to ensure server is fully ready
+  healthCheck: `http://localhost:${port}/api/health`,
+  // Increase startup timeout for CI environments
+  startupTimeout: process.env.CI ? 120000 : 60000, // 2 minutes in CI, 1 minute locally
 };
 
 // Debug logging for CI environments
@@ -104,12 +108,12 @@ export default defineConfig({
   timeout: APP_CONFIG.TEST_TIMEOUT, // Standardized 10-minute timeout - no overrides needed in CI
   fullyParallel: true, // Enable full parallelism for maximum speed
   forbidOnly: !!process.env.CI,
-  retries: 2,
-  workers: 4,
+  retries: process.env.CI ? 3 : 2, // More retries in CI for flaky tests
+  workers: process.env.CI ? 2 : 4, // Fewer workers in CI to reduce resource contention
 
   // Web server configuration
-  // In CI, don't start a web server if we're targeting localhost (server is started manually)
-  webServer: isLocalhostTarget() && !process.env.CI ? webServerConfig : undefined,
+  // Start web server for localhost targets (including CI)
+  webServer: isLocalhostTarget() ? webServerConfig : undefined,
 
   // Browser projects
   projects: [
@@ -175,6 +179,20 @@ export default defineConfig({
         launchOptions: {
           args: chromiumArgs,
           headless: true, // Ensure headless for CI speed
+        },
+      },
+    },
+    {
+      name: 'iPad Mini',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 768, height: 1024 },
+        deviceScaleFactor: 2,
+        userAgent:
+          'Mozilla/5.0 (iPad; CPU OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1',
+        launchOptions: {
+          args: chromiumArgs,
+          headless: true,
         },
       },
     },

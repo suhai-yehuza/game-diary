@@ -25,16 +25,17 @@ export function NavItem({
   const getSportColors = () => {
     if (!sport) {
       return {
-        active: 'text-white bg-blue-600 border border-blue-700 shadow-md font-semibold',
+        active:
+          'text-text-inverse bg-brand-primary border-2 border-brand-primary shadow-lg font-semibold',
         inactive:
-          'text-white bg-gray-600 border-0 hover:border hover:border-gray-500 hover:bg-gray-500',
+          'text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:border-brand-primary hover:bg-brand-primary/10 hover:text-brand-primary shadow-md',
       };
     }
 
     const sportClass = getSportsButtonClass(sport);
     return {
-      active: `text-white ${sportClass} border border-opacity-20 shadow-md font-semibold`,
-      inactive: `text-white bg-gray-600 border-0 hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} shadow-sm`,
+      active: `text-text-inverse ${sportClass} border-2 border-opacity-30 shadow-lg font-semibold`,
+      inactive: `text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} hover:text-text-inverse shadow-md`,
     };
   };
 
@@ -49,7 +50,7 @@ export function NavItem({
     rounded-lg
     transition-all duration-200 ease-out
     active:scale-98
-    focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1
+    focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1
     shadow-sm
     nav-item-google-style
     ${isActive ? colors.active : colors.inactive}
@@ -63,7 +64,7 @@ export function NavItem({
     transition-all duration-200
     whitespace-nowrap
     rounded-lg
-    focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-1
+    focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-1
     nav-item-google-style
     ${isActive ? colors.active : colors.inactive}
     ${className}

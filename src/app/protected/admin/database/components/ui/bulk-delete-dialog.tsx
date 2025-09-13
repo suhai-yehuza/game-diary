@@ -22,28 +22,26 @@ export function BulkDeleteDialog({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative bg-white dark:bg-slate-900 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full mx-4">
+      <div className="relative bg-surface-modal rounded-lg shadow-xl border border-theme-primary max-w-md w-full mx-4">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-center space-x-3 mb-4">
             <div className="flex-shrink-0">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+              <div className="w-10 h-10 bg-semantic-error/10 rounded-full flex items-center justify-center">
+                <AlertTriangle className="w-5 h-5 text-semantic-error" />
               </div>
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+              <h3 className="text-lg font-semibold text-theme-primary">
                 Delete {selectedCount} {itemLabel}
               </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                This action cannot be undone
-              </p>
+              <p className="text-sm text-theme-muted">This action cannot be undone</p>
             </div>
           </div>
 
           {/* Content */}
           <div className="mb-6">
-            <p className="text-slate-700 dark:text-slate-300">
+            <p className="text-theme-primary">
               Are you sure you want to delete <span className="font-semibold">{selectedCount}</span>{' '}
               {itemLabel}? This action will permanently remove the selected records from the
               database.

@@ -10,6 +10,10 @@
   "scope": "/",
   "lang": "en",
   "categories": ["sports", "social", "entertainment"],
+  "display_override": ["window-controls-overlay", "standalone"],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "icons": [
     {
       "src": "/logos/gamelog-large.svg",

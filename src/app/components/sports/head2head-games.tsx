@@ -162,15 +162,15 @@ export function Head2HeadGames({ teamId, teamName: _teamName }: IHead2HeadGamesP
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Head-to-Head Games</h3>
           <div className="flex items-center space-x-2">
-            <div className="h-9 w-32 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
-            <div className="h-9 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            <div className="h-9 w-32 bg-bg-theme-secondary rounded animate-pulse" />
+            <div className="h-9 w-24 bg-bg-theme-secondary rounded animate-pulse" />
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }, () => Math.random().toString(36).substr(2, 9)).map(id => (
             <div
               key={`skeleton-game-${id}`}
-              className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+              className="h-48 bg-bg-theme-secondary rounded-lg animate-pulse"
             />
           ))}
         </div>
@@ -190,8 +190,8 @@ export function Head2HeadGames({ teamId, teamName: _teamName }: IHead2HeadGamesP
         </div>
         <Card>
           <CardContent className="p-6 text-center">
-            <p className="text-red-600 dark:text-red-400 mb-4">Error loading head-to-head games</p>
-            <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-semantic-error mb-4">Error loading head-to-head games</p>
+            <p className="text-sm text-theme-muted">{error}</p>
           </CardContent>
         </Card>
       </div>
@@ -213,14 +213,12 @@ export function Head2HeadGames({ teamId, teamName: _teamName }: IHead2HeadGamesP
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <Trophy className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="w-10 h-10 rounded-full bg-semantic-info/10 flex items-center justify-center">
+              <Trophy className="w-5 h-5 text-semantic-info" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Head-to-Head Filters
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <h3 className="text-lg font-semibold text-theme-primary">Head-to-Head Filters</h3>
+              <p className="text-sm text-theme-muted">
                 Filter head-to-head games by season and opponent
               </p>
             </div>

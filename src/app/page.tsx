@@ -7,6 +7,7 @@ import { CardSkeleton } from '@/app/components/common/LoadingSpinner';
 import { BackgroundCacheWarmer } from '@/app/components/landing/BackgroundCacheWarmer';
 import { ContentPreviewBannerOptimized } from '@/app/components/landing/ContentPreviewBannerOptimized';
 import { LandingPageDataSection } from '@/app/components/landing/LandingPageDataSection';
+import { LiveGamesIndicator } from '@/app/components/landing/LiveGamesIndicator';
 import { ScrollToContentButton } from '@/app/components/landing/ScrollToContentButton';
 
 export default function HomePage() {
@@ -16,57 +17,66 @@ export default function HomePage() {
       <BackgroundCacheWarmer />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-12 sm:py-16">
+      <section className="relative overflow-hidden py-8 sm:py-12 md:py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
-            <div className="flex justify-center mb-8">
+            <div className="flex justify-center mb-6 sm:mb-8">
               <Image
                 src="/logos/gamelog-large.svg"
                 alt="Game Diary Logo"
                 width={200}
                 height={200}
                 priority={true}
-                sizes="(max-width: 600px) 150px, 200px"
-                className="w-[150px] h-[150px] sm:w-[200px] sm:h-[200px] drop-shadow-lg"
+                sizes="(max-width: 480px) 120px, (max-width: 768px) 150px, 200px"
+                className="w-[120px] h-[120px] xs:w-[150px] xs:h-[150px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] drop-shadow-lg"
               />
             </div>
 
-            <h1 className="text-5xl sm:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 bg-clip-text text-transparent mb-6">
+            <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight bg-gradient-to-r from-blue-600 via-green-600 to-purple-600 bg-clip-text text-transparent mb-4 sm:mb-6">
               Game Diary
             </h1>
 
-            <p className="text-lg sm:text-xl lg:text-2xl text-white max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed home-description px-4 sm:px-0">
+            <p className="text-base xs:text-lg sm:text-xl md:text-2xl text-white max-w-3xl mx-auto mb-6 sm:mb-8 leading-relaxed home-description px-4 sm:px-0">
               Track your gaming watching experiences, connect with fellow sports fans, and share
               your thoughts on live games across NBA, NFL, MLB, NHL, and MLS.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 items-center justify-center mb-12">
+            {/* Primary CTA - Most prominent */}
+            <div className="flex justify-center mb-4 sm:mb-6">
+              <Link
+                href="/sports/all-sports"
+                className="w-full max-w-xs sm:max-w-sm px-8 sm:px-10 py-4 sm:py-5 bg-brand-primary text-white rounded-xl hover:bg-brand-primary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-brand-primary/30 focus:ring-offset-2 font-semibold text-lg sm:text-xl shadow-2xl hover:shadow-3xl min-h-touch-xl text-center relative overflow-hidden group"
+              >
+                <span className="relative z-10">Explore Sports</span>
+                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary to-brand-primary-dark opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
+              </Link>
+            </div>
+
+            {/* Secondary CTA - Less prominent */}
+            <div className="flex justify-center mb-8 sm:mb-12">
               <Link
                 href="/protected/dashboard"
-                className="px-8 py-4 bg-brand-primary text-white rounded-lg hover:bg-brand-primary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 font-medium shadow-lg hover:shadow-xl"
+                className="w-full max-w-xs sm:max-w-sm px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-brand-secondary text-brand-secondary dark:text-brand-secondary rounded-xl hover:bg-brand-secondary hover:text-white dark:hover:text-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-secondary/30 focus:ring-offset-2 font-medium text-base sm:text-lg shadow-lg hover:shadow-xl min-h-touch text-center"
               >
                 Go to Dashboard
               </Link>
-              <Link
-                href="/sports/all-sports"
-                className="px-8 py-4 bg-brand-secondary text-white rounded-lg hover:bg-brand-secondary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-brand-secondary focus:ring-offset-2 font-medium shadow-lg hover:shadow-xl"
-              >
-                Explore Sports
-              </Link>
             </div>
+
+            {/* Dynamic live games indicator */}
+            <LiveGamesIndicator />
 
             {/* Quick Links */}
             <div className="flex flex-wrap gap-6 items-center justify-center text-sm mb-8">
               <Link
                 href="/sports/live"
-                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-white hover:text-brand-primary dark:hover:text-brand-primary"
+                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-theme-muted hover:text-brand-primary dark:hover:text-brand-primary font-medium"
               >
                 <Globe className="w-4 h-4" aria-hidden />
                 Live Games
               </Link>
               <Link
                 href="/sports/all-sports"
-                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-black dark:text-white hover:text-brand-secondary dark:hover:text-brand-secondary"
+                className="flex items-center gap-2 hover:underline hover:underline-offset-4 transition-colors duration-200 text-theme-muted hover:text-brand-secondary dark:hover:text-brand-secondary font-medium"
               >
                 <Trophy className="w-4 h-4" aria-hidden />
                 All Sports
@@ -117,7 +127,7 @@ export default function HomePage() {
               </p>
               <Link
                 href="/protected/dashboard"
-                className="inline-block px-8 py-4 bg-white !text-black rounded-lg hover:bg-neutral-100 transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl"
+                className="inline-block px-8 py-4 bg-surface-card text-text-inverse rounded-lg hover:bg-theme-secondary transition-all duration-200 transform hover:scale-105 font-medium shadow-lg hover:shadow-xl"
               >
                 Get Started Now
               </Link>

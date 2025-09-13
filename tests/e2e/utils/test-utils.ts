@@ -117,11 +117,28 @@ export async function navigateToPage(
       // Ignore timeout if no navigation is in progress
     });
 
-    // Simple navigation with basic error handling
-    await page.goto(url, {
-      waitUntil: 'domcontentloaded',
-      timeout,
-    });
+    // Simple navigation with basic error handling and retry logic
+    let navigationAttempts = 0;
+    const maxAttempts = 3;
+
+    while (navigationAttempts < maxAttempts) {
+      try {
+        await page.goto(url, {
+          waitUntil: 'domcontentloaded',
+          timeout,
+        });
+        break; // Success, exit retry loop
+      } catch (error) {
+        navigationAttempts++;
+        if (navigationAttempts >= maxAttempts) {
+          throw error; // Re-throw if all attempts failed
+        }
+
+        // Wait before retry
+        await page.waitForTimeout(2000);
+        console.log(`🔄 Navigation attempt ${navigationAttempts + 1}/${maxAttempts} for ${url}`);
+      }
+    }
 
     // Wait for page to be stable
     await page.waitForLoadState('domcontentloaded', { timeout: TIMEOUT_CONFIG.DOM_CONTENT_LOADED });

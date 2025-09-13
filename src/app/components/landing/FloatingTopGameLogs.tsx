@@ -61,7 +61,7 @@ export function FloatingTopGameLogs() {
   if (loading) {
     return (
       <div
-        className="fixed left-1 sm:left-2 md:left-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-left-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
+        className="fixed left-1 sm:left-2 md:left-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-surface-card rounded-xl sm:rounded-2xl shadow-2xl border border-theme-primary overflow-hidden animate-in slide-in-from-left-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
         style={{ top: `${bannerHeight + (isLargeScreen ? 120 : isMediumScreen ? 96 : 80)}px` }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
@@ -76,7 +76,7 @@ export function FloatingTopGameLogs() {
           <div className="space-y-3">
             {['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4'].map(key => (
               <div key={key} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                <div className="w-8 h-8 bg-bg-theme-secondary rounded-full" />
                 <div className="flex-1">
                   <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2" />
                   <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
@@ -126,7 +126,7 @@ export function FloatingTopGameLogs() {
     <>
       {/* Mobile version - stacked above games */}
       <div
-        className={`fixed left-2 right-2 w-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-top-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group sm:hidden floating-component ${
+        className={`fixed left-2 right-2 w-auto bg-surface-card rounded-xl shadow-2xl border border-theme-primary overflow-hidden animate-in slide-in-from-top-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group sm:hidden floating-component ${
           isSmallScreen ? 'h-80' : 'h-72'
         }`}
         style={{
@@ -284,7 +284,7 @@ export function FloatingTopGameLogs() {
 
       {/* Desktop version - side by side */}
       <div
-        className="fixed left-1 sm:left-2 md:left-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-left-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
+        className="fixed left-1 sm:left-2 md:left-4 w-72 h-72 sm:w-80 md:w-96 lg:w-[420px] sm:h-80 lg:h-[380px] bg-surface-card rounded-xl sm:rounded-2xl shadow-2xl border border-theme-primary overflow-hidden animate-in slide-in-from-left-8 fade-in duration-700 delay-500 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group hidden sm:block"
         style={{ top: `${bannerHeight + (isLargeScreen ? 120 : isMediumScreen ? 96 : 80)}px` }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}

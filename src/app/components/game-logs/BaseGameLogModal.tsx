@@ -844,20 +844,20 @@ export function GameLogModal({
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       <Card
-        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-neutral-200 dark:border-neutral-700 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal"
+        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-theme-primary rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal"
         style={{
           backgroundColor: document.documentElement.classList.contains('dark')
-            ? 'rgb(248, 250, 252)'
-            : 'rgb(17, 24, 39)',
+            ? 'var(--color-background-secondary)'
+            : 'var(--color-text-primary)',
         }}
       >
-        <div className="p-6 text-neutral-100 dark:text-neutral-900">
+        <div className="p-6 text-theme-primary">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-neutral-100 dark:text-neutral-900">
+              <h2 className="text-xl font-semibold text-theme-primary">
                 {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
               </h2>
-              <p className="text-sm text-neutral-300 dark:text-neutral-600 mt-1">
+              <p className="text-sm text-theme-secondary mt-1">
                 {mode === 'create' ? 'Add a new game log entry' : 'Update your game log details'}
               </p>
             </div>
@@ -865,7 +865,7 @@ export function GameLogModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-neutral-300 hover:text-neutral-100 dark:text-neutral-600 dark:hover:text-neutral-900 hover:bg-neutral-800 dark:hover:bg-neutral-200 rounded-full p-2"
+              className="text-theme-muted hover:text-theme-primary hover:bg-bg-theme-tertiary rounded-full p-2"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -893,7 +893,7 @@ export function GameLogModal({
                   <p className="text-sm font-medium text-semantic-warning">
                     Authentication Required
                   </p>
-                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-1">
+                  <p className="text-xs text-theme-muted mt-1">
                     You must be signed in to {mode} a game log.
                   </p>
                 </div>
@@ -905,18 +905,14 @@ export function GameLogModal({
             {/* Game Selection - Only for create mode */}
             {mode === 'create' && (
               <div className="relative">
-                <label className="block text-sm font-medium text-neutral-300 dark:text-neutral-700 mb-1">
+                <label className="block text-sm font-medium text-theme-primary mb-1">
                   Find/Search for Games *
                 </label>
                 {selectedGameName ? (
-                  <div className="flex items-center gap-3 p-3 border-2 border-brand-primary/30 dark:border-brand-primary/40 rounded-lg bg-brand-primary/10 dark:bg-brand-primary/20">
+                  <div className="flex items-center gap-3 p-3 border-2 border-brand-primary/30 rounded-lg bg-brand-primary/10">
                     <div className="flex-1">
-                      <p className="font-semibold text-sm text-neutral-100 dark:text-neutral-900">
-                        {selectedGameName}
-                      </p>
-                      <p className="text-xs text-neutral-600 dark:text-neutral-400">
-                        Game ID: {selectedGameId}
-                      </p>
+                      <p className="font-semibold text-sm text-theme-primary">{selectedGameName}</p>
+                      <p className="text-xs text-theme-muted">Game ID: {selectedGameId}</p>
                     </div>
                     <Button
                       type="button"
@@ -929,7 +925,7 @@ export function GameLogModal({
                         setSearchTerm('');
                         setShowSearchResults(false);
                       }}
-                      className="border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-300 dark:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-semantic-error dark:hover:text-semantic-error"
+                      className="border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary hover:text-semantic-error"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -947,7 +943,7 @@ export function GameLogModal({
                           // Use setTimeout to allow click events on dropdown items to fire first
                           setTimeout(() => setShowSearchResults(false), 150);
                         }}
-                        className="w-full pl-8 pr-8 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-100 dark:text-neutral-900"
+                        className="w-full pl-8 pr-8 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
                         placeholder="Search by team name, arena, or date..."
                       />
                       {searchTerm && (
@@ -961,7 +957,7 @@ export function GameLogModal({
                             setSearchResults([]);
                             setShowSearchResults(false);
                           }}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 w-4 h-4 flex items-center justify-center"
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-theme-muted hover:text-theme-secondary w-4 h-4 flex items-center justify-center"
                           aria-label="Clear search"
                         >
                           <X className="w-3 h-3" />
@@ -978,7 +974,7 @@ export function GameLogModal({
                           if (val === 'all' || val === 'latest') setSelectedSeason(val);
                           else setSelectedSeason(Number(val));
                         }}
-                        className="w-full px-2 py-1.5 border border-neutral-200 dark:border-neutral-600 rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100"
+                        className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
                       >
                         <option value="latest">
                           {`${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
@@ -994,19 +990,19 @@ export function GameLogModal({
 
                     {/* Search Results Dropdown */}
                     {showSearchResults && (
-                      <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-50 w-full mt-1 bg-surface-popover border border-theme-primary rounded-md shadow-lg max-h-48 overflow-y-auto">
                         {/* Loading state */}
                         {searchLoading && (
-                          <div className="p-3 text-center text-neutral-600 dark:text-neutral-400 text-sm">
+                          <div className="p-3 text-center text-theme-muted text-sm">
                             <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-neutral-300 border-t-neutral-600 dark:border-neutral-600 dark:border-t-neutral-300 rounded-full animate-spin" />
+                              <div className="w-4 h-4 border-2 border-theme-muted border-t-brand-primary rounded-full animate-spin" />
                               <p>Searching for games...</p>
                             </div>
                           </div>
                         )}
 
                         {searchError && (
-                          <div className="p-3 text-center text-semantic-error dark:text-semantic-error text-sm">
+                          <div className="p-3 text-center text-semantic-error text-sm">
                             <p>Error: {searchError}</p>
                           </div>
                         )}
@@ -1015,7 +1011,7 @@ export function GameLogModal({
                           !searchError &&
                           searchResults.length === 0 &&
                           searchTerm.trim() && (
-                            <div className="p-3 text-center text-neutral-600 dark:text-neutral-400 text-sm">
+                            <div className="p-3 text-center text-theme-muted text-sm">
                               <p>No games found matching your search.</p>
                               <p className="text-xs mt-1">Try a different search term.</p>
                             </div>
@@ -1028,12 +1024,12 @@ export function GameLogModal({
                               <div
                                 key={game.id}
                                 onClick={() => handleGameSelect(game.id.toString(), game.name)}
-                                className="px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 cursor-pointer border-b border-neutral-200 dark:border-neutral-700 last:border-b-0"
+                                className="px-3 py-2 hover:bg-bg-theme-secondary cursor-pointer border-b border-theme-primary last:border-b-0"
                               >
-                                <div className="font-medium text-neutral-100 dark:text-neutral-900 text-sm mb-0.5">
+                                <div className="font-medium text-theme-primary text-sm mb-0.5">
                                   {game.name}
                                 </div>
-                                <div className="flex items-center gap-3 text-xs text-neutral-600 dark:text-neutral-400">
+                                <div className="flex items-center gap-3 text-xs text-theme-muted">
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
                                     {game.date}
@@ -1046,7 +1042,7 @@ export function GameLogModal({
                               </div>
                             ))}
                             {searchResults.length > 0 && (
-                              <div className="px-3 py-2 text-xs text-neutral-500 dark:text-neutral-400 border-t border-neutral-200 dark:border-neutral-700">
+                              <div className="px-3 py-2 text-xs text-theme-muted border-t border-theme-primary">
                                 Showing {searchResults.length} result
                                 {searchResults.length !== 1 ? 's' : ''}
                               </div>
@@ -1087,9 +1083,7 @@ export function GameLogModal({
 
             {/* Rating */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Rating *
-              </label>
+              <label className="block text-sm font-medium text-theme-primary mb-1">Rating *</label>
               <div className="flex items-center gap-1">
                 {[1, 2, 3, 4, 5].map(star => (
                   <button
@@ -1100,14 +1094,12 @@ export function GameLogModal({
                   >
                     <Star
                       className={`w-5 h-5 ${
-                        star <= rating
-                          ? 'text-orange-400 fill-current'
-                          : 'text-gray-300 dark:text-gray-600'
+                        star <= rating ? 'text-orange-400 fill-current' : 'text-theme-muted'
                       }`}
                     />
                   </button>
                 ))}
-                <span className="ml-1 text-sm text-gray-600 dark:text-gray-400">({rating}/5)</span>
+                <span className="ml-1 text-sm text-theme-muted">({rating}/5)</span>
               </div>
               <input type="hidden" {...register('rating_for_game')} value={rating} />
               {errors.rating_for_game && (
@@ -1117,12 +1109,12 @@ export function GameLogModal({
 
             {/* Privacy Level */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-theme-primary mb-1">
                 Privacy Level *
               </label>
               <select
                 {...register('classification')}
-                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
               >
                 <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
                 <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
@@ -1135,18 +1127,18 @@ export function GameLogModal({
 
             {/* Watched Date */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-theme-primary mb-1">
                 Watched Date
               </label>
               <div className="relative">
                 <input
                   type="date"
                   {...register('watched_date')}
-                  className="w-full px-2 py-1.5 pr-8 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 [&::-webkit-calendar-picker-indicator]:opacity-0"
+                  className="w-full px-2 py-1.5 pr-8 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary [&::-webkit-calendar-picker-indicator]:opacity-0"
                   id="watched-date-input"
                 />
                 <div
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 cursor-pointer hover:bg-bg-theme-secondary rounded transition-colors"
                   onClick={() => {
                     const input = document.getElementById('watched-date-input') as HTMLInputElement;
                     if (input) {
@@ -1166,12 +1158,12 @@ export function GameLogModal({
 
             {/* Watched Setting */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-theme-primary mb-1">
                 How did you watch?
               </label>
               <select
                 {...register('watched_setting')}
-                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
               >
                 <option value={WATCHED_SETTING.TV}>TV</option>
                 <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
@@ -1185,25 +1177,25 @@ export function GameLogModal({
 
             {/* Watched Location */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-theme-primary mb-1">
                 Location (optional)
               </label>
               <input
                 type="text"
                 {...register('watched_location')}
-                className="w-full px-2 py-1.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
                 placeholder="e.g., Home, Arena, Bar"
               />
             </div>
 
             {/* Watched Scope */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-theme-primary mb-1">
                 What did you watch?
               </label>
               <select
                 {...register('watched_scope')}
-                className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
               >
                 <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
                 <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
@@ -1216,11 +1208,11 @@ export function GameLogModal({
             </div>
 
             {/* Notes */}
-            <div className="border border-neutral-200 dark:border-neutral-600 rounded-lg overflow-hidden bg-neutral-50 dark:bg-neutral-800">
+            <div className="border border-theme-primary rounded-lg overflow-hidden bg-bg-theme-secondary">
               <button
                 type="button"
                 onClick={() => setIsNotesExpanded(!isNotesExpanded)}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors"
+                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-theme-primary hover:bg-bg-theme-tertiary transition-colors"
               >
                 {isNotesExpanded ? (
                   <ChevronDown className="w-4 h-4" />
@@ -1233,7 +1225,7 @@ export function GameLogModal({
                 <textarea
                   {...register('notes')}
                   rows={3}
-                  className="w-full px-4 py-3 border-0 bg-transparent focus:outline-none focus:ring-0 text-sm resize-none text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400"
+                  className="w-full px-4 py-3 border-0 bg-transparent focus:outline-none focus:ring-0 text-sm resize-none text-theme-primary placeholder:text-theme-muted"
                   placeholder="Share your thoughts about this game..."
                 />
               )}
@@ -1241,12 +1233,10 @@ export function GameLogModal({
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
-                Tags
-              </label>
+              <label className="block text-sm font-medium text-theme-primary mb-2">Tags</label>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="flex flex-wrap items-center gap-2 p-3 border border-neutral-200 dark:border-neutral-600 rounded-lg bg-neutral-50 dark:bg-neutral-800 min-h-[44px] flex-1">
+                  <div className="flex flex-wrap items-center gap-2 p-3 border border-theme-primary rounded-lg bg-bg-theme-secondary min-h-[44px] flex-1">
                     {(() => {
                       const tagColors = generateDistinctTagColors(tags);
                       return tags.map(tag => (
@@ -1270,7 +1260,7 @@ export function GameLogModal({
                       value={newTag}
                       onChange={e => setNewTag(e.target.value)}
                       onKeyPress={handleKeyPress}
-                      className="flex-1 min-w-[120px] border-none outline-none bg-transparent placeholder:text-neutral-400 dark:placeholder:text-neutral-500 text-sm text-neutral-900 dark:text-neutral-100"
+                      className="flex-1 min-w-[120px] border-none outline-none bg-transparent placeholder:text-theme-muted text-sm text-theme-primary"
                       placeholder={tags.length === 0 ? 'Type a tag and press Enter' : ''}
                     />
                   </div>
@@ -1289,13 +1279,13 @@ export function GameLogModal({
             </div>
 
             {/* Submit Buttons */}
-            <div className="flex gap-3 pt-6 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="flex gap-3 pt-6 border-t border-theme-primary">
               <Button
                 type="button"
                 variant="outline"
                 onClick={onClose}
                 disabled={isSubmitting || loading}
-                className="flex-1 h-11 border-neutral-200 dark:border-neutral-600 bg-neutral-50 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-700 font-medium transition-all duration-200"
+                className="flex-1 h-11 border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary font-medium transition-all duration-200"
               >
                 Cancel
               </Button>

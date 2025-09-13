@@ -26,12 +26,12 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBo
   render(): React.ReactNode {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-          <div className="max-w-md w-full bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
+        <div className="min-h-screen bg-bg-theme-secondary flex items-center justify-center">
+          <div className="max-w-md w-full bg-surface-card shadow-lg rounded-lg p-6">
             <div className="flex items-center mb-4">
               <div className="flex-shrink-0">
                 <svg
-                  className="h-8 w-8 text-red-500"
+                  className="h-8 w-8 text-semantic-error"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -45,14 +45,12 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBo
                 </svg>
               </div>
               <div className="ml-3">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                  Something went wrong
-                </h3>
+                <h3 className="text-lg font-medium text-theme-primary">Something went wrong</h3>
               </div>
             </div>
 
             <div className="mb-4">
-              <p className="text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-sm text-theme-secondary">
                 The page encountered an unexpected error. This might be due to a network issue or a
                 temporary problem.
               </p>
@@ -61,13 +59,13 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBo
             <div className="flex space-x-3">
               <button
                 onClick={this.resetError}
-                className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="flex-1 bg-brand-primary text-text-inverse px-4 py-2 rounded-md text-sm font-medium hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary"
               >
                 Try Again
               </button>
               <button
                 onClick={() => window.location.reload()}
-                className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                className="flex-1 bg-theme-muted text-text-inverse px-4 py-2 rounded-md text-sm font-medium hover:bg-theme-secondary focus:outline-none focus:ring-2 focus:ring-theme-primary"
               >
                 Reload Page
               </button>
@@ -75,8 +73,8 @@ export class ErrorBoundary extends React.Component<IErrorBoundaryProps, IErrorBo
 
             {process.env.NODE_ENV === 'development' && this.state.error && (
               <details className="mt-4">
-                <summary className="text-sm text-gray-500 cursor-pointer">Error Details</summary>
-                <pre className="mt-2 text-xs text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 p-2 rounded overflow-auto">
+                <summary className="text-sm text-theme-muted cursor-pointer">Error Details</summary>
+                <pre className="mt-2 text-xs text-theme-secondary bg-bg-theme-secondary p-2 rounded overflow-auto">
                   {this.state.error.toString()}
                   {this.state.errorInfo?.componentStack}
                 </pre>

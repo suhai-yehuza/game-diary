@@ -3678,7 +3678,17 @@ export type SportsConfigKey = keyof typeof import('@/lib/constants/colors').SPOR
 export type StatusType = 'success' | 'warning' | 'error' | 'info';
 export type BrandColor = 'primary' | 'secondary' | 'accent';
 export type ThemeColor = 'light' | 'dark';
-export type CssColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'pink' | 'gray';
+export type CssColor =
+  | 'red'
+  | 'blue'
+  | 'green'
+  | 'yellow'
+  | 'purple'
+  | 'pink'
+  | 'gray'
+  | 'pink'
+  | 'black'
+  | 'white';
 
 // ========================================
 // BUTTON VARIANT TYPES
@@ -6619,4 +6629,109 @@ export interface IRawTeamStatsResponse {
   turnovers: number;
   blocks: number;
   plusMinus: number;
+}
+
+// ========================================
+// RESPONSIVE TYPES
+// ========================================
+
+export type Breakpoint =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+  | 'mobile-sm'
+  | 'mobile-md'
+  | 'mobile-lg'
+  | 'tablet-sm'
+  | 'tablet-lg'
+  | 'desktop-sm'
+  | 'desktop-lg'
+  | 'desktop-xl';
+
+export interface UseResponsiveOptions {
+  defaultWidth?: number;
+  ssr?: boolean;
+}
+
+export interface ResponsiveState {
+  width: number;
+  height: number;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isSmallMobile: boolean;
+  isLargeMobile: boolean;
+  isSmallTablet: boolean;
+  isLargeTablet: boolean;
+  isSmallDesktop: boolean;
+  isLargeDesktop: boolean;
+  isExtraLargeDesktop: boolean;
+  currentBreakpoint: Breakpoint;
+  isAbove: (breakpoint: Breakpoint) => boolean;
+  isBelow: (breakpoint: Breakpoint) => boolean;
+  isBetween: (min: Breakpoint, max: Breakpoint) => boolean;
+}
+
+// ========================================
+// RESPONSIVE COMPONENT TYPES
+// ========================================
+
+export interface ResponsiveContainerProps {
+  children: React.ReactNode;
+  className?: string;
+  as?: 'div' | 'section' | 'article' | 'main' | 'aside' | 'header' | 'footer';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  mobilePadding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+export interface ResponsiveGridProps {
+  children: React.ReactNode;
+  className?: string;
+  columns?: {
+    mobile?: 1 | 2;
+    tablet?: 1 | 2 | 3;
+    desktop?: 1 | 2 | 3 | 4 | 5 | 6;
+  };
+  gap?: 'sm' | 'md' | 'lg' | 'xl';
+  as?: 'div' | 'section' | 'article';
+}
+
+export interface ResponsiveTextProps {
+  children: React.ReactNode;
+  className?: string;
+  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  mobileSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+}
+
+export interface ResponsiveButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  mobileSize?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
+  fullWidthMobile?: boolean;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+}
+
+// ========================================
+// ANALYTICS TYPES
+// ========================================
+
+export interface ISearchInteractionEvent {
+  query: string;
+  resultsCount: number;
+  searchTime: number;
+  category: string;
+  filters?: Record<string, unknown>;
+  timestamp: number;
+  sessionId: string;
 }

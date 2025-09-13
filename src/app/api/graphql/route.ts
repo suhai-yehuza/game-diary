@@ -11,11 +11,17 @@ const server = new ApolloServer({
   introspection: process.env.NODE_ENV !== 'production',
   formatError: error => {
     console.error('GraphQL Error:', error);
+
+    // Don't convert GraphQL errors to HTTP status codes
+    // Let Apollo handle them as GraphQL errors
     return {
       message: error.message,
       code: error.extensions?.code ?? 'INTERNAL_SERVER_ERROR',
+      extensions: error.extensions,
     };
   },
+  // Ensure GraphQL errors are returned as GraphQL responses, not HTTP errors
+  includeStacktraceInErrorResponses: process.env.NODE_ENV === 'development',
 });
 
 // Create the handler with enhanced authentication context
@@ -23,13 +29,13 @@ const handler = startServerAndCreateNextHandler(server, {
   context: async (req: NextRequest) => {
     const authContext = await buildAuthContext(req);
 
-    console.log('[GRAPHQL AUTH] Context:', {
-      isAuthenticated: authContext.isAuthenticated,
-      authSource: authContext.authSource,
-      hasUser: !!authContext.user,
-      userId: authContext.userId,
-      error: authContext.error,
-    });
+    // Only log authentication errors for debugging
+    if (!authContext.isAuthenticated && authContext.error) {
+      console.warn('[GRAPHQL AUTH] Authentication failed:', {
+        error: authContext.error,
+        authSource: authContext.authSource,
+      });
+    }
 
     return {
       req,

@@ -86,7 +86,7 @@ export function ProgressiveDataLoader<T>({
   if (error) {
     return (
       <div className="text-center py-4">
-        <div className="text-red-500 dark:text-red-400 mb-2">Failed to load {dataKey}</div>
+        <div className="text-semantic-error mb-2">Failed to load {dataKey}</div>
         <button
           onClick={() => {
             setError(null);
@@ -94,7 +94,7 @@ export function ProgressiveDataLoader<T>({
             // Clear cache and retry
             dataCache.delete(dataKey);
           }}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
+          className="px-4 py-2 bg-brand-primary text-text-inverse rounded-lg hover:bg-brand-primary-hover transition-colors text-sm"
         >
           Retry
         </button>

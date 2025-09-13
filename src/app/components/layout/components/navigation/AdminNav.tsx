@@ -59,8 +59,8 @@ function AdminNavE2E({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 ${
+            isAdminActive ? 'text-brand-primary font-semibold' : 'hover:text-brand-primary'
           }`}
           aria-haspopup="menu"
           aria-expanded={isAdminActive}
@@ -132,8 +132,8 @@ function AdminNavContent({
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            isAdminActive ? 'text-blue-600 font-semibold' : 'hover:text-blue-600'
+          className={`flex items-center space-x-1 text-base lg:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 ${
+            isAdminActive ? 'text-brand-primary font-semibold' : 'hover:text-brand-primary'
           }`}
           aria-haspopup="menu"
           aria-expanded={isAdminActive}
@@ -232,7 +232,7 @@ function AdminNavWithAuthSafe({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-blue-500 text-white shadow-sm mb-3 mx-auto hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400`}
+            className={`w-[90vw] sm:w-[70vw] md:w-[400px] max-w-xs h-10 flex items-center justify-center text-sm whitespace-nowrap rounded font-semibold transition-all duration-150 bg-brand-primary text-text-inverse shadow-sm mb-3 mx-auto hover:bg-brand-primary-hover focus:outline-none focus:ring-2 focus:ring-brand-primary/40`}
             aria-haspopup="menu"
             aria-expanded={isAdmin}
           >

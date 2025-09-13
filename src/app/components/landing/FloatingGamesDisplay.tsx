@@ -62,7 +62,7 @@ export function FloatingGamesDisplay() {
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4 text-white">
+        <div className="bg-gradient-to-r from-brand-primary to-semantic-warning p-4 text-text-inverse">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5" />
             <h3 className="text-lg font-semibold">Latest Games</h3>
@@ -72,10 +72,10 @@ export function FloatingGamesDisplay() {
           <div className="space-y-3">
             {['skeleton-1', 'skeleton-2', 'skeleton-3', 'skeleton-4'].map(key => (
               <div key={key} className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full" />
+                <div className="w-8 h-8 bg-bg-theme-secondary rounded-full" />
                 <div className="flex-1">
-                  <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-3/4 mb-2" />
-                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+                  <div className="h-4 bg-bg-theme-secondary rounded w-3/4 mb-2" />
+                  <div className="h-3 bg-bg-theme-secondary rounded w-1/2" />
                 </div>
               </div>
             ))}
@@ -97,11 +97,11 @@ export function FloatingGamesDisplay() {
         className="fixed right-4 sm:right-6 md:right-8 w-80 h-14 sm:w-96 md:w-[420px] sm:h-16 md:h-18 animate-in slide-in-from-right-8 fade-in duration-700 delay-300 group z-50"
         style={{ top: `${bannerHeight + 8}px` }}
       >
-        <div className="bg-gradient-to-r from-gray-600 to-gray-700 p-1 sm:p-1.5 text-white transition-all duration-300 rounded-lg shadow-md">
+        <div className="bg-gradient-to-r from-theme-muted to-theme-secondary p-1 sm:p-1.5 text-text-inverse transition-all duration-300 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="relative flex items-center">
-                <div className="w-2 h-2 bg-gray-400 rounded-full" />
+                <div className="w-2 h-2 bg-theme-muted rounded-full" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs sm:text-sm font-bold leading-tight">0 Live Games</span>
@@ -140,11 +140,11 @@ export function FloatingGamesDisplay() {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'live':
-        return 'text-red-600 dark:text-red-400';
+        return 'text-semantic-error';
       case 'finished':
-        return 'text-green-600 dark:text-green-400';
+        return 'text-semantic-success';
       default:
-        return 'text-gray-600 dark:text-gray-400';
+        return 'text-theme-muted';
     }
   };
 
@@ -152,9 +152,9 @@ export function FloatingGamesDisplay() {
     const statusLower = status.toLowerCase();
     switch (statusLower) {
       case 'live':
-        return <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />;
+        return <div className="w-2 h-2 bg-semantic-error rounded-full animate-pulse" />;
       case 'finished':
-        return <div className="w-2 h-2 bg-green-500 rounded-full" />;
+        return <div className="w-2 h-2 bg-semantic-success rounded-full" />;
       default:
         return <Clock className="w-3 h-3" />;
     }
@@ -164,7 +164,7 @@ export function FloatingGamesDisplay() {
     <>
       {/* Mobile version - stacked below game logs */}
       <div
-        className={`fixed left-2 right-2 w-auto bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in slide-in-from-top-8 fade-in duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group sm:hidden floating-component-secondary ${
+        className={`fixed left-2 right-2 w-auto bg-surface-card rounded-xl shadow-2xl border border-theme-primary overflow-hidden animate-in slide-in-from-top-8 fade-in duration-700 delay-300 hover:shadow-3xl hover:scale-[1.02] transition-all duration-300 group sm:hidden floating-component-secondary ${
           isSmallScreen ? 'h-64' : 'h-56'
         }`}
         style={{
@@ -174,7 +174,7 @@ export function FloatingGamesDisplay() {
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-3 text-white group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300">
+        <div className="bg-gradient-to-r from-brand-primary to-semantic-warning p-3 text-text-inverse group-hover:from-brand-primary-hover group-hover:to-semantic-warning/90 transition-all duration-300">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Trophy className="w-4 h-4" />
@@ -199,7 +199,7 @@ export function FloatingGamesDisplay() {
               {/* Simplified mobile content */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 flex-1">
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-bg-theme-secondary rounded-full flex items-center justify-center">
                     {currentGame.teams?.home?.logo ? (
                       <Image
                         src={currentGame.teams.home.logo}
@@ -209,38 +209,38 @@ export function FloatingGamesDisplay() {
                         className="rounded-full"
                       />
                     ) : (
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                      <span className="text-xs font-semibold text-theme-muted">
                         {currentGame.teams?.home?.name?.charAt(0) || 'H'}
                       </span>
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs break-words leading-tight">
+                    <div className="font-semibold text-theme-primary text-xs break-words leading-tight">
                       {currentGame.teams?.home?.name || 'Home Team'}
                     </div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg font-bold text-theme-primary">
                       {currentGame.scores?.home?.points || '-'}
                     </div>
                   </div>
                 </div>
 
                 <div className="text-center mx-2">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">VS</div>
-                  <div className="text-xs text-gray-600 dark:text-gray-400">
+                  <div className="text-xs text-theme-muted mb-1">VS</div>
+                  <div className="text-xs text-theme-muted">
                     {formatGameDate(currentGame).split(',')[0]}
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2 flex-1 justify-end">
                   <div className="flex-1 text-right">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs break-words leading-tight">
+                    <div className="font-semibold text-theme-primary text-xs break-words leading-tight">
                       {currentGame.teams?.visitors?.name || 'Away Team'}
                     </div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg font-bold text-theme-primary">
                       {currentGame.scores?.visitors?.points || '-'}
                     </div>
                   </div>
-                  <div className="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-bg-theme-secondary rounded-full flex items-center justify-center">
                     {currentGame.teams?.visitors?.logo ? (
                       <Image
                         src={currentGame.teams.visitors.logo}
@@ -250,7 +250,7 @@ export function FloatingGamesDisplay() {
                         className="rounded-full"
                       />
                     ) : (
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                      <span className="text-xs font-semibold text-theme-muted">
                         {currentGame.teams?.visitors?.name?.charAt(0) || 'A'}
                       </span>
                     )}
@@ -264,10 +264,10 @@ export function FloatingGamesDisplay() {
                   onClick={() =>
                     setCurrentIndex(prev => (prev - 1 + liveGames.length) % liveGames.length)
                   }
-                  className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-1 rounded-full bg-bg-theme-secondary hover:bg-bg-theme-tertiary transition-colors"
                   disabled={liveGames.length <= 1}
                 >
-                  <ChevronLeft className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                  <ChevronLeft className="w-3 h-3 text-theme-muted" />
                 </button>
 
                 <div className="flex gap-1 justify-center flex-1 mx-2">
@@ -276,7 +276,7 @@ export function FloatingGamesDisplay() {
                       key={`mobile-game-dot-${game.id}`}
                       onClick={() => setCurrentIndex(index)}
                       className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                        index === currentIndex ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                        index === currentIndex ? 'bg-brand-primary' : 'bg-bg-theme-secondary'
                       }`}
                     />
                   ))}
@@ -284,17 +284,17 @@ export function FloatingGamesDisplay() {
 
                 <button
                   onClick={() => setCurrentIndex(prev => (prev + 1) % liveGames.length)}
-                  className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-1 rounded-full bg-bg-theme-secondary hover:bg-bg-theme-tertiary transition-colors"
                   disabled={liveGames.length <= 1}
                 >
-                  <ChevronRight className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                  <ChevronRight className="w-3 h-3 text-theme-muted" />
                 </button>
               </div>
 
               {/* Mobile View All Button */}
               <Link
                 href="/sports/all-sports"
-                className="block w-full text-center py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-xs font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                className="block w-full text-center py-2 bg-gradient-to-r from-brand-primary to-semantic-warning text-text-inverse rounded-lg text-xs font-medium hover:from-brand-primary-hover hover:to-semantic-warning/90 transition-all duration-200 transform hover:scale-105"
               >
                 View All Games
               </Link>
@@ -305,19 +305,19 @@ export function FloatingGamesDisplay() {
 
       {/* Desktop version - replaces banner at top */}
       <div
-        className="fixed top-0 left-0 right-0 w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-gray-900 to-blue-900 animate-in slide-in-from-top-8 fade-in duration-700 delay-300 group z-[60] shadow-lg"
+        className="fixed top-0 left-0 right-0 w-full h-14 sm:h-16 md:h-18 bg-gradient-to-r from-theme-muted to-brand-primary animate-in slide-in-from-top-8 fade-in duration-700 delay-300 group z-[60] shadow-lg"
         style={{ top: '0px' }}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-1 sm:p-1.5 text-white group-hover:from-blue-700 group-hover:to-purple-700 transition-all duration-300 rounded-lg shadow-md">
+        <div className="bg-gradient-to-r from-brand-primary to-semantic-warning p-1 sm:p-1.5 text-text-inverse group-hover:from-brand-primary-hover group-hover:to-semantic-warning/90 transition-all duration-300 rounded-lg shadow-md">
           <div className="flex items-center justify-between">
             {/* Live Status with Pulse */}
             <div className="flex items-center gap-2">
               <div className="relative flex items-center">
-                <div className="w-2 h-2 bg-red-500 rounded-full" />
-                <div className="absolute w-2 h-2 bg-red-500 rounded-full animate-ping" />
+                <div className="w-2 h-2 bg-semantic-error rounded-full" />
+                <div className="absolute w-2 h-2 bg-semantic-error rounded-full animate-ping" />
               </div>
               <div className="flex flex-col">
                 <span className="text-xs sm:text-sm font-bold leading-tight">
@@ -353,27 +353,25 @@ export function FloatingGamesDisplay() {
             >
               {/* Arena Info */}
               {currentGame.arena && (
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
+                <div className="bg-bg-theme-secondary rounded-lg p-2 sm:p-3 mb-3 sm:mb-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-1 sm:gap-2">
-                      <div className="w-3 h-3 sm:w-4 sm:h-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                          🏟️
-                        </span>
+                      <div className="w-3 h-3 sm:w-4 sm:h-4 bg-semantic-info/10 rounded-full flex items-center justify-center">
+                        <span className="text-xs font-semibold text-semantic-info">🏟️</span>
                       </div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <span className="text-xs sm:text-sm font-medium text-theme-primary truncate">
                         {currentGame.arena.name}
                       </span>
                     </div>
                     {currentGame.arena.city && (
-                      <span className="text-xs text-gray-500 dark:text-gray-400 z-50">
+                      <span className="text-xs text-theme-muted z-50">
                         {currentGame.arena.city}
                         {currentGame.arena.state && `, ${currentGame.arena.state}`}
                       </span>
                     )}
                   </div>
                   {(currentGame.arena as { country?: string })?.country && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 z-50">
+                    <div className="text-xs text-theme-muted mt-1 z-50">
                       {(currentGame.arena as { country?: string })?.country}
                     </div>
                   )}
@@ -383,7 +381,7 @@ export function FloatingGamesDisplay() {
               {/* Team Logos and Scores */}
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-1 sm:gap-2 flex-1 min-w-0">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-theme-secondary rounded-full flex items-center justify-center flex-shrink-0">
                     {currentGame.teams?.home?.logo ? (
                       <Image
                         src={currentGame.teams.home.logo}
@@ -394,23 +392,23 @@ export function FloatingGamesDisplay() {
                         style={{ width: 'auto', height: 'auto' }}
                       />
                     ) : (
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                      <span className="text-xs font-semibold text-theme-muted">
                         {currentGame.teams?.home?.name?.charAt(0) || 'H'}
                       </span>
                     )}
                   </div>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs truncate">
+                    <div className="font-semibold text-theme-primary text-xs truncate">
                       {currentGame.teams?.home?.name || 'Home Team'}
                     </div>
-                    <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg sm:text-xl font-bold text-theme-primary">
                       {currentGame.scores?.home?.points || '-'}
                     </div>
                   </div>
                 </div>
 
                 <div className="text-center mx-2 sm:mx-3 flex-shrink-0">
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">VS</div>
+                  <div className="text-xs text-theme-muted mb-1">VS</div>
                   <div
                     className={`text-xs font-medium flex items-center gap-1 justify-center ${getStatusColor(typeof currentGame.status === 'string' ? currentGame.status : currentGame.status?.short || 'scheduled')}`}
                   >
@@ -429,14 +427,14 @@ export function FloatingGamesDisplay() {
 
                 <div className="flex items-center gap-1 sm:gap-2 flex-1 justify-end min-w-0">
                   <div className="flex-1 text-right">
-                    <div className="font-semibold text-gray-900 dark:text-white text-xs truncate">
+                    <div className="font-semibold text-theme-primary text-xs truncate">
                       {currentGame.teams?.visitors?.name || 'Away Team'}
                     </div>
-                    <div className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
+                    <div className="text-lg sm:text-xl font-bold text-theme-primary">
                       {currentGame.scores?.visitors?.points || '-'}
                     </div>
                   </div>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-bg-theme-secondary rounded-full flex items-center justify-center flex-shrink-0">
                     {currentGame.teams?.visitors?.logo ? (
                       <Image
                         src={currentGame.teams.visitors.logo}
@@ -447,7 +445,7 @@ export function FloatingGamesDisplay() {
                         style={{ width: 'auto', height: 'auto' }}
                       />
                     ) : (
-                      <span className="text-xs font-semibold text-gray-600 dark:text-gray-400">
+                      <span className="text-xs font-semibold text-theme-muted">
                         {currentGame.teams?.visitors?.name?.charAt(0) || 'A'}
                       </span>
                     )}
@@ -456,7 +454,7 @@ export function FloatingGamesDisplay() {
               </div>
 
               {/* Game Info */}
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-3">
+              <div className="flex items-center justify-between text-xs text-theme-muted mb-3">
                 <div className="flex items-center gap-1">
                   <Calendar className="w-3 h-3" />
                   <span className="hidden sm:inline">{formatGameDate(currentGame)}</span>
@@ -480,22 +478,20 @@ export function FloatingGamesDisplay() {
                 return (
                   isLive &&
                   currentGame.periods && (
-                    <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 mb-3 border border-red-200 dark:border-red-800">
+                    <div className="bg-semantic-error/10 rounded-lg p-3 mb-3 border border-semantic-error/30">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                          <span className="text-sm font-medium text-red-700 dark:text-red-300">
+                          <div className="w-2 h-2 bg-semantic-error rounded-full animate-pulse" />
+                          <span className="text-sm font-medium text-semantic-error">
                             LIVE - Q{currentGame.periods.current}
                           </span>
                         </div>
-                        <span className="text-xs text-red-600 dark:text-red-400">
+                        <span className="text-xs text-semantic-error">
                           {currentGame.periods.total} periods
                         </span>
                       </div>
                       {(currentGame.periods as { endOfPeriod?: boolean })?.endOfPeriod && (
-                        <div className="text-xs text-red-600 dark:text-red-400 mt-1">
-                          End of period
-                        </div>
+                        <div className="text-xs text-semantic-error mt-1">End of period</div>
                       )}
                     </div>
                   )
@@ -508,10 +504,10 @@ export function FloatingGamesDisplay() {
                   onClick={() =>
                     setCurrentIndex(prev => (prev - 1 + liveGames.length) % liveGames.length)
                   }
-                  className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-1 rounded-full bg-bg-theme-secondary hover:bg-bg-theme-tertiary transition-colors"
                   disabled={liveGames.length <= 1}
                 >
-                  <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                  <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 text-theme-muted" />
                 </button>
 
                 <div className="flex gap-1 flex-wrap justify-center flex-1 mx-2">
@@ -522,12 +518,12 @@ export function FloatingGamesDisplay() {
                         key={`game-navigation-dot-${game.id}`}
                         onClick={() => setCurrentIndex(index)}
                         className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-colors ${
-                          index === currentIndex ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
+                          index === currentIndex ? 'bg-brand-primary' : 'bg-bg-theme-secondary'
                         }`}
                       />
                     ))}
                   {liveGames.length > (isLargeScreen ? 8 : isMediumScreen ? 6 : 4) && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 ml-2 hidden sm:inline">
+                    <span className="text-xs text-theme-muted ml-2 hidden sm:inline">
                       +{liveGames.length - (isLargeScreen ? 8 : isMediumScreen ? 6 : 4)} more
                     </span>
                   )}
@@ -535,17 +531,17 @@ export function FloatingGamesDisplay() {
 
                 <button
                   onClick={() => setCurrentIndex(prev => (prev + 1) % liveGames.length)}
-                  className="p-1 rounded-full bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                  className="p-1 rounded-full bg-bg-theme-secondary hover:bg-bg-theme-tertiary transition-colors"
                   disabled={liveGames.length <= 1}
                 >
-                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-gray-600 dark:text-gray-400" />
+                  <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 text-theme-muted" />
                 </button>
               </div>
 
               {/* View All Button */}
               <Link
                 href="/sports/all-sports"
-                className="block w-full text-center py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg text-xs sm:text-sm font-medium hover:from-blue-700 hover:to-purple-700 transition-all duration-200 transform hover:scale-105"
+                className="block w-full text-center py-2 bg-gradient-to-r from-brand-primary to-semantic-warning text-text-inverse rounded-lg text-xs sm:text-sm font-medium hover:from-brand-primary-hover hover:to-semantic-warning/90 transition-all duration-200 transform hover:scale-105"
               >
                 View All Games
               </Link>

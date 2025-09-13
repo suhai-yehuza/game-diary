@@ -39,17 +39,17 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
         <CardContent>
           <div className="text-center py-8">
             {isNoDataError ? (
-              <div className="text-gray-500">
+              <div className="text-theme-muted">
                 <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-50" />
                 <p>No game statistics available for this game</p>
-                <p className="text-sm text-gray-400 mt-1">
+                <p className="text-sm text-theme-muted mt-1">
                   Statistics may not be available for this game yet
                 </p>
               </div>
             ) : (
-              <div className="text-red-500">
+              <div className="text-semantic-error">
                 <p>Failed to load game statistics</p>
-                <p className="text-sm text-gray-500 mt-1">{error}</p>
+                <p className="text-sm text-theme-muted mt-1">{error}</p>
               </div>
             )}
           </div>
@@ -68,7 +68,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-theme-muted">
             <BarChart3 className="w-12 h-12 mx-auto mb-3 opacity-50" />
             <p>No game statistics available</p>
           </div>
@@ -96,7 +96,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
             return (
               <div key={team.team.id} className="space-y-4">
                 {/* Team Header */}
-                <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="flex items-center gap-3 p-4 bg-bg-theme-secondary rounded-lg">
                   <Image
                     src={team.team.logo}
                     alt={`${team.team.name} logo`}
@@ -106,7 +106,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
                   />
                   <div>
                     <h3 className="font-semibold text-lg">{team.team.name}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{team.team.nickname}</p>
+                    <p className="text-sm text-theme-muted">{team.team.nickname}</p>
                   </div>
                 </div>
 
@@ -114,7 +114,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {/* Scoring */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                    <h4 className="font-medium text-sm text-theme-secondary flex items-center gap-1">
                       <Target className="w-4 h-4" />
                       Scoring
                     </h4>
@@ -146,7 +146,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
 
                   {/* Rebounding */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                    <h4 className="font-medium text-sm text-theme-secondary flex items-center gap-1">
                       <Zap className="w-4 h-4" />
                       Rebounding
                     </h4>
@@ -168,9 +168,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
 
                   {/* Other Stats */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">
-                      Other Stats
-                    </h4>
+                    <h4 className="font-medium text-sm text-theme-secondary">Other Stats</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span>Assists:</span>
@@ -193,7 +191,7 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
 
                   {/* Advanced Stats */}
                   <div className="space-y-2">
-                    <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                    <h4 className="font-medium text-sm text-theme-secondary flex items-center gap-1">
                       <Clock className="w-4 h-4" />
                       Advanced
                     </h4>
@@ -206,7 +204,9 @@ export function GameStats({ gameStats, loading, error }: IGameStatsProps) {
                         <span>+/-:</span>
                         <span
                           className={
-                            parseFloat(stats.plusMinus) >= 0 ? 'text-green-600' : 'text-red-600'
+                            parseFloat(stats.plusMinus) >= 0
+                              ? 'text-semantic-success'
+                              : 'text-semantic-error'
                           }
                         >
                           {stats.plusMinus}

@@ -120,7 +120,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
 
   // Get team IDs for fetching players
   const homeTeamId = game?.teams?.home?.id?.toString();
-  const awayTeamId = game?.teams?.visitors?.id?.toString();
+  const awayTeamId = game?.teams?.away?.id?.toString();
 
   // Fetch team players for both teams
   const {
@@ -203,9 +203,9 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         const response = await fetch(`/api/games/${gameId}`);
         if (response.ok) {
           const data = await response.json();
-          if (data.response) {
+          if (data.data) {
             console.log(`✅ Found game ${gameId} via API`);
-            setGame(data.response);
+            setGame(data.data);
             setError(null);
           } else {
             console.log(`❌ No game data in API response for ${gameId}`);
@@ -282,7 +282,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
     const awayScore = game.scores.visitors.points;
 
     if (homeScore > awayScore) return 'home';
-    if (awayScore > homeScore) return 'visitors';
+    if (awayScore > homeScore) return 'away';
     return 'tie';
   };
 
@@ -334,7 +334,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
 
   return (
     <SportsPageLayout
-      title={`${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
+      title={`${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
       description={`NBA Game - ${formatGameDate(typeof game.date === 'string' ? game.date : game.date?.start || '')}`}
       showLiveGamesButton={false}
     >
@@ -392,7 +392,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">
-              {game.teams?.visitors?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
+              {game.teams?.away?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
             </CardTitle>
             <Badge
               className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'scheduled')}`}
@@ -431,30 +431,30 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
             {/* Away Team */}
             <div
               className={`text-center p-6 rounded-lg border-2 ${
-                winner === 'visitors'
+                winner === 'away'
                   ? 'border-green-500 bg-green-50 dark:bg-green-900/10'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
             >
               <div className="mb-4">
-                {game.teams?.visitors?.logo && (
+                {game.teams?.away?.logo && (
                   <Image
-                    src={game.teams?.visitors?.logo}
-                    alt={`${game.teams?.visitors?.name || 'Team'} logo`}
+                    src={game.teams?.away?.logo}
+                    alt={`${game.teams?.away?.name || 'Team'} logo`}
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
                   />
                 )}
                 <h3 className="text-xl font-bold score-text">
-                  {game.teams?.visitors?.name || 'Unknown'}
+                  {game.teams?.away?.name || 'Unknown'}
                 </h3>
-                <p className="nba-team-nickname">{game.teams?.visitors?.nickname || ''}</p>
+                <p className="nba-team-nickname">{game.teams?.away?.nickname || ''}</p>
               </div>
               <div className="text-4xl font-bold score-text">
                 {game.scores?.visitors?.points ?? '-'}
               </div>
-              {winner === 'visitors' && (
+              {winner === 'away' && (
                 <div className="mt-2">
                   <Trophy className="w-5 h-5 text-green-600 mx-auto" />
                 </div>
@@ -538,13 +538,11 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-2 font-medium">
-                          {game.teams?.visitors?.nickname || 'Visitors'}
-                        </td>
+                        <td className="py-2 font-medium">{game.teams?.away?.nickname || 'Away'}</td>
                         {(
                           game.scores?.visitors as { points: number; linescore?: number[] }
                         )?.linescore?.map((score: number, index: number) => (
-                          <td key={`visitors-q${index + 1}`} className="text-center py-2">
+                          <td key={`away-q${index + 1}`} className="text-center py-2">
                             {score}
                           </td>
                         )) || []}
@@ -679,10 +677,10 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
             ? (() => {
                 const preSelectedGame = {
                   id: game.id,
-                  name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
+                  name: `${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
                   date: typeof game.date === 'string' ? game.date : game.date?.start || '',
                   homeTeam: game.teams?.home?.name || 'Unknown',
-                  awayTeam: game.teams?.visitors?.name || 'Unknown',
+                  awayTeam: game.teams?.away?.name || 'Unknown',
                 };
                 console.log('🔍 preSelectedGame for modal:', preSelectedGame);
                 return preSelectedGame;

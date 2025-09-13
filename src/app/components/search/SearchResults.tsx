@@ -10,7 +10,6 @@ import { SearchAnalytics, useSearchAnalytics } from '@/app/components/search/Sea
 import { TeamSearchResult } from '@/app/components/search/TeamSearchResult';
 import { UserSearchResult } from '@/app/components/search/UserSearchResult';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
-import { TAILWIND_CLASSES } from '@/lib/constants/colors';
 import type { ISearchResultsProps, IResultType } from '@/types';
 
 export function SearchResults({ results, query }: ISearchResultsProps) {
@@ -99,9 +98,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                 <span className="hidden sm:inline">•</span>
                 <span>
                   Results for:&nbsp;
-                  <span className="font-medium text-gray-900 dark:text-white">
-                    &quot;{query}&quot;
-                  </span>
+                  <span className="font-medium text-theme-primary">&quot;{query}&quot;</span>
                 </span>
                 {searchInsights.mostRelevant && (
                   <>
@@ -116,7 +113,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                className="inline-flex items-center gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-theme-secondary bg-surface-card border border-theme-primary rounded-md hover:bg-bg-theme-secondary transition-colors"
               >
                 <Settings className="w-3 h-3 sm:w-4 sm:h-4" />
                 <span className="hidden sm:inline">
@@ -129,10 +126,10 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
 
           {/* Advanced Filters Panel */}
           {showAdvancedFilters && (
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-4">
+            <div className="border-t border-theme-primary pt-4 space-y-4">
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium text-theme-secondary mb-2">
                     Sort by
                   </label>
                   <select
@@ -144,7 +141,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
                         | 'name';
                       handleSortChange(value);
                     }}
-                    className="w-full px-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm bg-surface-card border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary"
                   >
                     <option value="Sort by Relevance">Sort by Relevance</option>
                     <option value="Sort by Date">Sort by Date</option>
@@ -158,20 +155,20 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
           {/* Filter Buttons */}
           <div className="flex flex-wrap gap-1 sm:gap-2">
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'all'
-                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-info/10 text-semantic-info border border-semantic-info/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('all')}
             >
               All ({formatNumberShort(searchInsights.total)})
             </button>
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'users'
-                  ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-success/10 text-semantic-success border border-semantic-success/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('users')}
             >
@@ -181,23 +178,23 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               </span>
             </button>
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'games'
-                  ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-warning/10 text-semantic-warning border border-semantic-warning/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('games')}
             >
               <Gamepad2 className="w-3 h-3 sm:w-4 sm:h-4" />
-              <span className={activeFilter === 'games' ? TAILWIND_CLASSES.status.info : ''}>
+              <span className={activeFilter === 'games' ? 'text-semantic-info' : ''}>
                 Games ({formatNumberShort(getFilterCount('games'))})
               </span>
             </button>
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'gameLogs'
-                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-info/10 text-semantic-info border border-semantic-info/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('gameLogs')}
             >
@@ -205,10 +202,10 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               Game Logs ({formatNumberShort(getFilterCount('gameLogs'))})
             </button>
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'teams'
-                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700'
-                  : 'text-gray-400 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-info/10 text-semantic-info border border-semantic-info/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('teams')}
             >
@@ -216,10 +213,10 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               Teams ({formatNumberShort(getFilterCount('teams'))})
             </button>
             <button
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-200 ${
+              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
                 activeFilter === 'players'
-                  ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-900 dark:text-emerald-100 border border-emerald-300 dark:border-emerald-700'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-gray-700/50'
+                  ? 'bg-semantic-success/10 text-semantic-success border border-semantic-success/30 shadow-sm'
+                  : 'text-theme-secondary hover:text-theme-primary hover:bg-bg-theme-secondary border border-transparent'
               }`}
               onClick={() => handleFilterChange('players')}
             >
@@ -231,11 +228,9 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
 
         {/* Search Tips for short queries */}
         {query.length <= 2 && searchInsights.total > 0 && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3">
-              Search Tips
-            </h3>
-            <ul className="space-y-2 text-sm text-blue-800 dark:text-blue-200">
+          <div className="bg-semantic-info/10 border border-semantic-info/30 rounded-xl p-6">
+            <h3 className="text-lg font-semibold text-semantic-info mb-3">Search Tips</h3>
+            <ul className="space-y-2 text-sm text-semantic-info">
               <li>• Use quotes for exact phrases (e.g., &quot;Lakers vs Warriors&quot;)</li>
               <li>• Search by team names, player names, or game dates</li>
               <li>• Try longer search terms for more specific results</li>
@@ -246,14 +241,14 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
         {/* Results Content */}
         {searchInsights.total === 0 ? (
           <div className="text-center py-12">
-            <Search className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <Search className="w-16 h-16 text-theme-muted mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-theme-primary mb-2">
               No results found for &quot;{query}&quot;
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-theme-secondary mb-6">
               Try adjusting your search terms or filters to find what you&apos;re looking for.
             </p>
-            <div className="space-y-2 text-sm text-gray-500 dark:text-gray-500">
+            <div className="space-y-2 text-sm text-theme-muted">
               <p>• Check your spelling</p>
               <p>• Try different or more general keywords</p>
               <p>• Use fewer words in your search</p>
@@ -265,7 +260,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             {(activeFilter === 'all' || activeFilter === 'users') &&
               getFilterCount('users') > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-theme-primary mb-4">
                     Users ({formatNumberShort(getFilterCount('users'))})
                   </h2>
                   <div className="space-y-3">
@@ -282,7 +277,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             {(activeFilter === 'all' || activeFilter === 'games') &&
               getFilterCount('games') > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-theme-primary mb-4">
                     Games ({formatNumberShort(getFilterCount('games'))})
                   </h2>
                   <div className="space-y-3">
@@ -299,7 +294,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             {(activeFilter === 'all' || activeFilter === 'gameLogs') &&
               getFilterCount('gameLogs') > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-theme-primary mb-4">
                     Game Logs ({formatNumberShort(getFilterCount('gameLogs'))})
                   </h2>
                   <div className="space-y-3">
@@ -316,7 +311,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             {(activeFilter === 'all' || activeFilter === 'teams') &&
               getFilterCount('teams') > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-theme-primary mb-4">
                     Teams ({formatNumberShort(getFilterCount('teams'))})
                   </h2>
                   <div className="space-y-3">
@@ -333,7 +328,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
             {(activeFilter === 'all' || activeFilter === 'players') &&
               getFilterCount('players') > 0 && (
                 <div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">
+                  <h2 className="text-xl font-semibold text-theme-primary mb-4">
                     Players ({formatNumberShort(getFilterCount('players'))})
                   </h2>
                   <div className="space-y-3">

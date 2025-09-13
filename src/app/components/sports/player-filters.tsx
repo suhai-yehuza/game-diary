@@ -48,8 +48,8 @@ export function PlayerFilters({
     <Card className="player-filters-enhanced shadow-md">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white dark:text-gray-900 flex items-center gap-2">
-            <User className="w-5 h-5 text-blue-400 dark:text-blue-600" />
+          <CardTitle className="text-theme-primary flex items-center gap-2">
+            <User className="w-5 h-5 text-semantic-info" />
             Player Filters
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export function PlayerFilters({
                 variant="outline"
                 size="sm"
                 onClick={onClearFilters}
-                className="text-red-400 dark:text-red-600 border-red-400 dark:border-red-600 hover:bg-red-900/20 dark:hover:bg-red-50 font-medium"
+                className="text-semantic-error border-semantic-error hover:bg-semantic-error/10 font-medium"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear All
@@ -68,7 +68,7 @@ export function PlayerFilters({
               variant="outline"
               size="sm"
               onClick={onToggleAdvancedFilters}
-              className="border-slate-300 dark:border-gray-300 hover:bg-slate-200 dark:hover:bg-gray-100 hover:border-slate-400 dark:hover:border-gray-400 font-medium text-slate-100 dark:text-gray-700"
+              className="border-theme-primary hover:bg-bg-theme-secondary hover:border-theme-secondary font-medium text-theme-primary"
             >
               <SlidersHorizontal className="w-4 h-4 mr-1" />
               {showAdvancedFilters ? 'Hide Advanced' : 'Show Advanced'}
@@ -85,7 +85,7 @@ export function PlayerFilters({
         {/* Basic Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
           <div className="relative sm:col-span-2 lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-theme-muted w-4 h-4" />
             <Input
               placeholder="Search players by name..."
               value={filters.searchTerm}
