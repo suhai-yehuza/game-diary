@@ -22,11 +22,10 @@ export function useBannerVisibility() {
   // Only run banner detection on client side to avoid hydration mismatches
   const shouldDisplayBanner =
     isClient &&
-    // Real live games
+    // Show banner if there are games OR if we're in mock/test mode (games will load)
     ((games && games.length > 0) ||
-      // Mock mode (consolidated) or test environment
-      isMockModeEnabled() ||
-      isTestOrCIEnvironment());
+      // In mock mode or test environment, show banner even if games haven't loaded yet
+      (isMockModeEnabled() || isTestOrCIEnvironment()));
 
   return {
     shouldDisplayBanner,
