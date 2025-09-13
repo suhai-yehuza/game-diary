@@ -146,13 +146,13 @@ export const API_LIMITS = {
 
   // Sports data limits
   GAMES: {
-    DEFAULT: 50,
+    DEFAULT: 100,
     LARGE: 500,
     MAX: 2000,
   },
 
   PLAYERS: {
-    DEFAULT: 50,
+    DEFAULT: 100,
     LARGE: 200,
     MAX: 1000,
   },
@@ -164,19 +164,19 @@ export const API_LIMITS = {
   },
 
   GAME_LOGS: {
-    DEFAULT: 50,
+    DEFAULT: 100,
     LARGE: 500,
     MAX: 2000,
   },
 
   USERS: {
-    DEFAULT: 50,
+    DEFAULT: 100,
     LARGE: 500,
     MAX: 2000,
   },
 
   SEARCH: {
-    DEFAULT: 50,
+    DEFAULT: 100,
     LARGE: 200,
     MAX: 1000,
   },

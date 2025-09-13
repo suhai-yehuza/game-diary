@@ -365,8 +365,8 @@ export default function TableWithSearch<
     return (
       <tr
         key={row.id}
-        className={`transition-all duration-200 ease-in-out hover:bg-slate-50 dark:hover:bg-slate-800/50 border-r border-slate-100 dark:border-slate-800 last:border-r-0 ${
-          isSelected ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+        className={`transition-all duration-200 ease-in-out hover:bg-bg-theme-secondary border-r border-theme-primary last:border-r-0 ${
+          isSelected ? 'bg-semantic-info/10' : ''
         }`}
       >
         <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">
@@ -374,7 +374,7 @@ export default function TableWithSearch<
             type="checkbox"
             checked={isSelected}
             onChange={() => handleSelectItem(row.id)}
-            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+            className="w-4 h-4 text-brand-primary bg-bg-theme-secondary border-theme-primary rounded focus:ring-brand-primary focus:ring-2"
           />
         </td>
         <td className="px-2 sm:px-6 py-2 sm:py-4 text-xs sm:text-sm font-medium text-slate-600 dark:text-slate-400 border-r border-slate-100 dark:border-slate-800 whitespace-nowrap">

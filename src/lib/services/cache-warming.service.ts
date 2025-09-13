@@ -1,5 +1,5 @@
-import { getAppUrl } from '@/lib/config/app.config';
 import { logger } from '@/lib/utils/logger';
+import { getServerApiUrl } from '@/lib/utils/server-api-client';
 
 /**
  * Background service for automatically warming caches
@@ -153,7 +153,7 @@ export class CacheWarmingService {
   private async getAvailableSeasons(): Promise<number[]> {
     try {
       // Query the database to get available seasons
-      const response = await fetch(`${getAppUrl()}/api/games?season=all&page=1&limit=1`);
+      const response = await fetch(getServerApiUrl('/api/games?season=all&page=1&limit=1'));
       if (!response.ok) {
         // If we can't query the database, fall back to recent seasons
         logger.warn('Could not query database for available seasons, using fallback');
@@ -188,7 +188,7 @@ export class CacheWarmingService {
 
       for (const page of pagesToWarm) {
         const response = await fetch(
-          `${getAppUrl()}/api/games?season=${season}&status=${status}&page=${page}&limit=50`
+          getServerApiUrl(`/api/games?season=${season}&status=${status}&page=${page}&limit=50`)
         );
 
         if (!response.ok) {
@@ -230,8 +230,8 @@ export class CacheWarmingService {
   private async warmPlayersCache(): Promise<void> {
     try {
       const [filterOptionsResponse, playersResponse] = await Promise.all([
-        fetch(`${getAppUrl()}/api/players?options=true`),
-        fetch(`${getAppUrl()}/api/players?limit=5000`), // Use LARGE limit to get all players
+        fetch(getServerApiUrl('/api/players?options=true')),
+        fetch(getServerApiUrl('/api/players?limit=5000')), // Use LARGE limit to get all players
       ]);
 
       if (!filterOptionsResponse.ok || !playersResponse.ok) {
@@ -262,7 +262,7 @@ export class CacheWarmingService {
    */
   private async warmTeamsCache(): Promise<void> {
     try {
-      const response = await fetch(`${getAppUrl()}/api/teams`);
+      const response = await fetch(getServerApiUrl('/api/teams'));
       if (!response.ok) {
         throw new Error(`Failed to warm teams cache: ${response.status}`);
       }
@@ -285,7 +285,7 @@ export class CacheWarmingService {
    */
   private async warmNBAHubCountsCache(): Promise<void> {
     try {
-      const response = await fetch(`${getAppUrl()}/api/nba-hub/counts`);
+      const response = await fetch(getServerApiUrl('/api/nba-hub/counts'));
       if (!response.ok) {
         throw new Error(`Failed to warm NBA Hub counts cache: ${response.status}`);
       }

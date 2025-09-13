@@ -35,9 +35,9 @@ vi.mock('@/app/components/layout/components/AuthControls', () => ({
 }));
 
 vi.mock('@/app/components/layout/components/SearchBar', () => ({
-  SearchBar: ({ isFocused, setIsFocused }: any) => (
+  SearchBar: ({ isFocused, setIsFocusedAction }: any) => (
     <div data-testid="search-bar">
-      <button data-testid="search-focus-button" onClick={() => setIsFocused(!isFocused)}>
+      <button data-testid="search-focus-button" onClick={() => setIsFocusedAction?.(!isFocused)}>
         Toggle Focus
       </button>
       <span data-testid="focus-status">{isFocused ? 'focused' : 'unfocused'}</span>

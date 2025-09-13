@@ -1,6 +1,7 @@
-import { sql } from 'drizzle-orm';
+import { sql, inArray, eq, and, isNull, desc } from 'drizzle-orm';
 
 import { db } from '@/lib/db';
+import { basketball_games, game_ratings } from '@/lib/db/schema';
 
 /**
  * Landing Page SQL Queries
@@ -286,21 +287,33 @@ export async function getPopularGamesQuery() {
   // Extract the game IDs
   const popularGameIds = popularGameIdsResult.rows.map(row => row.game_id as string);
 
-  // Fetch all games in a single optimized query
-  const gamesQuery = sql`
-    SELECT
-      bg.*,
-      gr.average_rating,
-      gr.total_ratings
-    FROM basketball_games bg
-    LEFT JOIN game_ratings gr ON bg.id = gr.game_id
-    WHERE bg.id = ANY(${popularGameIds})
-    AND bg.deleted_at IS NULL
-    ORDER BY gr.average_rating DESC, gr.total_ratings DESC
-  `;
-
-  const gamesResult = await database.execute(gamesQuery);
-  const games = gamesResult.rows || [];
+  // Fetch all games using Drizzle ORM with inArray
+  const games = await database
+    .select({
+      id: basketball_games.id,
+      season: basketball_games.season,
+      game_id: basketball_games.game_id,
+      date: basketball_games.date,
+      stage: basketball_games.stage,
+      teams: basketball_games.teams,
+      status: basketball_games.status,
+      scores: basketball_games.scores,
+      arena: basketball_games.arena,
+      periods: basketball_games.periods,
+      officials: basketball_games.officials,
+      times_tied: basketball_games.times_tied,
+      lead_changes: basketball_games.lead_changes,
+      nugget: basketball_games.nugget,
+      average_rating: game_ratings.average_rating,
+      total_ratings: game_ratings.total_ratings,
+      created_at: basketball_games.created_at,
+      updated_at: basketball_games.updated_at,
+      deleted_at: basketball_games.deleted_at,
+    })
+    .from(basketball_games)
+    .leftJoin(game_ratings, eq(basketball_games.id, game_ratings.game_id))
+    .where(and(inArray(basketball_games.id, popularGameIds), isNull(basketball_games.deleted_at)))
+    .orderBy(desc(game_ratings.average_rating), desc(game_ratings.total_ratings));
 
   return {
     totalCount: totalCountResult.rows?.[0]?.total_count || 0,
@@ -338,8 +351,8 @@ export async function getPopularTeamsQuery() {
     LEFT JOIN (
       SELECT
         CASE
-          WHEN (bg.teams->>'home'->>'id')::text IS NOT NULL THEN (bg.teams->>'home'->>'id')::text
-          WHEN (bg.teams->>'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->>'visitors'->>'id')::text
+          WHEN (bg.teams->'home'->>'id')::text IS NOT NULL THEN (bg.teams->'home'->>'id')::text
+          WHEN (bg.teams->'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->'visitors'->>'id')::text
         END as team_id,
         COUNT(DISTINCT gl.id) as total_game_logs,
         COUNT(DISTINCT CASE WHEN gl.classification = 'PUBLIC' THEN gl.id END) as public_game_logs,
@@ -371,8 +384,8 @@ export async function getPopularTeamsQuery() {
       ) gl_engagement ON gl.id = gl_engagement.id
       WHERE gl.deleted_at IS NULL
         AND (
-          (bg.teams->>'home'->>'id')::text IS NOT NULL OR
-          (bg.teams->>'visitors'->>'id')::text IS NOT NULL
+          (bg.teams->'home'->>'id')::text IS NOT NULL OR
+          (bg.teams->'visitors'->>'id')::text IS NOT NULL
         )
       GROUP BY team_id
     ) team_engagement ON t.id = team_engagement.team_id

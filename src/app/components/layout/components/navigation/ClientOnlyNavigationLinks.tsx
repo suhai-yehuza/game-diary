@@ -20,7 +20,7 @@ export function ClientOnlyNavigationLinks(
             href="/"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-16 h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" />
+            <div className="w-16 h-4 bg-bg-theme-secondary rounded animate-pulse" />
           </Link>
           {Object.values(SPORTS_CONFIG).map(sport => (
             <Link
@@ -28,21 +28,21 @@ export function ClientOnlyNavigationLinks(
               href={sport.href}
               className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
             >
-              <div className="w-8 h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" />
+              <div className="w-8 h-4 bg-bg-theme-secondary rounded animate-pulse" />
             </Link>
           ))}
           <Link
             href="/sports/all-sports"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-16 h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" />
+            <div className="w-16 h-4 bg-bg-theme-secondary rounded animate-pulse" />
           </Link>
-          <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
+          <div className="hidden lg:block h-6 w-px bg-theme-primary mx-3" />
           <Link
             href="/protected/dashboard"
             className="block py-2 lg:py-1.5 text-base lg:text-sm transition-colors whitespace-nowrap flex items-center w-full lg:w-auto h-full"
           >
-            <div className="w-12 h-4 bg-neutral-200 dark:bg-neutral-700 rounded animate-pulse" />
+            <div className="w-12 h-4 bg-bg-theme-secondary rounded animate-pulse" />
           </Link>
         </nav>
       }

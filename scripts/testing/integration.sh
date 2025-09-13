@@ -151,7 +151,21 @@ check_server_running() {
 # Function to run tests directly (fastest)
 run_tests_direct() {
     echo "🚀 Running integration tests directly (server already running)..."
+
+    # Always run cleanup before tests for database/notification tests
+    echo "🧹 Running pre-test cleanup..."
+    if tsx scripts/testing/cleanup-integration-tests.ts --check-only; then
+        echo "✅ Database is clean - proceeding with tests"
+    else
+        echo "🧹 Database needs cleanup - running cleanup..."
+        tsx scripts/testing/cleanup-integration-tests.ts
+    fi
+
     pnpm vitest run ${VITEST_ARGS:-} --config vitest.integration.config.ts
+
+    # Run post-test cleanup
+    echo "🧹 Running post-test cleanup..."
+    tsx scripts/testing/post-integration-cleanup.ts
 }
 
 # Function to manage server and run tests
@@ -230,8 +244,21 @@ run_tests_with_server_management() {
     }
     trap cleanup EXIT
 
+    # Always run cleanup before tests for database/notification tests
+    echo "🧹 Running pre-test cleanup..."
+    if tsx scripts/testing/cleanup-integration-tests.ts --check-only; then
+        echo "✅ Database is clean - proceeding with tests"
+    else
+        echo "🧹 Database needs cleanup - running cleanup..."
+        tsx scripts/testing/cleanup-integration-tests.ts
+    fi
+
     # Run integration tests
     pnpm vitest run ${VITEST_ARGS:-} --config vitest.integration.config.ts
+
+    # Run post-test cleanup
+    echo "🧹 Running post-test cleanup..."
+    tsx scripts/testing/post-integration-cleanup.ts
 }
 
 # Main execution logic

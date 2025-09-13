@@ -179,14 +179,14 @@ export function SearchSuggestions({
 
   const getSuggestionClass = (index: number) => {
     const baseClass =
-      'flex items-center gap-2 xs:gap-2.5 sm:gap-3 md:gap-3.5 px-2 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 md:py-3.5 text-xs xs:text-sm sm:text-sm md:text-base cursor-pointer transition-colors';
+      'flex items-center gap-2 xs:gap-2.5 sm:gap-3 md:gap-3.5 px-2 xs:px-3 sm:px-4 md:px-5 py-2 xs:py-2.5 sm:py-3 md:py-3.5 text-xs xs:text-sm sm:text-sm md:text-base cursor-pointer transition-all duration-200';
     const isSelected = index === selectedIndex;
 
     if (isSelected) {
-      return `${baseClass} bg-brand-primary/10 text-brand-primary border-l-2 border-brand-primary`;
+      return `${baseClass} bg-brand-primary text-text-inverse border-l-4 border-brand-primary shadow-sm`;
     }
 
-    return `${baseClass} !text-neutral-900 dark:!text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800`;
+    return `${baseClass} text-theme-primary hover:bg-bg-theme-secondary hover:text-theme-primary`;
   };
 
   if (!isVisible || suggestions.length === 0) {
@@ -196,10 +196,10 @@ export function SearchSuggestions({
   return (
     <div
       ref={containerRef}
-      className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-700 rounded-lg shadow-lg z-50 max-h-60 xs:max-h-72 sm:max-h-80 md:max-h-96 overflow-y-auto"
+      className="absolute top-full left-0 right-0 mt-2 bg-surface-card border border-theme-primary rounded-xl shadow-2xl z-50 max-h-60 xs:max-h-72 sm:max-h-80 md:max-h-96 overflow-y-auto backdrop-blur-sm"
     >
       <div className="p-1.5 xs:p-2 sm:p-2.5 md:p-3">
-        <div className="text-xs xs:text-sm sm:text-sm md:text-base font-medium search-suggestions-header px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-1 xs:py-1.5 sm:py-2 md:py-2.5">
+        <div className="text-xs xs:text-sm sm:text-sm md:text-base font-semibold text-theme-secondary px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-1 xs:py-1.5 sm:py-2 md:py-2.5 border-b border-theme-primary">
           Search Suggestions
         </div>
 
@@ -210,20 +210,18 @@ export function SearchSuggestions({
             onClick={() => handleSuggestionClick(suggestion)}
             onMouseEnter={() => setSelectedIndex(index)}
           >
-            <div className="flex-shrink-0 search-suggestions-icon">
-              {getSuggestionIcon(suggestion)}
-            </div>
+            <div className="flex-shrink-0 text-theme-muted">{getSuggestionIcon(suggestion)}</div>
             <div className="flex-1 min-w-0">
-              <div className="truncate search-suggestions-text">{suggestion.text}</div>
+              <div className="truncate font-medium text-theme-primary">{suggestion.text}</div>
               {suggestion.category && (
-                <div className="text-xs xs:text-xs sm:text-xs md:text-sm search-suggestions-category capitalize">
+                <div className="text-xs xs:text-xs sm:text-xs md:text-sm text-theme-muted capitalize">
                   {suggestion.category}
                 </div>
               )}
             </div>
             {suggestion.type === 'trending' && (
               <div className="flex-shrink-0">
-                <span className="text-xs xs:text-xs sm:text-xs md:text-sm bg-accent-orange/10 text-accent-orange px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-0.5 xs:py-1 sm:py-1 md:py-1.5 rounded-full">
+                <span className="text-xs xs:text-xs sm:text-xs md:text-sm bg-semantic-warning/10 text-semantic-warning px-1.5 xs:px-2 sm:px-2.5 md:px-3 py-0.5 xs:py-1 sm:py-1 md:py-1.5 rounded-full font-medium">
                   Trending
                 </span>
               </div>
@@ -232,8 +230,8 @@ export function SearchSuggestions({
         ))}
       </div>
 
-      <div className="border-t border-neutral-200 dark:border-neutral-700 p-1.5 xs:p-2 sm:p-2.5 md:p-3">
-        <div className="text-xs xs:text-xs sm:text-xs md:text-sm search-suggestions-help">
+      <div className="border-t border-theme-primary p-1.5 xs:p-2 sm:p-2.5 md:p-3 bg-bg-theme-secondary">
+        <div className="text-xs xs:text-xs sm:text-xs md:text-sm text-theme-muted">
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-2.5 md:gap-3">
             <span>Use ↑↓ to navigate, Enter to select, Esc to close</span>
           </div>

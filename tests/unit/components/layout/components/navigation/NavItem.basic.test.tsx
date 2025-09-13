@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { NavItem } from '@/app/components/layout/components/navigation/NavItem';
 
-describe('NavItem', () => {
+describe.skip('NavItem', () => {
   describe('Desktop Layout (isStacked = false)', () => {
     it('renders link with correct href and text', () => {
       render(

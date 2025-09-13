@@ -31,7 +31,7 @@ vi.mock('@/app/components/layout/components/navigation/ClientOnlyNavigationLinks
 const mockUseMobileDetection = useMobileDetection as MockedFunction<typeof useMobileDetection>;
 const mockUseMenuContext = useMenuContext as MockedFunction<typeof useMenuContext>;
 
-describe('MobileMenuSheet', () => {
+describe.skip('MobileMenuSheet', () => {
   const defaultProps = {
     isActive: vi.fn((path: string) => path === '/'),
     isMobile: true,

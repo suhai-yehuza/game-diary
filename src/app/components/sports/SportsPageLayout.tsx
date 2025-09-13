@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React from 'react';
 
+import { SPORTS_CONFIG, getSportsButtonClass } from '@/lib/constants/colors';
 import type { ISportsPageLayoutProps } from '@/types';
 
 export function SportsPageLayout({
@@ -52,36 +53,28 @@ export function SportsPageLayout({
             {showLiveGamesButton && (
               <Link
                 href="/sports/live"
-                className="inline-flex items-center px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
+                className="inline-flex items-center px-4 py-3 bg-semantic-error hover:bg-semantic-error/90 text-text-inverse rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2"
               >
                 <div className="w-2 h-2 bg-white rounded-full animate-pulse mr-2" />
                 Live Games
               </Link>
             )}
             {sportButtons.map(sport => {
-              // Get sport-specific color classes
-              const getSportButtonClasses = (sportName: string) => {
-                switch (sportName.toLowerCase()) {
-                  case 'nba':
-                    return 'bg-[#00d4ff] hover:bg-[#00b8e6] focus:ring-[#00d4ff]';
-                  case 'nfl':
-                    return 'bg-orange-600 hover:bg-orange-700 focus:ring-orange-500';
-                  case 'mlb':
-                    return 'bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500';
-                  case 'nhl':
-                    return 'bg-red-600 hover:bg-red-700 focus:ring-red-500';
-                  case 'mls':
-                    return 'bg-green-600 hover:bg-green-700 focus:ring-green-500';
-                  default:
-                    return 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500';
-                }
-              };
+              // Get sport key from the sport object or name
+              const sportKey = Object.keys(SPORTS_CONFIG).find(
+                key => SPORTS_CONFIG[key as keyof typeof SPORTS_CONFIG].name === sport.name
+              ) as keyof typeof SPORTS_CONFIG | undefined;
+
+              // Get the color classes from SPORTS_CONFIG
+              const colorClasses = sportKey
+                ? getSportsButtonClass(sportKey)
+                : 'bg-theme-muted hover:bg-theme-secondary';
 
               return (
                 <Link
                   key={sport.href}
                   href={sport.href}
-                  className={`inline-flex items-center justify-center px-4 py-3 text-white ${getSportButtonClasses(sport.name)} rounded-lg font-medium transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                  className={`inline-flex items-center justify-center px-4 py-3 text-text-inverse ${colorClasses} rounded-lg font-medium transition-colors hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2`}
                 >
                   {sport.name}
                 </Link>

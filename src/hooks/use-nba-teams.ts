@@ -12,8 +12,8 @@ function isTeamsApiResponse(data: unknown): data is ITeamsApiResponse {
   return (
     typeof data === 'object' &&
     data !== null &&
-    'response' in data &&
-    Array.isArray((data as ITeamsApiResponse).response)
+    'teams' in data &&
+    Array.isArray((data as Record<string, unknown>).teams)
   );
 }
 
@@ -44,7 +44,13 @@ export function useNBATeams(options: IUseNBATeamsOptions = {}) {
 
         const data = await response.json();
         if (isTeamsApiResponse(data)) {
-          setTeams(data.response || []);
+          const mockTeams = data.teams || [];
+          // Ensure team IDs are strings for consistency
+          const teamsWithStringIds = mockTeams.map(team => ({
+            ...team,
+            id: team.id.toString(),
+          }));
+          setTeams(teamsWithStringIds);
           setCacheStatus('none');
         } else {
           setTeams([]);
@@ -55,10 +61,19 @@ export function useNBATeams(options: IUseNBATeamsOptions = {}) {
 
       // Fetch from cached API with cache bypass option
       try {
-        const bypassParam = forceRefresh ? '?bypass-cache=true' : '';
-        logger.info('🏀 Fetching teams from cached API...', { forceRefresh, bypassParam });
+        const bypassParam = forceRefresh ? 'bypass-cache=true&' : '';
+        // Request all teams by setting a high limit and optimal parameters for caching
+        const allTeamsParam = 'limit=100&sortBy=name&sortDirection=asc';
+        const fullUrl = `/api/teams?${bypassParam}${allTeamsParam}`;
 
-        const dbResponse = await fetch(`/api/teams${bypassParam}`);
+        logger.info('🏀 Fetching teams from cached API...', {
+          forceRefresh,
+          bypassParam,
+          allTeamsParam,
+          fullUrl,
+        });
+
+        const dbResponse = await fetch(fullUrl);
         if (!dbResponse.ok) {
           throw new Error(
             `Database API request failed: ${dbResponse.status} ${dbResponse.statusText}`
@@ -68,17 +83,25 @@ export function useNBATeams(options: IUseNBATeamsOptions = {}) {
         const dbData = await dbResponse.json();
         if (isTeamsApiResponse(dbData)) {
           // Use all teams from database - let users filter as needed
-          const allTeams = dbData.response || [];
+          const allTeams = dbData.teams || [];
           console.log(`✅ Loaded ${allTeams.length} teams from database`);
-          setTeams(allTeams);
 
-          // Determine cache status based on response headers or forceRefresh flag
-          const cacheHit = dbResponse.headers.get('x-cache') === 'HIT' || !forceRefresh;
+          // Ensure team IDs are strings for consistency
+          const teamsWithStringIds = allTeams.map(team => ({
+            ...team,
+            id: team.id.toString(),
+          }));
+
+          setTeams(teamsWithStringIds);
+
+          // Determine cache status based on response headers
+          const cacheHit = dbResponse.headers.get('x-cache') === 'HIT';
           setCacheStatus(cacheHit ? 'cached' : 'fresh');
 
           logger.info('Teams loaded', {
             count: allTeams.length,
             forceRefresh,
+            cacheStatus: cacheHit ? 'cached' : 'fresh',
           });
         } else {
           setTeams([]);

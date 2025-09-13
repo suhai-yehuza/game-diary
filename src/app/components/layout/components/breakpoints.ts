@@ -12,6 +12,7 @@ export const LARGE_TABLET_BREAKPOINT = 1024; // Large tablet: 768px - 1024px
 // Touch-friendly minimum sizes
 export const MIN_TOUCH_TARGET = 44; // 44px minimum for touch targets
 export const MIN_BUTTON_HEIGHT = 48; // 48px minimum for buttons
+export const MIN_TOUCH_TARGET_LARGE = 56; // 56px for larger touch targets
 
 // Responsive spacing values
 export const MOBILE_SPACING = {
@@ -30,4 +31,64 @@ export const DESKTOP_SPACING = {
   padding: '2rem',
   margin: '1.5rem',
   gap: '1rem',
+};
+
+// Enhanced responsive spacing for better mobile experience
+export const RESPONSIVE_SPACING = {
+  xs: '0.25rem', // 4px
+  sm: '0.5rem', // 8px
+  md: '1rem', // 16px
+  lg: '1.5rem', // 24px
+  xl: '2rem', // 32px
+  '2xl': '3rem', // 48px
+  '3xl': '4rem', // 64px
+};
+
+// Mobile-optimized spacing
+export const MOBILE_OPTIMIZED_SPACING = {
+  padding: '0.75rem',
+  margin: '0.5rem',
+  gap: '0.375rem',
+  borderRadius: '0.75rem',
+};
+
+// Touch-friendly sizing
+export const TOUCH_SIZING = {
+  minHeight: '44px',
+  minWidth: '44px',
+  minHeightLarge: '56px',
+  minWidthLarge: '56px',
+  padding: '0.75rem 1rem',
+  fontSize: '1rem',
+};
+
+// Responsive typography scale
+export const RESPONSIVE_TYPOGRAPHY = {
+  mobile: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.125rem',
+    xl: '1.25rem',
+    '2xl': '1.5rem',
+    '3xl': '1.875rem',
+  },
+  tablet: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.25rem',
+    xl: '1.5rem',
+    '2xl': '1.875rem',
+    '3xl': '2.25rem',
+  },
+  desktop: {
+    xs: '0.75rem',
+    sm: '0.875rem',
+    base: '1rem',
+    lg: '1.25rem',
+    xl: '1.5rem',
+    '2xl': '2rem',
+    '3xl': '2.5rem',
+  },
 };

@@ -102,7 +102,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 player-card-enhanced h-full flex flex-col">
+    <Card className="hover:shadow-lg transition-all duration-200 bg-surface-card shadow-md border border-theme-primary player-card-enhanced h-full flex flex-col">
       <CardContent className="p-3 sm:p-4 lg:p-6 flex flex-col h-full">
         <div className="flex flex-col gap-3 sm:gap-4 h-full">
           {/* Header with Avatar, Name, and Status Badge */}
@@ -110,17 +110,15 @@ export function PlayerCard({ player }: IPlayerCardProps) {
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {/* Player Avatar */}
               <div className="flex-shrink-0">
-                <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center">
-                  <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                <div className="w-10 h-10 bg-semantic-info/10 rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-semantic-info" />
                 </div>
               </div>
 
               {/* Player Name and Jersey */}
               <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-                  {getFullName()}
-                </h3>
-                <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <h3 className="text-sm font-bold text-theme-primary truncate">{getFullName()}</h3>
+                <div className="flex items-center gap-1 text-xs text-theme-muted">
                   <span className="font-medium">{getJerseyNumber()}</span>
                   <span>•</span>
                   <span className="font-medium">{getPosition()}</span>
@@ -132,7 +130,9 @@ export function PlayerCard({ player }: IPlayerCardProps) {
             <div className="flex-shrink-0">
               <div
                 className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  isActive() ? 'bg-emerald-600 text-white' : 'bg-gray-500 text-white'
+                  isActive()
+                    ? 'bg-semantic-success text-text-inverse'
+                    : 'bg-theme-muted text-text-inverse'
                 }`}
               >
                 {isActive() ? 'Active' : 'Inactive'}
@@ -142,7 +142,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
 
           {/* Player Stats */}
           <div className="space-y-1 mb-3">
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-xs text-theme-muted">
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 <span>{getAge()} years old</span>
@@ -153,7 +153,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex items-center justify-between text-xs text-theme-muted">
               <div className="flex items-center gap-1">
                 <Weight className="w-3 h-3" />
                 <span>{getWeight()}</span>
@@ -190,7 +190,7 @@ export function PlayerCard({ player }: IPlayerCardProps) {
             onClick={() => (window.location.href = `/sports/nba/players/${player.id}`)}
             variant="outline"
             size="sm"
-            className="w-full bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200 font-medium text-xs py-1.5"
+            className="w-full bg-surface-card hover:bg-bg-theme-secondary text-theme-primary hover:text-theme-secondary border-theme-primary hover:border-theme-secondary shadow-sm transition-all duration-200 font-medium text-xs py-1.5"
           >
             View Player
           </Button>

@@ -11,26 +11,26 @@ export const formatWatchedSetting = (setting: string | null | undefined): string
 
 // Helper function to generate distinct colors for tags
 export const generateDistinctTagColors = (tags: string[]): Record<string, string> => {
-  // Define a palette of vibrant, distinct colors
+  // Define a palette using centralized color system
   const colorPalette = [
-    'bg-red-500 text-white border-red-600',
-    'bg-blue-500 text-white border-blue-600',
-    'bg-green-500 text-white border-green-600',
-    'bg-yellow-500 text-black border-yellow-600',
-    'bg-purple-500 text-white border-purple-600',
-    'bg-pink-500 text-white border-pink-600',
-    'bg-indigo-500 text-white border-indigo-600',
-    'bg-orange-500 text-white border-orange-600',
-    'bg-teal-500 text-white border-teal-600',
-    'bg-cyan-500 text-white border-cyan-600',
-    'bg-emerald-500 text-white border-emerald-600',
-    'bg-rose-500 text-white border-rose-600',
-    'bg-violet-500 text-white border-violet-600',
-    'bg-amber-500 text-black border-amber-600',
-    'bg-lime-500 text-black border-lime-600',
-    'bg-sky-500 text-white border-sky-600',
-    'bg-fuchsia-500 text-white border-fuchsia-600',
-    'bg-slate-500 text-white border-slate-600',
+    'bg-semantic-error text-theme-inverse border-semantic-error',
+    'bg-brand-primary text-theme-inverse border-brand-primary',
+    'bg-semantic-success text-theme-inverse border-semantic-success',
+    'bg-semantic-warning text-theme-primary border-semantic-warning',
+    'bg-semantic-info text-theme-inverse border-semantic-info',
+    'bg-semantic-error/80 text-theme-inverse border-semantic-error',
+    'bg-brand-primary/80 text-theme-inverse border-brand-primary',
+    'bg-semantic-success/80 text-theme-inverse border-semantic-success',
+    'bg-semantic-warning/80 text-theme-primary border-semantic-warning',
+    'bg-semantic-info/80 text-theme-inverse border-semantic-info',
+    'bg-brand-secondary text-theme-inverse border-brand-secondary',
+    'bg-brand-secondary/80 text-theme-inverse border-brand-secondary',
+    'bg-theme-muted text-theme-primary border-theme-muted',
+    'bg-theme-secondary text-theme-primary border-theme-secondary',
+    'bg-theme-tertiary text-theme-primary border-theme-tertiary',
+    'bg-theme-primary text-theme-inverse border-theme-primary',
+    'bg-theme-elevated text-theme-primary border-theme-elevated',
+    'bg-theme-primary/80 text-theme-inverse border-theme-primary',
   ];
 
   // Create a mapping of tags to colors

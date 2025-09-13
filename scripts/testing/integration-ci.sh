@@ -81,9 +81,17 @@ run_for_env() {
   # Do not echo the full connection string to avoid leaking secrets
   echo "✅ Database URL detected for $node_env"
 
+  # Run cleanup before tests
+  echo "🧹 Running pre-test cleanup for $node_env..."
+  (cd "$ROOT_DIR" && tsx scripts/testing/cleanup-integration-tests.ts)
+
   # Delegate to the unified integration runner (manages server + runs tests)
   # Run only integration tests to avoid unit noise
   (cd "$ROOT_DIR" && VITEST_ARGS="tests/integration" ./scripts/testing/integration.sh --force-server)
+
+  # Run post-test cleanup
+  echo "🧹 Running post-test cleanup for $node_env..."
+  (cd "$ROOT_DIR" && tsx scripts/testing/post-integration-cleanup.ts)
 }
 
 # Read optional explicit URLs from CI environment

@@ -6,137 +6,160 @@
 
 @layer base {
   :root {
-    /* ===== Core Design Tokens ===== */
+    /* ===== New Centralized Color System ===== */
 
-    /* Brand Colors - Primary Palette */
-    --color-brand-primary: 221 83% 53%; /* Blue-600 */
-    --color-brand-primary-hover: 221 83% 43%; /* Blue-700 */
-    --color-brand-primary-light: 221 83% 63%; /* Blue-500 */
+    /* Light Theme Colors */
+    --color-background-primary: hsl(0, 0%, 98%);
+    --color-background-secondary: hsl(0, 0%, 96%);
+    --color-background-tertiary: hsl(0, 0%, 90%);
+    --color-background-elevated: hsl(0, 0%, 100%);
 
-    /* Brand Colors - Secondary Palette */
-    --color-brand-secondary: 142 76% 36%; /* Green-600 */
-    --color-brand-secondary-hover: 142 76% 26%; /* Green-700 */
-    --color-brand-secondary-light: 142 76% 46%; /* Green-500 */
+    --color-text-primary: hsl(0, 0%, 9%);
+    --color-text-secondary: hsl(0, 0%, 15%);
+    --color-text-tertiary: hsl(0, 0%, 25%);
+    --color-text-muted: hsl(0, 0%, 32%);
+    --color-text-disabled: hsl(0, 0%, 45%);
+    --color-text-inverse: hsl(0, 0%, 100%);
 
-    /* Semantic Colors */
-    --color-success: 142 76% 36%; /* Green-600 */
-    --color-warning: 38 92% 50%; /* Amber-500 */
-    --color-error: 0 84% 60%; /* Red-500 */
-    --color-info: 221 83% 53%; /* Blue-600 */
+    --color-border-primary: hsl(0, 0%, 90%);
+    --color-border-secondary: hsl(0, 0%, 83%);
+    --color-border-focus: hsl(221, 83%, 53%);
 
-    /* Accent Colors */
-    --color-accent-orange: 25 95% 53%; /* Live indicators */
-    --color-accent-purple: 262 83% 58%; /* Premium features */
+    --color-surface-card: hsl(0, 0%, 100%);
+    --color-surface-modal: hsl(0, 0%, 100%);
+    --color-surface-popover: hsl(0, 0%, 100%);
+    --color-surface-tooltip: hsl(0, 0%, 15%);
 
-    /* Neutral Scale - Light Theme */
-    --color-neutral-50: 0 0% 98%; /* Lightest bg */
-    --color-neutral-100: 0 0% 96%; /* Light bg */
-    --color-neutral-200: 0 0% 90%; /* Borders */
-    --color-neutral-300: 0 0% 83%; /* Disabled */
-    --color-neutral-400: 0 0% 64%; /* Placeholder */
-    --color-neutral-500: 0 0% 45%; /* Secondary text */
-    --color-neutral-600: 0 0% 32%; /* Primary text */
-    --color-neutral-700: 0 0% 25%; /* Strong text */
-    --color-neutral-800: 0 0% 15%; /* Headings */
-    --color-neutral-900: 0 0% 9%; /* Strongest text */
+    --color-brand-primary: hsl(221, 83%, 53%);
+    --color-brand-primary-hover: hsl(221, 83%, 43%);
+    --color-brand-secondary: hsl(142, 76%, 36%);
+    --color-brand-secondary-hover: hsl(142, 76%, 26%);
 
-    /* Semantic Theme Tokens */
-    --color-text-primary: var(--color-neutral-900);
-    --color-text-secondary: var(--color-neutral-800);
-    --color-text-tertiary: var(--color-neutral-700);
-    --color-text-muted: var(--color-neutral-600);
+    --color-brand-pink: hsl(340, 56%, 50%);
+    --color-brand-pink-hover: hsl(340, 82%, 42%);
+    --color-brand-cyan: hsl(180, 56%, 60%);
+    --color-brand-cyan-hover: hsl(180, 82%, 42%);
+    --color-brand-torquoise: hsl(18, 54%, 32%);
+    --color-brand-torquoise-hover: hsl(18, 66%, 31%);
+    --color-brand-maroon: hsl(340, 56%, 50%);
+    --color-brand-maroon-hover: hsl(340, 82%, 42%);
+    --color-brand-orange: hsl(25, 56%, 50%);
+    --color-brand-orange-hover: hsl(25, 82%, 42%);
 
-    --color-bg-primary: var(--color-neutral-50);
-    --color-bg-secondary: var(--color-neutral-100);
-    --color-bg-card: 0 0% 100%;
+    --color-semantic-success: hsl(142, 76%, 36%);
+    --color-semantic-warning: hsl(38, 92%, 50%);
+    --color-semantic-error: hsl(0, 84%, 60%);
+    --color-semantic-info: hsl(221, 83%, 53%);
 
-    --color-border-primary: var(--color-neutral-200);
-    --color-border-secondary: var(--color-neutral-300);
-
-    /* Legacy Shadcn/UI Variables */
-    --background: 0 0% 100%;
-    --foreground: var(--color-neutral-900);
-    --card: var(--color-bg-card);
-    --card-foreground: var(--color-neutral-900);
-    --popover: var(--color-bg-card);
-    --popover-foreground: var(--color-neutral-900);
-    --primary: var(--color-brand-primary);
+    /* Legacy Shadcn/UI Variables - Updated for better contrast */
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 98%;
-    --secondary: var(--color-neutral-100);
-    --secondary-foreground: var(--color-neutral-900);
-    --muted: var(--color-neutral-100);
-    --muted-foreground: var(--color-neutral-500);
-    --accent: var(--color-neutral-100);
-    --accent-foreground: var(--color-neutral-900);
-    --destructive: var(--color-error);
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 32%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: var(--color-border-primary);
-    --input: var(--color-border-primary);
-    --ring: var(--color-brand-primary);
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 221 83% 53%;
     --radius: 0.5rem;
 
-    /* Chart Colors */
+    /* Chart Colors - Optimized for both themes */
     --chart-1: 12 76% 61%;
     --chart-2: 173 58% 39%;
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
+
+    /* Theme Toggle Specific Colors - Fixed regardless of theme */
+    --color-theme-toggle-container: hsl(0, 0%, 64%);
+    --color-theme-toggle-border: hsl(0, 0%, 45%);
+    --color-theme-toggle-active: hsl(0, 0%, 100%);
+    --color-theme-toggle-inactive: hsl(0, 0%, 98%);
   }
 
   .dark {
-    /* Dark Theme Overrides - Google-inspired */
-    --color-neutral-50: 0 0% 15%; /* Lighter dark gray - main background */
-    --color-neutral-100: 0 0% 25%; /* Slightly lighter dark gray - secondary background (increased for accessibility) */
-    --color-neutral-200: 0 0% 32%; /* Borders (shifted up for hierarchy) */
-    --color-neutral-300: 0 0% 32%; /* Disabled */
-    --color-neutral-400: 0 0% 45%; /* Placeholder */
-    --color-neutral-500: 0 0% 60%; /* Secondary text */
-    --color-neutral-600: 0 0% 80%; /* Primary text */
-    --color-neutral-700: 0 0% 90%; /* Strong text */
-    --color-neutral-800: 0 0% 95%; /* Headings */
-    --color-neutral-900: 0 0% 98%; /* Strongest text */
+    /* ===== Dark Theme Colors - Optimized for accessibility ===== */
 
-    /* Adjusted brand colors for dark theme */
-    --color-brand-primary: 217 91% 60%; /* Blue-400 */
-    --color-brand-primary-hover: 217 91% 50%; /* Blue-500 */
-    --color-brand-primary-light: 217 91% 70%; /* Blue-300 */
+    /* Dark Theme Background Colors - Avoiding pure black */
+    --color-background-primary: hsl(0, 0%, 8%);
+    --color-background-secondary: hsl(0, 0%, 12%);
+    --color-background-tertiary: hsl(0, 0%, 16%);
+    --color-background-elevated: hsl(0, 0%, 14%);
 
-    --color-brand-secondary: 142 71% 45%; /* Green-500 */
-    --color-brand-secondary-hover: 142 71% 35%; /* Green-600 */
-    --color-brand-secondary-light: 142 71% 55%; /* Green-400 */
+    /* Dark Theme Text Colors - Avoiding pure white */
+    --color-text-primary: hsl(0, 0%, 95%);
+    --color-text-secondary: hsl(0, 0%, 85%);
+    --color-text-tertiary: hsl(0, 0%, 75%);
+    --color-text-muted: hsl(0, 0%, 65%);
+    --color-text-disabled: hsl(0, 0%, 45%);
+    --color-text-inverse: hsl(0, 0%, 9%);
 
-    --color-info: 217 91% 60%; /* Blue-400 */
-    --color-success: 142 71% 45%; /* Green-500 */
+    /* Dark Theme Border Colors */
+    --color-border-primary: hsl(0, 0%, 20%);
+    --color-border-secondary: hsl(0, 0%, 25%);
+    --color-border-focus: hsl(221, 83%, 53%);
 
-    --color-bg-card: 0 0% 15%; /* Match main background */
+    /* Dark Theme Surface Colors */
+    --color-surface-card: hsl(0, 0%, 10%);
+    --color-surface-modal: hsl(0, 0%, 12%);
+    --color-surface-popover: hsl(0, 0%, 12%);
+    --color-surface-tooltip: hsl(0, 0%, 85%);
 
-    /* Legacy dark theme updates */
-    --background: var(--color-neutral-50);
-    --foreground: var(--color-neutral-900);
-    --card: var(--color-bg-card);
-    --card-foreground: var(--color-neutral-900);
-    --popover: var(--color-bg-card);
-    --popover-foreground: var(--color-neutral-900);
-    --primary: var(--color-brand-primary);
-    --primary-foreground: var(--color-neutral-50);
-    --secondary: var(--color-neutral-100);
-    --secondary-foreground: var(--color-neutral-900);
-    --muted: var(--color-neutral-100);
-    --muted-foreground: var(--color-neutral-500);
-    --accent: var(--color-neutral-100);
-    --accent-foreground: var(--color-neutral-900);
-    --destructive: 0 63% 31%;
+    /* Brand colors remain consistent across themes */
+    --color-brand-primary: hsl(221, 83%, 53%);
+    --color-brand-primary-hover: hsl(221, 83%, 43%);
+    --color-brand-secondary: hsl(142, 76%, 36%);
+    --color-brand-secondary-hover: hsl(142, 76%, 26%);
+
+    /* Semantic colors remain consistent */
+    --color-semantic-success: hsl(142, 76%, 36%);
+    --color-semantic-warning: hsl(38, 92%, 50%);
+    --color-semantic-error: hsl(0, 84%, 60%);
+    --color-semantic-info: hsl(221, 83%, 53%);
+
+    /* Legacy Shadcn/UI Variables - Dark theme */
+    --background: 0 0% 8%;
+    --foreground: 0 0% 95%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 12%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 0 0% 12%;
+    --accent-foreground: 0 0% 95%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
-    --border: var(--color-border-primary);
-    --input: var(--color-border-primary);
-    --ring: 224 76% 48%;
+    --border: 0 0% 20%;
+    --input: 0 0% 20%;
+    --ring: 221 83% 53%;
 
-    /* Dark chart colors */
+    /* Dark chart colors - Optimized for dark backgrounds */
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
     --chart-5: 340 75% 55%;
+
+    /* Theme Toggle Specific Colors - Fixed regardless of theme */
+    --color-theme-toggle-container: hsl(0, 0%, 64%);
+    --color-theme-toggle-border: hsl(0, 0%, 45%);
+    --color-theme-toggle-active: hsl(0, 0%, 100%);
+    --color-theme-toggle-inactive: hsl(0, 0%, 98%);
   }
 }
 
@@ -145,104 +168,199 @@
    ================================================================= */
 
 @layer utilities {
-  /* === Text Colors === */
+  /* === New Theme-Aware Utility Classes === */
+
+  /* Text Colors */
   .text-theme-primary {
-    color: hsl(var(--color-text-primary)) !important;
+    color: var(--color-text-primary) !important;
   }
   .text-theme-secondary {
-    color: hsl(var(--color-text-secondary)) !important;
+    color: var(--color-text-secondary) !important;
   }
   .text-theme-tertiary {
-    color: hsl(var(--color-text-tertiary)) !important;
+    color: var(--color-text-tertiary) !important;
   }
   .text-theme-muted {
-    color: hsl(var(--color-text-muted)) !important;
+    color: var(--color-text-muted) !important;
+  }
+  .text-theme-disabled {
+    color: var(--color-text-disabled) !important;
+  }
+  .text-theme-inverse {
+    color: var(--color-text-inverse) !important;
   }
 
-  /* === Background Colors === */
+  /* Background Colors */
   .bg-theme-primary {
-    background-color: hsl(var(--color-bg-primary)) !important;
+    background-color: var(--color-background-primary) !important;
   }
   .bg-theme-secondary {
-    background-color: hsl(var(--color-bg-secondary)) !important;
+    background-color: var(--color-background-secondary) !important;
   }
-  .bg-theme-card {
-    background-color: hsl(var(--color-bg-card)) !important;
+  .bg-theme-tertiary {
+    background-color: var(--color-background-tertiary) !important;
+  }
+  .bg-theme-elevated {
+    background-color: var(--color-background-elevated) !important;
   }
 
-  /* === Border Colors === */
-  .border-theme {
-    border-color: hsl(var(--color-border-primary)) !important;
+  /* Surface Colors */
+  .bg-surface-card {
+    background-color: var(--color-surface-card) !important;
+  }
+  .bg-surface-modal {
+    background-color: var(--color-surface-modal) !important;
+  }
+  .bg-surface-popover {
+    background-color: var(--color-surface-popover) !important;
+  }
+  .bg-surface-tooltip {
+    background-color: var(--color-surface-tooltip) !important;
+  }
+
+  /* Border Colors */
+  .border-theme-primary {
+    border-color: var(--color-border-primary) !important;
   }
   .border-theme-secondary {
-    border-color: hsl(var(--color-border-secondary)) !important;
+    border-color: var(--color-border-secondary) !important;
+  }
+  .border-theme-focus {
+    border-color: var(--color-border-focus) !important;
   }
 
-  /* === Brand Colors === */
+  /* Brand Colors */
   .text-brand-primary {
-    color: hsl(var(--color-brand-primary));
+    color: var(--color-brand-primary) !important;
   }
   .text-brand-secondary {
-    color: hsl(var(--color-brand-secondary));
+    color: var(--color-brand-secondary) !important;
   }
   .bg-brand-primary {
-    background-color: hsl(var(--color-brand-primary));
+    background-color: var(--color-brand-primary) !important;
   }
-  .hover\:bg-brand-primary-dark {
-    background-color: hsl(var(--color-brand-primary-hover));
-  }
-  .bg-brand-primary\/10 {
-    background-color: hsl(var(--color-brand-primary) / 0.1);
-  }
-  .border-brand-primary\/30 {
-    border-color: hsl(var(--color-brand-primary) / 0.3);
+  .bg-brand-primary-hover:hover {
+    background-color: var(--color-brand-primary-hover) !important;
   }
   .bg-brand-secondary {
-    background-color: hsl(var(--color-brand-secondary));
+    background-color: var(--color-brand-secondary) !important;
   }
-  .hover\:bg-brand-secondary-dark {
-    background-color: hsl(var(--color-brand-secondary-hover));
+  .bg-brand-secondary-hover:hover {
+    background-color: var(--color-brand-secondary-hover) !important;
+  }
+  .bg-brand-pink {
+    background-color: var(--color-brand-pink) !important;
+  }
+  .bg-brand-pink-hover:hover {
+    background-color: var(--color-brand-pink-hover) !important;
+  }
+  .bg-brand-cyan {
+    background-color: var(--color-brand-cyan) !important;
+  }
+  .bg-brand-cyan-hover:hover {
+    background-color: var(--color-brand-cyan-hover) !important;
+  }
+  .bg-brand-torquoise {
+    background-color: var(--color-brand-torquoise) !important;
+  }
+  .bg-brand-torquoise-hover:hover {
+    background-color: var(--color-brand-torquoise-hover) !important;
+  }
+  .bg-brand-maroon {
+    background-color: var(--color-brand-maroon) !important;
+  }
+  .bg-brand-maroon-hover:hover {
+    background-color: var(--color-brand-maroon-hover) !important;
   }
 
-  /* === Semantic Colors === */
+  /* Theme Toggle Specific Utilities */
+  .bg-theme-toggle-container {
+    background-color: var(--color-theme-toggle-container) !important;
+  }
+  .border-theme-toggle-border {
+    border-color: var(--color-theme-toggle-border) !important;
+  }
+  .text-theme-toggle-active {
+    color: var(--color-theme-toggle-active) !important;
+  }
+  .text-theme-toggle-inactive {
+    color: var(--color-theme-toggle-inactive) !important;
+  }
+  .bg-theme-toggle-active {
+    background-color: var(--color-theme-toggle-active) !important;
+  }
+  .bg-theme-toggle-inactive {
+    background-color: var(--color-theme-toggle-inactive) !important;
+  }
+  .shadow-theme-toggle {
+    box-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1),
+      0 1px 2px -1px rgb(0 0 0 / 0.1) !important;
+  }
+
+  /* Semantic Colors */
   .text-semantic-success {
-    color: hsl(var(--color-success));
+    color: var(--color-semantic-success) !important;
   }
   .text-semantic-warning {
-    color: hsl(var(--color-warning));
+    color: var(--color-semantic-warning) !important;
   }
   .text-semantic-error {
-    color: hsl(var(--color-error));
+    color: var(--color-semantic-error) !important;
   }
   .text-semantic-info {
-    color: hsl(var(--color-info));
+    color: var(--color-semantic-info) !important;
   }
 
   .bg-semantic-success {
-    background-color: hsl(var(--color-success));
+    background-color: var(--color-semantic-success) !important;
   }
   .bg-semantic-warning {
-    background-color: hsl(var(--color-warning));
+    background-color: var(--color-semantic-warning) !important;
   }
   .bg-semantic-error {
-    background-color: hsl(var(--color-error));
+    background-color: var(--color-semantic-error) !important;
   }
   .bg-semantic-info {
-    background-color: hsl(var(--color-info));
+    background-color: var(--color-semantic-info) !important;
   }
 
-  /* === Accent Colors === */
-  .text-accent-orange {
-    color: hsl(var(--color-accent-orange));
+  /* Focus States */
+  .focus-theme:focus {
+    outline: 2px solid var(--color-border-focus) !important;
+    outline-offset: 2px !important;
   }
-  .text-accent-purple {
-    color: hsl(var(--color-accent-purple));
+
+  /* High Contrast Text for Accessibility */
+  .text-high-contrast {
+    color: var(--color-text-primary) !important;
+    font-weight: 600 !important;
   }
-  .bg-accent-orange {
-    background-color: hsl(var(--color-accent-orange));
+
+  /* Card Components with Proper Contrast */
+  .card-enhanced {
+    background-color: var(--color-surface-card) !important;
+    border: 1px solid var(--color-border-primary) !important;
+    color: var(--color-text-primary) !important;
   }
-  .bg-accent-purple {
-    background-color: hsl(var(--color-accent-purple));
+
+  /* Button Components with Proper Contrast */
+  .btn-primary {
+    background-color: var(--color-brand-primary) !important;
+    color: var(--color-text-inverse) !important;
+    border: 1px solid var(--color-brand-primary) !important;
+  }
+  .btn-primary:hover {
+    background-color: var(--color-brand-primary-hover) !important;
+  }
+
+  .btn-secondary {
+    background-color: var(--color-background-secondary) !important;
+    color: var(--color-text-primary) !important;
+    border: 1px solid var(--color-border-primary) !important;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-background-tertiary) !important;
   }
 }
 
@@ -284,16 +402,57 @@
 
 /* === Enhanced Button Components === */
 .btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-400;
+  background-color: var(--color-brand-primary);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  @apply hover:shadow-xl focus:outline-none;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-brand-primary-hover);
+}
+
+.btn-primary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-brand-primary);
 }
 
 .btn-secondary {
-  @apply bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 font-medium py-2 px-4 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-400;
+  background-color: var(--color-background-secondary);
+  color: var(--color-text-primary);
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  @apply hover:shadow-md focus:outline-none;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-background-tertiary);
+}
+
+.btn-secondary:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-brand-primary);
 }
 
 /* === Enhanced Card Components === */
 .card-enhanced {
-  @apply bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200;
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0.75rem;
+  box-shadow:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s;
+  @apply hover:shadow-xl;
 }
 
 /* === Enhanced Input Components === */
@@ -303,38 +462,38 @@
 
 /* === Legacy NBA-specific classes (preserved for compatibility) === */
 .live-games-count {
-  color: rgb(0, 0, 0) !important;
+  color: var(--color-text-primary) !important;
 }
 .dark .live-games-count {
-  color: rgb(209, 213, 219) !important;
+  color: var(--color-text-tertiary) !important;
 }
 
 .live-games-title {
-  color: rgb(0, 0, 0) !important;
+  color: var(--color-text-primary) !important;
 }
 .dark .live-games-title {
-  color: rgb(255, 255, 255) !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .last-updated-text {
-  color: rgb(107, 114, 128) !important;
+  color: var(--color-text-muted) !important;
 }
 .dark .last-updated-text {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-page-description {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-page-description {
-  color: rgb(209, 213, 219) !important;
+  color: var(--color-text-tertiary) !important;
 }
 
 .nba-card-description {
-  color: rgb(31, 41, 55) !important; /* text-gray-800 - darker for better contrast */
+  color: var(--color-text-secondary) !important; /* text-gray-800 - darker for better contrast */
 }
 .dark .nba-card-description {
-  color: rgb(209, 213, 219) !important; /* text-gray-300 */
+  color: var(--color-text-tertiary) !important; /* text-gray-300 */
 }
 
 /* === Navigation Card Description Override (Higher Specificity) === */
@@ -342,151 +501,159 @@ a .nba-card-description,
 .group .nba-card-description,
 a.group .nba-card-description,
 a.group p.nba-card-description {
-  color: rgb(31, 41, 55) !important; /* Ensure it overrides link colors */
+  color: var(--color-text-secondary) !important; /* Ensure it overrides link colors */
 }
 .dark a .nba-card-description,
 .dark .group .nba-card-description,
 .dark a.group .nba-card-description,
 .dark a.group p.nba-card-description {
-  color: rgb(209, 213, 219) !important;
+  color: var(--color-text-tertiary) !important;
 }
 
 /* === Ultra High Specificity Override === */
 a.group.block p.nba-card-description.mb-3 {
-  color: rgb(31, 41, 55) !important; /* Very dark text for light theme */
+  color: var(--color-text-secondary) !important; /* Very dark text for light theme */
 }
 .dark a.group.block p.nba-card-description.mb-3 {
-  color: rgb(209, 213, 219) !important; /* Light text for dark theme */
+  color: var(--color-text-tertiary) !important; /* Light text for dark theme */
 }
 
 .nba-empty-state-text {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-empty-state-text {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-section-header {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-section-header {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-game-details-text {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-game-details-text {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-team-nickname {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-team-nickname {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-results-summary {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-results-summary {
-  color: rgb(156, 163, 175) !important;
+  color: var(--color-text-muted) !important;
 }
 
 .nba-games-title {
-  color: rgb(17, 24, 39) !important;
+  color: var(--color-text-primary) !important;
 }
 .dark .nba-games-title {
-  color: rgb(255, 255, 255) !important;
+  color: var(--color-text-inverse) !important;
 }
 
 .nba-games-description {
-  color: rgb(31, 41, 55) !important;
+  color: var(--color-text-secondary) !important;
 }
 .dark .nba-games-description {
-  color: rgb(209, 213, 219) !important;
+  color: var(--color-text-tertiary) !important;
 }
 
 .nba-hub-title {
-  color: rgb(17, 24, 39) !important;
+  color: var(--color-text-primary) !important;
 }
 .dark .nba-hub-title {
-  color: rgb(255, 255, 255) !important;
+  color: var(--color-text-inverse) !important;
 }
 
 /* === News Cards - Enhanced Light Theme Contrast === */
 .news-meta-text {
-  color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for light theme */
+  color: var(--color-text-muted) !important; /* text-gray-600 - darker for light theme */
 }
 .dark .news-meta-text {
-  color: rgb(156, 163, 175) !important; /* text-gray-400 */
+  color: var(--color-text-muted) !important; /* text-gray-400 */
 }
 
 .news-title {
-  color: rgb(17, 24, 39) !important; /* text-gray-900 - very dark for light theme */
+  color: var(--color-text-primary) !important; /* text-gray-900 - very dark for light theme */
 }
 .dark .news-title {
-  color: rgb(255, 255, 255) !important; /* text-white */
+  color: var(--color-text-inverse) !important; /* text-white */
 }
 
 .news-description {
-  color: rgb(31, 41, 55) !important; /* text-gray-800 - darker for light theme */
+  color: var(--color-text-secondary) !important; /* text-gray-800 - darker for light theme */
 }
 .dark .news-description {
-  color: rgb(209, 213, 219) !important; /* text-gray-300 */
+  color: var(--color-text-tertiary) !important; /* text-gray-300 */
 }
 
 .news-source-badge {
-  color: rgb(75, 85, 99) !important; /* darker text for light theme */
-  background-color: rgb(243, 244, 246) !important; /* light background */
+  color: var(--color-text-muted) !important; /* darker text for light theme */
+  background-color: var(--color-background-secondary) !important; /* light background */
 }
 .dark .news-source-badge {
-  color: rgb(156, 163, 175) !important; /* light text for dark theme */
-  background-color: rgb(55, 65, 81) !important; /* dark background */
+  color: var(--color-text-muted) !important; /* light text for dark theme */
+  background-color: var(--color-background-tertiary) !important; /* dark background */
 }
 
 /* === Game Cards - Enhanced Light Theme Contrast === */
 .game-details-text {
-  color: rgb(17, 24, 39) !important; /* text-gray-900 - maximum contrast for light theme */
+  color: var(
+    --color-text-primary
+  ) !important; /* text-gray-900 - maximum contrast for light theme */
 }
 .dark .game-details-text {
-  color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
+  color: var(--color-text-tertiary) !important; /* text-gray-300 - brighter for dark theme */
 }
 
 .game-meta-text {
-  color: rgb(17, 24, 39) !important; /* text-gray-900 - maximum contrast for light theme */
+  color: var(
+    --color-text-primary
+  ) !important; /* text-gray-900 - maximum contrast for light theme */
 }
 .dark .game-meta-text {
-  color: rgb(209, 213, 219) !important; /* text-gray-300 - brighter for dark theme */
+  color: var(--color-text-tertiary) !important; /* text-gray-300 - brighter for dark theme */
 }
 
 /* Game card text elements with high specificity */
 .game-card-enhanced .text-gray-900 {
-  color: rgb(0, 0, 0) !important; /* Pure black for maximum contrast in light theme */
+  color: var(--color-text-primary) !important; /* Pure black for maximum contrast in light theme */
 }
 .dark .game-card-enhanced .text-gray-900 {
-  color: rgb(255, 255, 255) !important; /* Pure white for dark theme */
+  color: var(--color-text-inverse) !important; /* Pure white for dark theme */
 }
 
 .game-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
+  color: var(--color-text-inverse) !important;
 }
 .dark .game-card-enhanced .text-white {
-  color: rgb(255, 255, 255) !important;
+  color: var(--color-text-inverse) !important;
 }
 
 /* Enhanced game card backgrounds for better contrast */
 .game-card-enhanced {
-  background-color: rgb(255, 255, 255) !important; /* Pure white background for maximum contrast */
-  border: 1px solid rgb(203, 213, 225) !important; /* Slightly darker border for definition */
+  background-color: var(
+    --color-surface-card
+  ) !important; /* Pure white background for maximum contrast */
+  border: 1px solid var(--color-border-secondary) !important; /* Slightly darker border for definition */
   height: 100% !important; /* Ensure all cards have the same height */
   display: flex !important; /* Use flexbox for consistent layout */
   flex-direction: column !important; /* Stack content vertically */
 }
 .dark .game-card-enhanced {
-  background-color: rgb(31, 41, 55) !important; /* Dark gray background in dark theme */
-  border: 1px solid rgb(55, 65, 81) !important; /* Dark border for dark theme */
+  background-color: var(
+    --color-background-tertiary
+  ) !important; /* Dark gray background in dark theme */
+  border: 1px solid var(--color-border-primary) !important; /* Dark border for dark theme */
 }
 
 /* Ensure game card content fills the available height */
@@ -1206,13 +1373,9 @@ html body header div div div form div input[type='search'],
 html body div div div div form div input[type='search'],
 input[type='search'][data-testid='search'],
 input#search-input[type='search'] {
-  color: rgb(
-    255,
-    255,
-    255
-  ) !important; /* Always white text - search has dark background in both themes */
-  -webkit-text-fill-color: rgb(255, 255, 255) !important;
-  caret-color: rgb(255, 255, 255) !important; /* White cursor for visibility */
+  color: rgb(17, 24, 39) !important; /* Dark text for light theme with white background */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important; /* Dark cursor for visibility on light background */
 }
 
 .dark html body div form div input[type='search'],
@@ -1220,46 +1383,385 @@ input#search-input[type='search'] {
 .dark html body div div div div form div input[type='search'],
 .dark input[type='search'][data-testid='search'],
 .dark input#search-input[type='search'] {
-  color: rgb(255, 255, 255) !important; /* Force white text in dark theme */
+  color: rgb(255, 255, 255) !important; /* White text for dark theme */
   -webkit-text-fill-color: rgb(255, 255, 255) !important;
-  caret-color: rgb(255, 255, 255) !important; /* Ensure cursor is visible */
+  caret-color: rgb(255, 255, 255) !important; /* White cursor for visibility on dark background */
 }
 
-/* Fallback classes */
+/* Fallback classes - Maximum specificity to override all conflicting styles */
 .search-input-enhanced,
 input.search-input-enhanced,
 input[type='search'].search-input-enhanced,
-form input.search-input-enhanced {
-  color: rgb(255, 255, 255) !important; /* Always white text - search has dark background */
-  -webkit-text-fill-color: rgb(255, 255, 255) !important; /* For webkit browsers */
+form input.search-input-enhanced,
+.bg-surface-card .search-input-enhanced,
+.bg-surface-card input.search-input-enhanced,
+.bg-surface-card input[type='search'].search-input-enhanced,
+.bg-surface-card form input.search-input-enhanced,
+form.bg-surface-card input.search-input-enhanced,
+form.bg-surface-card input[type='search'].search-input-enhanced {
+  color: rgb(17, 24, 39) !important; /* text-gray-900 - dark text for light mode */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* For webkit browsers */
 }
 .dark .search-input-enhanced,
 .dark input.search-input-enhanced,
 .dark input[type='search'].search-input-enhanced,
-.dark form input.search-input-enhanced {
+.dark form input.search-input-enhanced,
+.dark .bg-surface-card .search-input-enhanced,
+.dark .bg-surface-card input.search-input-enhanced,
+.dark .bg-surface-card input[type='search'].search-input-enhanced,
+.dark .bg-surface-card form input.search-input-enhanced,
+.dark form.bg-surface-card input.search-input-enhanced,
+.dark form.bg-surface-card input[type='search'].search-input-enhanced {
   color: rgb(255, 255, 255) !important; /* text-white */
   -webkit-text-fill-color: rgb(255, 255, 255) !important; /* For webkit browsers */
 }
 
 .search-placeholder-enhanced::placeholder,
-input.search-placeholder-enhanced::placeholder {
-  color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for better contrast */
+input.search-placeholder-enhanced::placeholder,
+.bg-surface-card .search-placeholder-enhanced::placeholder,
+.bg-surface-card input.search-placeholder-enhanced::placeholder,
+form.bg-surface-card input.search-placeholder-enhanced::placeholder,
+input[type='search'].search-placeholder-enhanced::placeholder,
+form input[type='search'].search-placeholder-enhanced::placeholder,
+.bg-surface-card input[type='search'].search-placeholder-enhanced::placeholder,
+form.bg-surface-card input[type='search'].search-placeholder-enhanced::placeholder {
+  color: rgb(
+    31,
+    41,
+    55
+  ) !important; /* text-gray-800 - much darker for better contrast in light mode */
 }
 .dark .search-placeholder-enhanced::placeholder,
-.dark input.search-placeholder-enhanced::placeholder {
+.dark input.search-placeholder-enhanced::placeholder,
+.dark .bg-surface-card .search-placeholder-enhanced::placeholder,
+.dark .bg-surface-card input.search-placeholder-enhanced::placeholder,
+.dark form.bg-surface-card input.search-placeholder-enhanced::placeholder,
+.dark input[type='search'].search-placeholder-enhanced::placeholder,
+.dark form input[type='search'].search-placeholder-enhanced::placeholder,
+.dark .bg-surface-card input[type='search'].search-placeholder-enhanced::placeholder,
+.dark form.bg-surface-card input[type='search'].search-placeholder-enhanced::placeholder {
   color: rgb(156, 163, 175) !important; /* text-gray-400 */
 }
 
-.search-icon-enhanced {
-  color: rgb(107, 114, 128) !important; /* text-gray-500 - readable for light theme */
+.search-icon-enhanced,
+.bg-surface-card .search-icon-enhanced,
+form.bg-surface-card .search-icon-enhanced {
+  color: rgb(55, 65, 81) !important; /* text-gray-700 - darker for better contrast in light theme */
 }
-.dark .search-icon-enhanced {
+.dark .search-icon-enhanced,
+.dark .bg-surface-card .search-icon-enhanced,
+.dark form.bg-surface-card .search-icon-enhanced {
   color: rgb(156, 163, 175) !important; /* text-gray-400 */
+}
+
+/* Force search input text and placeholder visibility - Maximum specificity */
+input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+form input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+.bg-surface-card input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+form.bg-surface-card input[type='search'].search-input-enhanced.search-placeholder-enhanced {
+  color: rgb(17, 24, 39) !important; /* Dark text for light mode */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* For webkit browsers */
+}
+
+input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+form input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+.bg-surface-card
+  input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+form.bg-surface-card
+  input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder {
+  color: rgb(31, 41, 55) !important; /* Dark placeholder text for light mode */
+}
+
+.dark input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+.dark form input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+.dark .bg-surface-card input[type='search'].search-input-enhanced.search-placeholder-enhanced,
+.dark form.bg-surface-card input[type='search'].search-input-enhanced.search-placeholder-enhanced {
+  color: rgb(255, 255, 255) !important; /* White text for dark mode */
+  -webkit-text-fill-color: rgb(255, 255, 255) !important; /* For webkit browsers */
+}
+
+.dark input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+.dark form input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+.dark
+  .bg-surface-card
+  input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder,
+.dark
+  form.bg-surface-card
+  input[type='search'].search-input-enhanced.search-placeholder-enhanced::placeholder {
+  color: rgb(156, 163, 175) !important; /* Light placeholder text for dark mode */
+}
+
+/* Override the specific rules that are forcing white text - Even higher specificity */
+html body div form div input[type='search'].search-input-fixed,
+html body div form div input[type='search'].search-input-enhanced,
+html body div form div input[type='search'] {
+  color: rgb(17, 24, 39) !important; /* Dark text for light mode */
+  -webkit-text-fill-color: rgb(17, 24, 39) !important; /* For webkit browsers */
+  caret-color: rgb(17, 24, 39) !important; /* Cursor color */
+}
+
+html body div form div input[type='search'].search-input-fixed::placeholder,
+html body div form div input[type='search'].search-input-enhanced::placeholder,
+html body div form div input[type='search']::placeholder {
+  color: rgb(31, 41, 55) !important; /* Dark placeholder text for light mode */
+}
+
+/* Nuclear option - target everything with maximum specificity */
+html body div form div input[type='search'],
+html body div form div input[type='search'] *,
+html body div form div input[type='search']::before,
+html body div form div input[type='search']::after {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+}
+
+html body div form div input[type='search']::placeholder {
+  color: rgb(31, 41, 55) !important;
+}
+
+/* Additional class-based override */
+.search-text-dark {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+}
+
+.search-text-dark::placeholder {
+  color: rgb(31, 41, 55) !important;
+}
+
+/* Light theme specific overrides */
+:root:not(.dark) input[type='search'],
+:root:not(.dark) input[type='search'] *,
+:root:not(.dark) input[type='search']::placeholder {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+}
+
+:root:not(.dark) input[type='search']::placeholder {
+  color: rgb(31, 41, 55) !important;
+}
+
+/* CSS Custom Property approach */
+:root {
+  --search-text-color: rgb(17, 24, 39);
+  --search-placeholder-color: rgb(31, 41, 55);
+}
+
+.dark {
+  --search-text-color: rgb(255, 255, 255);
+  --search-placeholder-color: rgb(156, 163, 175);
+}
+
+/* Force text color on all search inputs regardless of state */
+input[type='search'] {
+  color: var(--search-text-color) !important;
+  -webkit-text-fill-color: var(--search-text-color) !important;
+  caret-color: var(--search-text-color) !important;
+  text-shadow: none !important;
+}
+
+input[type='search']::placeholder {
+  color: var(--search-placeholder-color) !important;
+}
+
+/* Even more specific targeting for input text */
+input[type='search']:not(:placeholder-shown),
+input[type='search']:focus,
+input[type='search']:active,
+input[type='search']:hover {
+  color: var(--search-text-color) !important;
+  -webkit-text-fill-color: var(--search-text-color) !important;
+  caret-color: var(--search-text-color) !important;
+}
+
+/* Target the actual text content */
+input[type='search'] * {
+  color: var(--search-text-color) !important;
+  -webkit-text-fill-color: var(--search-text-color) !important;
+}
+
+/* Ultra-specific targeting for search inputs with text */
+html body div form div input[type='search'].search-input-fixed,
+html body div form div input[type='search'].search-text-dark,
+html body div form div input[type='search'] {
+  color: var(--search-text-color) !important;
+  -webkit-text-fill-color: var(--search-text-color) !important;
+  caret-color: var(--search-text-color) !important;
+  text-shadow: none !important;
+}
+
+/* Target when input has value */
+input[type='search']:not([value='']),
+input[type='search'][value]:not([value='']) {
+  color: var(--search-text-color) !important;
+  -webkit-text-fill-color: var(--search-text-color) !important;
+  caret-color: var(--search-text-color) !important;
+}
+
+/* Nuclear option - target everything with maximum specificity */
+html body div form div input[type='search'],
+html body div form div input[type='search'] *,
+html body div form div input[type='search']::before,
+html body div form div input[type='search']::after,
+html body div form div input[type='search']:focus,
+html body div form div input[type='search']:active,
+html body div form div input[type='search']:hover,
+html body div form div input[type='search']:not(:placeholder-shown) {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Force override for light theme specifically */
+:root:not(.dark) html body div form div input[type='search'],
+:root:not(.dark) html body div form div input[type='search'] *,
+:root:not(.dark) html body div form div input[type='search']:focus,
+:root:not(.dark) html body div form div input[type='search']:active,
+:root:not(.dark) html body div form div input[type='search']:hover {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+  text-shadow: none !important;
+}
+
+/* Target by data attribute and class */
+input[type='search'][data-theme='light'],
+input[type='search'].search-input-force-dark,
+input[type='search'][data-theme='light']:focus,
+input[type='search'][data-theme='light']:active,
+input[type='search'][data-theme='light']:hover,
+input[type='search'][data-theme='light']:not(:placeholder-shown) {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+}
+
+/* Maximum specificity targeting */
+html body div form div input[type='search'].search-input-force-dark[data-theme='light'],
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-fixed.search-text-dark.search-input-force-dark,
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-fixed.search-text-dark.search-input-force-dark:focus,
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-fixed.search-text-dark.search-input-force-dark:active,
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-fixed.search-text-dark.search-input-force-dark:hover,
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-fixed.search-text-dark.search-input-force-dark:not(
+    :placeholder-shown
+  ) {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+  caret-color: rgb(17, 24, 39) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
 }
 
 /* === Search Suggestions Modal - Enhanced Light Theme Contrast === */
 .search-suggestions-header {
   color: rgb(75, 85, 99) !important; /* text-gray-600 - darker for better contrast */
+}
+
+/* Final nuclear option - target everything with maximum specificity and different properties */
+* input[type='search'],
+* input[type='search'] *,
+* input[type='search']::before,
+* input[type='search']::after,
+* input[type='search']:focus,
+* input[type='search']:active,
+* input[type='search']:hover,
+* input[type='search']:not(:placeholder-shown) {
+  color: rgb(0, 0, 0) !important;
+  -webkit-text-fill-color: rgb(0, 0, 0) !important;
+  caret-color: rgb(0, 0, 0) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+  fill: rgb(0, 0, 0) !important;
+  stroke: rgb(0, 0, 0) !important;
+}
+
+* input[type='search']::placeholder {
+  color: rgb(31, 41, 55) !important;
+}
+
+/* Try using filter and other properties to force visibility */
+input[type='search'] {
+  filter: brightness(1) contrast(1) !important;
+  text-shadow: 0 0 0 rgb(0, 0, 0) !important;
+  -webkit-text-security: none !important;
+  text-indent: 0 !important;
+  letter-spacing: 0 !important;
+  word-spacing: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background-color: transparent !important;
+}
+
+/* Try using background-clip text approach */
+input[type='search'].search-input-force-dark {
+  background: linear-gradient(to right, rgb(0, 0, 0), rgb(0, 0, 0)) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: rgb(0, 0, 0) !important;
+}
+
+/* Ultra-specific targeting with maximum specificity */
+html body div form div input[type='search'].search-input-force-dark[data-theme='light'] {
+  color: rgb(0, 0, 0) !important;
+  -webkit-text-fill-color: rgb(0, 0, 0) !important;
+  caret-color: rgb(0, 0, 0) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
+  fill: rgb(0, 0, 0) !important;
+  stroke: rgb(0, 0, 0) !important;
+  filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Force black text with maximum specificity */
+html body div form div input[type='search'].search-input-force-dark[data-theme='light']:focus,
+html body div form div input[type='search'].search-input-force-dark[data-theme='light']:active,
+html body div form div input[type='search'].search-input-force-dark[data-theme='light']:hover,
+html
+  body
+  div
+  form
+  div
+  input[type='search'].search-input-force-dark[data-theme='light']:not(:placeholder-shown) {
+  color: rgb(0, 0, 0) !important;
+  -webkit-text-fill-color: rgb(0, 0, 0) !important;
+  caret-color: rgb(0, 0, 0) !important;
+  text-shadow: none !important;
+  -webkit-text-stroke: none !important;
 }
 .dark .search-suggestions-header {
   color: rgb(156, 163, 175) !important; /* text-gray-400 */
@@ -1443,16 +1945,16 @@ dd.team-detail-value.bg-orange-50 {
 /* === Page-Specific Overrides === */
 .home-page-gradient {
   background:
-    radial-gradient(circle at 20% 80%, rgba(107, 114, 128, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(209, 213, 219, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(107, 114, 128, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(156, 163, 175, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(209, 213, 219, 0.12) 0%, transparent 50%),
     linear-gradient(
       135deg,
-      rgb(107, 114, 128) 0%,
-      rgb(156, 163, 175) 25%,
-      rgb(209, 213, 219) 50%,
-      rgb(229, 231, 235) 75%,
-      rgb(243, 244, 246) 100%
+      rgb(248, 250, 252) 0%,
+      rgb(241, 245, 249) 25%,
+      rgb(226, 232, 240) 50%,
+      rgb(203, 213, 225) 75%,
+      rgb(148, 163, 184) 100%
     ) !important;
   position: relative;
   overflow: hidden;
@@ -1491,16 +1993,16 @@ dd.team-detail-value.bg-orange-50 {
 
 .dark .home-page-gradient {
   background:
-    radial-gradient(circle at 20% 80%, rgba(75, 85, 99, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(107, 114, 128, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(156, 163, 175, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(75, 85, 99, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(107, 114, 128, 0.2) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(156, 163, 175, 0.15) 0%, transparent 50%),
     linear-gradient(
       135deg,
-      rgb(15, 23, 42) 0%,
-      rgb(30, 41, 59) 25%,
-      rgb(51, 65, 85) 50%,
-      rgb(30, 41, 59) 75%,
-      rgb(15, 23, 42) 100%
+      rgb(2, 6, 23) 0%,
+      rgb(15, 23, 42) 25%,
+      rgb(30, 41, 59) 50%,
+      rgb(51, 65, 85) 75%,
+      rgb(30, 41, 59) 100%
     ) !important;
   position: relative;
   overflow: hidden;
@@ -1557,6 +2059,7 @@ dd.team-detail-value.bg-orange-50 {
 .nav-item-google-style {
   position: relative;
   overflow: hidden;
+  border-width: 2px !important; /* Prominent border for all nav buttons */
 }
 
 /* Removed overlay effect - was causing page dimming */
@@ -1605,6 +2108,7 @@ dd.team-detail-value.bg-orange-50 {
   background-color: rgb(55, 65, 81) !important; /* Force lighter background */
   color: rgb(255, 255, 255) !important; /* Force white text */
   border-color: rgb(156, 163, 175) !important; /* Force visible border */
+  border-width: 2px !important; /* Prominent border */
 }
 
 /* More specific selectors to override any conflicting styles */
@@ -1615,6 +2119,7 @@ dd.team-detail-value.bg-orange-50 {
   background-color: rgb(75, 85, 99) !important; /* Slightly lighter gray for better visibility */
   color: rgb(255, 255, 255) !important; /* Force white text */
   border-color: rgb(156, 163, 175) !important; /* Force visible border */
+  border-width: 2px !important; /* Prominent border */
 }
 
 /* Target the Link elements directly */
@@ -1622,6 +2127,7 @@ dd.team-detail-value.bg-orange-50 {
   background-color: rgb(75, 85, 99) !important; /* Lighter background */
   color: rgb(255, 255, 255) !important; /* White text */
   border-color: rgb(156, 163, 175) !important; /* Visible border */
+  border-width: 2px !important; /* Prominent border */
 }
 
 /* Ensure text is visible in all states */
@@ -1629,25 +2135,27 @@ dd.team-detail-value.bg-orange-50 {
   color: rgb(255, 255, 255) !important; /* Force white text on all child elements */
 }
 
-/* Ensure active state is still blue */
-.dark .nav-item-google-style.bg-blue-700 {
-  background-color: rgb(29, 78, 216) !important; /* Force blue background for active */
-  color: rgb(255, 255, 255) !important; /* Force white text */
-  border-color: rgb(37, 99, 235) !important; /* Force blue border */
+/* Ensure active state uses semantic colors */
+.dark .nav-item-google-style.bg-brand-primary {
+  background-color: var(--color-brand-primary) !important;
+  color: var(--color-text-inverse) !important;
+  border-color: var(--color-brand-primary) !important;
 }
 
-/* Force blue background for active state in dark mode */
-.dark .nav-item-google-style.bg-blue-600,
-.dark .nav-item-google-style.bg-blue-700 {
-  background-color: rgb(29, 78, 216) !important; /* Force blue background for active */
-  color: rgb(255, 255, 255) !important; /* Force white text */
-  border-color: rgb(37, 99, 235) !important; /* Force blue border */
+/* Force semantic colors for active state in dark mode */
+.dark .nav-item-google-style.bg-brand-primary,
+.dark .nav-item-google-style.bg-brand-secondary,
+.dark .nav-item-google-style.bg-semantic-error,
+.dark .nav-item-google-style.bg-semantic-info {
+  color: var(--color-text-inverse) !important;
 }
 
 /* Override any conflicting styles for active state */
-.dark .nav-item-google-style.bg-blue-600 *,
-.dark .nav-item-google-style.bg-blue-700 * {
-  color: rgb(255, 255, 255) !important; /* Force white text on all child elements */
+.dark .nav-item-google-style.bg-brand-primary *,
+.dark .nav-item-google-style.bg-brand-secondary *,
+.dark .nav-item-google-style.bg-semantic-error *,
+.dark .nav-item-google-style.bg-semantic-info * {
+  color: var(--color-text-inverse) !important;
 }
 
 /* Active state overrides */
@@ -1656,12 +2164,16 @@ dd.team-detail-value.bg-orange-50 {
   color: rgb(255, 255, 255) !important; /* Force white text for active state in dark mode */
 }
 
-/* Active state styling - Blue background with white text */
-.nav-item-google-style.bg-blue-600,
-.nav-item-google-style.bg-blue-600 *,
-.nav-item-google-style.bg-blue-700,
-.nav-item-google-style.bg-blue-700 * {
-  color: rgb(255, 255, 255) !important; /* Force white text for active state */
+/* Active state styling - Semantic colors with proper text */
+.nav-item-google-style.bg-brand-primary,
+.nav-item-google-style.bg-brand-primary *,
+.nav-item-google-style.bg-brand-secondary,
+.nav-item-google-style.bg-brand-secondary *,
+.nav-item-google-style.bg-semantic-error,
+.nav-item-google-style.bg-semantic-error *,
+.nav-item-google-style.bg-semantic-info,
+.nav-item-google-style.bg-semantic-info * {
+  color: var(--color-text-inverse) !important;
 }
 
 /* Active state for light mode - fallback */
@@ -1673,7 +2185,7 @@ dd.team-detail-value.bg-orange-50 {
 .home-page-gradient .text-black,
 .home-page-gradient p.text-xl,
 .home-description {
-  color: black !important;
+  color: rgb(17, 24, 39) !important; /* Dark text for light theme */
 }
 
 .dark .home-description,
@@ -1684,7 +2196,244 @@ dd.team-detail-value.bg-orange-50 {
 .dark .home-page-gradient .text-lg,
 .dark .home-page-gradient .text-xl,
 .dark .home-page-gradient .text-2xl {
-  color: white !important;
+  color: rgb(255, 255, 255) !important; /* White text for dark theme */
+}
+
+/* Landing page card contrast improvements */
+.home-page-gradient .bg-theme-muted {
+  background-color: rgb(17, 24, 39) !important; /* Dark background for light theme */
+  color: rgb(255, 255, 255) !important; /* White text for contrast */
+}
+
+.dark .home-page-gradient .bg-theme-muted {
+  background-color: rgb(30, 41, 59) !important; /* Darker background for dark theme */
+  color: rgb(255, 255, 255) !important; /* White text for contrast */
+}
+
+.home-page-gradient .bg-surface-card {
+  background-color: rgb(255, 255, 255) !important; /* White background for light theme */
+  color: rgb(17, 24, 39) !important; /* Dark text for contrast */
+}
+
+.dark .home-page-gradient .bg-surface-card {
+  background-color: rgb(15, 23, 42) !important; /* Dark background for dark theme */
+  color: rgb(255, 255, 255) !important; /* White text for contrast */
+}
+
+/* Landing page grid containers - subtle spacing */
+.home-page-gradient .grid {
+  gap: 1.5rem !important; /* Moderate gap between grid items */
+}
+
+/* Content preview banner cards - respect their specific border colors */
+.home-page-gradient .border-semantic-success\/30 {
+  border: 2px solid rgb(34, 197, 94) !important; /* Green border for Trending Now */
+  margin: 0.5rem !important; /* Card margin */
+  border-radius: 0.75rem !important; /* Rounded corners */
+  box-shadow:
+    0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* Enhanced shadow */
+}
+
+.home-page-gradient .border-semantic-info\/30 {
+  border: 2px solid rgb(59, 130, 246) !important; /* Blue border for Latest Results */
+  margin: 0.5rem !important; /* Card margin */
+  border-radius: 0.75rem !important; /* Rounded corners */
+  box-shadow:
+    0 8px 16px -4px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05) !important; /* Enhanced shadow */
+}
+
+.dark .home-page-gradient .border-semantic-success\/30 {
+  border: 2px solid rgb(34, 197, 94) !important; /* Green border for Trending Now */
+  margin: 0.5rem !important; /* Card margin */
+  border-radius: 0.75rem !important; /* Rounded corners */
+  box-shadow:
+    0 8px 16px -4px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1) !important; /* Enhanced shadow for dark theme */
+}
+
+.dark .home-page-gradient .border-semantic-info\/30 {
+  border: 2px solid rgb(59, 130, 246) !important; /* Blue border for Latest Results */
+  margin: 0.5rem !important; /* Card margin */
+  border-radius: 0.75rem !important; /* Rounded corners */
+  box-shadow:
+    0 8px 16px -4px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.1) !important; /* Enhanced shadow for dark theme */
+}
+
+/* Enhanced Tab Styling - Make tabs more prominent */
+/* Main dashboard tabs */
+[data-state='active'] {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3) !important; /* Blue shadow */
+  font-weight: 600 !important; /* Bold text */
+  transform: translateY(-1px) !important; /* Slight lift effect */
+}
+
+[data-state='inactive'] {
+  background-color: rgb(243, 244, 246) !important; /* Light gray background for inactive tabs */
+  color: rgb(55, 65, 81) !important; /* Dark gray text */
+  border: 2px solid rgb(209, 213, 219) !important; /* Light gray border */
+  font-weight: 500 !important; /* Medium weight text */
+  transition: all 0.2s ease-in-out !important; /* Smooth transitions */
+}
+
+[data-state='inactive']:hover {
+  background-color: rgb(229, 231, 235) !important; /* Darker gray on hover */
+  color: rgb(31, 41, 55) !important; /* Darker text on hover */
+  border-color: rgb(156, 163, 175) !important; /* Darker border on hover */
+  transform: translateY(-1px) !important; /* Slight lift on hover */
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow on hover */
+}
+
+/* Dark theme tab styling */
+.dark [data-state='active'] {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.4) !important; /* Blue shadow */
+}
+
+.dark [data-state='inactive'] {
+  background-color: rgb(55, 65, 81) !important; /* Dark gray background for inactive tabs */
+  color: rgb(209, 213, 219) !important; /* Light gray text */
+  border: 2px solid rgb(75, 85, 99) !important; /* Medium gray border */
+}
+
+.dark [data-state='inactive']:hover {
+  background-color: rgb(75, 85, 99) !important; /* Lighter gray on hover */
+  color: rgb(255, 255, 255) !important; /* White text on hover */
+  border-color: rgb(107, 114, 128) !important; /* Lighter border on hover */
+}
+
+/* Friends sub-tabs specific styling */
+.TabsList {
+  background-color: rgb(248, 250, 252) !important; /* Light background for tab container */
+  border: 2px solid rgb(209, 213, 219) !important; /* Border around tab container */
+  border-radius: 0.75rem !important; /* Rounded corners */
+  padding: 0.25rem !important; /* Internal padding */
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow */
+}
+
+.dark .TabsList {
+  background-color: rgb(31, 41, 55) !important; /* Dark background for tab container */
+  border: 2px solid rgb(55, 65, 81) !important; /* Dark border around tab container */
+}
+
+.TabsTrigger {
+  border-radius: 0.5rem !important; /* Rounded corners for individual tabs */
+  font-weight: 600 !important; /* Bold text */
+  transition: all 0.2s ease-in-out !important; /* Smooth transitions */
+  position: relative !important; /* For hover effects */
+}
+
+/* Game Log tabs specific styling */
+/* Main dashboard tabs (My Logs, Friends, Activity) */
+.TabsTrigger[value='game-logs'],
+.TabsTrigger[value='friends'],
+.TabsTrigger[value='activity'] {
+  background-color: rgb(243, 244, 246) !important; /* Light gray background for inactive tabs */
+  color: rgb(55, 65, 81) !important; /* Dark gray text */
+  border: 2px solid rgb(209, 213, 219) !important; /* Light gray border */
+  font-weight: 600 !important; /* Bold text */
+  transition: all 0.2s ease-in-out !important; /* Smooth transitions */
+  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow */
+}
+
+.TabsTrigger[value='game-logs']:hover,
+.TabsTrigger[value='friends']:hover,
+.TabsTrigger[value='activity']:hover {
+  background-color: rgb(229, 231, 235) !important; /* Darker gray on hover */
+  color: rgb(31, 41, 55) !important; /* Darker text on hover */
+  border-color: rgb(156, 163, 175) !important; /* Darker border on hover */
+  transform: translateY(-1px) !important; /* Slight lift on hover */
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.15) !important; /* Enhanced shadow on hover */
+}
+
+.TabsTrigger[value='game-logs'][data-state='active'],
+.TabsTrigger[value='friends'][data-state='active'],
+.TabsTrigger[value='activity'][data-state='active'] {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3) !important; /* Blue shadow */
+  transform: translateY(-1px) !important; /* Slight lift effect */
+}
+
+/* Dark theme for main dashboard tabs */
+.dark .TabsTrigger[value='game-logs'],
+.dark .TabsTrigger[value='friends'],
+.dark .TabsTrigger[value='activity'] {
+  background-color: rgb(55, 65, 81) !important; /* Dark gray background for inactive tabs */
+  color: rgb(209, 213, 219) !important; /* Light gray text */
+  border: 2px solid rgb(75, 85, 99) !important; /* Medium gray border */
+}
+
+.dark .TabsTrigger[value='game-logs']:hover,
+.dark .TabsTrigger[value='friends']:hover,
+.dark .TabsTrigger[value='activity']:hover {
+  background-color: rgb(75, 85, 99) !important; /* Lighter gray on hover */
+  color: rgb(255, 255, 255) !important; /* White text on hover */
+  border-color: rgb(107, 114, 128) !important; /* Lighter border on hover */
+}
+
+.dark .TabsTrigger[value='game-logs'][data-state='active'],
+.dark .TabsTrigger[value='friends'][data-state='active'],
+.dark .TabsTrigger[value='activity'][data-state='active'] {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.4) !important; /* Blue shadow */
+}
+
+/* Game Log sub-tabs (My Logs, Friends, Public) - button elements */
+.bg-bg-theme-secondary button {
+  background-color: rgb(243, 244, 246) !important; /* Light gray background for inactive tabs */
+  color: rgb(55, 65, 81) !important; /* Dark gray text */
+  border: 2px solid rgb(209, 213, 219) !important; /* Light gray border */
+  font-weight: 600 !important; /* Bold text */
+  transition: all 0.2s ease-in-out !important; /* Smooth transitions */
+  box-shadow: 0 1px 2px -1px rgba(0, 0, 0, 0.1) !important; /* Subtle shadow */
+  border-radius: 0.5rem !important; /* Rounded corners */
+}
+
+.bg-bg-theme-secondary button:hover {
+  background-color: rgb(229, 231, 235) !important; /* Darker gray on hover */
+  color: rgb(31, 41, 55) !important; /* Darker text on hover */
+  border-color: rgb(156, 163, 175) !important; /* Darker border on hover */
+  transform: translateY(-1px) !important; /* Slight lift on hover */
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.15) !important; /* Enhanced shadow on hover */
+}
+
+.bg-bg-theme-secondary button.bg-surface-card {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.3) !important; /* Blue shadow */
+  transform: translateY(-1px) !important; /* Slight lift effect */
+}
+
+/* Dark theme for Game Log sub-tabs */
+.dark .bg-bg-theme-secondary button {
+  background-color: rgb(55, 65, 81) !important; /* Dark gray background for inactive tabs */
+  color: rgb(209, 213, 219) !important; /* Light gray text */
+  border: 2px solid rgb(75, 85, 99) !important; /* Medium gray border */
+}
+
+.dark .bg-bg-theme-secondary button:hover {
+  background-color: rgb(75, 85, 99) !important; /* Lighter gray on hover */
+  color: rgb(255, 255, 255) !important; /* White text on hover */
+  border-color: rgb(107, 114, 128) !important; /* Lighter border on hover */
+}
+
+.dark .bg-bg-theme-secondary button.bg-surface-card {
+  background-color: rgb(59, 130, 246) !important; /* Blue background for active tab */
+  color: rgb(255, 255, 255) !important; /* White text for active tab */
+  border: 2px solid rgb(37, 99, 235) !important; /* Darker blue border */
+  box-shadow: 0 4px 8px -2px rgba(59, 130, 246, 0.4) !important; /* Blue shadow */
 }
 
 /* Mobile-specific responsive text colors */
@@ -1699,13 +2448,29 @@ dd.team-detail-value.bg-orange-50 {
   .dark .home-page-gradient .text-neutral-600 {
     color: white !important;
   }
+
+  /* Mobile adjustments for borders and margins */
+  .home-page-gradient section {
+    margin: 1rem !important; /* Smaller margin on mobile */
+    border-width: 2px !important; /* Thinner border on mobile */
+  }
+
+  .home-page-gradient .grid {
+    gap: 1rem !important; /* Smaller gap on mobile */
+  }
+
+  /* Mobile tab adjustments */
+  .TabsTrigger {
+    font-size: 0.875rem !important; /* Smaller text on mobile */
+    padding: 0.5rem 0.75rem !important; /* Smaller padding on mobile */
+  }
 }
 
 .score-text {
-  color: #000000 !important;
+  color: var(--color-text-primary) !important;
 }
 .dark .score-text {
-  color: #ffffff !important;
+  color: var(--color-text-inverse) !important;
 }
 
 /* =================================================================
@@ -1913,7 +2678,7 @@ button {
 
 /* === Focus States === */
 .focus-visible:focus {
-  outline: 2px solid #3b82f6;
+  outline: 2px solid var(--color-brand-primary);
   outline-offset: 2px;
 }
 
@@ -1921,8 +2686,8 @@ button {
   position: absolute;
   top: -40px;
   left: 6px;
-  background: #000;
-  color: white;
+  background: var(--color-text-primary);
+  color: var(--color-text-inverse);
   padding: 8px;
   text-decoration: none;
   border-radius: 4px;
@@ -1948,6 +2713,84 @@ button {
     touch-action: manipulation;
     min-height: 44px;
     min-width: 44px;
+  }
+
+  /* Enhanced mobile typography */
+  html {
+    font-size: 14px; /* Base font size for mobile */
+  }
+
+  /* Mobile-optimized headings */
+  h1 {
+    font-size: 1.75rem;
+    line-height: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    line-height: 1.75rem;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    line-height: 1.5rem;
+  }
+
+  h4 {
+    font-size: 1.125rem;
+    line-height: 1.5rem;
+  }
+
+  /* Mobile-optimized text */
+  p,
+  span,
+  div {
+    line-height: 1.6;
+  }
+
+  /* Mobile-optimized spacing */
+  .mobile-padding {
+    padding: 1rem;
+  }
+
+  .mobile-margin {
+    margin: 0.75rem;
+  }
+
+  /* Mobile-optimized cards */
+  .mobile-card {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.75rem;
+  }
+
+  /* Mobile-optimized buttons */
+  .mobile-button {
+    min-height: 48px;
+    min-width: 48px;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+
+  /* Mobile-optimized inputs */
+  input,
+  textarea,
+  select {
+    min-height: 48px;
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.75rem;
+  }
+
+  /* Mobile-optimized navigation */
+  .mobile-nav-item {
+    min-height: 56px;
+    min-width: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
   }
 
   /* Safe area support */
@@ -2003,6 +2846,86 @@ button {
   /* Mobile-specific spacing */
   .main-content {
     padding-bottom: 120px;
+  }
+
+  /* Mobile-optimized grid layouts */
+  .mobile-grid-1 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .mobile-grid-2 {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Mobile-optimized card layouts */
+  .mobile-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .mobile-card-horizontal {
+    display: flex;
+    flex-direction: row;
+    gap: 0.75rem;
+    align-items: center;
+  }
+
+  /* Mobile-optimized text truncation */
+  .mobile-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .mobile-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Mobile-optimized spacing utilities */
+  .mobile-space-y-2 > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .mobile-space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+
+  .mobile-space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+
+  /* Mobile-optimized responsive images */
+  .mobile-image-responsive {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  /* Mobile-optimized scrollable containers */
+  .mobile-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-scroll-x::-webkit-scrollbar {
+    display: none;
   }
 }
 
@@ -2088,7 +3011,7 @@ button {
 }
 
 .dark .bottom-sheet {
-  background: #1f2937;
+  background: var(--color-background-secondary);
   box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.3);
 }
 
@@ -2125,6 +3048,32 @@ button {
 .floating-component-secondary {
   position: fixed;
   z-index: 30;
+}
+
+/* === Head-to-Head Filters - Beautiful Design === */
+/* Custom styling for the head-to-head filters to match Game Logs design */
+.head2head-filters-card {
+  background: linear-gradient(
+    135deg,
+    var(--color-background-primary) 0%,
+    var(--color-background-secondary) 100%
+  ) !important;
+  border: 1px solid var(--color-border-primary) !important;
+  box-shadow:
+    0 1px 3px 0 rgba(0, 0, 0, 0.1),
+    0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.dark .head2head-filters-card {
+  background: linear-gradient(
+    135deg,
+    var(--color-background-secondary) 0%,
+    var(--color-background-tertiary) 100%
+  ) !important;
+  border: 1px solid var(--color-border-secondary) !important;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* === E2E Test Overlay Hiding === */
@@ -2172,14 +3121,14 @@ input[type='search']::-moz-clear {
   border: none;
   padding: 0;
   margin: 0;
-  color: #3b82f6;
+  color: var(--color-brand-primary);
   text-decoration: none;
   font: inherit;
   cursor: pointer;
 }
 
 .cl-footerActionText {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -2190,11 +3139,11 @@ input[type='search']::-moz-clear {
 }
 
 .dark .cl-modal-close-btn {
-  color: #9ca3af;
+  color: var(--color-text-disabled);
 }
 
 .dark .cl-modal-close-btn:hover {
-  color: #d1d5db;
+  color: var(--color-text-tertiary);
 }
 
 /* === Footer improvements === */
@@ -2203,7 +3152,7 @@ footer a {
 }
 
 footer a:hover {
-  color: #3b82f6;
+  color: var(--color-brand-primary);
 }
 
 [data-testid='footer-action'] {
@@ -2218,7 +3167,7 @@ footer a:hover {
 
 [data-testid='footer-action'] > span,
 [data-testid='footer-action'] > div {
-  color: #6b7280;
+  color: var(--color-text-muted);
   font-size: 14px;
 }
 
@@ -2364,3 +3313,50 @@ footer a:hover {
 }
 
 /* Game card grid container - ensure items have equal heights */
+
+/* =================================================================
+   TABLET-SPECIFIC RESPONSIVE UTILITIES
+   ================================================================= */
+
+/* Tablet-specific responsive heights for better space utilization */
+.h-tablet-optimized {
+  height: min(32rem, 50vh);
+}
+
+.h-tablet-optimized-sm {
+  height: min(28rem, 45vh);
+}
+
+.h-tablet-optimized-lg {
+  height: min(36rem, 55vh);
+}
+
+/* iPad Mini specific optimizations */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+  .h-tablet-optimized {
+    height: min(30rem, 45vh);
+  }
+
+  .h-tablet-optimized-sm {
+    height: min(26rem, 40vh);
+  }
+
+  .h-tablet-optimized-lg {
+    height: min(34rem, 50vh);
+  }
+}
+
+/* iPad Mini landscape */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .h-tablet-optimized {
+    height: min(28rem, 40vh);
+  }
+
+  .h-tablet-optimized-sm {
+    height: min(24rem, 35vh);
+  }
+
+  .h-tablet-optimized-lg {
+    height: min(32rem, 45vh);
+  }
+}

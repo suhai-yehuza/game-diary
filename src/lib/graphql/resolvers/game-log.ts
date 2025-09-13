@@ -382,8 +382,18 @@ export const gameLogMutationResolvers = {
           );
         }
 
+        // Get the game data to include in the response
+        const gameData = game[0] as Record<string, unknown>;
+        const { homeTeam: _homeTeam, awayTeam: _awayTeam } = getTeamObjects(gameData);
+
         return {
-          gameLog: newGameLog,
+          gameLog: {
+            ...newGameLog,
+            game: {
+              id: gameData.id,
+              date: gameData.date,
+            },
+          },
           errors: [],
         };
       },
@@ -587,10 +597,37 @@ export const gameLogMutationResolvers = {
 // Game Log Field Resolvers
 export const gameLogResolver = {
   // Resolve game field for GameLog
-  game: async (parent: { game_id: string }) => {
+  game: async (parent: {
+    game_id: string;
+    teams?: unknown;
+    game_date?: unknown;
+    game_status?: unknown;
+    game_season?: unknown;
+    game_week?: unknown;
+  }) => {
     if (!parent.game_id) return null;
 
     try {
+      // Check if we already have game data from the query (from executeUltraFastGameLogQuery)
+      if (parent.teams !== undefined) {
+        // We have game data from the query, use it directly
+        const { homeTeam, awayTeam } = getTeamObjects(parent);
+
+        return {
+          id: parent.game_id,
+          date: parent.game_date,
+          teams: parent.teams || {},
+          status: parent.game_status,
+          season: parent.game_season,
+          week: parent.game_week,
+          home_team: homeTeam,
+          away_team: awayTeam,
+          home_team_id: (parent as { home_team_id?: string }).home_team_id,
+          away_team_id: (parent as { away_team_id?: string }).away_team_id,
+        };
+      }
+
+      // Fallback: query the database if we don't have the data
       const game = await getDb()
         ?.select()
         .from(basketball_games)
@@ -604,11 +641,11 @@ export const gameLogResolver = {
 
       return {
         id: gameData.id,
-        date: gameData.game_date,
-        teams: gameData.game_teams,
-        status: gameData.game_status,
-        season: gameData.game_season,
-        week: gameData.game_week,
+        date: gameData.date,
+        teams: gameData.teams || {},
+        status: gameData.status,
+        season: gameData.season,
+        week: gameData.stage,
         home_team: homeTeam,
         away_team: awayTeam,
         home_team_id: gameData.home_team_id,

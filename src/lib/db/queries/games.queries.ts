@@ -29,6 +29,24 @@ export async function getGameByIdQuery(gameId: string) {
 }
 
 /**
+ * Get game by game_id field (for backward compatibility)
+ */
+export async function getGameByGameIdQuery(gameId: string) {
+  const database = db();
+  if (!database) {
+    throw new Error('Database connection not available');
+  }
+
+  const result = await database
+    .select()
+    .from(basketball_games)
+    .where(and(eq(basketball_games.game_id, gameId), isNull(basketball_games.deleted_at)))
+    .limit(1);
+
+  return result[0] || null;
+}
+
+/**
  * Get games with pagination
  */
 export async function getGamesQuery(limit = 20, offset = 0) {

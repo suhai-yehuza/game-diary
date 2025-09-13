@@ -39,17 +39,17 @@ describe('SignInModalTrigger', () => {
     expect(button).toHaveClass(
       'px-4',
       'py-2',
-      'bg-blue-800',
-      'text-white',
+      'bg-brand-primary',
+      'text-text-inverse',
       'rounded-lg',
       'shadow-md',
-      'hover:bg-blue-900',
+      'hover:bg-brand-primary-hover',
       'transition-colors',
       'focus:outline-none',
       'focus-visible:ring-4',
-      'focus-visible:ring-blue-400',
+      'focus-visible:ring-brand-primary/40',
       'focus-visible:ring-offset-2',
-      'focus-visible:ring-offset-black',
+      'focus-visible:ring-offset-theme-primary',
       'cursor-pointer'
     );
   });

@@ -7,13 +7,13 @@ NOTES
 
 # HARD RESET (Destructive - wipes everything)
 # Use when you want a completely fresh start
-> pnpm hard:reseed:dev
-# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm hard:reseed:prod
+> pnpm reseed:hard:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm reseed:hard:prod
 
 # SOFT RESET (Non-destructive - preserves data)
 # Use when you want to apply migrations safely
-> pnpm soft:reseed:dev
-# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm soft:reseed:prod
+> pnpm reseed:soft:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm reseed:soft:prod
 
 # seed user data (for dev only)
 > pnpm seed:user-data:large-pareto:dev
@@ -47,7 +47,7 @@ NOTES
 > pnpm db:migrate:prod
 
 # Alternative: Use soft reseed for complete setup with external data
-> pnpm soft:reseed:dev
+> pnpm reseed:soft:dev
 
 # 4. Test everything works
 > pnpm db:test:integrity

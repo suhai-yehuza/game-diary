@@ -221,7 +221,7 @@ export function AdminDatabaseContent() {
               }
               disabled={loading[tableName]}
               size="sm"
-              className="bg-rose-100 text-rose-900 border border-rose-300 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-rose-200 active:shadow focus-visible:ring-2 focus-visible:ring-rose-300 focus-visible:ring-offset-2 dark:bg-rose-900 dark:text-rose-100 dark:border-rose-700 dark:hover:bg-rose-800"
+              className="bg-semantic-error/10 text-semantic-error border border-semantic-error/30 shadow px-5 py-2 rounded-md transition-all duration-200 hover:bg-semantic-error/20 active:shadow focus-visible:ring-2 focus-visible:ring-semantic-error/30 focus-visible:ring-offset-2"
             >
               {loading[tableName] ? (
                 <>
@@ -368,8 +368,7 @@ export function AdminDatabaseContent() {
                 key={key}
                 value={key}
                 className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-2 mx-0.5 sm:mx-1 rounded-md border transition-all duration-200 text-xs sm:text-sm flex-shrink-0
-            bg-neutral-100 text-neutral-700 border-neutral-200 shadow-sm
-            dark:bg-neutral-800 dark:text-neutral-300 dark:border-neutral-600
+            bg-bg-theme-secondary text-theme-secondary border-theme-primary shadow-sm
             hover:bg-neutral-200 hover:text-neutral-900 dark:hover:bg-neutral-700 dark:hover:text-neutral-100
             data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=active]:shadow-md
             dark:data-[state=active]:bg-blue-500 dark:data-[state=active]:text-white dark:data-[state=active]:border-blue-500 dark:data-[state=active]:shadow-md"

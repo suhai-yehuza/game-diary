@@ -12,20 +12,62 @@ vi.mock('next/font/google', () => ({
   })),
 }));
 
-vi.mock('@/styles/globals.css', () => ({}));
-
-vi.mock('@/app/components/layout/Header', () => ({
-  Header: () => <header data-testid="header">Header Component</header>,
+vi.mock('next/script', () => ({
+  default: ({ children, ...props }: any) => (
+    <script {...props} data-testid="script">
+      {children}
+    </script>
+  ),
 }));
 
-vi.mock('@src/app/components/layout', () => ({
+vi.mock('@vercel/analytics/next', () => ({
+  Analytics: () => <div data-testid="analytics">Analytics</div>,
+  SpeedInsights: () => <div data-testid="speed-insights">SpeedInsights</div>,
+}));
+
+vi.mock('@/styles/globals.css', () => ({}));
+
+// Mock all the components imported in RootLayout
+vi.mock('@/app/components/CacheValidationInitializer', () => ({
+  CacheValidationInitializer: () => (
+    <div data-testid="cache-validation-initializer">CacheValidationInitializer</div>
+  ),
+}));
+
+vi.mock('@/app/components/CacheWarmingInitializer', () => ({
+  CacheWarmingInitializer: () => (
+    <div data-testid="cache-warming-initializer">CacheWarmingInitializer</div>
+  ),
+}));
+
+vi.mock('@/app/components/E2ETestSetup', () => ({
+  E2ETestSetup: () => <div data-testid="e2e-test-setup">E2ETestSetup</div>,
+}));
+
+vi.mock('@/app/components/layout/Footer', () => ({
   Footer: () => <footer data-testid="footer">Footer Component</footer>,
 }));
 
-vi.mock('@src/app/components/providers', () => ({
+vi.mock('@/app/components/layout/HeaderWrapper', () => ({
+  HeaderWrapper: () => <header data-testid="header">Header Component</header>,
+}));
+
+vi.mock('@/app/components/LiveGamesBanner', () => ({
+  LiveGamesBanner: () => <div data-testid="live-games-banner">LiveGamesBanner</div>,
+}));
+
+vi.mock('@/app/components/performance/LiveGamesMonitor', () => ({
+  LiveGamesMonitor: () => <div data-testid="live-games-monitor">LiveGamesMonitor</div>,
+}));
+
+vi.mock('@/app/components/providers', () => ({
   ClientProviders: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="client-providers">{children}</div>
   ),
+}));
+
+vi.mock('@/lib/utils/e2e-test-setup', () => ({
+  isTestOrCIEnvironment: vi.fn(() => true),
 }));
 
 describe('RootLayout', () => {

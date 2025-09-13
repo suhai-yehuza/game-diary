@@ -57,8 +57,11 @@ async function resetWithEnvironment(env: string, skipSchemaCheck = false) {
   if (!skipSchemaCheck) {
     console.log(`🔍 Pre-reset: Checking schema consistency...`);
     try {
+      console.log(`🔍 Creating schema consistency checker...`);
       const checker = new SchemaConsistencyChecker();
+      console.log(`🔍 Running schema consistency check...`);
       const consistencyResult = await checker.check();
+      console.log(`🔍 Schema consistency result:`, consistencyResult);
 
       if (!consistencyResult.success) {
         console.warn(`⚠️  Schema consistency issues detected:`);
@@ -80,10 +83,12 @@ async function resetWithEnvironment(env: string, skipSchemaCheck = false) {
         }
       } else {
         console.log(`✅ Schema consistency check passed`);
+        console.log(`🔄 Proceeding with migrations regardless of schema consistency result`);
       }
     } catch (error) {
       console.warn(`⚠️  Schema consistency check failed: ${error}`);
       console.log(`📋 Proceeding with reset (schema issues may persist)`);
+      console.log(`🔍 Error details:`, error);
     }
   } else {
     console.log(`⏭️  Skipping schema consistency check (--skip-schema-check flag)`);

@@ -127,10 +127,10 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
         {Array.from({ length: limit }, (_, i) => (
           <Card key={`loading-skeleton-${i}`} className="animate-pulse">
             <CardContent className="p-6">
-              <div className="h-48 bg-gray-200 dark:bg-gray-700 rounded-lg mb-4" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2" />
-              <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2 w-3/4" />
-              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+              <div className="h-48 bg-bg-theme-secondary rounded-lg mb-4" />
+              <div className="h-4 bg-bg-theme-secondary rounded mb-2" />
+              <div className="h-4 bg-bg-theme-secondary rounded mb-2 w-3/4" />
+              <div className="h-3 bg-bg-theme-secondary rounded w-1/2" />
             </CardContent>
           </Card>
         ))}
@@ -141,10 +141,10 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+        <p className="text-semantic-error mb-4">{error}</p>
         <button
           onClick={() => window.location.reload()}
-          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+          className="px-4 py-2 bg-semantic-error text-text-inverse rounded-md hover:bg-semantic-error/90 transition-colors"
         >
           Try Again
         </button>

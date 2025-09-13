@@ -34,30 +34,37 @@ const httpLink = createHttpLink({
 });
 
 // Error handling link
-const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) => {
-      // Only log critical errors in development
-      if (process.env.NODE_ENV === 'development' && message.includes('INTERNAL_SERVER_ERROR')) {
-        console.error(
-          `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${JSON.stringify(path)}`
-        );
+const errorLink = onError(
+  ({ graphQLErrors, networkError, operation: _operation, forward: _forward }) => {
+    if (graphQLErrors) {
+      graphQLErrors.forEach(({ message, locations, path, extensions }) => {
+        // Log authentication/authorization errors for debugging
+        if (extensions?.code === 'FORBIDDEN' || message.includes('Authentication required')) {
+          console.warn(`[GraphQL Auth Error]: ${message} at ${JSON.stringify(path)}`);
+        } else if (
+          process.env.NODE_ENV === 'development' &&
+          message.includes('INTERNAL_SERVER_ERROR')
+        ) {
+          console.error(
+            `[GraphQL error]: Message: ${message}, Location: ${JSON.stringify(locations)}, Path: ${JSON.stringify(path)}`
+          );
+        }
+      });
+    }
+
+    if (networkError) {
+      // Only log non-403 network errors
+      const isAuthError =
+        networkError.message?.includes('403') ||
+        networkError.message?.includes('Forbidden') ||
+        networkError.message?.includes('Authentication required');
+
+      if (!isAuthError) {
+        console.error(`[Network error]: ${networkError}`);
       }
-    });
-  }
-
-  if (networkError) {
-    // Don't log 403 errors as they are expected for unauthenticated users
-    const isAuthError =
-      networkError.message?.includes('403') ||
-      networkError.message?.includes('Forbidden') ||
-      networkError.message?.includes('Authentication required');
-
-    if (!isAuthError) {
-      console.error(`[Network error]: ${networkError}`);
     }
   }
-});
+);
 
 // Add authentication headers
 const authLink = setContext((_, { headers }: { headers?: Record<string, string> }) => {
@@ -66,6 +73,8 @@ const authLink = setContext((_, { headers }: { headers?: Record<string, string> 
   return {
     headers: {
       ...headers,
+      // Ensure cookies are included for authentication
+      credentials: 'include',
     },
   };
 });

@@ -114,10 +114,10 @@ export const GameLogCard = memo<IGameLogCardProps>(
             <div className="flex items-start justify-between">
               <div className="flex items-center space-x-3">
                 <div
-                  className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center`}
+                  className={`${isMobile ? 'h-8 w-8' : 'h-10 w-10'} rounded-full bg-bg-theme-secondary flex items-center justify-center`}
                 >
                   <span
-                    className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-gray-600 dark:text-gray-300`}
+                    className={`${isMobile ? 'text-xs' : 'text-sm'} font-semibold text-theme-muted`}
                   >
                     {gameLog?.user?.username?.charAt(0).toUpperCase() || 'U'}
                   </span>
@@ -198,14 +198,14 @@ export const GameLogCard = memo<IGameLogCardProps>(
                 )}
                 <div className="flex items-center space-x-1">
                   <Eye className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                  <span className="bg-semantic-success/10 dark:bg-semantic-success/20 px-2 py-1 rounded text-xs">
+                  <span className="bg-semantic-success/10 px-2 py-1 rounded text-xs">
                     {formatWatchedSetting(gameLog?.watched_setting)}
                   </span>
                 </div>
                 {gameLog?.watched_scope && (
                   <div className="flex items-center space-x-1">
                     <Users className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
-                    <span className="bg-accent-purple/10 dark:bg-accent-purple/20 px-2 py-1 rounded text-xs">
+                    <span className="bg-semantic-warning/10 px-2 py-1 rounded text-xs">
                       {gameLog.watched_scope}
                     </span>
                   </div>
@@ -276,7 +276,7 @@ export const GameLogCard = memo<IGameLogCardProps>(
                     e?.stopPropagation();
                     handleDelete();
                   }}
-                  className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                  className="flex items-center space-x-1 text-semantic-error hover:text-semantic-error/80"
                   data-testid="delete-button"
                 >
                   <Trash2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'}`} />
@@ -305,7 +305,7 @@ export const GameLogCard = memo<IGameLogCardProps>(
                 e.stopPropagation();
                 setExpandedComments(!expandedComments);
               }}
-              className="w-full flex items-center justify-between px-4 py-3 text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
+              className="w-full flex items-center justify-between px-4 py-3 text-theme-muted hover:text-semantic-info hover:bg-semantic-info/10 transition-colors"
               aria-expanded={expandedComments}
               aria-controls={`comments-${gameLog?.id || 'unknown'}`}
             >
@@ -336,7 +336,7 @@ export const GameLogCard = memo<IGameLogCardProps>(
 
           {/* Loading indicator */}
           {isNavigating && (
-            <div className="absolute top-0 left-0 right-0 h-20 bg-white/50 dark:bg-black/50 flex items-center justify-center rounded-t-lg">
+            <div className="absolute top-0 left-0 right-0 h-20 bg-surface-card/50 flex items-center justify-center rounded-t-lg">
               <Loader2 className="h-6 w-6 animate-spin" />
             </div>
           )}

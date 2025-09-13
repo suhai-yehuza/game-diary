@@ -105,7 +105,7 @@ export default function UserDashboardPage() {
             <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
               {isLoading ? (
                 <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
                 </div>
               ) : (
                 <ErrorBoundary>
@@ -121,7 +121,7 @@ export default function UserDashboardPage() {
             >
               {isLoading ? (
                 <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
                 </div>
               ) : (
                 <ErrorBoundary>
@@ -137,7 +137,7 @@ export default function UserDashboardPage() {
             >
               {isLoading ? (
                 <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
                 </div>
               ) : (
                 <ErrorBoundary>

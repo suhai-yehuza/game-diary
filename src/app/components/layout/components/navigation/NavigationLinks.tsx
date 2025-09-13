@@ -34,7 +34,7 @@ export function NavigationLinks({
       {/* Sports Section */}
       {isStacked && (
         <div className="mb-2">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+          <h3 className="text-sm font-semibold text-theme-muted uppercase tracking-wide px-1">
             Sports
           </h3>
         </div>
@@ -80,12 +80,12 @@ export function NavigationLinks({
       </NavItem>
 
       {/* Divider */}
-      <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
+      <div className="hidden lg:block h-6 w-px bg-theme-primary mx-3" />
 
       {/* Demos Section (Admin Only) */}
       {isStacked && (
         <div className="mt-6 mb-2">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+          <h3 className="text-sm font-semibold text-theme-muted uppercase tracking-wide px-1">
             Admin Tools
           </h3>
         </div>
@@ -95,12 +95,12 @@ export function NavigationLinks({
       <AdminNavWithAuth isActive={isActive} isStacked={isStacked} closeMenu={closeMenu} />
 
       {/* Divider */}
-      <div className="hidden lg:block h-6 w-px bg-neutral-200 dark:bg-neutral-700 mx-3" />
+      <div className="hidden lg:block h-6 w-px bg-theme-primary mx-3" />
 
       {/* Account Section */}
       {isStacked && (
         <div className="mt-6 mb-2">
-          <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide px-1">
+          <h3 className="text-sm font-semibold text-theme-muted uppercase tracking-wide px-1">
             Account
           </h3>
         </div>

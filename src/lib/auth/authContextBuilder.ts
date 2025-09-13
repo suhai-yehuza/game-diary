@@ -59,6 +59,12 @@ const circuitBreaker = new AuthCircuitBreaker();
 // Export for debugging
 export function resetAuthCircuitBreaker(): void {
   circuitBreaker.forceReset();
+  console.log('[AUTH CIRCUIT BREAKER] Manually reset circuit breaker');
+}
+
+// Export circuit breaker status for debugging
+export function getCircuitBreakerStatus() {
+  return circuitBreaker.getStatus();
 }
 
 export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextResult> {
@@ -90,52 +96,49 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
       };
     }
 
-    // Check circuit breaker
+    // Check circuit breaker - but reset it if it's been open for too long
     if (circuitBreaker.isOpen()) {
       const status = circuitBreaker.getStatus();
-      console.warn(
-        `[AUTH CIRCUIT BREAKER] Circuit is open, returning unauthenticated. Status:`,
-        status
-      );
-      return {
-        isLoaded: true,
-        isSignedIn: false,
-        user: null,
-        session: null,
-        userId: undefined,
-        isAuthenticated: false,
-        authSource: 'none',
-        error: 'Authentication service temporarily unavailable',
-      };
+      const timeSinceLastFailure = Date.now() - status.lastFailureTime;
+      const resetTimeout = 30000; // 30 seconds
+
+      if (timeSinceLastFailure > resetTimeout) {
+        console.log('[AUTH CIRCUIT BREAKER] Resetting circuit breaker after timeout');
+        circuitBreaker.reset();
+      } else {
+        console.warn(
+          `[AUTH CIRCUIT BREAKER] Circuit is open, returning unauthenticated. Status:`,
+          status
+        );
+        return {
+          isLoaded: true,
+          isSignedIn: false,
+          user: null,
+          session: null,
+          userId: undefined,
+          isAuthenticated: false,
+          authSource: 'none',
+          error: 'Authentication service temporarily unavailable',
+        };
+      }
     }
 
     let userId: string | null = null;
     let user = null;
 
     try {
-      console.log('[AUTH] Attempting Clerk authentication...');
-
       // Primary auth method
       const authResult = await auth();
-      console.log('[AUTH] Clerk auth() result:', { userId: authResult.userId });
-
       userId = authResult.userId;
 
       if (userId) {
-        console.log('[AUTH] User ID found, getting user details...');
-
         // Try to get user details
         user = await currentUser();
-        console.log('[AUTH] Clerk currentUser() result:', {
-          userId: user?.id,
-          email: user?.emailAddresses?.[0]?.emailAddress,
-          username: user?.username,
-        });
 
         if (user) {
           circuitBreaker.recordSuccess();
 
-          return {
+          const userContext = {
             isLoaded: true,
             isSignedIn: true,
             user: {
@@ -151,10 +154,12 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
             isAuthenticated: true,
             authSource: 'clerk',
           };
+
+          return userContext;
         } else {
           // We have userId but no user details - create minimal context
           console.warn('[AUTH FALLBACK] Have userId but no user details');
-          return {
+          const fallbackContext = {
             isLoaded: true,
             isSignedIn: true,
             user: {
@@ -170,9 +175,8 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
             isAuthenticated: true,
             authSource: 'fallback',
           };
+          return fallbackContext;
         }
-      } else {
-        console.log('[AUTH] No user ID found from Clerk auth()');
       }
     } catch (error) {
       console.error('[AUTH ERROR] Clerk authentication failed:', error);
@@ -198,7 +202,6 @@ export async function buildAuthContext(_req: NextRequest): Promise<IAuthContextR
     }
 
     // No authentication found
-    console.log('[AUTH] No authentication found, returning unauthenticated');
     return {
       isLoaded: true,
       isSignedIn: false,

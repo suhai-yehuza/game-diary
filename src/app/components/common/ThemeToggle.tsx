@@ -5,7 +5,6 @@ import { useTheme } from 'next-themes';
 import React from 'react';
 
 import { useMounted } from '@/hooks/use-mounted';
-import { THEME_COLORS } from '@/lib/constants/colors';
 import type { IThemeToggleProps } from '@/types';
 
 const themes = [
@@ -40,16 +39,16 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
   if (!mounted) {
     return (
       <div
-        className={`inline-flex items-center bg-[${THEME_COLORS.dark.background}] dark:bg-[${THEME_COLORS.dark.background}] rounded-full p-0.5 border border-[${THEME_COLORS.dark.border}] ${className ?? ''}`}
+        className={`inline-flex items-center rounded-full p-0.5 border bg-theme-toggle-container border-theme-toggle-border ${className ?? ''}`}
       >
-        <div className="flex items-center justify-center h-11 w-11 rounded-full bg-[${THEME_COLORS.dark.surface}] text-white shadow mx-0.5">
-          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
+        <div className="flex items-center justify-center h-11 w-11 rounded-full shadow mx-0.5 bg-brand-primary text-theme-toggle-active">
+          <div className="w-4 h-4 rounded animate-pulse bg-theme-toggle-active" />
         </div>
-        <div className="flex items-center justify-center h-11 w-11 rounded-full text-[${THEME_COLORS.dark.text.secondary}] mx-0.5">
-          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
+        <div className="flex items-center justify-center h-11 w-11 rounded-full mx-0.5 text-theme-toggle-inactive">
+          <div className="w-4 h-4 rounded animate-pulse bg-theme-toggle-inactive" />
         </div>
-        <div className="flex items-center justify-center h-11 w-11 rounded-full text-[${THEME_COLORS.dark.text.secondary}] mx-0.5">
-          <div className="w-4 h-4 bg-neutral-300 rounded animate-pulse" />
+        <div className="flex items-center justify-center h-11 w-11 rounded-full mx-0.5 text-theme-toggle-inactive">
+          <div className="w-4 h-4 rounded animate-pulse bg-theme-toggle-inactive" />
         </div>
       </div>
     );
@@ -57,16 +56,18 @@ export function ThemeToggle({ className }: IThemeToggleProps) {
 
   return (
     <div
-      className={`inline-flex items-center bg-[${THEME_COLORS.dark.background}] dark:bg-[${THEME_COLORS.dark.background}] rounded-full p-0.5 border border-[${THEME_COLORS.dark.border}] ${className ?? ''}`}
+      className={`inline-flex items-center rounded-full p-0.5 border bg-theme-toggle-container border-theme-toggle-border ${className ?? ''}`}
     >
       {themes.map(themeOption => (
         <button
           key={themeOption.name}
           onClick={() => setTheme(themeOption.name)}
           onKeyDown={e => handleKeyDown(e, themeOption.name)}
-          className={`flex items-center justify-center h-11 w-11 rounded-full transition-colors mx-0.5
-            ${theme === themeOption.name ? `bg-[${THEME_COLORS.dark.surface}] text-white shadow` : `text-[${THEME_COLORS.dark.text.secondary}] hover:text-white`} focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
-          `}
+          className={`flex items-center justify-center h-11 w-11 rounded-full transition-colors mx-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 ${
+            theme === themeOption.name
+              ? 'bg-brand-primary text-theme-toggle-active shadow-theme-toggle'
+              : 'text-theme-toggle-inactive hover:bg-brand-primary/10 hover:text-brand-primary'
+          }`}
           aria-label={themeOption.label}
         >
           {themeOption.icon}

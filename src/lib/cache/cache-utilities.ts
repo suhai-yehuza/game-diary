@@ -1,4 +1,5 @@
 import { ErrorHandler } from '@/lib/utils/error-handler';
+import { getServerApiUrl } from '@/lib/utils/server-api-client';
 import type {
   ICacheOptions,
   IAppNotification,
@@ -599,7 +600,7 @@ export class NBAHubCacheUtils {
     await ErrorHandler.getInstance().handleAsync(
       async () => {
         console.log('🔥 Warming up NBA Hub counts cache...');
-        const response = await fetch('/api/nba-hub/counts');
+        const response = await fetch(getServerApiUrl('/api/nba-hub/counts'));
         const data = await response.json();
 
         if (data.success) {

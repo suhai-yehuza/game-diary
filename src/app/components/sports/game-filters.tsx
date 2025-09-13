@@ -21,11 +21,11 @@ import { CustomSelect } from '@/app/components/ui/custom-select';
 import { Input } from '@/app/components/ui/input';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { GAME_STATUS_VALUES } from '@/lib/constants';
-import { getLatestNbaSeason, getRecentNbaSeasons } from '@/lib/utils/nba-season';
+import { getSeasonFilterOptions } from '@/lib/utils/season-filter.utils';
 import type { IGameFiltersProps } from '@/types';
 
-const LATEST_SEASON = getLatestNbaSeason();
-const SEASONS = getRecentNbaSeasons(10);
+// Get season filter options (current + 10 previous seasons)
+const SEASON_OPTIONS = getSeasonFilterOptions(11, true);
 
 export function GameFilters({
   filters,
@@ -43,8 +43,8 @@ export function GameFilters({
     <Card className="game-filters-enhanced shadow-md">
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-white dark:text-gray-900 flex items-center gap-2">
-            <Filter className="w-5 h-5 text-blue-400 dark:text-blue-600" />
+          <CardTitle className="text-theme-primary flex items-center gap-2">
+            <Filter className="w-5 h-5 text-semantic-info" />
             Game Filters
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -53,7 +53,7 @@ export function GameFilters({
                 variant="outline"
                 size="sm"
                 onClick={onClearFilters}
-                className="text-red-400 dark:text-red-600 border-red-400 dark:border-red-600 hover:bg-red-900/20 dark:hover:bg-red-50 font-medium"
+                className="text-semantic-error border-semantic-error hover:bg-semantic-error/10 font-medium"
               >
                 <X className="w-4 h-4 mr-1" />
                 Clear All
@@ -63,7 +63,7 @@ export function GameFilters({
               variant="outline"
               size="sm"
               onClick={onToggleAdvancedFilters}
-              className="border-slate-300 dark:border-gray-300 hover:bg-slate-200 dark:hover:bg-gray-100 hover:border-slate-400 dark:hover:border-gray-400 font-medium text-slate-100 dark:text-gray-700"
+              className="border-theme-primary hover:bg-bg-theme-secondary hover:border-theme-secondary font-medium text-theme-primary"
             >
               <SlidersHorizontal className="w-4 h-4 mr-1" />
               {showAdvancedFilters ? 'Hide Advanced' : 'Show Advanced'}
@@ -80,12 +80,12 @@ export function GameFilters({
         {/* Basic Filters */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 mb-4">
           <div className="relative sm:col-span-2 lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-theme-muted w-4 h-4" />
             <Input
               placeholder="Search teams, arenas, or dates..."
               value={filters.searchTerm}
               onChange={e => onUpdateFilter('searchTerm', e.target.value)}
-              className="pl-10 bg-slate-100 dark:bg-white border-slate-300 dark:border-gray-300 focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 dark:placeholder:text-gray-500 h-11 text-gray-900 dark:text-gray-900"
+              className="pl-10 bg-bg-theme-secondary border-theme-primary focus:ring-2 focus:ring-brand-primary placeholder:text-theme-muted h-11 text-theme-primary"
             />
           </div>
 
@@ -128,14 +128,7 @@ export function GameFilters({
           <CustomSelect
             value={filters.seasonFilter}
             onChange={value => onUpdateFilter('seasonFilter', value)}
-            options={[
-              { value: 'all', label: 'All Seasons', icon: <List className="w-4 h-4" /> },
-              ...SEASONS.map(season => ({
-                value: season.toString(),
-                label: `${season}-${season + 1} Season${season === LATEST_SEASON ? ' (Latest)' : ''}`,
-                icon: <Clock className="w-4 h-4" />,
-              })),
-            ]}
+            options={SEASON_OPTIONS}
             size="lg"
             variant="default"
             className="min-w-[180px]"

@@ -52,7 +52,7 @@ export function TeamCard({ team }: ITeamCardProps) {
 
   return (
     <Card
-      className="hover:shadow-lg transition-all duration-200 bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700 team-card-enhanced h-full flex flex-col"
+      className="hover:shadow-lg transition-all duration-200 bg-surface-card shadow-md border border-theme-primary team-card-enhanced h-full flex flex-col"
       data-testid="team-card"
     >
       <CardContent className="p-4 sm:p-6 lg:p-8 flex flex-col h-full">
@@ -62,7 +62,7 @@ export function TeamCard({ team }: ITeamCardProps) {
             <div className="flex items-center gap-4 sm:gap-6">
               {/* Team Logo */}
               <div className="flex-shrink-0">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-bg-theme-secondary rounded-lg flex items-center justify-center overflow-hidden">
                   {team.logo ? (
                     <Image
                       src={team.logo}
@@ -73,7 +73,7 @@ export function TeamCard({ team }: ITeamCardProps) {
                       style={{ width: 'auto', height: 'auto' }}
                     />
                   ) : (
-                    <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
+                    <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-theme-muted" />
                   )}
                 </div>
               </div>
@@ -81,17 +81,17 @@ export function TeamCard({ team }: ITeamCardProps) {
               {/* Team Details */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 mb-2">
-                  <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                  <h3 className="text-xl sm:text-2xl font-bold text-theme-primary truncate">
                     {team.name}
                   </h3>
-                  <span className="text-sm sm:text-base text-gray-500 dark:text-gray-400 font-medium bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                  <span className="text-sm sm:text-base text-theme-muted font-medium bg-bg-theme-secondary px-2 py-1 rounded">
                     {team.code}
                   </span>
                 </div>
-                <div className="text-lg sm:text-xl font-semibold text-gray-700 dark:text-gray-300 mb-3 truncate">
+                <div className="text-lg sm:text-xl font-semibold text-theme-secondary mb-3 truncate">
                   {team.nickname}
                 </div>
-                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm sm:text-base text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm sm:text-base text-theme-muted">
                   <div className="flex items-center gap-2">
                     <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                     <span className="truncate font-medium">{getTeamLocation()}</span>
@@ -114,17 +114,17 @@ export function TeamCard({ team }: ITeamCardProps) {
                   const group = getTeamGroup();
                   switch (group) {
                     case 'All Star':
-                      return 'bg-pink-500 text-white border-gray-200';
+                      return 'bg-semantic-warning text-text-inverse border-theme-primary';
                     case 'East':
-                      return 'bg-orange-500 text-white border-gray-200';
+                      return 'bg-brand-secondary text-text-inverse border-theme-primary';
                     case 'West':
-                      return 'bg-blue-500 text-white border-gray-200';
+                      return 'bg-brand-primary text-text-inverse border-theme-primary';
                     case 'International':
-                      return 'bg-green-500 text-white border-gray-200';
+                      return 'bg-semantic-success text-text-inverse border-theme-primary';
                     case 'Exhibition':
-                      return 'bg-purple-500 text-white border-gray-200';
+                      return 'bg-semantic-info text-text-inverse border-theme-primary';
                     default:
-                      return 'bg-gray-500 text-white border-gray-200';
+                      return 'bg-theme-muted text-text-inverse border-theme-primary';
                   }
                 })()}`}
               >
@@ -181,15 +181,15 @@ export function TeamCard({ team }: ITeamCardProps) {
                 onClick={() => (window.location.href = `/sports/nba/teams/${team.id}`)}
                 variant="default"
                 size="default"
-                className="bg-slate-700 hover:bg-slate-800 text-white border-slate-700 hover:border-slate-800 shadow-sm transition-all duration-200 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base team-card-button"
+                className="bg-brand-primary hover:bg-brand-primary-hover text-text-inverse border-brand-primary hover:border-brand-primary-hover shadow-sm transition-all duration-200 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base team-card-button"
               >
                 View Team
               </Button>
               <Button
-                onClick={() => (window.location.href = `/sports/nba/players?team=${team.id}`)}
+                onClick={() => (window.location.href = `/sports/nba/teams/${team.id}#players`)}
                 variant="outline"
                 size="default"
-                className="bg-white hover:bg-gray-50 text-gray-700 hover:text-gray-900 border-gray-300 hover:border-gray-400 shadow-sm transition-all duration-200 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base team-card-button"
+                className="bg-surface-card hover:bg-bg-theme-secondary text-theme-primary hover:text-theme-secondary border-theme-primary hover:border-theme-secondary shadow-sm transition-all duration-200 font-medium px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base team-card-button"
               >
                 View Players
               </Button>

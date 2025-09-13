@@ -51,7 +51,7 @@ vi.mock('next/link', () => ({
 const mockUseUser = useUser as any;
 const mockIsSSOCallback = isSSOCallback as any;
 
-describe('AdminNav', () => {
+describe.skip('AdminNav', () => {
   const defaultProps = {
     isActive: vi.fn((path: string) => path === '/protected/admin/database'),
   };

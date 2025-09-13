@@ -42,26 +42,26 @@ const formatCount = (count: number): string => {
   return `${(count / 1000000).toFixed(1)}M`;
 };
 
-// Array of color schemes for tags
+// Array of color schemes for tags - using semantic colors
 const tagColorSchemes = [
-  'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-  'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200',
-  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
-  'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
-  'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200',
-  'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
-  'bg-lime-100 text-lime-800 dark:bg-lime-900 dark:text-lime-200',
-  'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
-  'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-200',
-  'bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-200',
-  'bg-sky-100 text-sky-800 dark:bg-sky-900 dark:text-sky-200',
-  'bg-fuchsia-100 text-fuchsia-800 dark:bg-fuchsia-900 dark:text-fuchsia-200',
-  'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200',
+  'bg-semantic-info/10 text-semantic-info',
+  'bg-semantic-success/10 text-semantic-success',
+  'bg-semantic-warning/10 text-semantic-warning',
+  'bg-semantic-error/10 text-semantic-error',
+  'bg-brand-primary/10 text-brand-primary',
+  'bg-brand-secondary/10 text-brand-secondary',
+  'bg-theme-muted/10 text-theme-muted',
+  'bg-theme-secondary/10 text-theme-secondary',
+  'bg-theme-tertiary/10 text-theme-tertiary',
+  'bg-theme-primary/10 text-theme-primary',
+  'bg-semantic-info/20 text-semantic-info',
+  'bg-semantic-success/20 text-semantic-success',
+  'bg-semantic-warning/20 text-semantic-warning',
+  'bg-semantic-error/20 text-semantic-error',
+  'bg-brand-primary/20 text-brand-primary',
+  'bg-brand-secondary/20 text-brand-secondary',
+  'bg-theme-muted/20 text-theme-muted',
+  'bg-theme-secondary/20 text-theme-secondary',
 ];
 
 // Utility function to get tag color based on tag content (for consistent coloring)
@@ -237,11 +237,11 @@ export function PaginatedGameLogsTable() {
       return (
         <article
           key={gameLog.id}
-          className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
+          className="bg-surface-card rounded-xl border border-theme-primary shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden"
         >
           {/* Header Section */}
           <header
-            className="p-6 border-b border-gray-100 dark:border-gray-700 cursor-pointer transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+            className="p-6 border-b border-theme-primary cursor-pointer transition-all duration-200 hover:bg-bg-theme-secondary"
             onClick={e => handleCardClick(e, gameLog)}
             onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
@@ -258,7 +258,7 @@ export function PaginatedGameLogsTable() {
                 {/* Team Matchup */}
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-bg-theme-secondary flex items-center justify-center overflow-hidden">
                       {awayTeam.logo ? (
                         <Image
                           src={awayTeam.logo}
@@ -268,21 +268,17 @@ export function PaginatedGameLogsTable() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                        <span className="text-xs font-bold text-theme-muted">
                           {awayTeam.name.charAt(0)}
                         </span>
                       )}
                     </div>
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {awayTeam.name}
-                    </span>
+                    <span className="font-semibold text-theme-primary">{awayTeam.name}</span>
                   </div>
-                  <span className="text-gray-500 dark:text-gray-400">@</span>
+                  <span className="text-theme-muted">@</span>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-gray-900 dark:text-white">
-                      {homeTeam.name}
-                    </span>
-                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+                    <span className="font-semibold text-theme-primary">{homeTeam.name}</span>
+                    <div className="w-8 h-8 rounded-full bg-bg-theme-secondary flex items-center justify-center overflow-hidden">
                       {homeTeam.logo ? (
                         <Image
                           src={homeTeam.logo}
@@ -292,7 +288,7 @@ export function PaginatedGameLogsTable() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-xs font-bold text-gray-600 dark:text-gray-300">
+                        <span className="text-xs font-bold text-theme-muted">
                           {homeTeam.name.charAt(0)}
                         </span>
                       )}
@@ -302,11 +298,11 @@ export function PaginatedGameLogsTable() {
 
                 {/* User Information */}
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm text-theme-muted">
                     @{gameLog.user?.username || 'unknown'}
                   </span>
                   {gameLog.user?.first_name && gameLog.user?.last_name && (
-                    <span className="text-sm text-gray-500 dark:text-gray-500">
+                    <span className="text-sm text-theme-muted">
                       • {gameLog.user.first_name} {gameLog.user.last_name}
                     </span>
                   )}
@@ -314,7 +310,7 @@ export function PaginatedGameLogsTable() {
 
                 {/* Game Date */}
                 <div className="flex items-center gap-3">
-                  <time className="text-sm text-gray-500 dark:text-gray-400">
+                  <time className="text-sm text-theme-muted">
                     {gameLog.game?.date
                       ? new Date(gameLog.game.date).toLocaleDateString('en-US', {
                           weekday: 'short',
@@ -361,7 +357,7 @@ export function PaginatedGameLogsTable() {
                         e.stopPropagation();
                         handleDelete(gameLog);
                       }}
-                      className="text-red-600 dark:text-red-400"
+                      className="text-semantic-error"
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -377,7 +373,7 @@ export function PaginatedGameLogsTable() {
             {/* Notes */}
             {gameLog.notes && (
               <div className="mb-4">
-                <p className="text-gray-700 dark:text-gray-300 leading-relaxed">{gameLog.notes}</p>
+                <p className="text-theme-secondary leading-relaxed">{gameLog.notes}</p>
               </div>
             )}
 
@@ -386,16 +382,16 @@ export function PaginatedGameLogsTable() {
               {/* Game Details - Left Side */}
               <div className="space-y-2 text-sm">
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Watched Date: </span>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-theme-muted">Watched Date: </span>
+                  <span className="font-medium text-theme-primary">
                     {gameLog.watched_date
                       ? new Date(gameLog.watched_date).toLocaleDateString()
                       : 'Not specified'}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500 dark:text-gray-400">Setting: </span>
-                  <span className="font-medium text-gray-900 dark:text-white">
+                  <span className="text-theme-muted">Setting: </span>
+                  <span className="font-medium text-theme-primary">
                     {formatWatchedSetting(gameLog.watched_setting)}
                   </span>
                 </div>
@@ -421,13 +417,13 @@ export function PaginatedGameLogsTable() {
           </section>
 
           {/* Footer Section */}
-          <footer className="px-6 py-4 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-600">
+          <footer className="px-6 py-4 bg-bg-theme-secondary border-t border-theme-primary">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {/* Reactions */}
                 <button
                   onClick={() => toggleReactions(gameLog.id)}
-                  className="flex items-center gap-2 text-pink-400 dark:text-pink-300 hover:text-pink-400 dark:hover:text-pink-400 transition-colors"
+                  className="flex items-center gap-2 text-semantic-error hover:text-semantic-error transition-colors"
                 >
                   <Heart className="w-4 h-4" />
                   {(gameLog.totalReactionCount || 0) > 0 && (
@@ -441,7 +437,7 @@ export function PaginatedGameLogsTable() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => toggleComments(gameLog.id)}
-                  className="flex items-center gap-2 text-blue-400 dark:text-blue-300 hover:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                  className="flex items-center gap-2 text-semantic-info hover:text-semantic-info transition-colors"
                 >
                   <MessageCircle className="w-4 h-4" />
                   {(gameLog.totalCommentCount || 0) > 0 && (
@@ -456,13 +452,13 @@ export function PaginatedGameLogsTable() {
 
           {/* Expandable Sections */}
           {expandedComments.has(gameLog.id) && (
-            <div className="border-t border-gray-200 dark:border-gray-600">
+            <div className="border-t border-theme-primary">
               <GameLogComments gameLog={gameLog} showComments={true} />
             </div>
           )}
 
           {expandedReactions.has(gameLog.id) && (
-            <div className="border-t border-gray-200 dark:border-gray-600 p-6">
+            <div className="border-t border-theme-primary p-6">
               <ReactionPicker
                 targetId={gameLog.id}
                 targetType={ParentType.GameLog}
@@ -531,7 +527,7 @@ export function PaginatedGameLogsTable() {
   if (!isLoaded) {
     return (
       <div className="flex justify-center items-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-600" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
       </div>
     );
   }
@@ -550,7 +546,7 @@ export function PaginatedGameLogsTable() {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Game Logs</h1>
+          <h1 className="text-2xl font-bold text-theme-primary">Game Logs</h1>
           <Skeleton className="h-10 w-32" />
         </div>
         <GridSkeleton items={6} columns={2} />
@@ -562,15 +558,15 @@ export function PaginatedGameLogsTable() {
     <div className="space-y-6">
       {/* Performance Optimization Toggle */}
       {(useVirtualScrolling || useProgressiveLoading) && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+        <div className="bg-semantic-info/10 border border-semantic-info/30 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              <div className="h-2 w-2 bg-semantic-success rounded-full animate-pulse" />
+              <span className="text-sm font-medium text-theme-primary">
                 Performance Mode Active
               </span>
             </div>
-            <div className="flex items-center gap-4 text-xs text-blue-600 dark:text-blue-300">
+            <div className="flex items-center gap-4 text-xs text-semantic-info">
               {useVirtualScrolling && <span>Virtual Scrolling</span>}
               {useProgressiveLoading && <span>Progressive Loading</span>}
             </div>
@@ -581,8 +577,8 @@ export function PaginatedGameLogsTable() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">Game Logs</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <h2 className="text-xl font-semibold text-theme-primary">Game Logs</h2>
+          <p className="text-sm text-theme-muted">
             Share your basketball experiences and connect with other fans
           </p>
         </div>
@@ -590,7 +586,7 @@ export function PaginatedGameLogsTable() {
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setCreateModalOpen(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-text-inverse font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
           >
             <Plus className="h-4 w-4" />
             Create Game Log
@@ -602,7 +598,7 @@ export function PaginatedGameLogsTable() {
       <GameLogsFilters onFiltersChange={handleFiltersChange} initialFilters={filters} />
 
       {/* Tabs */}
-      <div className="flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+      <div className="flex space-x-1 bg-bg-theme-secondary p-1 rounded-lg">
         {[
           { key: 'my-logs', label: 'My Logs' },
           { key: 'friends-logs', label: 'Friends' },
@@ -613,8 +609,8 @@ export function PaginatedGameLogsTable() {
             onClick={() => handleTabChange(key as 'my-logs' | 'friends-logs' | 'public-logs')}
             className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
               currentTab === key
-                ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 shadow-sm'
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                ? 'bg-surface-card text-theme-primary shadow-sm'
+                : 'text-theme-muted hover:text-theme-primary'
             }`}
           >
             {label}
@@ -624,8 +620,8 @@ export function PaginatedGameLogsTable() {
 
       {/* Page Size Selector and Refresh Button */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 bg-white/80 dark:bg-gray-800/80 rounded-lg px-4 py-3 border border-green-200 dark:border-green-700">
-          <span className="text-sm font-medium text-green-700 dark:text-green-300">Page Size:</span>
+        <div className="flex items-center gap-3 bg-surface-card/80 rounded-lg px-4 py-3 border border-semantic-success/30">
+          <span className="text-sm font-medium text-semantic-success">Page Size:</span>
           <CustomSelect
             value={pageSize >= 999999 ? 'all' : pageSize.toString()}
             onChange={handlePageSizeChange}
@@ -656,7 +652,7 @@ export function PaginatedGameLogsTable() {
           containerHeight={600} // Fixed container height
           renderItem={renderGameLogCard}
           overscan={3}
-          className="border border-gray-200 dark:border-gray-700 rounded-lg"
+          className="border border-theme-primary rounded-lg"
         />
       ) : (
         <PaginatedGrid

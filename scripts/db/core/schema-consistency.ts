@@ -33,6 +33,10 @@ export class SchemaConsistencyChecker {
       const baseSchemaTables = await this.getBaseSchemaTableCount();
       logger.info(`📋 Found ${baseSchemaTables} tables in base schema`);
 
+      logger.info(
+        `🔍 Comparing: drizzleTables=${drizzleTables}, baseSchemaTables=${baseSchemaTables}, equal=${drizzleTables === baseSchemaTables}`
+      );
+
       if (drizzleTables === baseSchemaTables) {
         logger.info('✅ Schema consistency check passed!');
         return {

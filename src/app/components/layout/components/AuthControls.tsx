@@ -45,8 +45,8 @@ function AuthControlsContent() {
   if (!mounted) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
-          <span className="text-xs text-gray-500">Auth</span>
+        <div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-theme-muted">Auth</span>
         </div>
       </div>
     );
@@ -56,8 +56,8 @@ function AuthControlsContent() {
   if (isSSO) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center">
-          <span className="text-xs text-gray-500">SSO</span>
+        <div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-theme-muted">SSO</span>
         </div>
       </div>
     );
@@ -68,7 +68,7 @@ function AuthControlsContent() {
     return (
       <div className="flex items-center">
         <button
-          className="px-4 py-2 bg-blue-800 text-white rounded-md hover:bg-blue-900 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="px-4 py-2 bg-brand-primary text-text-inverse rounded-md hover:bg-brand-primary-hover transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
           aria-label="Sign In (Test)"
           onClick={() => {
             // Mock sign-in for unit tests
@@ -87,9 +87,9 @@ function AuthControlsContent() {
       <div className="flex items-center">
         <div
           data-testid="auth-placeholder"
-          className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse flex items-center justify-center"
+          className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center"
         >
-          <span className="text-xs text-gray-500">Auth</span>
+          <span className="text-xs text-theme-muted">Auth</span>
         </div>
       </div>
     );
@@ -102,7 +102,7 @@ function AuthControlsContent() {
           <SignInButton mode="modal">
             <div
               data-testid="sign-in-button"
-              className="px-4 py-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black cursor-pointer"
+              className="px-4 py-2 bg-brand-primary text-text-inverse rounded-lg shadow-md hover:bg-brand-primary-hover transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-theme-primary cursor-pointer"
               role="button"
               tabIndex={0}
               aria-label="Sign In"
@@ -127,9 +127,7 @@ function AuthControlsContent() {
 
 export function ClientOnlyAuthControls() {
   return (
-    <Suspense
-      fallback={<div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />}
-    >
+    <Suspense fallback={<div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse" />}>
       <AuthControlsContent />
     </Suspense>
   );

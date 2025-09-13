@@ -121,7 +121,7 @@ export default function SignInModalTrigger({ autoTrigger = false }: ISignInModal
     <div ref={triggerRef}>
       <SignInButton mode="modal">
         <div
-          className="px-4 py-2 bg-blue-800 text-white rounded-lg shadow-md hover:bg-blue-900 transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-black cursor-pointer"
+          className="px-4 py-2 bg-brand-primary text-text-inverse rounded-lg shadow-md hover:bg-brand-primary-hover transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-theme-primary cursor-pointer"
           role="button"
           tabIndex={0}
           aria-label="Sign In"

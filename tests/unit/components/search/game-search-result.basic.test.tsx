@@ -65,7 +65,10 @@ describe('GameSearchResult', () => {
         linescore: [105],
       },
     },
-    status: 'Final',
+    status: {
+      long: 'Final',
+      short: 'F',
+    },
     average_rating: 4.2,
     total_ratings: 15,
   };
@@ -78,7 +81,7 @@ describe('GameSearchResult', () => {
     expect(screen.getByText('Jan 15, 2023')).toBeInTheDocument();
     expect(screen.getByText('105 - 110')).toBeInTheDocument();
     expect(screen.getByText('4.2/5 (15 ratings)')).toBeInTheDocument();
-    expect(screen.getByText('final')).toBeInTheDocument();
+    expect(screen.getByText('Final')).toBeInTheDocument();
     expect(screen.getByText('• San Francisco')).toBeInTheDocument();
   });
 

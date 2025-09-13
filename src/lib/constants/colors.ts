@@ -1,393 +1,359 @@
 /**
- * Centralized Color System for Game Diary
+ * Centralized Color System
  *
- * This file contains all color definitions used throughout the application.
- * Colors are organized by category and include both Tailwind classes and hex values.
+ * This file defines a comprehensive color system that ensures:
+ * - Consistent colors across light and dark themes
+ * - WCAG AA compliance for accessibility
+ * - Semantic naming for better maintainability
+ * - Proper contrast ratios for all text/background combinations
  */
 
-// ========================================
-// BRAND COLORS
-// ========================================
-
-export const BRAND_COLORS = {
-  // Primary brand colors
-  primary: {
-    blue: '#3B82F6', // bg-blue-500
-    blueHover: '#2563EB', // bg-blue-600
-    blueDark: '#1D4ED8', // bg-blue-700
+// Base color palette - HSL values for better manipulation
+export const BASE_COLORS = {
+  // Neutral grays - optimized for both themes
+  neutral: {
+    50: 'hsl(0, 0%, 98%)', // Lightest background
+    100: 'hsl(0, 0%, 96%)', // Light background
+    200: 'hsl(0, 0%, 90%)', // Borders, dividers
+    300: 'hsl(0, 0%, 83%)', // Disabled elements
+    400: 'hsl(0, 0%, 64%)', // Placeholder text
+    500: 'hsl(0, 0%, 45%)', // Secondary text
+    600: 'hsl(0, 0%, 32%)', // Primary text (light theme)
+    700: 'hsl(0, 0%, 25%)', // Strong text (light theme)
+    800: 'hsl(0, 0%, 15%)', // Headings (light theme)
+    900: 'hsl(0, 0%, 9%)', // Strongest text (light theme)
   },
 
-  // Next.js cyan (used for Games buttons)
-  nextjs: {
-    cyan: '#00d4ff',
-    cyanHover: '#00b8e6',
-    cyanLight: '#00d4ff20', // 20% opacity
-    cyanDark: '#00d4ff30', // 30% opacity
+  // Brand colors - consistent across themes
+  brand: {
+    primary: 'hsl(221, 83%, 53%)', // Blue-600
+    primaryHover: 'hsl(221, 83%, 43%)', // Blue-700
+    primaryLight: 'hsl(221, 83%, 63%)', // Blue-500
+    secondary: 'hsl(142, 76%, 36%)', // Green-600
+    secondaryHover: 'hsl(142, 76%, 26%)', // Green-700
+    secondaryLight: 'hsl(142, 76%, 46%)', // Green-500
   },
 
-  // Secondary brand colors
-  secondary: {
-    green: '#10B981', // bg-green-500
-    greenHover: '#059669', // bg-green-600
-    orange: '#F59E0B', // bg-orange-500
-    orangeHover: '#D97706', // bg-orange-600
-    red: '#EF4444', // bg-red-500
-    redHover: '#DC2626', // bg-red-600
+  // Semantic colors
+  semantic: {
+    success: 'hsl(142, 76%, 36%)', // Green-600
+    warning: 'hsl(38, 92%, 50%)', // Amber-500
+    error: 'hsl(0, 84%, 60%)', // Red-500
+    info: 'hsl(221, 83%, 53%)', // Blue-600
+  },
+
+  // Accent colors
+  accent: {
+    orange: 'hsl(25, 95%, 53%)', // Live indicators
+    purple: 'hsl(262, 83%, 58%)', // Premium features
   },
 } as const;
 
-// ========================================
-// SPORTS COLORS
-// ========================================
+// Theme-specific color mappings
+export const THEME_COLORS = {
+  light: {
+    // Background colors
+    background: {
+      primary: BASE_COLORS.neutral[50], // Main background
+      secondary: BASE_COLORS.neutral[100], // Card backgrounds
+      tertiary: BASE_COLORS.neutral[200], // Subtle backgrounds
+      elevated: '#ffffff', // Elevated surfaces
+    },
 
-export const SPORTS_COLORS = {
-  nba: {
-    primary: BRAND_COLORS.nextjs.cyan,
-    hover: BRAND_COLORS.nextjs.cyanHover,
-    background: BRAND_COLORS.nextjs.cyanLight,
-    dark: BRAND_COLORS.nextjs.cyanDark,
+    // Text colors
+    text: {
+      primary: BASE_COLORS.neutral[900], // Main text
+      secondary: BASE_COLORS.neutral[800], // Secondary text
+      tertiary: BASE_COLORS.neutral[700], // Tertiary text
+      muted: BASE_COLORS.neutral[600], // Muted text
+      disabled: BASE_COLORS.neutral[400], // Disabled text
+      inverse: '#ffffff', // Text on dark backgrounds
+    },
+
+    // Border colors
+    border: {
+      primary: BASE_COLORS.neutral[200], // Main borders
+      secondary: BASE_COLORS.neutral[300], // Subtle borders
+      focus: BASE_COLORS.brand.primary, // Focus borders
+    },
+
+    // Surface colors
+    surface: {
+      card: '#ffffff', // Card backgrounds
+      modal: '#ffffff', // Modal backgrounds
+      popover: '#ffffff', // Popover backgrounds
+      tooltip: BASE_COLORS.neutral[800], // Tooltip backgrounds
+    },
   },
-  nfl: {
-    primary: BRAND_COLORS.primary.blue,
-    hover: BRAND_COLORS.primary.blueHover,
-    background: '#3B82F620',
-    dark: '#3B82F630',
-  },
-  mlb: {
-    primary: BRAND_COLORS.secondary.red,
-    hover: BRAND_COLORS.secondary.redHover,
-    background: '#EF444420',
-    dark: '#EF444430',
-  },
-  nhl: {
-    primary: '#4F46E5', // bg-indigo-600
-    hover: '#4338CA', // bg-indigo-700
-    background: '#4F46E520',
-    dark: '#4F46E530',
-  },
-  mls: {
-    primary: BRAND_COLORS.secondary.green,
-    hover: BRAND_COLORS.secondary.greenHover,
-    background: '#10B98120',
-    dark: '#10B98130',
+
+  dark: {
+    // Background colors - avoiding pure black
+    background: {
+      primary: 'hsl(0, 0%, 8%)', // Main background (not pure black)
+      secondary: 'hsl(0, 0%, 12%)', // Card backgrounds
+      tertiary: 'hsl(0, 0%, 16%)', // Subtle backgrounds
+      elevated: 'hsl(0, 0%, 14%)', // Elevated surfaces
+    },
+
+    // Text colors - avoiding pure white
+    text: {
+      primary: 'hsl(0, 0%, 95%)', // Main text (not pure white)
+      secondary: 'hsl(0, 0%, 85%)', // Secondary text
+      tertiary: 'hsl(0, 0%, 75%)', // Tertiary text
+      muted: 'hsl(0, 0%, 65%)', // Muted text
+      disabled: 'hsl(0, 0%, 45%)', // Disabled text
+      inverse: 'hsl(0, 0%, 9%)', // Text on light backgrounds
+    },
+
+    // Border colors
+    border: {
+      primary: 'hsl(0, 0%, 20%)', // Main borders
+      secondary: 'hsl(0, 0%, 25%)', // Subtle borders
+      focus: BASE_COLORS.brand.primary, // Focus borders
+    },
+
+    // Surface colors
+    surface: {
+      card: 'hsl(0, 0%, 10%)', // Card backgrounds
+      modal: 'hsl(0, 0%, 12%)', // Modal backgrounds
+      popover: 'hsl(0, 0%, 12%)', // Popover backgrounds
+      tooltip: 'hsl(0, 0%, 85%)', // Tooltip backgrounds
+    },
   },
 } as const;
 
-// Sports configuration for navigation and routing
+// CSS Custom Properties for theme switching
+export const CSS_VARIABLES = {
+  light: {
+    '--color-background-primary': THEME_COLORS.light.background.primary,
+    '--color-background-secondary': THEME_COLORS.light.background.secondary,
+    '--color-background-tertiary': THEME_COLORS.light.background.tertiary,
+    '--color-background-elevated': THEME_COLORS.light.background.elevated,
+
+    '--color-text-primary': THEME_COLORS.light.text.primary,
+    '--color-text-secondary': THEME_COLORS.light.text.secondary,
+    '--color-text-tertiary': THEME_COLORS.light.text.tertiary,
+    '--color-text-muted': THEME_COLORS.light.text.muted,
+    '--color-text-disabled': THEME_COLORS.light.text.disabled,
+    '--color-text-inverse': THEME_COLORS.light.text.inverse,
+
+    '--color-border-primary': THEME_COLORS.light.border.primary,
+    '--color-border-secondary': THEME_COLORS.light.border.secondary,
+    '--color-border-focus': THEME_COLORS.light.border.focus,
+
+    '--color-surface-card': THEME_COLORS.light.surface.card,
+    '--color-surface-modal': THEME_COLORS.light.surface.modal,
+    '--color-surface-popover': THEME_COLORS.light.surface.popover,
+    '--color-surface-tooltip': THEME_COLORS.light.surface.tooltip,
+
+    '--color-brand-primary': BASE_COLORS.brand.primary,
+    '--color-brand-primary-hover': BASE_COLORS.brand.primaryHover,
+    '--color-brand-secondary': BASE_COLORS.brand.secondary,
+    '--color-brand-secondary-hover': BASE_COLORS.brand.secondaryHover,
+
+    '--color-semantic-success': BASE_COLORS.semantic.success,
+    '--color-semantic-warning': BASE_COLORS.semantic.warning,
+    '--color-semantic-error': BASE_COLORS.semantic.error,
+    '--color-semantic-info': BASE_COLORS.semantic.info,
+
+    '--color-accent-orange': BASE_COLORS.accent.orange,
+    '--color-accent-purple': BASE_COLORS.accent.purple,
+  },
+
+  dark: {
+    '--color-background-primary': THEME_COLORS.dark.background.primary,
+    '--color-background-secondary': THEME_COLORS.dark.background.secondary,
+    '--color-background-tertiary': THEME_COLORS.dark.background.tertiary,
+    '--color-background-elevated': THEME_COLORS.dark.background.elevated,
+
+    '--color-text-primary': THEME_COLORS.dark.text.primary,
+    '--color-text-secondary': THEME_COLORS.dark.text.secondary,
+    '--color-text-tertiary': THEME_COLORS.dark.text.tertiary,
+    '--color-text-muted': THEME_COLORS.dark.text.muted,
+    '--color-text-disabled': THEME_COLORS.dark.text.disabled,
+    '--color-text-inverse': THEME_COLORS.dark.text.inverse,
+
+    '--color-border-primary': THEME_COLORS.dark.border.primary,
+    '--color-border-secondary': THEME_COLORS.dark.border.secondary,
+    '--color-border-focus': THEME_COLORS.dark.border.focus,
+
+    '--color-surface-card': THEME_COLORS.dark.surface.card,
+    '--color-surface-modal': THEME_COLORS.dark.surface.modal,
+    '--color-surface-popover': THEME_COLORS.dark.surface.popover,
+    '--color-surface-tooltip': THEME_COLORS.dark.surface.tooltip,
+
+    '--color-brand-primary': BASE_COLORS.brand.primary,
+    '--color-brand-primary-hover': BASE_COLORS.brand.primaryHover,
+    '--color-brand-secondary': BASE_COLORS.brand.secondary,
+    '--color-brand-secondary-hover': BASE_COLORS.brand.secondaryHover,
+
+    '--color-semantic-success': BASE_COLORS.semantic.success,
+    '--color-semantic-warning': BASE_COLORS.semantic.warning,
+    '--color-semantic-error': BASE_COLORS.semantic.error,
+    '--color-semantic-info': BASE_COLORS.semantic.info,
+
+    '--color-accent-orange': BASE_COLORS.accent.orange,
+    '--color-accent-purple': BASE_COLORS.accent.purple,
+  },
+} as const;
+
+// Utility functions for getting theme colors
+export const getThemeColor = (
+  theme: 'light' | 'dark',
+  category: keyof typeof THEME_COLORS.light,
+  key: string
+) => {
+  return THEME_COLORS[theme][category][key as keyof (typeof THEME_COLORS.light)[typeof category]];
+};
+
+// Tailwind-compatible color classes
+export const TAILWIND_COLORS = {
+  // Background colors
+  'bg-theme-primary': 'var(--color-background-primary)',
+  'bg-theme-secondary': 'var(--color-background-secondary)',
+  'bg-theme-tertiary': 'var(--color-background-tertiary)',
+  'bg-theme-elevated': 'var(--color-background-elevated)',
+
+  // Text colors
+  'text-theme-primary': 'var(--color-text-primary)',
+  'text-theme-secondary': 'var(--color-text-secondary)',
+  'text-theme-tertiary': 'var(--color-text-tertiary)',
+  'text-theme-muted': 'var(--color-text-muted)',
+  'text-theme-disabled': 'var(--color-text-disabled)',
+  'text-theme-inverse': 'var(--color-text-inverse)',
+
+  // Border colors
+  'border-theme-primary': 'var(--color-border-primary)',
+  'border-theme-secondary': 'var(--color-border-secondary)',
+  'border-theme-focus': 'var(--color-border-focus)',
+
+  // Surface colors
+  'bg-surface-card': 'var(--color-surface-card)',
+  'bg-surface-modal': 'var(--color-surface-modal)',
+  'bg-surface-popover': 'var(--color-surface-popover)',
+  'bg-surface-tooltip': 'var(--color-surface-tooltip)',
+
+  // Brand colors
+  'bg-brand-primary': 'var(--color-brand-primary)',
+  'bg-brand-primary-hover': 'var(--color-brand-primary-hover)',
+  'bg-brand-secondary': 'var(--color-brand-secondary)',
+  'bg-brand-secondary-hover': 'var(--color-brand-secondary-hover)',
+
+  // Semantic colors
+  'text-semantic-success': 'var(--color-semantic-success)',
+  'text-semantic-warning': 'var(--color-semantic-warning)',
+  'text-semantic-error': 'var(--color-semantic-error)',
+  'text-semantic-info': 'var(--color-semantic-info)',
+} as const;
+
+// Legacy color constants for backward compatibility
+export const LEGACY_COLORS = {
+  // These maintain the old color system for gradual migration
+  'clerk-primary': '#005d99',
+  'clerk-accent': '#aa935a',
+  'clerk-gray': '#d6d6d6',
+  'clerk-bg': '#fafafa',
+  'clerk-bg-secondary': '#efefef',
+  'dark-bg': '#18181b',
+  'dark-card': '#232326',
+  'dark-border': '#27272a',
+  'dark-text': '#a1a1aa',
+  'dark-text-main': '#fafafa',
+} as const;
+
+// ========================================
+// SPORTS CONFIGURATION
+// ========================================
+
+// Sports configuration with colors and navigation
 export const SPORTS_CONFIG = {
   nba: {
     name: 'NBA',
     fullName: 'National Basketball Association',
     href: '/sports/nba',
-    color: SPORTS_COLORS.nba.primary,
+    color: 'bg-brand-secondary hover:bg-brand-secondary-hover',
     icon: '🏀',
   },
   nfl: {
     name: 'NFL',
     fullName: 'National Football League',
     href: '/sports/nfl',
-    color: SPORTS_COLORS.nfl.primary,
+    color: 'bg-brand-pink hover:bg-brand-pink-hover',
     icon: '🏈',
   },
   mlb: {
     name: 'MLB',
     fullName: 'Major League Baseball',
     href: '/sports/mlb',
-    color: SPORTS_COLORS.mlb.primary,
+    color: 'bg-brand-cyan hover:bg-brand-cyan-hover',
     icon: '⚾',
   },
   nhl: {
     name: 'NHL',
     fullName: 'National Hockey League',
     href: '/sports/nhl',
-    color: SPORTS_COLORS.nhl.primary,
+    color: 'bg-brand-torquoise hover:bg-brand-torquoise-hover',
     icon: '🏒',
   },
   mls: {
     name: 'MLS',
     fullName: 'Major League Soccer',
     href: '/sports/mls',
-    color: SPORTS_COLORS.mls.primary,
+    color: 'bg-brand-maroon hover:bg-brand-maroon-hover',
     icon: '⚽',
   },
 } as const;
 
-// ========================================
-// UI COLORS
-// ========================================
+// Sports colors mapping
+export const SPORTS_COLORS = {
+  nba: 'blue',
+  nfl: 'green',
+  mlb: 'red',
+  nhl: 'gray',
+  mls: 'pink',
+} as const;
 
-export const UI_COLORS = {
-  // Background colors
-  background: {
-    primary: '#FFFFFF',
-    secondary: '#F8FAFC', // bg-slate-50
-    dark: '#1E293B', // bg-slate-800
-    darkSecondary: '#334155', // bg-slate-700
-  },
+// Helper function to get sports button class
+export const getSportsButtonClass = (sport: keyof typeof SPORTS_CONFIG): string => {
+  return SPORTS_CONFIG[sport]?.color || 'bg-theme-muted hover:bg-theme-secondary';
+};
 
+// Tailwind classes for backward compatibility
+export const TAILWIND_CLASSES = {
   // Text colors
-  text: {
-    primary: '#1E293B', // text-slate-800
-    secondary: '#64748B', // text-slate-500
-    muted: '#94A3B8', // text-slate-400
-    dark: '#FFFFFF',
-    darkSecondary: '#E2E8F0', // text-slate-200
-  },
+  'text-theme-primary': 'var(--color-text-primary)',
+  'text-theme-secondary': 'var(--color-text-secondary)',
+  'text-theme-tertiary': 'var(--color-text-tertiary)',
+  'text-theme-muted': 'var(--color-text-muted)',
+  'text-theme-disabled': 'var(--color-text-disabled)',
+  'text-theme-inverse': 'var(--color-text-inverse)',
+
+  // Background colors
+  'bg-theme-primary': 'var(--color-background-primary)',
+  'bg-theme-secondary': 'var(--color-background-secondary)',
+  'bg-theme-tertiary': 'var(--color-background-tertiary)',
+  'bg-theme-elevated': 'var(--color-background-elevated)',
+
+  // Surface colors
+  'bg-surface-card': 'var(--color-surface-card)',
+  'bg-surface-modal': 'var(--color-surface-modal)',
+  'bg-surface-popover': 'var(--color-surface-popover)',
+  'bg-surface-tooltip': 'var(--color-surface-tooltip)',
 
   // Border colors
-  border: {
-    light: '#E2E8F0', // border-slate-200
-    medium: '#CBD5E1', // border-slate-300
-    dark: '#475569', // border-slate-600
-  },
+  'border-theme-primary': 'var(--color-border-primary)',
+  'border-theme-secondary': 'var(--color-border-secondary)',
+  'border-theme-focus': 'var(--color-border-focus)',
 
-  // Status colors
-  status: {
-    success: {
-      light: '#DCFCE7', // bg-green-100
-      dark: '#166534', // bg-green-800
-      text: '#166534', // text-green-800
-      textDark: '#86EFAC', // text-green-400
-    },
-    error: {
-      light: '#FEE2E2', // bg-red-100
-      dark: '#991B1B', // bg-red-800
-      text: '#991B1B', // text-red-800
-      textDark: '#FCA5A5', // text-red-400
-    },
-    warning: {
-      light: '#FEF3C7', // bg-yellow-100
-      dark: '#92400E', // bg-yellow-800
-      text: '#92400E', // text-yellow-800
-      textDark: '#FCD34D', // text-yellow-400
-    },
-    info: {
-      light: '#DBEAFE', // bg-blue-100
-      dark: '#1E40AF', // bg-blue-800
-      text: '#1E40AF', // text-blue-800
-      textDark: '#93C5FD', // text-blue-400
-    },
-  },
-} as const;
-
-// ========================================
-// TAILWIND CLASS MAPPINGS
-// ========================================
-
-export const TAILWIND_CLASSES = {
   // Brand colors
-  brand: {
-    primary: 'bg-blue-500 hover:bg-blue-600',
-    nextjs: 'bg-[#00d4ff] hover:bg-[#00b8e6]',
-    secondary: 'bg-green-500 hover:bg-green-600',
-  },
-
-  // Sports colors
-  sports: {
-    nba: 'bg-[#00d4ff] hover:bg-[#00b8e6]',
-    nfl: 'bg-blue-600 hover:bg-blue-700',
-    mlb: 'bg-red-600 hover:bg-red-700',
-    nhl: 'bg-indigo-800 hover:bg-indigo-900',
-    mls: 'bg-green-600 hover:bg-green-700',
-  },
-
-  // Background colors
-  background: {
-    primary: 'bg-white dark:bg-gray-800',
-    secondary: 'bg-gray-50 dark:bg-gray-900',
-    card: 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
-  },
-
-  // Text colors
-  text: {
-    primary: 'text-gray-900 dark:text-white',
-    secondary: 'text-gray-600 dark:text-gray-400',
-    muted: 'text-gray-500 dark:text-gray-500',
-  },
-
-  // Status colors
-  status: {
-    success: 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300',
-    error: 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300',
-    warning: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300',
-    info: 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300',
-  },
-} as const;
-
-// ========================================
-// GRADIENT DEFINITIONS
-// ========================================
-
-export const GRADIENTS = {
-  // Next.js cyan gradient
-  nextjs: {
-    background: 'bg-gradient-to-br from-[#00d4ff]/20 to-transparent dark:from-[#00d4ff]/10',
-    avatar: 'bg-[#00d4ff]',
-    badge: 'bg-[#00d4ff]/20 dark:bg-[#00d4ff]/30',
-  },
-
-  // Sports gradients
-  sports: {
-    nba: {
-      background: 'bg-gradient-to-br from-[#00d4ff]/20 to-transparent dark:from-[#00d4ff]/10',
-      avatar: 'bg-[#00d4ff]',
-      badge: 'bg-[#00d4ff]/20 dark:bg-[#00d4ff]/30',
-    },
-    nfl: {
-      background: 'bg-gradient-to-br from-blue-50/30 to-transparent dark:from-blue-900/10',
-      avatar: 'bg-blue-500',
-      badge: 'bg-blue-100 dark:bg-blue-900/30',
-    },
-    mlb: {
-      background: 'bg-gradient-to-br from-red-50/30 to-transparent dark:from-red-900/10',
-      avatar: 'bg-red-500',
-      badge: 'bg-red-100 dark:bg-red-900/30',
-    },
-    nhl: {
-      background: 'bg-gradient-to-br from-indigo-50/30 to-transparent dark:from-indigo-900/10',
-      avatar: 'bg-indigo-500',
-      badge: 'bg-indigo-100 dark:bg-indigo-900/30',
-    },
-    mls: {
-      background: 'bg-gradient-to-br from-green-50/30 to-transparent dark:from-green-900/10',
-      avatar: 'bg-green-500',
-      badge: 'bg-green-100 dark:bg-green-900/30',
-    },
-  },
-} as const;
-
-// ========================================
-// UTILITY FUNCTIONS
-// ========================================
-
-/**
- * Get sports color by sport key
- */
-export function getSportsColor(sport: keyof typeof SPORTS_COLORS) {
-  return SPORTS_COLORS[sport];
-}
-
-/**
- * Get Tailwind class for sports button
- */
-export function getSportsButtonClass(sport: keyof typeof SPORTS_COLORS) {
-  return TAILWIND_CLASSES.sports[sport];
-}
-
-/**
- * Get gradient classes for sports components
- */
-export function getSportsGradient(sport: keyof typeof SPORTS_COLORS) {
-  return GRADIENTS.sports[sport] || GRADIENTS.sports.nba; // Default to NBA
-}
-
-/**
- * Get status color classes
- */
-export function getStatusClass(status: keyof typeof TAILWIND_CLASSES.status) {
-  return TAILWIND_CLASSES.status[status];
-}
-
-/**
- * Get theme color by theme and type
- */
-export function getThemeColor(theme: 'light' | 'dark', type: keyof typeof THEME_COLORS.light) {
-  return THEME_COLORS[theme][type];
-}
-
-/**
- * Get CSS custom property color
- */
-export function getCssColor(category: keyof typeof CSS_COLORS, color: string) {
-  return CSS_COLORS[category][color as keyof (typeof CSS_COLORS)[typeof category]];
-}
-
-/**
- * Get theme-aware color class
- */
-export function getThemeAwareColor(lightColor: string, darkColor: string) {
-  return `${lightColor} dark:${darkColor}`;
-}
-
-// ========================================
-// TYPE DEFINITIONS
-// ========================================
-
-// ========================================
-// THEME COLORS
-// ========================================
-
-export const THEME_COLORS = {
-  // Dark theme colors
-  dark: {
-    background: '#18181b',
-    surface: '#232329',
-    border: '#27272a',
-    text: {
-      primary: '#ffffff',
-      secondary: '#71717a',
-      muted: '#a1a1aa',
-    },
-  },
-
-  // Light theme colors
-  light: {
-    background: '#ffffff',
-    surface: '#f8fafc',
-    border: '#e2e8f0',
-    text: {
-      primary: '#1e293b',
-      secondary: '#64748b',
-      muted: '#94a3b8',
-    },
-  },
-} as const;
-
-// ========================================
-// CSS CUSTOM PROPERTIES
-// ========================================
-
-export const CSS_COLORS = {
-  // Brand colors
-  brand: {
-    primary: 'hsl(221 83% 53%)', // Blue-600
-    primaryHover: 'hsl(221 83% 43%)', // Blue-700
-    primaryLight: 'hsl(221 83% 63%)', // Blue-500
-    secondary: 'hsl(142 76% 36%)', // Green-600
-    secondaryHover: 'hsl(142 76% 26%)', // Green-700
-    secondaryLight: 'hsl(142 76% 46%)', // Green-500
-  },
+  'bg-brand-primary': 'var(--color-brand-primary)',
+  'bg-brand-primary-hover': 'var(--color-brand-primary-hover)',
+  'bg-brand-secondary': 'var(--color-brand-secondary)',
+  'bg-brand-secondary-hover': 'var(--color-brand-secondary-hover)',
 
   // Semantic colors
-  semantic: {
-    success: 'hsl(142 76% 36%)', // Green-600
-    warning: 'hsl(38 92% 50%)', // Amber-500
-    error: 'hsl(0 84% 60%)', // Red-500
-    info: 'hsl(221 83% 53%)', // Blue-600
-  },
-
-  // Accent colors
-  accent: {
-    orange: 'hsl(25 95% 53%)', // Live indicators
-    purple: 'hsl(262 83% 58%)', // Premium features
-  },
-
-  // Neutral colors
-  neutral: {
-    50: 'hsl(0 0% 98%)', // Lightest bg
-    100: 'hsl(0 0% 96%)', // Light bg
-    200: 'hsl(0 0% 90%)', // Borders
-    300: 'hsl(0 0% 83%)', // Disabled
-    400: 'hsl(0 0% 64%)', // Placeholder
-    500: 'hsl(0 0% 45%)', // Secondary text
-    600: 'hsl(0 0% 32%)', // Primary text
-    700: 'hsl(0 0% 25%)', // Strong text
-    800: 'hsl(0 0% 15%)', // Headings
-    900: 'hsl(0 0% 9%)', // Strongest text
-  },
+  'text-semantic-success': 'var(--color-semantic-success)',
+  'text-semantic-warning': 'var(--color-semantic-warning)',
+  'text-semantic-error': 'var(--color-semantic-error)',
+  'text-semantic-info': 'var(--color-semantic-info)',
 } as const;
-
-// ========================================
-// TYPE DEFINITIONS
-// ========================================
-// All type definitions have been moved to @/lib/types

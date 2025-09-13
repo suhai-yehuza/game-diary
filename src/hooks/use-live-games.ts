@@ -3,12 +3,85 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { INTERNAL_PROXY_ENDPOINTS } from '@/lib/config/app.config';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 import { isMockModeEnabled } from '@/lib/utils/mock-mode';
-import type { IGamesApiResponse, IUseLiveGamesOptions, IUseLiveGamesReturn } from '@/types';
+import type {
+  IGamesApiResponse,
+  IUseLiveGamesOptions,
+  IUseLiveGamesReturn,
+  IGameResponse,
+  IExternalGame,
+} from '@/types';
 
 // Constants for adaptive polling
 const FREQUENT_POLLING_INTERVAL_MS = 30000; // 30 seconds when games are live
 const REDUCED_POLLING_INTERVAL_MS = 300000; // 5 minutes when no live games
 const RESUME_FREQUENT_POLLING_AFTER_MS = 600000; // Resume frequent polling after 10 minutes of no games
+
+// Helper function to transform external API games to internal format
+function transformExternalGamesToInternal(games: IExternalGame[]): IGameResponse[] {
+  return games.map(game => ({
+    id: game.id.toString(),
+    date: typeof game.date === 'string' ? { start: game.date } : { start: game.date?.start || '' },
+    home_team: game.teams?.home?.name || '',
+    away_team: game.teams?.visitors?.name || '',
+    home_score: game.scores?.home?.points || 0,
+    away_score: game.scores?.visitors?.points || 0,
+    status:
+      typeof game.status === 'string'
+        ? { short: game.status }
+        : { short: game.status?.short || '', long: game.status?.long, clock: game.status?.clock },
+    teams: game.teams
+      ? {
+          home: {
+            id: game.teams.home?.id?.toString() || '',
+            name: game.teams.home?.name || '',
+            nickname: game.teams.home?.nickname || '',
+            code: game.teams.home?.code || '',
+            logo: game.teams.home?.logo || '',
+          },
+          visitors: {
+            id: game.teams.visitors?.id?.toString() || '',
+            name: game.teams.visitors?.name || '',
+            nickname: game.teams.visitors?.nickname || '',
+            code: game.teams.visitors?.code || '',
+            logo: game.teams.visitors?.logo || '',
+          },
+          away: {
+            id: game.teams.visitors?.id?.toString() || '',
+            name: game.teams.visitors?.name || '',
+            nickname: game.teams.visitors?.nickname || '',
+            code: game.teams.visitors?.code || '',
+            logo: game.teams.visitors?.logo || '',
+          },
+        }
+      : undefined,
+    scores: game.scores
+      ? {
+          home: {
+            points: game.scores.home?.points || 0,
+          },
+          visitors: {
+            points: game.scores.visitors?.points || 0,
+          },
+        }
+      : undefined,
+    season: game.season,
+    stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
+    nugget: game.nugget,
+    arena: game.arena
+      ? {
+          name: game.arena.name || '',
+          city: game.arena.city || '',
+          state: game.arena.state || '',
+        }
+      : undefined,
+    periods: game.periods
+      ? {
+          current: game.periods.current || 0,
+          total: game.periods.total || 0,
+        }
+      : undefined,
+  }));
+}
 
 // Singleton to manage global polling state
 let globalPollingInterval: NodeJS.Timeout | null = null;
@@ -192,7 +265,7 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
     }
   }, [getAdaptivePollingInterval, liveGames?.response]);
 
-  const games = liveGames?.response ?? [];
+  const games = liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : [];
 
   // Helper function to format time since last live games
   const getTimeSinceLastLiveGames = useCallback(() => {
@@ -205,13 +278,13 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
   }, [lastLiveGamesFound]);
 
   return {
-    liveGames: liveGames?.response ?? null,
-    games: liveGames?.response ?? games,
+    liveGames: liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : null,
+    games: games,
     loading,
     error,
     refetch: fetchLiveGames,
     // Additional info for adaptive polling
-    hasLiveGames: (liveGames?.response ?? games).length > 0,
+    hasLiveGames: games.length > 0,
     currentPollingInterval: getAdaptivePollingInterval,
     timeSinceLastLiveGames: getTimeSinceLastLiveGames(),
   };

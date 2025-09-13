@@ -81,22 +81,20 @@ test.describe('Live Games Functionality', () => {
         // Check for team codes and scores in the new structure
         const firstGame = gameItems.first();
 
-        // Check for team codes (now in spans within flex containers)
-        const teamCodes = firstGame.locator('span.text-xs.font-medium');
+        // Check for team codes (more flexible selector)
+        const teamCodes = firstGame.locator('span.font-medium');
         await expect(teamCodes.first()).toBeVisible();
 
-        // Check for scores (now in spans with font-bold)
-        const scores = firstGame.locator('span.text-xs.font-bold');
+        // Check for scores (more flexible selector)
+        const scores = firstGame.locator('span.font-bold');
         await expect(scores.first()).toBeVisible();
 
-        // Check for @ separator (now in a specific span)
-        const separator = firstGame.locator('span.text-xs.text-gray-200:text-is("@")');
+        // Check for @ separator (more flexible selector)
+        const separator = firstGame.locator('span:text-is("@")');
         await expect(separator).toBeVisible();
 
-        // Check for quarter information (now in a specific span)
-        const quarterInfo = firstGame
-          .locator('span.text-xs.text-gray-200')
-          .filter({ hasText: /Q[1-4]|HT/ });
+        // Check for quarter information (more flexible selector)
+        const quarterInfo = firstGame.locator('span').filter({ hasText: /Q[1-4]|HT/ });
         await expect(quarterInfo).toBeVisible();
       }
     });

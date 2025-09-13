@@ -1195,6 +1195,8 @@ export interface IGameCardProps {
   game: any;
   onClick?: (game: any) => void;
   className?: string;
+  highlightTeam?: string;
+  showTeamLogos?: boolean;
 }
 
 export interface IGameFiltersProps {
@@ -1339,20 +1341,6 @@ export interface ISportTab {
 export interface ITeamCardProps {
   team: any;
   onClick?: (team: any) => void;
-  className?: string;
-}
-
-export interface ITeamFiltersProps {
-  filters: any;
-  filterOptions: any;
-  showAdvancedFilters: boolean;
-  hasActiveFilters: boolean;
-  totalTeams: number;
-  filteredTeamsCount: number;
-  onUpdateFilter: (key: string, value: any) => void;
-  onClearFilters: () => void;
-  onToggleAdvancedFilters: () => void;
-  onRefresh: () => void;
   className?: string;
 }
 
@@ -1623,6 +1611,47 @@ export interface IPlayerResponse {
   [key: string]: any;
 }
 
+// External API Player Response Types - More flexible to match actual API responses
+export interface IExternalPlayer {
+  id: number | string;
+  firstname?: string;
+  lastname?: string;
+  birth?: {
+    date?: string;
+    country?: string;
+    place?: string;
+  };
+  nba?: {
+    start?: number;
+    pro?: number;
+  };
+  height?:
+    | string
+    | {
+        feets?: string;
+        inches?: string;
+        meters?: string;
+      };
+  weight?:
+    | string
+    | {
+        pounds?: string;
+        kilograms?: string;
+      };
+  college?: string;
+  affiliation?: string;
+  leagues?: {
+    standard?: {
+      jersey?: number;
+      active?: boolean;
+      position?: string;
+      team?: string;
+      logo?: string;
+      pos?: string; // Alternative position field
+    };
+  };
+}
+
 export interface IPlayersApiResponse {
   success: boolean;
   get: string;
@@ -1634,9 +1663,9 @@ export interface IPlayersApiResponse {
     team?: string;
     college?: string;
   };
-  errors: any[];
+  errors: string[];
   results: number;
-  response: any[];
+  response: IExternalPlayer[];
   timestamp: string;
   // Pagination fields
   players?: IPlayerResponse[];
@@ -2174,15 +2203,91 @@ export interface ExternalAPIResponse<T = any> {
   latency?: number;
 }
 
+// External API Game Response Types - More flexible to match actual API responses
+export interface IExternalGame {
+  id: number | string;
+  date?:
+    | string
+    | {
+        start?: string;
+        end?: string;
+      };
+  status?:
+    | string
+    | {
+        long?: string;
+        short?: string;
+        clock?: string;
+        period?: number;
+        halftime?: boolean;
+      };
+  teams?: {
+    home?: {
+      id?: number | string;
+      name?: string;
+      nickname?: string;
+      code?: string;
+      logo?: string;
+    };
+    visitors?: {
+      id?: number | string;
+      name?: string;
+      nickname?: string;
+      code?: string;
+      logo?: string;
+    };
+  };
+  scores?: {
+    home?: {
+      points?: number;
+      linescore?: number[];
+      win?: number;
+      loss?: number;
+      series?: {
+        win?: number;
+        loss?: number;
+      };
+    };
+    visitors?: {
+      points?: number;
+      linescore?: number[];
+      win?: number;
+      loss?: number;
+      series?: {
+        win?: number;
+        loss?: number;
+      };
+    };
+  };
+  arena?: {
+    name?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+  };
+  periods?: {
+    current?: number;
+    total?: number;
+    endOfPeriod?: boolean;
+  };
+  stage?: number | string;
+  nugget?: string;
+  season?: string;
+  league?: string;
+  officials?: string[];
+  timesTied?: number;
+  leadChanges?: number;
+}
+
 export interface IGamesApiResponse {
-  games: any[];
+  games: IExternalGame[];
   total: number;
   page: number;
   limit: number;
   get?: string;
-  parameters?: any;
-  errors?: any[];
-  response?: any[];
+  parameters?: Record<string, unknown>;
+  errors?: string[];
+  response?: IExternalGame[];
   results?: number;
 }
 
@@ -2223,7 +2328,7 @@ export interface ISeasonsApiResponse {
   requestId?: string;
 }
 
-export interface IStandingsApiResponse {
+export interface IGenericStandingsApiResponse {
   standings: any[];
   total: number;
   success?: boolean;
@@ -2257,6 +2362,48 @@ export interface ITeamStatisticsApiResponse {
   timestamp?: string;
   requestId?: string;
   response?: any[];
+}
+
+// Team Statistics Types
+export interface ITeamStatsRecord {
+  wins: number;
+  losses: number;
+}
+
+export interface ITeamStatsMetric {
+  avg: number;
+  for: number;
+  against: number;
+  diff: number;
+}
+
+export interface ITeamStatsResponse {
+  teamId: string;
+  teamName: string;
+  teamCode: string;
+  teamLogo: string;
+  season: string;
+  conference: string;
+  division: string;
+  gamesPlayed: number;
+  wins: number;
+  losses: number;
+  winPercentage: number;
+  homeRecord: ITeamStatsRecord;
+  awayRecord: ITeamStatsRecord;
+  confRecord: ITeamStatsRecord;
+  divRecord: ITeamStatsRecord;
+  lastTenRecord: ITeamStatsRecord;
+  streak: ITeamStatsRecord;
+  points: ITeamStatsMetric;
+  rebounds: ITeamStatsMetric;
+  assists: ITeamStatsMetric;
+  steals: ITeamStatsMetric;
+  blocks: ITeamStatsMetric;
+  turnovers: ITeamStatsMetric;
+  fgPct: ITeamStatsMetric;
+  ftPct: ITeamStatsMetric;
+  fg3Pct: ITeamStatsMetric;
 }
 
 // Service Types
@@ -3531,7 +3678,17 @@ export type SportsConfigKey = keyof typeof import('@/lib/constants/colors').SPOR
 export type StatusType = 'success' | 'warning' | 'error' | 'info';
 export type BrandColor = 'primary' | 'secondary' | 'accent';
 export type ThemeColor = 'light' | 'dark';
-export type CssColor = 'red' | 'blue' | 'green' | 'yellow' | 'purple' | 'pink' | 'gray';
+export type CssColor =
+  | 'red'
+  | 'blue'
+  | 'green'
+  | 'yellow'
+  | 'purple'
+  | 'pink'
+  | 'gray'
+  | 'pink'
+  | 'black'
+  | 'white';
 
 // ========================================
 // BUTTON VARIANT TYPES
@@ -5692,4 +5849,889 @@ export interface BulkActionsBarProps {
   onBulkDelete: () => void;
   isDeleting: boolean;
   itemLabel: string;
+}
+
+// NBA Standings Interfaces
+export interface IStandingsTeam {
+  id: number;
+  name: string;
+  nickname: string;
+  code: string;
+  logo: string;
+}
+
+export interface IStandingsConference {
+  name: string;
+  rank: number;
+  win: number;
+  loss: number;
+}
+
+export interface IStandingsDivision {
+  name: string;
+  rank: number;
+  win: number;
+  loss: number;
+  gamesBehind: string | null;
+}
+
+export interface IStandingsRecord {
+  home: number;
+  away: number;
+  total: number;
+  percentage: string;
+  lastTen: number;
+}
+
+export interface IStandingsResponse {
+  league: string;
+  season: number;
+  team: IStandingsTeam;
+  conference: IStandingsConference;
+  division: IStandingsDivision;
+  win: IStandingsRecord;
+  loss: IStandingsRecord;
+  gamesBehind: string | null;
+  streak: number;
+  winStreak: boolean;
+  tieBreakerPoints: number | null;
+}
+
+export interface IStandingsApiResponse {
+  get: string;
+  parameters: {
+    league: string;
+    season: string;
+    conference?: string;
+    division?: string;
+    team?: string;
+  };
+  errors: string[];
+  results: number;
+  response: IStandingsResponse[];
+}
+
+export interface IStandingsFilters {
+  season: string;
+  conference: string;
+  division: string;
+  team: string;
+  league: string;
+}
+
+export interface IUseStandingsOptions {
+  season?: string;
+  conference?: string;
+  division?: string;
+  team?: string;
+  league?: string;
+  skip?: boolean;
+}
+
+// ========================================
+// GAME STATISTICS INTERFACES
+// ========================================
+
+/**
+ * Game statistics team interface
+ */
+export interface IGameStatsTeam {
+  id: number;
+  name: string;
+  nickname: string;
+  code: string;
+  logo: string;
+}
+
+/**
+ * Game statistics data interface
+ */
+export interface IGameStatsData {
+  fastBreakPoints: number | null;
+  pointsInPaint: number | null;
+  biggestLead: number | null;
+  secondChancePoints: number | null;
+  pointsOffTurnovers: number | null;
+  longestRun: number | null;
+  points: number;
+  fgm: number; // Field Goals Made
+  fga: number; // Field Goals Attempted
+  fgp: string; // Field Goal Percentage
+  ftm: number; // Free Throws Made
+  fta: number; // Free Throws Attempted
+  ftp: string; // Free Throw Percentage
+  tpm: number; // Three Pointers Made
+  tpa: number; // Three Pointers Attempted
+  tpp: string; // Three Point Percentage
+  offReb: number; // Offensive Rebounds
+  defReb: number; // Defensive Rebounds
+  totReb: number; // Total Rebounds
+  assists: number;
+  pFouls: number; // Personal Fouls
+  steals: number;
+  turnovers: number;
+  blocks: number;
+  plusMinus: string;
+  min: string; // Minutes played
+}
+
+/**
+ * Game statistics response interface
+ */
+export interface IGameStatsResponse {
+  get: string;
+  parameters: {
+    id: string;
+  };
+  errors: string[];
+  results: number;
+  response: {
+    team: IGameStatsTeam;
+    statistics: IGameStatsData[];
+  }[];
+}
+
+/**
+ * Game statistics API response interface
+ */
+export interface IGameStatsApiResponse {
+  get: string;
+  parameters: {
+    id: string;
+  };
+  errors: string[];
+  results: number;
+  response: IGameStatsResponse[];
+}
+
+// ========================================
+// PLAYER STATISTICS INTERFACES
+// ========================================
+
+/**
+ * Player statistics player interface
+ */
+export interface IPlayerStatsPlayer {
+  id: number;
+  name: string;
+  firstname: string;
+  lastname: string;
+  birth: {
+    date: string;
+    country: string;
+  };
+  nba: {
+    start: number;
+    pro: number;
+  };
+  height: {
+    feets: string;
+    inches: string;
+    meters: string;
+  };
+  weight: {
+    pounds: string;
+    kilograms: string;
+  };
+  college: string;
+  affiliation: string;
+  leagues: {
+    standard: {
+      jersey: number;
+      active: boolean;
+      pos: string;
+    };
+  };
+}
+
+/**
+ * Player statistics team interface
+ */
+export interface IPlayerStatsTeam {
+  id: number;
+  name: string;
+  nickname: string;
+  code: string;
+  logo: string;
+}
+
+/**
+ * Player statistics game interface
+ */
+export interface IPlayerStatsGame {
+  id: number;
+  date: string;
+  home: IPlayerStatsTeam;
+  visitor: IPlayerStatsTeam;
+}
+
+/**
+ * Player statistics data interface
+ */
+export interface IPlayerStatsData {
+  fastBreakPoints: number | null;
+  pointsInPaint: number | null;
+  biggestLead: number | null;
+  secondChancePoints: number | null;
+  pointsOffTurnovers: number | null;
+  longestRun: number | null;
+  points: number;
+  fgm: number; // Field Goals Made
+  fga: number; // Field Goals Attempted
+  fgp: string; // Field Goal Percentage
+  ftm: number; // Free Throws Made
+  fta: number; // Free Throws Attempted
+  ftp: string; // Free Throw Percentage
+  tpm: number; // Three Pointers Made
+  tpa: number; // Three Pointers Attempted
+  tpp: string; // Three Point Percentage
+  offReb: number; // Offensive Rebounds
+  defReb: number; // Defensive Rebounds
+  totReb: number; // Total Rebounds
+  assists: number;
+  pFouls: number; // Personal Fouls
+  steals: number;
+  turnovers: number;
+  blocks: number;
+  plusMinus: string;
+  min: string; // Minutes played
+}
+
+/**
+ * Player statistics response interface
+ */
+export interface IPlayerStatsResponse {
+  get: string;
+  parameters: {
+    id: string;
+    season: string;
+    game: string;
+  };
+  errors: string[];
+  results: number;
+  response: (IPlayerStatsData & {
+    player: IPlayerStatsPlayer;
+    team: IPlayerStatsTeam;
+    game: IPlayerStatsGame;
+  })[];
+}
+
+/**
+ * Player statistics API response interface
+ */
+export interface IPlayerStatsApiResponse {
+  get: string;
+  parameters: {
+    id: string;
+    season: string;
+    game: string;
+  };
+  errors: string[];
+  results: number;
+  response: IPlayerStatsResponse[];
+}
+
+// ========================================
+// TEAM PLAYERS INTERFACES
+// ========================================
+
+/**
+ * Team players player interface
+ */
+export interface ITeamPlayersPlayer {
+  id: number;
+  name: string;
+  firstname: string;
+  lastname: string;
+  birth: {
+    date: string;
+    country: string;
+  };
+  nba: {
+    start: number;
+    pro: number;
+  };
+  height: {
+    feets: string;
+    inches: string;
+    meters: string;
+  };
+  weight: {
+    pounds: string;
+    kilograms: string;
+  };
+  college: string;
+  affiliation: string;
+  leagues: {
+    standard: {
+      jersey: number;
+      active: boolean;
+      pos: string;
+    };
+  };
+}
+
+/**
+ * Team players response interface
+ */
+export interface ITeamPlayersResponse {
+  get: string;
+  parameters: {
+    team: string;
+    season: string;
+  };
+  errors: string[];
+  results: number;
+  response: ITeamPlayersPlayer[];
+}
+
+/**
+ * Team players API response interface
+ */
+export interface ITeamPlayersApiResponse {
+  get: string;
+  parameters: {
+    team: string;
+    season: string;
+  };
+  errors: string[];
+  results: number;
+  response: ITeamPlayersPlayer[];
+}
+
+/**
+ * Team stats API response interface
+ */
+export interface ITeamStatsApiResponse {
+  success: boolean;
+  data: ITeamStatsResponse;
+  meta: {
+    teamId: string;
+    season: string;
+    teamName: string;
+    apiSource: string;
+    timestamp: string;
+  };
+  error?: string;
+}
+
+/**
+ * Use team stats options interface
+ */
+export interface IUseTeamStatsOptions {
+  teamId: string;
+  season?: string;
+  skip?: boolean;
+  forceRealData?: boolean;
+}
+
+/**
+ * Use team players options interface
+ */
+export interface IUseTeamPlayersOptions {
+  teamId: string;
+  season: string;
+  skip?: boolean;
+}
+
+/**
+ * Use team players return interface
+ */
+export interface IUseTeamPlayersReturn {
+  teamPlayers: ITeamPlayersPlayer[] | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Use standings result interface
+ */
+export interface IUseStandingsResult {
+  standings: IStandingsApiResponse | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Use player stats options interface
+ */
+export interface IUsePlayerStatsOptions {
+  playerId: string;
+  season: string;
+  gameId?: string;
+  skip?: boolean;
+}
+
+/**
+ * Use player stats return interface
+ */
+export interface IUsePlayerStatsReturn {
+  playerStats: IPlayerStatsResponse | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Head to head games API response interface
+ */
+export interface IHeadToHeadGamesApiResponse {
+  success: boolean;
+  data: IGameResponse[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
+  };
+  meta: {
+    teamId: string;
+    season: string;
+    totalGames: number;
+    teamName: string;
+    apiSource: string;
+    timestamp: string;
+  };
+  error?: string;
+}
+
+/**
+ * Use head to head games options interface
+ */
+export interface IUseHeadToHeadGamesOptions {
+  teamId: string;
+  season?: string;
+  startDate?: string;
+  endDate?: string;
+  opponent?: string;
+  page?: number;
+  limit?: number;
+  skip?: boolean;
+  forceRealData?: boolean;
+}
+
+/**
+ * Use head to head games return interface
+ */
+export interface IUseHeadToHeadGamesReturn {
+  games: IGameResponse[];
+  loading: boolean;
+  error: string | null;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Use game stats options interface
+ */
+export interface IUseGameStatsOptions {
+  gameId: string;
+  skip?: boolean;
+}
+
+/**
+ * Use game stats return interface
+ */
+export interface IUseGameStatsReturn {
+  gameStats: IGameStatsResponse | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => Promise<void>;
+}
+
+/**
+ * Game details interface
+ */
+export interface IGameDetails {
+  id: number;
+  date: string;
+  home: {
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  away: {
+    id: number;
+    name: string;
+    nickname: string;
+    code: string;
+    logo: string;
+  };
+  scores: {
+    home: number;
+    away: number;
+  };
+  status: {
+    long: string;
+    short: string;
+  };
+}
+
+/**
+ * Use game details options interface
+ */
+export interface IUseGameDetailsOptions {
+  gameId: string | number | null;
+  skip?: boolean;
+}
+
+/**
+ * Use game details return interface
+ */
+export interface IUseGameDetailsReturn {
+  gameDetails: IGameDetails | null;
+  loading: boolean;
+  error: string | null;
+  fetchGameDetails: () => Promise<void>;
+}
+
+/**
+ * Season option interface
+ */
+export interface ISeasonOption {
+  value: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+/**
+ * Simple season option interface
+ */
+export interface ISeasonOptionSimple {
+  value: string;
+  label: string;
+  icon: null;
+}
+
+/**
+ * Image service configuration interface
+ */
+export interface IImageServiceConfig {
+  baseUrl: string;
+  fallbackImages: {
+    player: string;
+    team: string;
+    league: string;
+  };
+}
+
+/**
+ * Player image options interface
+ */
+export interface IPlayerImageOptions {
+  playerId: string;
+  season?: string;
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * Team image options interface
+ */
+export interface ITeamImageOptions {
+  teamId: string;
+  season?: string;
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * League image options interface
+ */
+export interface ILeagueImageOptions {
+  leagueId: string;
+  season?: string;
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * Player image props interface
+ */
+export interface IPlayerImageProps {
+  player: ITeamPlayersPlayer | IPlayerResponse;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+}
+
+/**
+ * Fallback avatar props interface
+ */
+export interface IFallbackAvatarProps {
+  name: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  className?: string;
+  variant?: 'player' | 'team' | 'league';
+}
+
+/**
+ * Team stats props interface
+ */
+export interface ITeamStatsProps {
+  teamId: string;
+  teamName: string;
+}
+
+/**
+ * Team filters props interface
+ */
+export interface ITeamFiltersProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  filters: Array<{
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: Array<{ value: string; label: string; icon: null }>;
+    icon?: React.ReactNode;
+  }>;
+  onRefresh?: () => void;
+  error?: string | null;
+  className?: string;
+}
+
+/**
+ * Season player stats props interface
+ */
+export interface ISeasonPlayerStatsProps {
+  teamPlayers: ITeamPlayersPlayer[] | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Player stats props interface
+ */
+export interface IPlayerStatsProps {
+  playerStats: IPlayerStatsResponse | null;
+  teamPlayers: ITeamPlayersPlayer[] | null;
+  loading: boolean;
+  error: string | null;
+  onPlayerSelect: (playerId: string) => void;
+  selectedPlayerId: string | null;
+}
+
+/**
+ * Standings props interface
+ */
+export interface IStandingsProps {
+  className?: string;
+}
+
+/**
+ * Game stats props interface
+ */
+export interface IGameStatsProps {
+  gameStats: IGameStatsResponse | null;
+  loading: boolean;
+  error: string | null;
+}
+
+/**
+ * Head to head games props interface
+ */
+export interface IHead2HeadGamesProps {
+  teamId: string;
+  teamName: string;
+}
+
+/**
+ * Player season stats props interface
+ */
+export interface IPlayerSeasonStatsProps {
+  player: IPlayerResponse;
+  playerId: string;
+  playerName: string;
+}
+
+/**
+ * Raw team stats API response interface (from external API)
+ */
+export interface IRawTeamStatsApiResponse {
+  get: string;
+  parameters: {
+    id: string;
+    season: string;
+  };
+  errors: unknown[];
+  results: number;
+  response: Array<{
+    games: number;
+    fastBreakPoints: number;
+    pointsInPaint: number;
+    biggestLead: number;
+    secondChancePoints: number;
+    pointsOffTurnovers: number;
+    longestRun: number;
+    points: number;
+    fgm: number; // Field Goals Made
+    fga: number; // Field Goals Attempted
+    fgp: string; // Field Goal Percentage
+    ftm: number; // Free Throws Made
+    fta: number; // Free Throws Attempted
+    ftp: string; // Free Throw Percentage
+    tpm: number; // Three Pointers Made
+    tpa: number; // Three Pointers Attempted
+    tpp: string; // Three Point Percentage
+    offReb: number; // Offensive Rebounds
+    defReb: number; // Defensive Rebounds
+    totReb: number; // Total Rebounds
+    assists: number;
+    pFouls: number; // Personal Fouls
+    steals: number;
+    turnovers: number;
+    blocks: number;
+    plusMinus: number;
+  }>;
+}
+
+/**
+ * Raw team stats response interface (processed data)
+ */
+export interface IRawTeamStatsResponse {
+  teamId: string;
+  teamName: string;
+  teamCode: string;
+  teamLogo: string;
+  season: string;
+  games: number;
+  fastBreakPoints: number;
+  pointsInPaint: number;
+  biggestLead: number;
+  secondChancePoints: number;
+  pointsOffTurnovers: number;
+  longestRun: number;
+  points: number;
+  fgm: number;
+  fga: number;
+  fgp: string;
+  ftm: number;
+  fta: number;
+  ftp: string;
+  tpm: number;
+  tpa: number;
+  tpp: string;
+  offReb: number;
+  defReb: number;
+  totReb: number;
+  assists: number;
+  pFouls: number;
+  steals: number;
+  turnovers: number;
+  blocks: number;
+  plusMinus: number;
+}
+
+// ========================================
+// RESPONSIVE TYPES
+// ========================================
+
+export type Breakpoint =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | '2xl'
+  | 'mobile-sm'
+  | 'mobile-md'
+  | 'mobile-lg'
+  | 'tablet-sm'
+  | 'tablet-lg'
+  | 'desktop-sm'
+  | 'desktop-lg'
+  | 'desktop-xl';
+
+export interface UseResponsiveOptions {
+  defaultWidth?: number;
+  ssr?: boolean;
+}
+
+export interface ResponsiveState {
+  width: number;
+  height: number;
+  isMobile: boolean;
+  isTablet: boolean;
+  isDesktop: boolean;
+  isSmallMobile: boolean;
+  isLargeMobile: boolean;
+  isSmallTablet: boolean;
+  isLargeTablet: boolean;
+  isSmallDesktop: boolean;
+  isLargeDesktop: boolean;
+  isExtraLargeDesktop: boolean;
+  currentBreakpoint: Breakpoint;
+  isAbove: (breakpoint: Breakpoint) => boolean;
+  isBelow: (breakpoint: Breakpoint) => boolean;
+  isBetween: (min: Breakpoint, max: Breakpoint) => boolean;
+}
+
+// ========================================
+// RESPONSIVE COMPONENT TYPES
+// ========================================
+
+export interface ResponsiveContainerProps {
+  children: React.ReactNode;
+  className?: string;
+  as?: 'div' | 'section' | 'article' | 'main' | 'aside' | 'header' | 'footer';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
+  padding?: 'none' | 'sm' | 'md' | 'lg' | 'xl';
+  mobilePadding?: 'none' | 'sm' | 'md' | 'lg';
+}
+
+export interface ResponsiveGridProps {
+  children: React.ReactNode;
+  className?: string;
+  columns?: {
+    mobile?: 1 | 2;
+    tablet?: 1 | 2 | 3;
+    desktop?: 1 | 2 | 3 | 4 | 5 | 6;
+  };
+  gap?: 'sm' | 'md' | 'lg' | 'xl';
+  as?: 'div' | 'section' | 'article';
+}
+
+export interface ResponsiveTextProps {
+  children: React.ReactNode;
+  className?: string;
+  size?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl';
+  weight?: 'normal' | 'medium' | 'semibold' | 'bold';
+  as?: 'p' | 'span' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6';
+  mobileSize?: 'xs' | 'sm' | 'base' | 'lg' | 'xl' | '2xl' | '3xl';
+}
+
+export interface ResponsiveButtonProps {
+  children: React.ReactNode;
+  className?: string;
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'lg';
+  mobileSize?: 'sm' | 'md' | 'lg';
+  fullWidth?: boolean;
+  fullWidthMobile?: boolean;
+  onClick?: () => void;
+  type?: 'button' | 'submit' | 'reset';
+  disabled?: boolean;
+}
+
+// ========================================
+// ANALYTICS TYPES
+// ========================================
+
+export interface ISearchInteractionEvent {
+  query: string;
+  resultsCount: number;
+  searchTime: number;
+  category: string;
+  filters?: Record<string, unknown>;
+  timestamp: number;
+  sessionId: string;
 }

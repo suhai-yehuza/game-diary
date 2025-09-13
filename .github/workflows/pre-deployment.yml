@@ -268,7 +268,7 @@ jobs:
 
       - name: Start Development Server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -277,11 +277,44 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
           MOCK_MODE: 'true'
-        run: ./scripts/server-manager.sh start test --port=3000
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
+        run: |
+          echo "🚀 Starting development server on port 3000..."
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3000 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready with better error handling
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..60}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
 
       - name: Run E2E Mock Verification (All Browsers)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -291,13 +324,21 @@ jobs:
           CI: 'true'
           MOCK_MODE: 'true'
           DEPLOYMENT_URL: ${{ env.E2E_CHROMIUM_URL }}
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "Running E2E Mock Verification against all browsers..."
           pnpm test:e2e:mock-verification --browser=all
 
       - name: Stop Development Server
         if: always()
-        run: ./scripts/server-manager.sh stop --port=3000
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Mock Verification Artifacts
         if: always()
@@ -334,7 +375,7 @@ jobs:
 
       - name: Start Development Server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -343,7 +384,40 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
           MOCK_MODE: 'true'
-        run: ./scripts/server-manager.sh start test --port=3000
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
+        run: |
+          echo "🚀 Starting development server on port 3000..."
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3000 &
+          DEV_SERVER_PID=$!
+
+          # Wait for server to be ready with better error handling
+          echo "⏳ Waiting for server to be ready..."
+          for i in {1..60}; do
+            if curl -s http://localhost:3000 > /dev/null 2>&1; then
+              echo "✅ Development server is ready!"
+              break
+            fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
+            sleep 2
+          done
+
+          # Store PID for cleanup
+          echo "DEV_SERVER_PID=$DEV_SERVER_PID" >> $GITHUB_ENV
 
       - name: Run E2E Responsive Tests (All Browsers)
         env:
@@ -366,7 +440,11 @@ jobs:
 
       - name: Stop Development Server
         if: always()
-        run: ./scripts/server-manager.sh stop --port=3000
+        run: |
+          if [ -n "$DEV_SERVER_PID" ]; then
+            echo "🛑 Stopping development server..."
+            kill $DEV_SERVER_PID 2>/dev/null || true
+          fi
 
       - name: Upload E2E Responsive Artifacts
         if: always()
@@ -436,7 +514,7 @@ jobs:
 
       - name: Start Development Server
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -445,18 +523,35 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
           MOCK_MODE: 'true'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "🚀 Starting development server on port 3000..."
-          pnpm dev:mock -p 3000 > /dev/null 2>&1 &
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3000 &
           DEV_SERVER_PID=$!
 
-          # Wait for server to be ready
+          # Wait for server to be ready with better error handling
           echo "⏳ Waiting for server to be ready..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:3000 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
             sleep 2
           done
 
@@ -465,7 +560,7 @@ jobs:
 
       - name: Run E2E Tests (Chromium)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -476,6 +571,10 @@ jobs:
           MOCK_MODE: 'true'
           E2E_CHROMIUM_URL: 'http://localhost:3000'
           DEPLOYMENT_URL: 'http://localhost:3000'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "Running E2E tests on Chromium with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
@@ -558,7 +657,7 @@ jobs:
 
       - name: Start Development Server (WebKit)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -568,18 +667,35 @@ jobs:
           CI: 'true'
           MOCK_MODE: 'true'
           E2E_WEBKIT_URL: 'http://localhost:3001'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "🚀 Starting development server on port 3001..."
-          pnpm dev:mock -p 3001 > /dev/null 2>&1 &
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3001 &
           DEV_SERVER_PID=$!
 
-          # Wait for server to be ready
+          # Wait for server to be ready with better error handling
           echo "⏳ Waiting for server to be ready..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:3001 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
             sleep 2
           done
 
@@ -588,7 +704,7 @@ jobs:
 
       - name: Run E2E Tests (WebKit)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -599,6 +715,10 @@ jobs:
           MOCK_MODE: 'true'
           E2E_WEBKIT_URL: 'http://localhost:3001'
           DEPLOYMENT_URL: 'http://localhost:3001'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "Running E2E tests on WebKit with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
@@ -681,7 +801,7 @@ jobs:
 
       - name: Start Development Server (Firefox)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -690,18 +810,35 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
           MOCK_MODE: 'true'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "🚀 Starting development server on port 3002..."
-          pnpm dev:mock -p 3002 > /dev/null 2>&1 &
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3002 &
           DEV_SERVER_PID=$!
 
-          # Wait for server to be ready
+          # Wait for server to be ready with better error handling
           echo "⏳ Waiting for server to be ready..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:3002 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
             sleep 2
           done
 
@@ -710,7 +847,7 @@ jobs:
 
       - name: Run E2E Tests (Firefox)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -721,6 +858,10 @@ jobs:
           MOCK_MODE: 'true'
           E2E_FIREFOX_URL: 'http://localhost:3002'
           DEPLOYMENT_URL: 'http://localhost:3002'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "Running E2E tests on Firefox with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed
@@ -803,7 +944,7 @@ jobs:
 
       - name: Start Development Server (Mobile)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -812,18 +953,35 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
           CI: 'true'
           MOCK_MODE: 'true'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "🚀 Starting development server on port 3003..."
-          pnpm dev:mock -p 3003 > /dev/null 2>&1 &
+          echo "Environment variables:"
+          echo "  MOCK_MODE: $MOCK_MODE"
+          echo "  CI: $CI"
+          echo "  DATABASE_URL: ${DATABASE_URL:0:20}..."
+
+          # Start server with proper logging
+          pnpm dev:mock -p 3003 &
           DEV_SERVER_PID=$!
 
-          # Wait for server to be ready
+          # Wait for server to be ready with better error handling
           echo "⏳ Waiting for server to be ready..."
-          for i in {1..30}; do
+          for i in {1..60}; do
             if curl -s http://localhost:3003 > /dev/null 2>&1; then
               echo "✅ Development server is ready!"
               break
             fi
+            if [ $i -eq 60 ]; then
+              echo "❌ Server failed to start after 2 minutes"
+              echo "Checking server logs..."
+              ps aux | grep "next dev" || echo "No Next.js processes found"
+              exit 1
+            fi
+            echo "Attempt $i/60: Server not ready yet..."
             sleep 2
           done
 
@@ -832,7 +990,7 @@ jobs:
 
       - name: Run E2E Tests (Mobile)
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          # E2E tests use mock data only - no database connection needed
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
@@ -843,6 +1001,10 @@ jobs:
           MOCK_MODE: 'true'
           E2E_MOBILE_URL: 'http://localhost:3003'
           DEPLOYMENT_URL: 'http://localhost:3003'
+          # Disable database connections for E2E tests
+          DATABASE_URL: ''
+          UPSTASH_REDIS_REST_URL: ''
+          REDIS_URL: ''
         run: |
           echo "Running E2E tests on Mobile with optimized configuration..."
           # Run tests with optimized CI configuration for maximum speed

@@ -93,12 +93,12 @@ export function Comment({
 
   return (
     <div className="mb-4">
-      <Card className="border-l-4 border-l-brand-primary bg-neutral-50 dark:bg-neutral-800">
+      <Card className="border-l-4 border-l-brand-primary bg-bg-theme-secondary">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
-              <div className="w-8 h-8 rounded-full bg-brand-primary/10 dark:bg-brand-primary/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-brand-primary dark:text-brand-primary">
+              <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-medium text-brand-primary">
                   {displayComment.user.first_name?.[0] || displayComment.user.username?.[0] || 'U'}
                 </span>
               </div>
@@ -231,7 +231,7 @@ export function Comment({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowRepliesState(!showRepliesState)}
-                className="text-gray-600 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400"
+                className="text-theme-muted hover:text-semantic-info"
               >
                 {showRepliesState ? 'Hide' : 'Show'} replies
               </Button>

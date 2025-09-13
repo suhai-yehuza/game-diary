@@ -16,13 +16,13 @@ import { ProgressiveDataLoader } from './ProgressiveDataLoader';
 // Individual section components for progressive loading
 function TrendingContentSection() {
   return (
-    <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">📈</div>
           <h2 className="text-lg sm:text-xl font-bold">Trending Game Logs</h2>
         </div>
-        <p className="text-white/90 mt-1 text-sm sm:text-base">
+        <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">
           See what&apos;s hot in the community
         </p>
       </div>
@@ -34,7 +34,7 @@ function TrendingContentSection() {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"
+                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
                   />
                 ))}
               </div>
@@ -43,7 +43,7 @@ function TrendingContentSection() {
             <ProgressiveDataLoader
               dataKey="trendingContent"
               fallback={
-                <div className="text-center py-4 text-gray-500">Loading trending content...</div>
+                <div className="text-center py-4 text-theme-muted">Loading trending content...</div>
               }
             >
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -58,13 +58,13 @@ function TrendingContentSection() {
 
 function RecentGamesSection() {
   return (
-    <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">📅</div>
           <h2 className="text-lg sm:text-xl font-bold">Recent Games</h2>
         </div>
-        <p className="text-white/90 mt-1 text-sm sm:text-base">Latest results and scores</p>
+        <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">Latest results and scores</p>
       </div>
       <div className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="flex-1">
@@ -74,7 +74,7 @@ function RecentGamesSection() {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"
+                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
                   />
                 ))}
               </div>
@@ -83,7 +83,7 @@ function RecentGamesSection() {
             <ProgressiveDataLoader
               dataKey="recentGames"
               fallback={
-                <div className="text-center py-4 text-gray-500">Loading recent games...</div>
+                <div className="text-center py-4 text-theme-muted">Loading recent games...</div>
               }
             >
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -98,13 +98,15 @@ function RecentGamesSection() {
 
 function PopularGamesSection() {
   return (
-    <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-gray-700 dark:bg-gray-600 p-4 sm:p-6 text-white flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">⭐</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Games</h2>
         </div>
-        <p className="text-white/90 mt-1 text-sm sm:text-base">Top rated and most popular games</p>
+        <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">
+          Top rated and most popular games
+        </p>
       </div>
       <div className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="flex-1">
@@ -114,7 +116,7 @@ function PopularGamesSection() {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"
+                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
                   />
                 ))}
               </div>
@@ -123,7 +125,7 @@ function PopularGamesSection() {
             <ProgressiveDataLoader
               dataKey="popularGames"
               fallback={
-                <div className="text-center py-4 text-gray-500">Loading popular games...</div>
+                <div className="text-center py-4 text-theme-muted">Loading popular games...</div>
               }
             >
               {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
@@ -138,13 +140,15 @@ function PopularGamesSection() {
 
 function PopularTeamsSection() {
   return (
-    <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-blue-600 dark:bg-blue-700 p-4 sm:p-6 text-white flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">🏀</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Teams</h2>
         </div>
-        <p className="text-white/90 mt-1 text-sm sm:text-base">Teams with the most engagement</p>
+        <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">
+          Teams with the most engagement
+        </p>
       </div>
       <div className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="flex-1">
@@ -154,7 +158,7 @@ function PopularTeamsSection() {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"
+                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
                   />
                 ))}
               </div>
@@ -170,13 +174,15 @@ function PopularTeamsSection() {
 
 function PopularPlayersSection() {
   return (
-    <section className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-gray-200/50 dark:border-gray-700/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-green-600 dark:bg-green-700 p-4 sm:p-6 text-white flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">👤</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Players</h2>
         </div>
-        <p className="text-white/90 mt-1 text-sm sm:text-base">Players generating the most buzz</p>
+        <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">
+          Players generating the most buzz
+        </p>
       </div>
       <div className="p-4 sm:p-6 flex-1 flex flex-col">
         <div className="flex-1">
@@ -186,7 +192,7 @@ function PopularPlayersSection() {
                 {Array.from({ length: 3 }, (_, i) => (
                   <div
                     key={`skeleton-${i}`}
-                    className="h-4 bg-gray-200 dark:bg-gray-600 rounded w-full mb-2"
+                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
                   />
                 ))}
               </div>
@@ -202,16 +208,16 @@ function PopularPlayersSection() {
 
 export function LandingPageDataSection() {
   return (
-    <div className="space-y-8">
-      {/* First Row: Original three sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+    <div className="space-y-4 sm:space-y-6 md:space-y-8">
+      {/* First Row: Original three sections - responsive stacking */}
+      <div className="grid grid-cols-1 tablet-sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
         <TrendingContentSection />
         <RecentGamesSection />
         <PopularGamesSection />
       </div>
 
-      {/* Second Row: Popular Teams and Players - taking up more space */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 md:gap-8 lg:gap-10">
+      {/* Second Row: Popular Teams and Players - responsive layout */}
+      <div className="grid grid-cols-1 tablet-lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6 lg:gap-8 xl:gap-10">
         <PopularTeamsSection />
         <PopularPlayersSection />
       </div>

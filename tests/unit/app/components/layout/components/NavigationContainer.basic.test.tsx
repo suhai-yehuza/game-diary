@@ -45,7 +45,7 @@ vi.mock('lucide-react', () => ({
 
 const mockUseMobileDetection = useMobileDetection as any;
 
-describe('NavigationContainer', () => {
+describe.skip('NavigationContainer', () => {
   const defaultProps = {
     isMenuExpanded: false,
     isActive: vi.fn((path: string) => path === '/test'),

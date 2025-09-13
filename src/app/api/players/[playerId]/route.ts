@@ -3,9 +3,12 @@ import { NextResponse } from 'next/server';
 
 import { errorHandlers } from '@/lib/utils/error-handler';
 
-export async function GET(request: NextRequest, { params }: { params: { playerId: string } }) {
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ playerId: string }> }
+) {
   try {
-    const { playerId } = params;
+    const { playerId } = await params;
 
     // Import and use the database service directly instead of making HTTP request
     const { getPlayerById } = await import('@/lib/db/services/players.service');

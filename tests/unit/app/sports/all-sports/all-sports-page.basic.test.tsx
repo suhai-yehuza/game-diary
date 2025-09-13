@@ -36,6 +36,7 @@ vi.mock('lucide-react', () => ({
   Clock: () => <span data-testid="clock-icon">Clock</span>,
   RefreshCw: () => <span data-testid="refresh-cw-icon">RefreshCw</span>,
   MapPin: () => <span data-testid="map-pin-icon">MapPin</span>,
+  Calendar: () => <span data-testid="calendar-icon">Calendar</span>,
 }));
 
 // Mock Next.js Link component

@@ -423,50 +423,62 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
     });
   };
 
-  const getStatusBgColor = (status: string | null | undefined): string => {
-    if (!status || typeof status !== 'string') {
-      return '#4B5563'; // gray-600
+  const getStatusBgColor = (
+    status: string | { long?: string; short?: number } | null | undefined
+  ): string => {
+    if (!status) {
+      return 'hsl(0, 0%, 32%)'; // Using centralized neutral-600
     }
 
-    switch (status.toLowerCase()) {
+    // Handle different status formats
+    let statusString: string;
+    if (typeof status === 'string') {
+      statusString = status;
+    } else if (typeof status === 'object' && status?.long) {
+      statusString = status.long;
+    } else {
+      return 'hsl(0, 0%, 32%)'; // Using centralized neutral-600
+    }
+
+    switch (statusString.toLowerCase()) {
       case 'ft':
       case 'finished':
-        return '#15803D'; // green-700
+        return 'hsl(142, 76%, 26%)'; // Using centralized brand secondary hover (green-700)
       case 'live':
       case 'q1':
       case 'q2':
       case 'q3':
       case 'q4':
       case 'ot':
-        return '#B91C1C'; // red-700
+        return 'hsl(0, 84%, 50%)'; // Using centralized semantic error (red-700)
       case 'scheduled':
       case 'ns':
-        return '#1D4ED8'; // blue-700
+        return 'hsl(221, 83%, 43%)'; // Using centralized brand primary hover (blue-700)
       case 'cancelled':
       case 'postponed':
-        return '#C2410C'; // orange-700
+        return 'hsl(25, 95%, 43%)'; // Using centralized accent orange (orange-700)
       default:
-        return '#4B5563'; // gray-600
+        return 'hsl(0, 0%, 32%)'; // Using centralized neutral-600
     }
   };
 
   const getClassificationBgColor = (classification: string): string => {
     switch (classification.toLowerCase()) {
       case 'public':
-        return '#059669'; // emerald-600
+        return 'hsl(142, 76%, 36%)'; // Using centralized semantic success (green-600)
       case 'protected':
-        return '#D97706'; // amber-600
+        return 'hsl(38, 92%, 50%)'; // Using centralized semantic warning (amber-600)
       case 'private':
-        return '#DC2626'; // red-600
+        return 'hsl(0, 84%, 60%)'; // Using centralized semantic error (red-600)
       default:
-        return '#475569'; // slate-600
+        return 'hsl(0, 0%, 45%)'; // Using centralized neutral-500 (slate-600)
     }
   };
 
   const getDisplayStatus = (
     game:
       | {
-          status?: string;
+          status?: string | { long?: string; short?: number } | null;
           date?: string;
           scores?: {
             home?: { points?: number | null };
@@ -478,7 +490,16 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
   ): string => {
     if (!game?.status) return 'Unknown';
 
-    const status = game.status;
+    // Handle different status formats
+    let status: string;
+    if (typeof game.status === 'string') {
+      status = game.status;
+    } else if (typeof game.status === 'object' && game.status?.long) {
+      status = game.status.long;
+    } else {
+      return 'Unknown';
+    }
+
     const gameDate = new Date(game.date || '1970-01-01'); // use a default value of 0 epoch time
     const now = new Date();
 
@@ -588,7 +609,7 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
                   className="px-3 py-1 text-sm font-medium rounded-full inline-block"
                   style={{
                     backgroundColor: getStatusBgColor(getDisplayStatus(gameLog.game)),
-                    color: '#ffffff',
+                    color: 'hsl(0, 0%, 100%)', // Using centralized white color
                     border: `1px solid ${getStatusBgColor(getDisplayStatus(gameLog.game))}`,
                     fontWeight: '600',
                   }}
@@ -599,7 +620,7 @@ export default function GameLogDetailPage({ params: _params }: IGameLogDetailPag
                   className="px-3 py-1 text-sm font-medium rounded-full inline-block"
                   style={{
                     backgroundColor: getClassificationBgColor(gameLog.classification),
-                    color: '#ffffff',
+                    color: 'hsl(0, 0%, 100%)', // Using centralized white color
                     border: `1px solid ${getClassificationBgColor(gameLog.classification)}`,
                     fontWeight: '600',
                   }}

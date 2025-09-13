@@ -58,14 +58,14 @@ export const GameLogsContent = ({
     >
       {isInitialLoading ? (
         <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
-          <div className="text-gray-600 mb-2">{getLoadingMessage(tabValue || '')}</div>
-          <div className={`text-gray-500 ${isMobile ? 'text-xs' : 'text-sm'}`}>
+          <div className="text-theme-secondary mb-2">{getLoadingMessage(tabValue || '')}</div>
+          <div className={`text-theme-muted ${isMobile ? 'text-xs' : 'text-sm'}`}>
             Optimized loading with reduced page size
           </div>
         </div>
       ) : Array.isArray(logs) && logs.length === 0 ? (
         <div className={`text-center ${isMobile ? 'py-6' : 'py-8'}`}>
-          <p className="text-gray-600">{getEmptyMessage(tabValue || '')}</p>
+          <p className="text-theme-secondary">{getEmptyMessage(tabValue || '')}</p>
         </div>
       ) : Array.isArray(logs) ? (
         <div>

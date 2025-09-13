@@ -45,7 +45,6 @@ export const CREATE_GAME_LOG = gql`
         game {
           id
           date
-          teams
         }
       }
       errors {

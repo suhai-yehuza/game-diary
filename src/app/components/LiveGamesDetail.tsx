@@ -94,7 +94,10 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
               className="live-games-count"
               style={
                 {
-                  color: resolvedTheme === 'dark' ? 'rgb(209, 213, 219)' : 'rgb(0, 0, 0)',
+                  color:
+                    resolvedTheme === 'dark'
+                      ? 'var(--color-text-tertiary)'
+                      : 'var(--color-text-primary)',
                   fontWeight: 'normal',
                 } as React.CSSProperties
               }
@@ -131,17 +134,17 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
         {games.map(game => (
           <div
             key={game.id}
-            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-200"
+            className="bg-surface-card rounded-xl shadow-lg p-6 border border-theme-primary hover:shadow-xl transition-all duration-200"
             role="article"
             aria-label={`${game.teams?.visitors?.name || 'Unknown'} vs ${game.teams?.home?.name || 'Unknown'} - ${typeof game.status === 'object' ? game.status.long || game.status.short : game.status}`}
           >
             {/* Game Status */}
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-sm font-semibold text-red-600 dark:text-red-400">LIVE</span>
+                <div className="w-3 h-3 bg-semantic-error rounded-full animate-pulse" />
+                <span className="text-sm font-semibold text-semantic-error">LIVE</span>
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              <div className="text-sm text-theme-muted font-medium">
                 {typeof game.status === 'object'
                   ? game.status.long || game.status.short
                   : game.status}
@@ -151,58 +154,56 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
             {/* Teams and Scores */}
             <div className="space-y-4">
               {/* Away Team */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-bg-theme-secondary rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                      src={game.teams?.visitors?.logo || '/defaults/team-logo.svg'}
                       alt={game.teams?.visitors?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
-                      sizes="40px"
                       loading="lazy"
                     />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
+                    <div className="font-semibold text-theme-primary">
                       {game.teams?.visitors?.name || 'Unknown Team'}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-theme-muted">
                       {game.teams?.visitors?.nickname || game.teams?.visitors?.code || ''}
                     </div>
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                <div className="text-3xl font-bold text-theme-primary">
                   {game.scores?.visitors?.points || 0}
                 </div>
               </div>
 
               {/* VS */}
-              <div className="text-center text-gray-500 text-sm font-medium">VS</div>
+              <div className="text-center text-theme-muted text-sm font-medium">VS</div>
 
               {/* Home Team */}
-              <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+              <div className="flex items-center justify-between p-3 bg-bg-theme-secondary rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 relative">
                     <Image
-                      src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                      src={game.teams?.home?.logo || '/defaults/team-logo.svg'}
                       alt={game.teams?.home?.name || 'Unknown Team'}
                       fill
                       className="object-contain"
-                      sizes="40px"
                       loading="lazy"
                     />
                   </div>
                   <div>
-                    <div className="font-semibold text-gray-900 dark:text-white">
+                    <div className="font-semibold text-theme-primary">
                       {game.teams?.home?.name || 'Unknown Team'}
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
+                    <div className="text-sm text-theme-muted">
                       {game.teams?.home?.nickname || game.teams?.home?.code || ''}
                     </div>
                   </div>
                 </div>
-                <div className="text-3xl font-bold text-gray-900 dark:text-white">
+                <div className="text-3xl font-bold text-theme-primary">
                   {game.scores?.home?.points || 0}
                 </div>
               </div>

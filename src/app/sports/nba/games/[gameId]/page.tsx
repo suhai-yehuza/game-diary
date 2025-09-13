@@ -9,13 +9,18 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import { CreateGameLogModal, EditGameLogModal } from '@/app/components/game-logs/GameLogModal';
 import { SportsPageLayout } from '@/app/components/sports';
+import { GameStats } from '@/app/components/sports/game-stats';
+import { PlayerStats } from '@/app/components/sports/player-stats';
 import { Badge } from '@/app/components/ui/badge';
 import { Button } from '@/app/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
 import { useCentralizedErrorHandler } from '@/hooks/use-centralized-error-handler';
 import { useGameLogs } from '@/hooks/use-game-logs';
-import { useLatestGames } from '@/hooks/use-latest-games';
+import { useGameStats } from '@/hooks/use-game-stats';
+import { usePlayerStats } from '@/hooks/use-player-stats';
+import { useTeamPlayers } from '@/hooks/use-team-players';
 import { getButtonVariant } from '@/lib/design-tokens/button-variants';
+import { getCurrentNbaSeason } from '@/lib/utils/season-filter.utils';
 import type { IGameResponse, IGameLog, IGameDetailPageProps } from '@/types';
 
 // Interface moved to src/lib/types/page.types.ts
@@ -33,11 +38,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
   const [error, setError] = useState<string | null>(null);
   const [isCreateGameLogModalOpen, setIsCreateGameLogModalOpen] = useState(false);
   const [editingGameLog, setEditingGameLog] = useState<IGameLog | null>(null);
-
-  const { latestGames } = useLatestGames({
-    limit: 1000,
-    forceRealData: false, // Use mock data instead of external API
-  });
+  const [selectedPlayerId, setSelectedPlayerId] = useState<string | null>(null);
 
   // Note: userGameLogs and refetchUserGameLogs are now derived from memoized values below
 
@@ -104,6 +105,69 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
   const userGameLogs = memoizedGameLogs;
   const refetchUserGameLogs = memoizedForceRefresh;
 
+  // Get current season for statistics
+  const currentSeason = getCurrentNbaSeason().toString();
+
+  // Fetch game statistics
+  const {
+    gameStats,
+    loading: gameStatsLoading,
+    error: gameStatsError,
+  } = useGameStats({
+    gameId: gameId || '',
+    skip: !gameId,
+  });
+
+  // Get team IDs for fetching players
+  const homeTeamId = game?.teams?.home?.id?.toString();
+  const awayTeamId = game?.teams?.away?.id?.toString();
+
+  // Fetch team players for both teams
+  const {
+    teamPlayers: homeTeamPlayers,
+    loading: homeTeamPlayersLoading,
+    error: homeTeamPlayersError,
+  } = useTeamPlayers({
+    teamId: homeTeamId || '',
+    season: currentSeason,
+    skip: !homeTeamId || !game,
+  });
+
+  const {
+    teamPlayers: awayTeamPlayers,
+    loading: awayTeamPlayersLoading,
+    error: awayTeamPlayersError,
+  } = useTeamPlayers({
+    teamId: awayTeamId || '',
+    season: currentSeason,
+    skip: !awayTeamId || !game,
+  });
+
+  // Combine both teams' players
+  const allTeamPlayers = useMemo(() => {
+    const players = [];
+    if (homeTeamPlayers) players.push(...homeTeamPlayers);
+    if (awayTeamPlayers) players.push(...awayTeamPlayers);
+    return players;
+  }, [homeTeamPlayers, awayTeamPlayers]);
+
+  // Fetch player statistics for selected player
+  const {
+    playerStats,
+    loading: playerStatsLoading,
+    error: playerStatsError,
+  } = usePlayerStats({
+    playerId: selectedPlayerId || '',
+    season: currentSeason,
+    gameId: gameId || '',
+    skip: !selectedPlayerId || !gameId,
+  });
+
+  // Handle player selection
+  const handlePlayerSelect = useCallback((playerId: string) => {
+    setSelectedPlayerId(playerId);
+  }, []);
+
   // Debug when userGameLogs data changes
   useEffect(() => {
     setTimeout(() => {
@@ -123,7 +187,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
     []
   );
 
-  const { handleAsync } = useCentralizedErrorHandler({
+  const { handleAsync: _handleAsync } = useCentralizedErrorHandler({
     context: errorHandlerContext,
   });
 
@@ -133,44 +197,40 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         return; // Wait for params to be resolved
       }
 
-      const result = await handleAsync(async () => {
-        // First try to find the game in the latest games array
-        let foundGame = latestGames.find(g => g.id.toString() === gameId);
+      console.log(`🔍 Fetching game ${gameId} directly from database...`);
 
-        // If not found in latest games, try to fetch it directly from the API
-        if (!foundGame) {
-          try {
-            const response = await fetch(`/api/games?season=all&limit=20000`);
-            if (response.ok) {
-              const data = await response.json();
-              if (data.response && Array.isArray(data.response)) {
-                foundGame = data.response.find((g: IGameResponse) => g.id.toString() === gameId);
-              }
-            }
-          } catch (error) {
-            console.warn('Failed to fetch game from API:', error);
+      try {
+        const response = await fetch(`/api/games/${gameId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.data) {
+            console.log(`✅ Found game ${gameId} via API`);
+            setGame(data.data);
+            setError(null);
+          } else {
+            console.log(`❌ No game data in API response for ${gameId}`);
+            setError('Game data not found');
           }
+        } else if (response.status === 404) {
+          console.log(`❌ Game ${gameId} not found in database`);
+          setError(`Game not found: ${gameId}`);
+        } else {
+          console.warn(`❌ API request failed: ${response.status} ${response.statusText}`);
+          setError(`Failed to fetch game: ${response.status} ${response.statusText}`);
         }
-
-        if (!foundGame) {
-          throw new Error('Game not found');
-        }
-
-        return foundGame;
-      });
-
-      if (result) {
-        setGame(result);
-      } else {
+      } catch (error) {
+        console.warn('Failed to fetch game from API:', error);
         setError('Failed to load game');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
-    if (latestGames.length > 0 && gameId) {
+    // Always try to load the game if we have a gameId
+    if (gameId) {
       void loadGame();
     }
-  }, [gameId, latestGames, handleAsync]);
+  }, [gameId]);
 
   const formatGameDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -222,7 +282,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
     const awayScore = game.scores.visitors.points;
 
     if (homeScore > awayScore) return 'home';
-    if (awayScore > homeScore) return 'visitors';
+    if (awayScore > homeScore) return 'away';
     return 'tie';
   };
 
@@ -274,7 +334,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
 
   return (
     <SportsPageLayout
-      title={`${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
+      title={`${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
       description={`NBA Game - ${formatGameDate(typeof game.date === 'string' ? game.date : game.date?.start || '')}`}
       showLiveGamesButton={false}
     >
@@ -332,7 +392,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">
-              {game.teams?.visitors?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
+              {game.teams?.away?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
             </CardTitle>
             <Badge
               className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'scheduled')}`}
@@ -371,30 +431,30 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
             {/* Away Team */}
             <div
               className={`text-center p-6 rounded-lg border-2 ${
-                winner === 'visitors'
+                winner === 'away'
                   ? 'border-green-500 bg-green-50 dark:bg-green-900/10'
                   : 'border-gray-200 dark:border-gray-700'
               }`}
             >
               <div className="mb-4">
-                {game.teams?.visitors?.logo && (
+                {game.teams?.away?.logo && (
                   <Image
-                    src={game.teams?.visitors?.logo}
-                    alt={`${game.teams?.visitors?.name || 'Team'} logo`}
+                    src={game.teams?.away?.logo}
+                    alt={`${game.teams?.away?.name || 'Team'} logo`}
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
                   />
                 )}
                 <h3 className="text-xl font-bold score-text">
-                  {game.teams?.visitors?.name || 'Unknown'}
+                  {game.teams?.away?.name || 'Unknown'}
                 </h3>
-                <p className="nba-team-nickname">{game.teams?.visitors?.nickname || ''}</p>
+                <p className="nba-team-nickname">{game.teams?.away?.nickname || ''}</p>
               </div>
               <div className="text-4xl font-bold score-text">
                 {game.scores?.visitors?.points ?? '-'}
               </div>
-              {winner === 'visitors' && (
+              {winner === 'away' && (
                 <div className="mt-2">
                   <Trophy className="w-5 h-5 text-green-600 mx-auto" />
                 </div>
@@ -478,13 +538,11 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-2 font-medium">
-                          {game.teams?.visitors?.nickname || 'Visitors'}
-                        </td>
+                        <td className="py-2 font-medium">{game.teams?.away?.nickname || 'Away'}</td>
                         {(
                           game.scores?.visitors as { points: number; linescore?: number[] }
                         )?.linescore?.map((score: number, index: number) => (
-                          <td key={`visitors-q${index + 1}`} className="text-center py-2">
+                          <td key={`away-q${index + 1}`} className="text-center py-2">
                             {score}
                           </td>
                         )) || []}
@@ -580,6 +638,20 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         </Card>
       )}
 
+      {/* Game Statistics */}
+      <div className="mt-6 space-y-6">
+        <GameStats gameStats={gameStats} loading={gameStatsLoading} error={gameStatsError} />
+
+        <PlayerStats
+          playerStats={playerStats}
+          teamPlayers={allTeamPlayers}
+          loading={playerStatsLoading || homeTeamPlayersLoading || awayTeamPlayersLoading}
+          error={playerStatsError || homeTeamPlayersError || awayTeamPlayersError}
+          onPlayerSelect={handlePlayerSelect}
+          selectedPlayerId={selectedPlayerId}
+        />
+      </div>
+
       {/* Create Game Log Modal */}
       <CreateGameLogModal
         isOpen={isCreateGameLogModalOpen}
@@ -605,10 +677,10 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
             ? (() => {
                 const preSelectedGame = {
                   id: game.id,
-                  name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
+                  name: `${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
                   date: typeof game.date === 'string' ? game.date : game.date?.start || '',
                   homeTeam: game.teams?.home?.name || 'Unknown',
-                  awayTeam: game.teams?.visitors?.name || 'Unknown',
+                  awayTeam: game.teams?.away?.name || 'Unknown',
                 };
                 console.log('🔍 preSelectedGame for modal:', preSelectedGame);
                 return preSelectedGame;

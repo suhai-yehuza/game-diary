@@ -93,7 +93,7 @@ export const metadata = {
     'apple-mobile-web-app-status-bar-style': 'default',
     'apple-mobile-web-app-title': 'Game Diary',
     'mobile-web-app-capable': 'yes',
-    'msapplication-TileColor': '#1e40af',
+    'msapplication-TileColor': 'hsl(221, 83%, 53%)', // Using centralized brand primary color
     'msapplication-config': '/browserconfig.xml',
   },
 };
@@ -108,6 +108,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-mock-mode={process.env.MOCK_MODE === 'true' ? 'true' : 'false'}
     >
       <head>
+        {/* Viewport meta tag for proper mobile rendering */}
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover"
+        />
+
         {/* Theme initialization script - runs before hydration to prevent flashing */}
         <Script id="theme-init" strategy="beforeInteractive" src="/scripts/theme-init.js" />
 

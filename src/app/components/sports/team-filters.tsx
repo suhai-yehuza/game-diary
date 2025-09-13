@@ -1,189 +1,129 @@
 'use client';
 
-import {
-  Search,
-  SlidersHorizontal,
-  ChevronUp,
-  ChevronDown,
-  X,
-  RefreshCw,
-  Building2,
-} from 'lucide-react';
+import { Filter, RefreshCw } from 'lucide-react';
+import { useState } from 'react';
 
 import { Button } from '@/app/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
-import { Input } from '@/app/components/ui/input';
-import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
+import { CustomSelect } from '@/app/components/ui/custom-select';
 import type { ITeamFiltersProps } from '@/types';
 
 export function TeamFilters({
+  title,
+  description,
+  icon,
   filters,
-  filterOptions,
-  showAdvancedFilters,
-  hasActiveFilters,
-  totalTeams,
-  filteredTeamsCount,
-  onUpdateFilter,
-  onClearFilters,
-  onToggleAdvancedFilters,
   onRefresh,
+  error,
+  className = '',
 }: ITeamFiltersProps) {
-  const selectStyle = {
-    backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-    backgroundPosition: 'right 12px center',
-    backgroundSize: '16px 16px',
-    backgroundRepeat: 'no-repeat',
-  } as const;
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const hasActiveFilters = filters.some((filter: { value: string }) => filter.value !== '');
 
   return (
-    <Card className="team-filters-enhanced shadow-md">
-      <CardHeader className="pb-4">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-white dark:text-gray-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-blue-400 dark:text-blue-600" />
-            Team Filters
-          </CardTitle>
-          <div className="flex items-center gap-2">
-            {hasActiveFilters && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onClearFilters}
-                className="text-red-400 dark:text-red-600 border-red-400 dark:border-red-600 hover:bg-red-900/20 dark:hover:bg-red-50 font-medium"
-              >
-                <X className="w-4 h-4 mr-1" />
-                Clear All
-              </Button>
-            )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onToggleAdvancedFilters}
-              className="border-slate-300 dark:border-gray-300 hover:bg-slate-200 dark:hover:bg-gray-100 hover:border-slate-400 dark:hover:border-gray-400 font-medium text-slate-100 dark:text-gray-700"
-            >
-              <SlidersHorizontal className="w-4 h-4 mr-1" />
-              {showAdvancedFilters ? 'Hide Advanced' : 'Show Advanced'}
-              {showAdvancedFilters ? (
-                <ChevronUp className="w-4 h-4 ml-1" />
-              ) : (
-                <ChevronDown className="w-4 h-4 ml-1" />
-              )}
-            </Button>
+    <div className={`head2head-filters-card rounded-xl p-6 ${className}`}>
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+        {/* Header */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-semantic-info/10 flex items-center justify-center">
+            {icon}
           </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {/* Basic Filters */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mb-4">
-          <div className="relative sm:col-span-2 lg:col-span-2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
-            <Input
-              placeholder="Search teams, cities, or nicknames..."
-              value={filters.searchTerm}
-              onChange={e => onUpdateFilter('searchTerm', e.target.value)}
-              className="pl-10 bg-slate-100 dark:bg-white border-slate-300 dark:border-gray-300 focus:ring-2 focus:ring-blue-500 placeholder:text-gray-600 dark:placeholder:text-gray-500 h-11 text-gray-900 dark:text-gray-900"
-            />
-          </div>
-
-          <select
-            value={filters.conferenceFilter}
-            onChange={e => onUpdateFilter('conferenceFilter', e.target.value)}
-            className="h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-            style={selectStyle}
-          >
-            <option value="all">All Conferences</option>
-            {filterOptions.conferences.map((conference: string) => (
-              <option key={conference} value={conference}>
-                {conference}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={filters.divisionFilter}
-            onChange={e => onUpdateFilter('divisionFilter', e.target.value)}
-            className="h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-            style={selectStyle}
-          >
-            <option value="all">All Divisions</option>
-            {filterOptions.divisions.map((division: string) => (
-              <option key={division} value={division}>
-                {division}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex gap-2">
-            <select
-              value={filters.sortBy}
-              onChange={e => onUpdateFilter('sortBy', e.target.value)}
-              className="flex-1 h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-              style={selectStyle}
-            >
-              <option value="name">Team Name</option>
-              <option value="city">City</option>
-              <option value="conference">Conference</option>
-              <option value="division">Division</option>
-            </select>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                onUpdateFilter('sortDirection', filters.sortDirection === 'asc' ? 'desc' : 'asc')
-              }
-              className="h-11 px-3 border-slate-300 dark:border-gray-300 hover:bg-slate-200 dark:hover:bg-gray-100 hover:border-slate-400 dark:hover:border-gray-400 text-slate-100 dark:text-gray-700"
-            >
-              <span>{filters.sortDirection === 'asc' ? '↑' : '↓'}</span>
-            </Button>
+          <div>
+            <h3 className="text-lg font-semibold text-theme-primary">{title}</h3>
+            <p className="text-sm text-theme-muted">{description}</p>
           </div>
         </div>
 
-        {/* Advanced Filters */}
-        {showAdvancedFilters && (
-          <div className="border-t border-slate-300 dark:border-gray-400 pt-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-100 dark:text-gray-700 mb-2">
-                  Franchise Type
-                </label>
-                <select
-                  value={filters.franchiseFilter}
-                  onChange={e => onUpdateFilter('franchiseFilter', e.target.value)}
-                  className="w-full h-11 bg-slate-100 dark:bg-white border border-slate-300 dark:border-gray-300 text-gray-900 dark:text-gray-900 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none pr-10 relative"
-                  style={selectStyle}
-                >
-                  <option value="all">All Teams</option>
-                  <option value="nba">NBA Franchise</option>
-                  <option value="non-nba">Non-NBA</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex items-center gap-2"
+          >
+            <Filter className="w-4 h-4" />
+            {isExpanded ? 'Hide Filters' : 'Show Filters'}
+          </Button>
 
-        {/* Results Summary and Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mt-4 pt-4 border-t border-slate-300 dark:border-gray-400">
-          <div className="text-slate-100 dark:text-gray-700 text-sm sm:text-base">
-            <span className="font-medium">{formatNumberShort(filteredTeamsCount)}</span> teams found
-            {hasActiveFilters && (
-              <span className="text-blue-300 dark:text-blue-600 ml-1">
-                (filtered from {formatNumberShort(totalTeams)} total)
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
+          {onRefresh && (
             <Button
-              variant="outline"
-              size="sm"
               onClick={onRefresh}
-              className="border-slate-300 dark:border-gray-300 hover:bg-slate-200 dark:hover:bg-gray-100 hover:border-slate-400 dark:hover:border-gray-400 font-medium text-slate-100 dark:text-gray-700"
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
             >
-              <RefreshCw className="w-4 h-4 mr-1" />
+              <RefreshCw className="w-4 h-4" />
               Refresh
             </Button>
-          </div>
+          )}
+
+          {hasActiveFilters && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                filters.forEach(
+                  (filter: {
+                    value: string;
+                    onChange: (value: string) => void;
+                    options: Array<{ value: string; label: string; icon: null }>;
+                  }) => {
+                    if (filter.options[0]?.value === '') {
+                      filter.onChange('');
+                    }
+                  }
+                );
+              }}
+              className="flex items-center gap-2 text-semantic-error hover:text-semantic-error/80 border-semantic-error/30 hover:border-semantic-error/50"
+            >
+              Clear All
+            </Button>
+          )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+
+      {/* Expanded Filters */}
+      {isExpanded && (
+        <div className="mt-6 space-y-4">
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filters.map(
+              (filter: {
+                label: string;
+                value: string;
+                onChange: (value: string) => void;
+                options: Array<{ value: string; label: string; icon: null }>;
+                icon?: React.ReactNode;
+              }) => (
+                <div
+                  key={`filter-${filter.label}-${filter.value}`}
+                  className="flex items-center gap-3"
+                >
+                  {filter.icon && <div className="text-theme-muted">{filter.icon}</div>}
+                  <span className="text-sm font-medium text-theme-secondary min-w-[80px]">
+                    {filter.label}:
+                  </span>
+                  <CustomSelect
+                    value={filter.value}
+                    onChange={filter.onChange}
+                    options={filter.options}
+                    size="sm"
+                    className="flex-1"
+                  />
+                </div>
+              )
+            )}
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
   );
 }

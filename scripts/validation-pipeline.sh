@@ -1259,70 +1259,17 @@ start_e2e_server() {
         fi
     fi
 
-    # Start the development server
-    log_info "Starting server..."
-    if [[ "$E2E_TEST_SUITE" == "live-games" ]] || [[ "$E2E_TEST_SUITE" == "mock-verification" ]]; then
-        pnpm dev:mock -p "$E2E_PORT" &
-    else
-        # Enable mock mode for E2E tests to avoid rate limiting
-        export MOCK_MODE=true
-        pnpm dev:mock -p "$E2E_PORT" &
-    fi
-
-    E2E_SERVER_PID=$!
-    E2E_SERVER_STARTED=true
-
-    # Give the server some initial time to start compiling
-    log_info "Waiting for initial compilation (20s)..."
-    sleep 20
-
-    # Wait for server to be ready
-    local max_attempts=30
-    local attempt=0
-
-    log_info "Checking server health..."
-    while [ $attempt -lt $max_attempts ]; do
-        # Check if server is accepting HTTP requests
-        if curl -s "http://localhost:$E2E_PORT" > /dev/null; then
-            log_success "E2E test server started successfully (PID: $E2E_SERVER_PID)"
-            return 0
-        else
-            log_info "Attempt $((attempt + 1))/$max_attempts - Waiting for server to be ready..."
-        fi
-
-        sleep 2
-        ((attempt++))
-    done
-
-    log_error "E2E test server failed to start within timeout"
-    return 1
+    # Let Playwright handle server startup with reuseExistingServer: true
+    log_info "Server will be managed by Playwright with reuseExistingServer: true"
+    log_success "E2E test server configuration ready"
+    return 0
 }
 
 # Stop E2E test server
 stop_e2e_server() {
-    if [ "$E2E_SERVER_STARTED" = "true" ] && [ -n "$E2E_SERVER_PID" ]; then
-        log_info "🛑 Stopping E2E test server on port $E2E_PORT..."
-
-        # Kill the server process
-        if kill -0 "$E2E_SERVER_PID" 2>/dev/null; then
-            kill "$E2E_SERVER_PID" 2>/dev/null || true
-            log_info "Stopping processes: $E2E_SERVER_PID"
-        fi
-
-        # Kill any remaining processes on the port
-        local pids=$(find_server_pids "$E2E_PORT")
-        if [ -n "$pids" ]; then
-            echo "$pids" | xargs kill -9 2>/dev/null || true
-        fi
-
-        # Additional cleanup for any Next.js development servers
-        pkill -f "next dev.*$E2E_PORT" 2>/dev/null || true
-        pkill -f "npx next dev.*$E2E_PORT" 2>/dev/null || true
-
-        E2E_SERVER_PID=""
-        E2E_SERVER_STARTED=false
-        log_success "E2E test server stopped"
-    fi
+    # Playwright manages the server lifecycle with reuseExistingServer: true
+    log_info "🛑 Playwright will manage server lifecycle"
+    log_success "E2E test server management delegated to Playwright"
 }
 
 # Run E2E test suite

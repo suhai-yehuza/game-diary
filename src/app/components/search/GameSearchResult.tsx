@@ -91,7 +91,7 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
             </div>
 
             <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 capitalize">
-              {game.status ? game.status.toLowerCase() : 'Unknown Status'}
+              {game.status?.long || game.status?.short || 'Unknown Status'}
             </div>
           </div>
         </div>

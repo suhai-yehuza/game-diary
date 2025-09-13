@@ -9,6 +9,7 @@ import {
   getPopularTeamsQuery,
 } from '@/lib/db/queries';
 import { logger } from '@/lib/utils/logger';
+import { getServerApiUrl } from '@/lib/utils/server-api-client';
 import type {
   ITrendingGameLog,
   IRecentGame,
@@ -984,10 +985,8 @@ export class LandingPageDataService {
         return cached;
       }
 
-      // Fetch from API endpoint
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/api/landing-page/data/popularPlayers`
-      );
+      // Fetch from internal API endpoint
+      const response = await fetch(getServerApiUrl('/api/landing-page/data/popularPlayers'));
       if (!response.ok) {
         throw new Error(`Failed to fetch popular players: ${response.statusText}`);
       }
@@ -1052,10 +1051,8 @@ export class LandingPageDataService {
         return cached;
       }
 
-      // Fetch from API endpoint
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_APP_URL || 'https://www.game-diary.io'}/api/landing-page/data/activeFans`
-      );
+      // Fetch from internal API endpoint
+      const response = await fetch(getServerApiUrl('/api/landing-page/data/activeFans'));
       if (!response.ok) {
         throw new Error(`Failed to fetch active fans: ${response.statusText}`);
       }
