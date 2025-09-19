@@ -212,7 +212,7 @@ export function NotificationBell() {
                       {notifications.map(notification => (
                         <div
                           key={notification.id}
-                          className={`p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer ${
+                          className={`p-4 hover:bg-bg-theme-secondary transition-colors cursor-pointer ${
                             !notification.read ? 'bg-brand-primary/10' : ''
                           }`}
                           onClick={() => handleNotificationClick(notification)}
@@ -286,7 +286,7 @@ export function NotificationBell() {
                       {notifications.map(notification => (
                         <div
                           key={notification.id}
-                          className={`p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer ${
+                          className={`p-4 hover:bg-bg-theme-secondary transition-colors cursor-pointer ${
                             !notification.read ? 'bg-brand-primary/10' : ''
                           }`}
                           onClick={() => handleNotificationClick(notification)}

@@ -90,11 +90,11 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
     <div className="p-4" data-testid="game-log-comments">
       <div className="mb-3">
         <div className="flex items-center space-x-2">
-          <MessageCircle className="h-5 w-5 text-neutral-600 dark:text-neutral-400" />
-          <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+          <MessageCircle className="h-5 w-5 text-theme-muted" />
+          <span className="text-lg font-semibold text-theme-primary">
             Comments {commentCount > 0 ? `(${commentCount})` : ''}
           </span>
-          <span className="text-xs text-green-600 dark:text-green-400 font-medium">Optimized</span>
+          <span className="text-xs text-semantic-success font-medium">Optimized</span>
         </div>
       </div>
 
@@ -117,10 +117,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
           {/* Comments List */}
           <div className="space-y-4">
             {visibleComments.map(comment => (
-              <div
-                key={comment.id}
-                className="border-b border-gray-100 dark:border-gray-700 pb-4 last:border-b-0"
-              >
+              <div key={comment.id} className="border-b border-theme-primary pb-4 last:border-b-0">
                 <Comment
                   comment={comment}
                   onReply={handleReply}
@@ -136,9 +133,7 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
           {/* Loading State */}
           {loading && (
             <div className="text-center py-4">
-              <div className="text-sm text-neutral-500 dark:text-neutral-400">
-                Loading comments...
-              </div>
+              <div className="text-sm text-theme-muted">Loading comments...</div>
             </div>
           )}
 

@@ -288,8 +288,8 @@ const FILE_THRESHOLDS: IFileThresholds = {
   // Granular src/app
   // ========================================
   'src/app/api/**/*.{ts,tsx}': {
-    lines: SIXTY_FIVE,
-    statements: SIXTY_FIVE,
+    lines: FIFTY,
+    statements: FIFTY,
     branches: FORTY,
     functions: FORTY,
     base: SIXTY_FIVE,

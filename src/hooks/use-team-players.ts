@@ -57,6 +57,15 @@ export function useTeamPlayers({
           teamId,
           season,
           results: data.data.results,
+          playersCount: players.length,
+        });
+      } else if (data.success && data.data?.response?.length === 0) {
+        // Handle empty players array gracefully
+        setTeamPlayers([]);
+        logger.info('No team players found - returning empty array', {
+          teamId,
+          season,
+          results: data.data.results,
         });
       } else {
         throw new Error(data.error || 'Failed to fetch team players');

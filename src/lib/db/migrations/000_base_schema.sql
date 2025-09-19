@@ -42,13 +42,16 @@ DROP FUNCTION IF EXISTS clear_current_user_context() CASCADE;
 DROP FUNCTION IF EXISTS generate_uuid_v7() CASCADE;
 
 -- ============================================================================
--- SECTION 1: CORE TABLES - External API Data (No Dependencies)
+-- SECTION 1: EXTERNAL API DATA TABLES (No Dependencies)
 -- ============================================================================
 
 -- Leagues table - External API data
 CREATE TABLE "leagues" (
     "id" serial PRIMARY KEY NOT NULL,
     "name" varchar(255) NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "updated_at" timestamp DEFAULT now() NOT NULL,
+    "deleted_at" timestamp (6) with time zone,
     CONSTRAINT "leagues_name_unique" UNIQUE("name")
 );
 
@@ -56,10 +59,13 @@ CREATE TABLE "leagues" (
 CREATE TABLE "seasons" (
     "id" serial PRIMARY KEY NOT NULL,
     "year" integer NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "updated_at" timestamp DEFAULT now() NOT NULL,
+    "deleted_at" timestamp (6) with time zone,
     CONSTRAINT "seasons_year_unique" UNIQUE("year")
 );
 
--- Teams table - External API data
+-- Basketball Teams table - External API data
 CREATE TABLE "basketball_teams" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
     "name" varchar(255) NOT NULL,
@@ -76,7 +82,7 @@ CREATE TABLE "basketball_teams" (
     "deleted_at" timestamp (6) with time zone
 );
 
--- NBA Players table - External API data
+-- Basketball Players table - External API data
 CREATE TABLE "basketball_players" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
     "first_name" varchar(100) DEFAULT 'missing-first-name' NOT NULL,
@@ -95,7 +101,7 @@ CREATE TABLE "basketball_players" (
     "deleted_at" timestamp (6) with time zone
 );
 
--- NBA Games table - External API data
+-- Basketball Games table - External API data
 CREATE TABLE "basketball_games" (
     "id" varchar(50) PRIMARY KEY NOT NULL, -- Format: ${season}-${game.id}
     "season" varchar(20), -- Season year (e.g., "2023", "2024")
@@ -103,10 +109,10 @@ CREATE TABLE "basketball_games" (
     "date" timestamp NOT NULL,
     "stage" integer, -- Game stage (e.g., regular season, playoffs, etc.)
     "teams" jsonb, -- Complete teams data with home and away team information
-    "status" jsonb, -- New field to store complete status object
-    "scores" jsonb, -- New field to store complete scores object with win/loss, series, linescore
-    "arena" jsonb, -- New field to store complete arena object
-    "periods" jsonb, -- New field to store complete periods object
+    "status" jsonb, -- Complete status object
+    "scores" jsonb, -- Complete scores object with win/loss, series, linescore
+    "arena" jsonb, -- Complete arena object
+    "periods" jsonb, -- Complete periods object
     "officials" text[], -- Array of official names
     "times_tied" integer, -- Number of times the game was tied
     "lead_changes" integer, -- Number of lead changes
@@ -119,7 +125,7 @@ CREATE TABLE "basketball_games" (
 );
 
 -- ============================================================================
--- SECTION 2: USER DATA TABLES
+-- SECTION 2: CORE USER TABLES
 -- ============================================================================
 
 -- Users table - Core user data
@@ -158,7 +164,7 @@ CREATE TABLE "users" (
 -- Game Logs table - User game experiences
 CREATE TABLE "game_logs" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
-    "user_id" varchar(255),
+    "user_id" varchar(255) NOT NULL,
     "game_id" varchar(255) NOT NULL,
     "classification" varchar(50) DEFAULT 'PROTECTED' NOT NULL,
     "watched_setting" varchar(50) DEFAULT 'TV' NOT NULL,
@@ -171,7 +177,14 @@ CREATE TABLE "game_logs" (
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
     "deleted_at" timestamp (6) with time zone,
-    CONSTRAINT "game_logs_user_id_game_id_unique" UNIQUE("user_id","game_id")
+    CONSTRAINT "game_logs_user_id_game_id_unique" UNIQUE("user_id","game_id"),
+    CONSTRAINT "game_logs_rating_check" CHECK (rating_for_game >= 1 AND rating_for_game <= 5),
+    CONSTRAINT "game_logs_watched_setting_check" CHECK (
+        watched_setting IN ('TV', 'ARENA', 'PHONE', 'LAPTOP', 'BAR', 'HOME', 'OTHER')
+    ),
+    CONSTRAINT "game_logs_watched_scope_check" CHECK (
+        watched_scope IN ('FULL_GAME', 'HALF_GAME', 'HIGHLIGHTS', 'PRE_GAME', 'POST_GAME', 'SHORTS', 'OTHER')
+    )
 );
 
 -- Game Ratings table - Aggregated game ratings
@@ -183,14 +196,15 @@ CREATE TABLE "game_ratings" (
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
     "deleted_at" timestamp (6) with time zone,
-    CONSTRAINT "game_ratings_game_id_unique" UNIQUE("game_id")
+    CONSTRAINT "game_ratings_game_id_unique" UNIQUE("game_id"),
+    CONSTRAINT "game_ratings_average_rating_check" CHECK (average_rating >= 0 AND average_rating <= 5)
 );
 
 -- Friendships table - User relationships
 CREATE TABLE "friendships" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
-    "user_id" varchar(255),
-    "friend_id" varchar(255),
+    "user_id" varchar(255) NOT NULL,
+    "friend_id" varchar(255) NOT NULL,
     "status" varchar(50) DEFAULT 'PENDING' NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
@@ -202,20 +216,14 @@ CREATE TABLE "friendships" (
             ELSE friend_id || '|' || user_id
         END
     ) STORED,
-    CONSTRAINT "friendships_canonical_unique" UNIQUE("canonical_id")
+    CONSTRAINT "friendships_canonical_unique" UNIQUE("canonical_id"),
+    CONSTRAINT "friendships_status_uppercase_check" CHECK (status = UPPER(status))
 );
-
--- Friendship status must be uppercase
-ALTER TABLE "friendships" ADD CONSTRAINT "friendships_status_uppercase_check"
-  CHECK (status = UPPER(status));
-
--- Create index for performance on canonical_id
-CREATE INDEX "idx_friendships_canonical_id" ON "friendships" ("canonical_id");
 
 -- Comments table - User interactions
 CREATE TABLE "comments" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
-    "user_id" varchar(255),
+    "user_id" varchar(255) NOT NULL,
     "parent_id" varchar(255) NOT NULL,
     "parent_type" varchar(50) NOT NULL,
     "content" text NOT NULL,
@@ -223,38 +231,34 @@ CREATE TABLE "comments" (
     "childComments" jsonb[] DEFAULT '{}' NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
-    "deleted_at" timestamp (6) with time zone
+    "deleted_at" timestamp (6) with time zone,
+    CONSTRAINT "comments_depth_check" CHECK (depth >= 0 AND depth <= 10),
+    CONSTRAINT "comments_parent_type_check" CHECK (parent_type IN ('GAME_LOG', 'COMMENT'))
 );
 
 -- Reactions table - User reactions to content
 CREATE TABLE "reactions" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
-    "user_id" varchar(255),
+    "user_id" varchar(255) NOT NULL,
     "target_type" varchar(50) NOT NULL,
     "target_id" varchar(255) NOT NULL,
     "emoji" varchar(10) NOT NULL,
     "created_at" timestamp DEFAULT now() NOT NULL,
     "updated_at" timestamp DEFAULT now() NOT NULL,
     "deleted_at" timestamp (6) with time zone,
-    CONSTRAINT "reactions_user_id_target_type_target_id_emoji_unique" UNIQUE("user_id","target_type","target_id","emoji")
+    CONSTRAINT "reactions_user_id_target_type_target_id_emoji_unique" UNIQUE("user_id","target_type","target_id","emoji"),
+    CONSTRAINT "reactions_target_type_check" CHECK (target_type IN ('GAME_LOG', 'COMMENT'))
 );
 
 -- Reaction Emojis table - Source of truth for allowed emojis
-CREATE TABLE "reaction_emojis" (
+CREATE TABLE IF NOT EXISTS "reaction_emojis" (
     "emoji" varchar(10) PRIMARY KEY NOT NULL
 );
-
--- Add foreign key constraint to ensure only valid reaction emojis are stored
-ALTER TABLE "reactions" ADD CONSTRAINT "reactions_emoji_fk"
-FOREIGN KEY ("emoji") REFERENCES "reaction_emojis"("emoji");
-
--- Add comment explaining the constraint
-COMMENT ON CONSTRAINT "reactions_emoji_fk" ON "reactions" IS 'Ensures only valid reaction emojis are stored - source of truth is reaction_emojis table, which should be kept in sync with application constants.';
 
 -- Notifications table - User notifications
 CREATE TABLE "notifications" (
     "id" varchar(255) PRIMARY KEY NOT NULL,
-    "user_id" varchar(255),
+    "user_id" varchar(255) NOT NULL,
     "type" varchar(50) NOT NULL,
     "title" varchar(255) NOT NULL,
     "message" text NOT NULL,
@@ -267,6 +271,10 @@ CREATE TABLE "notifications" (
     "deleted_at" timestamp DEFAULT null,
     CONSTRAINT "notifications_user_target_type_unique" UNIQUE("user_id", "target_id", "target_type", "type")
 );
+
+-- ============================================================================
+-- SECTION 4: PUBLIC/ANONYMOUS TABLES
+-- ============================================================================
 
 -- Public Comments table - for NBA games, players, and teams (no authentication required)
 CREATE TABLE "public_comments" (
@@ -323,7 +331,7 @@ CREATE TABLE "public_reactions" (
 );
 
 -- ============================================================================
--- SECTION 4: AUDIT LOGGING TABLES
+-- SECTION 5: AUDIT & SECURITY TABLES
 -- ============================================================================
 
 -- Audit Logs table - Comprehensive security audit
@@ -406,7 +414,7 @@ CREATE TABLE "rls_access_logs" (
 );
 
 -- ============================================================================
--- SECTION 5: FOREIGN KEY CONSTRAINTS
+-- SECTION 6: FOREIGN KEY CONSTRAINTS
 -- ============================================================================
 
 -- User relationships
@@ -443,46 +451,15 @@ ALTER TABLE "public_comments" ADD CONSTRAINT "public_comments_user_id_users_id_f
 ALTER TABLE "public_reactions" ADD CONSTRAINT "public_reactions_user_id_users_id_fk"
     FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE NO ACTION;
 
--- ============================================================================
--- SECTION 6: DATA CONSTRAINTS AND VALIDATIONS
--- ============================================================================
-
--- User contact constraints
-ALTER TABLE "users" ADD CONSTRAINT "users_contact_constraint"
-CHECK (
-    username IS NOT NULL AND
-    LENGTH(TRIM(username)) > 0 AND
-    (email_address IS NOT NULL OR phone_number IS NOT NULL)
-);
-
-ALTER TABLE "users" ADD CONSTRAINT "users_phone_number_unique" UNIQUE("phone_number");
-
--- Game log constraints
-ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_rating_check"
-    CHECK (rating_for_game >= 1 AND rating_for_game <= 5);
-
-ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_watched_setting_check"
-    CHECK (watched_setting IN ('TV', 'ARENA', 'PHONE', 'LAPTOP', 'BAR', 'HOME', 'OTHER'));
-
-ALTER TABLE "game_logs" ADD CONSTRAINT "game_logs_watched_scope_check"
-    CHECK (watched_scope IN ('FULL_GAME', 'HALF_GAME', 'HIGHLIGHTS', 'PRE_GAME', 'POST_GAME', 'SHORTS', 'OTHER'));
-
--- Comment constraints
-ALTER TABLE "comments" ADD CONSTRAINT "comments_depth_check"
-    CHECK (depth >= 0 AND depth <= 10);
-
-ALTER TABLE "comments" ADD CONSTRAINT "comments_parent_type_check"
-    CHECK (parent_type IN ('GAME_LOG', 'COMMENT'));
-
--- Game ratings constraints
-ALTER TABLE "game_ratings" ADD CONSTRAINT "game_ratings_average_rating_check"
-    CHECK (average_rating >= 0 AND average_rating <= 5);
+-- Reaction emoji constraint
+ALTER TABLE "reactions" ADD CONSTRAINT "reactions_emoji_fk"
+    FOREIGN KEY ("emoji") REFERENCES "reaction_emojis"("emoji");
 
 -- ============================================================================
--- SECTION 7: BASIC INDEXES (Essential Only)
+-- SECTION 7: ESSENTIAL INDEXES
 -- ============================================================================
 
--- Note: Comprehensive performance indexes are now in 002_consolidated_indexes.sql
+-- Note: Comprehensive performance indexes are in 002_consolidated_indexes.sql
 -- This section contains only essential indexes needed for basic functionality
 
 -- Essential user indexes for authentication and basic queries
@@ -497,22 +474,43 @@ CREATE INDEX IF NOT EXISTS "idx_game_logs_game_basic" ON "game_logs" ("game_id")
 CREATE INDEX IF NOT EXISTS "idx_friendships_user_basic" ON "friendships" ("user_id");
 CREATE INDEX IF NOT EXISTS "idx_friendships_friend_basic" ON "friendships" ("friend_id");
 
+-- Create index for performance on canonical_id
+CREATE INDEX "idx_friendships_canonical_id" ON "friendships" ("canonical_id");
+
 -- ============================================================================
--- SECTION 9: TABLE DOCUMENTATION
+-- SECTION 8: TABLE DOCUMENTATION
 -- ============================================================================
 
--- Table documentation
+-- External API Tables
+COMMENT ON TABLE leagues IS 'External API data: NBA leagues';
+COMMENT ON TABLE seasons IS 'External API data: NBA seasons';
+COMMENT ON TABLE basketball_teams IS 'External API data: NBA teams with comprehensive team information';
+COMMENT ON TABLE basketball_players IS 'External API data: NBA players with career and physical data';
+COMMENT ON TABLE basketball_games IS 'External API data: NBA games with complete game information';
+
+-- Core User Tables
 COMMENT ON TABLE users IS 'Core user data integrated with Clerk authentication';
-COMMENT ON TABLE friendships IS 'User friendship relationships with status tracking';
-COMMENT ON TABLE game_logs IS 'User game experiences and ratings';
-COMMENT ON TABLE comments IS 'User comments on game logs and other comments (nested)';
-COMMENT ON TABLE reactions IS 'User reactions to game logs and comments';
-COMMENT ON TABLE public_comments IS 'Public comments on NBA games, players, and teams (no authentication required)';
-COMMENT ON TABLE public_reactions IS 'Public reactions on NBA games, players, and teams (no authentication required)';
-COMMENT ON TABLE notifications IS 'User notifications for social interactions';
+
+-- Application Data Tables
+COMMENT ON TABLE game_logs IS 'User game experiences and ratings with detailed watching information';
+COMMENT ON TABLE game_ratings IS 'Aggregated game ratings calculated from user game logs';
+COMMENT ON TABLE friendships IS 'User friendship relationships with bidirectional status tracking';
+COMMENT ON TABLE comments IS 'User comments on game logs and other comments (supports nested comments up to 10 levels)';
+COMMENT ON TABLE reactions IS 'User reactions to game logs and comments using approved emojis';
+COMMENT ON TABLE reaction_emojis IS 'Source of truth for allowed reaction emojis - must be kept in sync with application constants';
+COMMENT ON TABLE notifications IS 'User notifications for social interactions and system events';
+
+-- Public/Anonymous Tables
+COMMENT ON TABLE public_comments IS 'Public comments on NBA games, players, and teams (no authentication required, supports anonymous users)';
+COMMENT ON TABLE public_reactions IS 'Public reactions on NBA games, players, and teams (no authentication required, supports anonymous users)';
+
+-- Audit & Security Tables
 COMMENT ON TABLE audit_logs IS 'Comprehensive audit log for all security and data access events';
 COMMENT ON TABLE key_rotation_logs IS 'Specialized audit log for encryption key rotation events';
 COMMENT ON TABLE rls_access_logs IS 'Specialized audit log for Row-Level Security access events';
+
+-- Constraint Documentation
+COMMENT ON CONSTRAINT "reactions_emoji_fk" ON "reactions" IS 'Ensures only valid reaction emojis are stored - source of truth is reaction_emojis table, which should be kept in sync with application constants.';
 
 -- ============================================================================
 -- MIGRATION COMPLETE
@@ -524,11 +522,62 @@ COMMENT ON TABLE rls_access_logs IS 'Specialized audit log for Row-Level Securit
 -- - Data validation constraints for data integrity
 -- - Complete documentation and comments
 -- - Proper field ordering and naming conventions
+-- - Consistent constraint placement and naming
 --
+-- ============================================================================
+-- TEAM RATINGS TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS "team_ratings" (
+    "id" varchar(255) PRIMARY KEY NOT NULL,
+    "team_id" varchar(255) NOT NULL,
+    "average_rating" numeric(4, 2) DEFAULT '0.00' NOT NULL,
+    "total_ratings" integer DEFAULT 0 NOT NULL,
+    "total_comments" integer DEFAULT 0 NOT NULL,
+    "total_reactions" integer DEFAULT 0 NOT NULL,
+    "public_comments" integer DEFAULT 0 NOT NULL,
+    "public_reactions" integer DEFAULT 0 NOT NULL,
+    "total_game_logs" integer DEFAULT 0 NOT NULL,
+    "public_game_logs" integer DEFAULT 0 NOT NULL,
+    "popularity_score" numeric(10, 6) DEFAULT '0.000000' NOT NULL,
+    "last_calculated_at" timestamp DEFAULT now() NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "updated_at" timestamp DEFAULT now() NOT NULL,
+    "deleted_at" timestamp (6) with time zone,
+
+    -- Foreign key constraint
+    CONSTRAINT "team_ratings_team_id_fkey" FOREIGN KEY ("team_id") REFERENCES "basketball_teams"("id") ON DELETE CASCADE
+);
+
+-- ============================================================================
+-- PLAYER RATINGS TABLE
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS "player_ratings" (
+    "id" varchar(255) PRIMARY KEY NOT NULL,
+    "player_id" varchar(255) NOT NULL,
+    "average_rating" numeric(4, 2) DEFAULT '0.00' NOT NULL,
+    "total_ratings" integer DEFAULT 0 NOT NULL,
+    "total_comments" integer DEFAULT 0 NOT NULL,
+    "total_reactions" integer DEFAULT 0 NOT NULL,
+    "public_comments" integer DEFAULT 0 NOT NULL,
+    "public_reactions" integer DEFAULT 0 NOT NULL,
+    "total_game_logs" integer DEFAULT 0 NOT NULL,
+    "public_game_logs" integer DEFAULT 0 NOT NULL,
+    "popularity_score" numeric(10, 6) DEFAULT '0.000000' NOT NULL,
+    "last_calculated_at" timestamp DEFAULT now() NOT NULL,
+    "created_at" timestamp DEFAULT now() NOT NULL,
+    "updated_at" timestamp DEFAULT now() NOT NULL,
+    "deleted_at" timestamp (6) with time zone,
+
+    -- Foreign key constraint
+    CONSTRAINT "player_ratings_player_id_fkey" FOREIGN KEY ("player_id") REFERENCES "basketball_players"("id") ON DELETE CASCADE
+);
+
 -- Performance indexes, functions, triggers, and RLS are applied in separate migrations:
 -- - 001_consolidated_functions.sql - All database functions
 -- - 002_consolidated_indexes.sql - Comprehensive performance indexes
 -- - 003_consolidated_triggers.sql - Database triggers
 -- - 004_performance_monitoring.sql - Performance monitoring
--- - rls/001_rls_policies.sql - Row-level security
--- - data/001_reaction_emojis.sql - Reference data
+-- - 005_rls_policies.sql - Row-level security
+-- - 006_reaction_emojis.sql - Reference data

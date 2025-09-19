@@ -86,7 +86,7 @@ describe('useLiveGames', () => {
       // liveGames should be the transformed internal format
       expect(result.current.liveGames).toEqual([
         {
-          id: '1',
+          id: '2024-1',
           date: { start: '2024-01-01T20:00:00Z' },
           home_team: 'Home Team',
           away_team: 'Away Team',
@@ -102,13 +102,6 @@ describe('useLiveGames', () => {
               logo: 'logo.png',
             },
             visitors: {
-              id: '2',
-              name: 'Away Team',
-              nickname: 'Away',
-              code: 'AWAY',
-              logo: 'logo.png',
-            },
-            away: {
               id: '2',
               name: 'Away Team',
               nickname: 'Away',
@@ -127,7 +120,7 @@ describe('useLiveGames', () => {
       // games should also be the transformed internal format
       expect(result.current.games).toEqual([
         {
-          id: '1',
+          id: '2024-1',
           date: { start: '2024-01-01T20:00:00Z' },
           home_team: 'Home Team',
           away_team: 'Away Team',
@@ -143,13 +136,6 @@ describe('useLiveGames', () => {
               logo: 'logo.png',
             },
             visitors: {
-              id: '2',
-              name: 'Away Team',
-              nickname: 'Away',
-              code: 'AWAY',
-              logo: 'logo.png',
-            },
-            away: {
               id: '2',
               name: 'Away Team',
               nickname: 'Away',
@@ -336,7 +322,7 @@ describe('useLiveGames', () => {
       // liveGames should be the transformed internal format
       expect(result.current.liveGames).toEqual([
         {
-          id: '1',
+          id: '2024-1',
           date: { start: '2024-01-01T20:00:00Z' },
           home_team: 'Home Team',
           away_team: 'Away Team',
@@ -358,13 +344,6 @@ describe('useLiveGames', () => {
               code: 'AWAY',
               logo: 'logo.png',
             },
-            away: {
-              id: '2',
-              name: 'Away Team',
-              nickname: 'Away',
-              code: 'AWAY',
-              logo: 'logo.png',
-            },
           },
           scores: { home: { points: 0 }, visitors: { points: 0 } },
           season: 2024,
@@ -374,7 +353,7 @@ describe('useLiveGames', () => {
           periods: { current: 1, total: 4 },
         },
         {
-          id: '2',
+          id: '2024-2',
           date: { start: '2024-01-01T21:00:00Z' },
           home_team: 'Home Team 2',
           away_team: 'Away Team 2',
@@ -390,13 +369,6 @@ describe('useLiveGames', () => {
               logo: 'logo2.png',
             },
             visitors: {
-              id: '4',
-              name: 'Away Team 2',
-              nickname: 'Away2',
-              code: 'AWAY2',
-              logo: 'logo2.png',
-            },
-            away: {
               id: '4',
               name: 'Away Team 2',
               nickname: 'Away2',
@@ -415,7 +387,7 @@ describe('useLiveGames', () => {
       // games should also be the transformed internal format
       expect(result.current.games).toEqual([
         {
-          id: '1',
+          id: '2024-1',
           date: { start: '2024-01-01T20:00:00Z' },
           home_team: 'Home Team',
           away_team: 'Away Team',
@@ -437,13 +409,6 @@ describe('useLiveGames', () => {
               code: 'AWAY',
               logo: 'logo.png',
             },
-            away: {
-              id: '2',
-              name: 'Away Team',
-              nickname: 'Away',
-              code: 'AWAY',
-              logo: 'logo.png',
-            },
           },
           scores: { home: { points: 0 }, visitors: { points: 0 } },
           season: 2024,
@@ -453,7 +418,7 @@ describe('useLiveGames', () => {
           periods: { current: 1, total: 4 },
         },
         {
-          id: '2',
+          id: '2024-2',
           date: { start: '2024-01-01T21:00:00Z' },
           home_team: 'Home Team 2',
           away_team: 'Away Team 2',
@@ -469,13 +434,6 @@ describe('useLiveGames', () => {
               logo: 'logo2.png',
             },
             visitors: {
-              id: '4',
-              name: 'Away Team 2',
-              nickname: 'Away2',
-              code: 'AWAY2',
-              logo: 'logo2.png',
-            },
-            away: {
               id: '4',
               name: 'Away Team 2',
               nickname: 'Away2',

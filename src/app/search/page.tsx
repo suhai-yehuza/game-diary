@@ -15,6 +15,7 @@ function SearchPageContent() {
   const [results, setResults] = useState<ISearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [searchInput, setSearchInput] = useState(query);
 
   useEffect(() => {
     if (query && query.length >= 2) {
@@ -24,6 +25,7 @@ function SearchPageContent() {
       setLoading(false);
       setError(null);
     }
+    setSearchInput(query);
   }, [query]);
 
   const performSearch = async (searchQuery: string) => {
@@ -46,7 +48,7 @@ function SearchPageContent() {
     }
   };
 
-  const _handleSearch = (searchQuery: string) => {
+  const handleSearch = (searchQuery: string) => {
     if (!searchQuery.trim()) return;
 
     const params = new URLSearchParams(searchParams);
@@ -54,8 +56,38 @@ function SearchPageContent() {
     router.push(`/search?${params.toString()}`);
   };
 
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    handleSearch(searchInput);
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+  };
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Search Input */}
+      <div className="sticky top-0 z-10 bg-background border-b border-theme-primary px-4 py-3">
+        <form onSubmit={handleSearchSubmit} className="max-w-6xl mx-auto">
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <Icons.Search className="h-5 w-5 text-gray-400" />
+            </div>
+            <input
+              type="search"
+              value={searchInput}
+              onChange={handleSearchChange}
+              placeholder="Search games, teams, players..."
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+              data-testid="search"
+              autoComplete="off"
+              spellCheck="false"
+            />
+          </div>
+        </form>
+      </div>
+
       {/* Search Results */}
       <div className="px-4 lg:px-8 py-8">
         <div className="max-w-6xl mx-auto">

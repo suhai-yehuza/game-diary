@@ -47,14 +47,61 @@ export const generateDistinctTagColors = (tags: string[]): Record<string, string
   return tagColorMap;
 };
 
+// Helper function to get a better team name with improved fallback logic
+const getTeamDisplayName = (
+  team:
+    | {
+        name?: string;
+        nickname?: string;
+        code?: string;
+        id?: string | number;
+      }
+    | null
+    | undefined,
+  teamType: 'home' | 'away' = 'home'
+): string => {
+  if (!team || typeof team !== 'object') {
+    return teamType === 'home' ? 'Home Team' : 'Away Team';
+  }
+
+  // Try to get a meaningful name in order of preference
+  const name = team.name?.trim();
+  const nickname = team.nickname?.trim();
+  const code = team.code?.trim();
+  const id = team.id?.toString();
+
+  // First preference: use team code (for consistency with tests and UI)
+  if (code && code.length > 0) {
+    return code;
+  }
+
+  // Second preference: use full name
+  if (name && name.length > 0) {
+    return name;
+  }
+
+  // Third fallback: use nickname
+  if (nickname && nickname.length > 0) {
+    return nickname;
+  }
+
+  // If we have an ID, use it as a last resort
+  if (id && id.length > 0) {
+    return `Team ${id}`;
+  }
+
+  // Final fallback
+  return teamType === 'home' ? 'Home Team' : 'Away Team';
+};
+
 // Helper function to get team objects with logo and name
 export const getTeamObjects = (
   game: IGameLog['game']
 ): { homeTeam: { name: string; logo: string }; awayTeam: { name: string; logo: string } } => {
   if (!game || typeof game !== 'object') {
     return {
-      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
-      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      homeTeam: { name: 'Home Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Away Team', logo: '/defaults/team-logo.svg' },
     };
   }
 
@@ -62,17 +109,47 @@ export const getTeamObjects = (
   let homeTeam, awayTeam;
   if ('home_team' in game && 'away_team' in game) {
     const gameData = game as {
-      home_team?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
-      away_team?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+      home_team?: {
+        code?: string;
+        nickname?: string;
+        name?: string;
+        logo?: string;
+        id?: string | number;
+      } | null;
+      away_team?: {
+        code?: string;
+        nickname?: string;
+        name?: string;
+        logo?: string;
+        id?: string | number;
+      } | null;
     };
     homeTeam = gameData.home_team;
     awayTeam = gameData.away_team;
   } else if ('teams' in game) {
     const gameData = game as {
       teams?: {
-        home?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
-        away?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
-        visitors?: { code?: string; nickname?: string; name?: string; logo?: string } | null;
+        home?: {
+          code?: string;
+          nickname?: string;
+          name?: string;
+          logo?: string;
+          id?: string | number;
+        } | null;
+        away?: {
+          code?: string;
+          nickname?: string;
+          name?: string;
+          logo?: string;
+          id?: string | number;
+        } | null;
+        visitors?: {
+          code?: string;
+          nickname?: string;
+          name?: string;
+          logo?: string;
+          id?: string | number;
+        } | null;
       } | null;
     };
     // Handle both away/visitors naming conventions
@@ -80,21 +157,21 @@ export const getTeamObjects = (
     awayTeam = gameData.teams?.away || gameData.teams?.visitors;
   } else {
     return {
-      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
-      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      homeTeam: { name: 'Home Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Away Team', logo: '/defaults/team-logo.svg' },
     };
   }
 
   // Check if teams are valid objects
   if (!homeTeam || !awayTeam || typeof homeTeam !== 'object' || typeof awayTeam !== 'object') {
     return {
-      homeTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
-      awayTeam: { name: 'Unknown Team', logo: '/defaults/team-logo.svg' },
+      homeTeam: { name: 'Home Team', logo: '/defaults/team-logo.svg' },
+      awayTeam: { name: 'Away Team', logo: '/defaults/team-logo.svg' },
     };
   }
 
-  const homeTeamName = homeTeam.name ?? homeTeam.nickname ?? homeTeam.code ?? 'Unknown Team';
-  const awayTeamName = awayTeam.name ?? awayTeam.nickname ?? awayTeam.code ?? 'Unknown Team';
+  const homeTeamName = getTeamDisplayName(homeTeam, 'home');
+  const awayTeamName = getTeamDisplayName(awayTeam, 'away');
   const homeTeamLogo =
     homeTeam.logo && homeTeam.logo.trim() !== '' ? homeTeam.logo : '/defaults/team-logo.svg';
   const awayTeamLogo =
@@ -116,8 +193,8 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
   let homeTeam, awayTeam, gameDate;
   if ('home_team' in game && 'away_team' in game) {
     const gameData = game as {
-      home_team?: { code?: string; nickname?: string; name?: string } | null;
-      away_team?: { code?: string; nickname?: string; name?: string } | null;
+      home_team?: { code?: string; nickname?: string; name?: string; id?: string | number } | null;
+      away_team?: { code?: string; nickname?: string; name?: string; id?: string | number } | null;
       date?: string | Date;
     };
     homeTeam = gameData.home_team;
@@ -126,9 +203,9 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
   } else if ('teams' in game) {
     const gameData = game as {
       teams?: {
-        home?: { code?: string; nickname?: string; name?: string } | null;
-        away?: { code?: string; nickname?: string; name?: string } | null;
-        visitors?: { code?: string; nickname?: string; name?: string } | null;
+        home?: { code?: string; nickname?: string; name?: string; id?: string | number } | null;
+        away?: { code?: string; nickname?: string; name?: string; id?: string | number } | null;
+        visitors?: { code?: string; nickname?: string; name?: string; id?: string | number } | null;
       } | null;
       date?: string | Date;
     };
@@ -145,8 +222,8 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
     return 'Unknown Teams';
   }
 
-  const homeTeamCode = homeTeam.code ?? homeTeam.nickname ?? homeTeam.name ?? 'Unknown';
-  const awayTeamCode = awayTeam.code ?? awayTeam.nickname ?? awayTeam.name ?? 'Unknown';
+  const homeTeamName = getTeamDisplayName(homeTeam, 'home');
+  const awayTeamName = getTeamDisplayName(awayTeam, 'away');
 
   // Format the date if available and includeDate is true
   let dateString = '';
@@ -162,7 +239,7 @@ export const getTeamDisplay = (game: IGameLog['game'], includeDate = true): stri
     }
   }
 
-  return `${awayTeamCode} @ ${homeTeamCode}${dateString}`;
+  return `${awayTeamName} @ ${homeTeamName}${dateString}`;
 };
 
 export const filterAndSortGameLogs = (

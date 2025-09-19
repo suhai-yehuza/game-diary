@@ -159,7 +159,12 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   <div className="w-10 h-10 relative">
                     <Image
                       src={game.teams?.visitors?.logo || '/defaults/team-logo.svg'}
-                      alt={game.teams?.visitors?.name || 'Unknown Team'}
+                      alt={
+                        game.teams?.visitors?.name ||
+                        game.teams?.visitors?.nickname ||
+                        game.teams?.visitors?.code ||
+                        'Away Team'
+                      }
                       fill
                       className="object-contain"
                       loading="lazy"
@@ -167,7 +172,10 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold text-theme-primary">
-                      {game.teams?.visitors?.name || 'Unknown Team'}
+                      {game.teams?.visitors?.name ||
+                        game.teams?.visitors?.nickname ||
+                        game.teams?.visitors?.code ||
+                        'Away Team'}
                     </div>
                     <div className="text-sm text-theme-muted">
                       {game.teams?.visitors?.nickname || game.teams?.visitors?.code || ''}
@@ -188,7 +196,12 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   <div className="w-10 h-10 relative">
                     <Image
                       src={game.teams?.home?.logo || '/defaults/team-logo.svg'}
-                      alt={game.teams?.home?.name || 'Unknown Team'}
+                      alt={
+                        game.teams?.home?.name ||
+                        game.teams?.home?.nickname ||
+                        game.teams?.home?.code ||
+                        'Home Team'
+                      }
                       fill
                       className="object-contain"
                       loading="lazy"
@@ -196,7 +209,10 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
                   </div>
                   <div>
                     <div className="font-semibold text-theme-primary">
-                      {game.teams?.home?.name || 'Unknown Team'}
+                      {game.teams?.home?.name ||
+                        game.teams?.home?.nickname ||
+                        game.teams?.home?.code ||
+                        'Home Team'}
                     </div>
                     <div className="text-sm text-theme-muted">
                       {game.teams?.home?.nickname || game.teams?.home?.code || ''}
@@ -248,8 +264,8 @@ export function LiveGamesDetail({ data }: { data?: IGamesApiResponse } = {}) {
 
                 {/* Game Nugget */}
                 {game.nugget && (
-                  <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <p className="text-sm text-blue-800 dark:text-blue-200">{game.nugget}</p>
+                  <div className="mt-3 p-3 bg-brand-primary/10 dark:bg-brand-primary/20 rounded-lg">
+                    <p className="text-sm text-brand-primary">{game.nugget}</p>
                   </div>
                 )}
               </div>

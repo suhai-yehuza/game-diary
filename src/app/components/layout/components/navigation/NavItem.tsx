@@ -26,7 +26,7 @@ export function NavItem({
     if (!sport) {
       return {
         active:
-          'text-text-inverse bg-brand-primary border-2 border-brand-primary shadow-lg font-semibold',
+          'text-white dark:text-white bg-brand-primary border-2 border-brand-primary shadow-lg font-semibold',
         inactive:
           'text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:border-brand-primary hover:bg-brand-primary/10 hover:text-brand-primary shadow-md',
       };
@@ -34,7 +34,7 @@ export function NavItem({
 
     const sportClass = getSportsButtonClass(sport);
     return {
-      active: `text-text-inverse ${sportClass} border-2 border-opacity-30 shadow-lg font-semibold`,
+      active: `text-white dark:text-white ${sportClass} border-2 border-opacity-30 shadow-lg font-semibold`,
       inactive: `text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} hover:text-text-inverse shadow-md`,
     };
   };

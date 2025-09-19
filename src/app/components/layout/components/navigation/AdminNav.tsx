@@ -14,21 +14,27 @@ import { isSSOCallback } from '@/lib/utils/sso-utils';
 
 // Hook to check if user is admin
 function useIsAdmin() {
-  // Always call useUser to satisfy React's rules
-  const userData = useUser();
+  try {
+    // Always call useUser to satisfy React's rules
+    const userData = useUser();
 
-  // Handle case where Clerk is not configured (e.g., in test environment)
-  if (!userData.isLoaded) {
+    // Handle case where Clerk is not configured (e.g., in test environment)
+    if (!userData.isLoaded) {
+      return false;
+    }
+
+    if (!userData.isSignedIn || !userData.user) {
+      return false;
+    }
+
+    // Check if user has admin role in their public metadata
+    const userRoles = (userData.user.publicMetadata?.role as string[]) || [];
+    return userRoles.includes('admin') || userRoles.includes('Admin');
+  } catch (_error) {
+    // Handle case where Clerk is not configured (e.g., in mock mode or test environment)
+    console.log('Clerk not configured, admin nav disabled');
     return false;
   }
-
-  if (!userData.isSignedIn || !userData.user) {
-    return false;
-  }
-
-  // Check if user has admin role in their public metadata
-  const userRoles = (userData.user.publicMetadata?.role as string[]) || [];
-  return userRoles.includes('admin') || userRoles.includes('Admin');
 }
 
 // Helper function to check if any admin route is active

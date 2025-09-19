@@ -1,12 +1,11 @@
 'use client';
 
 import { User, MessageCircle, Heart, Star } from 'lucide-react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 
 import { useScrollAnimation } from '@/hooks/use-scroll-animation';
-import type { IPopularPlayer, IPopularPlayersData } from '@/types';
+import type { IPopularPlayersData } from '@/types';
 
 import { ProgressiveDataLoader } from './ProgressiveDataLoader';
 
@@ -44,9 +43,9 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
   // Safety check for data - after hooks
   if (!data?.mostPopular) {
     return (
-      <div className="text-center py-8 text-theme-muted">
-        <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-        <p>No popular players data available yet</p>
+      <div className="text-center py-2 text-theme-secondary">
+        <User className="w-4 h-4 mx-auto mb-1 opacity-50" />
+        <p className="text-xs">No popular players data available yet</p>
       </div>
     );
   }
@@ -56,11 +55,6 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
     return count.toString();
-  };
-
-  const getTeamLogo = (team: IPopularPlayer['team']) => {
-    if (team.logo) return team.logo;
-    return '/logos/default-team-logo.svg';
   };
 
   const getPositionColor = (position: string) => {
@@ -101,7 +95,7 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
       {/* Popular Players List with Scroll Animation */}
       <div
         ref={containerRef}
-        className="h-[42rem] overflow-auto relative scroll-container animate-scroll"
+        className="max-h-[42rem] overflow-auto relative scroll-container animate-scroll"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -114,16 +108,6 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
               >
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-theme-muted w-6">#{index + 1}</span>
-                  <Image
-                    src={getTeamLogo(player.team)}
-                    alt={`${player.team.name} logo`}
-                    width={32}
-                    height={32}
-                    className="w-8 h-8 rounded-full object-cover"
-                    onError={e => {
-                      (e.target as HTMLImageElement).src = '/logos/default-team-logo.svg';
-                    }}
-                  />
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -135,19 +119,21 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
                       {player.position}
                     </span>
                   </div>
-                  <p className="text-sm text-theme-secondary truncate">
-                    {player.team.name} ({player.team.code})
-                  </p>
+                  <p className="text-sm text-theme-secondary truncate">{player.position}</p>
                 </div>
 
                 <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1 text-theme-secondary">
+                  <div
+                    className={`flex items-center gap-1 ${player.totalComments && player.totalComments > 0 ? 'text-theme-secondary' : 'text-theme-muted'}`}
+                  >
                     <MessageCircle className="w-4 h-4" />
-                    <span>{formatEngagement(player.commentCount)}</span>
+                    <span>{formatEngagement(player.totalComments)}</span>
                   </div>
-                  <div className="flex items-center gap-1 text-theme-secondary">
+                  <div
+                    className={`flex items-center gap-1 ${player.totalReactions && player.totalReactions > 0 ? 'text-theme-secondary' : 'text-theme-muted'}`}
+                  >
                     <Heart className="w-4 h-4" />
-                    <span>{formatEngagement(player.reactionCount)}</span>
+                    <span>{formatEngagement(player.totalReactions)}</span>
                   </div>
                   <div className="flex items-center gap-1 text-brand-secondary">
                     <Star className="w-4 h-4" />
@@ -157,9 +143,9 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
               </div>
             ))
           ) : (
-            <div className="text-center py-8 text-theme-muted">
-              <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No popular players data available yet</p>
+            <div className="text-center py-2 text-theme-secondary">
+              <User className="w-4 h-4 mx-auto mb-1 opacity-50" />
+              <p className="text-xs">No popular players data available yet</p>
             </div>
           )}
         </div>
@@ -169,7 +155,7 @@ const PopularPlayersContent = ({ data }: { data: IPopularPlayersData }) => {
       <div className="mt-auto pt-4">
         <Link
           href="/sports/nba/players"
-          className="block w-full text-center py-3 bg-brand-secondary text-theme-inverse rounded-lg hover:bg-brand-secondary-hover transition-all duration-200 font-medium"
+          className="block w-full text-center py-3 bg-brand-primary text-theme-inverse rounded-lg hover:bg-brand-primary-hover transition-all duration-200 font-medium"
         >
           View All Players
         </Link>

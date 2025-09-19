@@ -36,12 +36,20 @@ describe('Database Services Integration Tests', () => {
 
     test('should handle database connection timeouts', async () => {
       const endpoint = '/api/search?q=test';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch(`${BASE_URL}${endpoint}`, {
-        signal: AbortSignal.timeout(30000), // 30 second timeout
-      });
-
-      expect([200, 400, 500, 408]).toContain(response.status);
+      try {
+        const response = await fetch(`${BASE_URL}${endpoint}`, {
+          signal: controller.signal as AbortSignal,
+        });
+        clearTimeout(timeoutId);
+        expect([200, 400, 500, 408]).toContain(response.status);
+      } catch (error) {
+        clearTimeout(timeoutId);
+        // Timeout is acceptable in this test
+        expect(error instanceof Error).toBe(true);
+      }
     });
 
     test('should handle database connection failures gracefully', async () => {

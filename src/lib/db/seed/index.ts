@@ -50,7 +50,7 @@ function generateSeedingConfig(
   friendshipsMultiplier = 1
 ) {
   const baseGameLogs = { min: 0, max: 20 }; // Min 0 for Pareto distribution (some users have 0 game logs)
-  const baseComments = { min: 0, max: 12 }; // Min 0 for Pareto distribution (some game logs have 0 comments)
+  const baseComments = { min: 0, max: 20 }; // Increased from 12 to 20 for more comments per game log
   const baseFriendships = { min: 0, max: 12 }; // Min 0 for Pareto distribution (some users have 0 friendships)
 
   return {
@@ -75,7 +75,7 @@ function generateSeedingConfig(
       min: Math.max(0, Math.floor(baseComments.min * commentsMultiplier)), // Min 0 for Pareto distribution
       max: Math.max(4, Math.floor(baseComments.max * commentsMultiplier)), // Increased from 2
     },
-    childCommentChance: 0.45, // Increased from 0.3 (45% chance of child comments)
+    childCommentChance: 0.6, // Increased from 0.45 to 0.6 (60% chance of child comments)
   };
 }
 

@@ -586,7 +586,7 @@ export function PaginatedGameLogsTable() {
         <div className="flex items-center gap-3">
           <Button
             onClick={() => setCreateModalOpen(true)}
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-text-inverse font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
           >
             <Plus className="h-4 w-4" />
             Create Game Log

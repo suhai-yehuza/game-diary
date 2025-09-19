@@ -10,8 +10,20 @@ import type { IGameSearchResultProps } from '@/types';
 
 export function GameSearchResult({ game }: IGameSearchResultProps) {
   const router = useRouter();
-  const homeTeamDisplay = game.home_team_nickname ?? game.home_team_name ?? 'Unknown Team';
-  const awayTeamDisplay = game.away_team_nickname ?? game.away_team_name ?? 'Unknown Team';
+
+  // Improved fallback logic: code -> nickname -> name -> generic fallback
+  const homeTeamDisplay =
+    game.home_team_code?.trim() ||
+    game.home_team_nickname?.trim() ||
+    game.home_team_name?.trim() ||
+    'Unknown Team';
+
+  const awayTeamDisplay =
+    game.away_team_code?.trim() ||
+    game.away_team_nickname?.trim() ||
+    game.away_team_name?.trim() ||
+    'Unknown Team';
+
   const gameTitle = `${awayTeamDisplay} @ ${homeTeamDisplay}`;
 
   const handleClick = () => {
@@ -55,8 +67,8 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
             {game.scores?.home?.points !== undefined &&
               game.scores?.visitors?.points !== undefined && (
                 <div className="flex items-center space-x-1 mb-3">
-                  <Trophy className="w-4 h-4 text-gray-400" />
-                  <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+                  <Trophy className="w-4 h-4 text-theme-muted" />
+                  <span className="text-lg font-bold text-theme-primary">
                     {formatScore(game.scores.home.points, game.scores.visitors.points)}
                   </span>
                 </div>
@@ -90,7 +102,7 @@ export function GameSearchResult({ game }: IGameSearchResultProps) {
               )}
             </div>
 
-            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 capitalize">
+            <div className="mt-2 inline-flex items-center px-2 py-1 rounded-lg text-xs bg-bg-theme-secondary text-theme-secondary capitalize">
               {game.status?.long || game.status?.short || 'Unknown Status'}
             </div>
           </div>

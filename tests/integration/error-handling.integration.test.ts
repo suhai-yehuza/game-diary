@@ -33,23 +33,22 @@ async function parseResponse(response: any) {
 
 // Helper function to make requests with timeout
 async function fetchWithTimeout(url: string, options: RequestInit = {}, timeout = 10000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  const timeoutPromise = new Promise<never>((_, reject) =>
+    setTimeout(() => reject(new Error(`Request timeout after ${timeout}ms`)), timeout)
+  );
+
+  const fetchOptions: RequestInit = {
+    method: options.method,
+    headers: options.headers,
+    body: options.body,
+  };
+
+  const fetchPromise = fetch(url, fetchOptions);
 
   try {
-    const fetchOptions: RequestInit = {
-      method: options.method,
-      headers: options.headers,
-      body: options.body,
-      signal: controller.signal,
-    };
-
-    const response = await fetch(url, fetchOptions as any);
-    clearTimeout(timeoutId);
-    return response;
+    return await Promise.race([fetchPromise, timeoutPromise]);
   } catch (error) {
-    clearTimeout(timeoutId);
-    if (error instanceof Error && error.name === 'AbortError') {
+    if (error instanceof Error && error.message.includes('timeout')) {
       // Create a new error with AbortError name to match the catch condition
       const abortError = new Error(`Request timeout after ${timeout}ms`);
       abortError.name = 'AbortError';

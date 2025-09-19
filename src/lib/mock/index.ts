@@ -106,6 +106,41 @@ export class MockDataProvider {
     const { MOCK_NBA_TEAMS } = await import('./nbaTeamsMock');
     return MOCK_NBA_TEAMS;
   }
+
+  // Landing page mock data methods
+  getTrendingContentMock() {
+    return {
+      topGameLogs: [],
+      mostActiveGameLog: null,
+    };
+  }
+
+  getRecentGamesMock() {
+    return {
+      latestGames: [],
+      latestFinishedGame: null,
+    };
+  }
+
+  getPopularGamesMock() {
+    return {
+      topRated: [],
+      mostRated: [],
+      mostPopular: [],
+    };
+  }
+
+  getPopularTeamsMock() {
+    return {
+      mostPopular: [],
+    };
+  }
+
+  getPopularPlayersMock() {
+    return {
+      mostPopular: [],
+    };
+  }
 }
 
 // Export singleton instance

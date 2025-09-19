@@ -77,13 +77,6 @@ export async function GET(
               code: 'TAT',
               logo: '',
             },
-            away: {
-              id: '2',
-              name: 'Test Away Team',
-              nickname: 'Away',
-              code: 'TAT',
-              logo: '',
-            },
           },
           scores: {
             home: { points: 110 },
@@ -138,85 +131,95 @@ export async function GET(
       );
     }
 
-    // Transform the external API response to our internal format
-    const transformedGames: IGameResponse[] = gamesData.response.map((game: IExternalGame) => ({
-      id: `${season}-${game.id?.toString() || 'missing-game-id'}`,
-      date: game.date
-        ? typeof game.date === 'string'
-          ? { start: game.date, end: '' }
-          : {
-              start: game.date.start || '',
-              end: game.date.end || '',
+    // Transform the external API response to our internal format, filter out games with invalid dates, and deduplicate
+    const transformedGames: IGameResponse[] = gamesData.response
+      .filter((game: IExternalGame) => {
+        // Only include games with valid dates
+        const gameDate = typeof game.date === 'string' ? game.date : game.date?.start;
+        return gameDate && gameDate.trim() !== '' && !isNaN(new Date(gameDate).getTime());
+      })
+      .map((game: IExternalGame) => ({
+        id: `${season}-${game.id?.toString() || 'missing-game-id'}`,
+        date: game.date
+          ? typeof game.date === 'string'
+            ? { start: game.date, end: '' }
+            : {
+                start: game.date.start || '',
+                end: game.date.end || '',
+              }
+          : { start: '', end: '' },
+        home_team: game.teams?.home?.name || '',
+        away_team: game.teams?.visitors?.name || '',
+        home_score: game.scores?.home?.points || 0,
+        away_score: game.scores?.visitors?.points || 0,
+        status: game.status
+          ? typeof game.status === 'string'
+            ? { long: game.status, short: game.status, clock: '', period: 0 }
+            : {
+                long: game.status.long || '',
+                short: game.status.short || '',
+                clock: game.status.clock || '',
+                period: game.status.period || 0,
+              }
+          : { long: '', short: '', clock: '', period: 0 },
+        teams: game.teams
+          ? {
+              home: {
+                id: game.teams.home?.id?.toString() || '',
+                name: game.teams.home?.name || '',
+                nickname: game.teams.home?.nickname || '',
+                code: game.teams.home?.code || '',
+                logo: game.teams.home?.logo || '',
+              },
+              visitors: {
+                id: game.teams.visitors?.id?.toString() || '',
+                name: game.teams.visitors?.name || '',
+                nickname: game.teams.visitors?.nickname || '',
+                code: game.teams.visitors?.code || '',
+                logo: game.teams.visitors?.logo || '',
+              },
+              away: {
+                id: game.teams.visitors?.id?.toString() || '',
+                name: game.teams.visitors?.name || '',
+                nickname: game.teams.visitors?.nickname || '',
+                code: game.teams.visitors?.code || '',
+                logo: game.teams.visitors?.logo || '',
+              },
             }
-        : { start: '', end: '' },
-      home_team: game.teams?.home?.name || '',
-      away_team: game.teams?.visitors?.name || '',
-      home_score: game.scores?.home?.points || 0,
-      away_score: game.scores?.visitors?.points || 0,
-      status: game.status
-        ? typeof game.status === 'string'
-          ? { long: game.status, short: game.status, clock: '', period: 0 }
-          : {
-              long: game.status.long || '',
-              short: game.status.short || '',
-              clock: game.status.clock || '',
-              period: game.status.period || 0,
+          : undefined,
+        scores: game.scores
+          ? {
+              home: {
+                points: game.scores.home?.points || 0,
+              },
+              visitors: {
+                points: game.scores.visitors?.points || 0,
+              },
             }
-        : { long: '', short: '', clock: '', period: 0 },
-      teams: game.teams
-        ? {
-            home: {
-              id: game.teams.home?.id?.toString() || '',
-              name: game.teams.home?.name || '',
-              nickname: game.teams.home?.nickname || '',
-              code: game.teams.home?.code || '',
-              logo: game.teams.home?.logo || '',
-            },
-            visitors: {
-              id: game.teams.visitors?.id?.toString() || '',
-              name: game.teams.visitors?.name || '',
-              nickname: game.teams.visitors?.nickname || '',
-              code: game.teams.visitors?.code || '',
-              logo: game.teams.visitors?.logo || '',
-            },
-            away: {
-              id: game.teams.visitors?.id?.toString() || '',
-              name: game.teams.visitors?.name || '',
-              nickname: game.teams.visitors?.nickname || '',
-              code: game.teams.visitors?.code || '',
-              logo: game.teams.visitors?.logo || '',
-            },
-          }
-        : undefined,
-      scores: game.scores
-        ? {
-            home: {
-              points: game.scores.home?.points || 0,
-            },
-            visitors: {
-              points: game.scores.visitors?.points || 0,
-            },
-          }
-        : undefined,
-      arena: game.arena
-        ? {
-            name: game.arena.name || '',
-            city: game.arena.city || '',
-            state: game.arena.state || '',
-            country: game.arena.country || '',
-          }
-        : undefined,
-      periods: game.periods
-        ? {
-            current: game.periods.current || 0,
-            total: game.periods.total || 0,
-            endOfPeriod: game.periods.endOfPeriod || false,
-          }
-        : undefined,
-      season: seasonYear.toString(),
-      stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
-      nugget: game.nugget || '',
-    }));
+          : undefined,
+        arena: game.arena
+          ? {
+              name: game.arena.name || '',
+              city: game.arena.city || '',
+              state: game.arena.state || '',
+              country: game.arena.country || '',
+            }
+          : undefined,
+        periods: game.periods
+          ? {
+              current: game.periods.current || 0,
+              total: game.periods.total || 0,
+              endOfPeriod: game.periods.endOfPeriod || false,
+            }
+          : undefined,
+        season: seasonYear.toString(),
+        stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
+        nugget: game.nugget || '',
+      }))
+      .filter((game, index, array) => {
+        // Deduplicate by ID - keep only the first occurrence
+        return array.findIndex(g => g.id === game.id) === index;
+      });
 
     // Calculate pagination metadata
     const totalGames = transformedGames.length;

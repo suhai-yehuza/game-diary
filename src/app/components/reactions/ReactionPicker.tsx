@@ -187,7 +187,7 @@ export const ReactionPicker = memo(function ReactionPicker({
                 </button>
 
                 {showMoreReactions && (
-                  <div className="grid grid-cols-8 gap-1.5 animate-in slide-in-from-top-2 duration-200 border-t border-gray-200 dark:border-gray-300 pt-3">
+                  <div className="grid grid-cols-8 gap-1.5 animate-in slide-in-from-top-2 duration-200 border-t border-theme-primary pt-3">
                     {[...SPORTS_REACTIONS, ...EMOTIONS_REACTIONS, ...ACTION_REACTIONS].map(
                       emoji => {
                         const userHasReacted =

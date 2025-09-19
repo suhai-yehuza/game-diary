@@ -294,7 +294,7 @@ export function FloatingGamesDisplay() {
               {/* Mobile View All Button */}
               <Link
                 href="/sports/all-sports"
-                className="block w-full text-center py-2 bg-gradient-to-r from-brand-primary to-semantic-warning text-text-inverse rounded-lg text-xs font-medium hover:from-brand-primary-hover hover:to-semantic-warning/90 transition-all duration-200 transform hover:scale-105"
+                className="block w-full text-center py-2 bg-brand-primary text-theme-inverse rounded-lg text-xs font-medium hover:bg-brand-primary-hover transition-all duration-200 transform hover:scale-105"
               >
                 View All Games
               </Link>

@@ -25,7 +25,8 @@ export function useBannerVisibility() {
     // Show banner if there are games OR if we're in mock/test mode (games will load)
     ((games && games.length > 0) ||
       // In mock mode or test environment, show banner even if games haven't loaded yet
-      (isMockModeEnabled() || isTestOrCIEnvironment()));
+      isMockModeEnabled() ||
+      isTestOrCIEnvironment());
 
   return {
     shouldDisplayBanner,

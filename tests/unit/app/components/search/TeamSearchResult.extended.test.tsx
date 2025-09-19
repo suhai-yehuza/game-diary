@@ -328,6 +328,8 @@ describe('TeamSearchResult Extended', () => {
       team: {
         ...defaultProps.team,
         name: '',
+        nickname: '',
+        code: '',
       },
     };
 
@@ -341,6 +343,8 @@ describe('TeamSearchResult Extended', () => {
       team: {
         ...defaultProps.team,
         name: '   ',
+        nickname: '',
+        code: '',
       },
     };
 

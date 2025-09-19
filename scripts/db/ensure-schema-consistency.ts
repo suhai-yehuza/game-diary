@@ -130,8 +130,8 @@ class SchemaConsistencyChecker {
     const baseSchemaContent = readFileSync(this.baseSchemaPath, 'utf-8');
     const tables: string[] = [];
 
-    // Find all CREATE TABLE statements
-    const createTableRegex = /CREATE TABLE\s+"?(\w+)"?/gi;
+    // Find all CREATE TABLE statements (including IF NOT EXISTS)
+    const createTableRegex = /CREATE TABLE\s+(?:IF\s+NOT\s+EXISTS\s+)?["`]?(\w+)["`]?/gi;
     let match;
     while ((match = createTableRegex.exec(baseSchemaContent)) !== null) {
       tables.push(match[1]);

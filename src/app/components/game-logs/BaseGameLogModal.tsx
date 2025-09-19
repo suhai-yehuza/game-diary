@@ -1074,7 +1074,7 @@ export function GameLogModal({
                 )}
 
                 {mode === 'create' && 'gameId' in errors && errors.gameId && (
-                  <p className="text-red-600 text-sm mt-1">
+                  <p className="text-semantic-error text-sm mt-1">
                     {(errors.gameId as { message?: string })?.message}
                   </p>
                 )}
@@ -1094,7 +1094,7 @@ export function GameLogModal({
                   >
                     <Star
                       className={`w-5 h-5 ${
-                        star <= rating ? 'text-orange-400 fill-current' : 'text-theme-muted'
+                        star <= rating ? 'text-semantic-warning fill-current' : 'text-theme-muted'
                       }`}
                     />
                   </button>
@@ -1103,7 +1103,7 @@ export function GameLogModal({
               </div>
               <input type="hidden" {...register('rating_for_game')} value={rating} />
               {errors.rating_for_game && (
-                <p className="text-red-600 text-xs">{errors.rating_for_game.message}</p>
+                <p className="text-semantic-error text-xs">{errors.rating_for_game.message}</p>
               )}
             </div>
 
@@ -1121,7 +1121,7 @@ export function GameLogModal({
                 <option value={CLASSIFICATION.PUBLIC}>Public (Everyone)</option>
               </select>
               {errors.classification && (
-                <p className="text-red-600 text-xs mt-1">{errors.classification.message}</p>
+                <p className="text-semantic-error text-xs mt-1">{errors.classification.message}</p>
               )}
             </div>
 
@@ -1248,7 +1248,7 @@ export function GameLogModal({
                           <button
                             type="button"
                             onClick={() => handleRemoveTag(tag)}
-                            className="text-white hover:text-pink-200 transition-colors"
+                            className="text-white hover:text-semantic-error/80 transition-colors"
                           >
                             <X className="w-3 h-3" />
                           </button>
@@ -1269,7 +1269,7 @@ export function GameLogModal({
                       type="button"
                       onClick={handleAddTag}
                       size="sm"
-                      className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-dark text-white font-medium shadow-sm text-xs whitespace-nowrap transition-all duration-200"
+                      className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm text-xs whitespace-nowrap transition-all duration-200"
                     >
                       Add Tag
                     </Button>
@@ -1292,7 +1292,7 @@ export function GameLogModal({
               <Button
                 type="submit"
                 disabled={isSubmitting || loading || !isFormValid || !isUserAuthenticated}
-                className="flex-1 h-11 bg-brand-primary hover:bg-brand-primary-dark text-white font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                className="flex-1 h-11 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
               >
                 {isSubmitting || loading ? (
                   <div className="flex items-center gap-2">

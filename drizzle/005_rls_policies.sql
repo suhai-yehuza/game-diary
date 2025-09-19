@@ -1,39 +1,17 @@
--- 001_rls_policies.sql
--- Row-Level Security policies and helper functions
+-- ============================================================================
+-- ROW-LEVEL SECURITY POLICIES - Game Diary Database
+-- ============================================================================
+-- Last Updated: 2024-12-19
+-- Purpose: Row-Level Security policies and public views
+-- Dependencies: Base schema (000_base_schema.sql), Functions (001_consolidated_functions.sql)
 --
 -- This file contains:
--- - RLS helper functions
 -- - RLS policies for users table
 -- - Public user profiles view
-
--- ============================================================================
--- RLS HELPER FUNCTIONS
+-- - Security context management
 -- ============================================================================
 
--- RLS helper functions
-CREATE OR REPLACE FUNCTION get_current_user_id()
-RETURNS TEXT AS $$
-BEGIN
-    RETURN current_setting('app.current_user_id', true);
-EXCEPTION
-    WHEN OTHERS THEN
-        RETURN NULL;
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION set_current_user_context(user_id TEXT)
-RETURNS VOID AS $$
-BEGIN
-    PERFORM set_config('app.current_user_id', user_id, false);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
-
-CREATE OR REPLACE FUNCTION clear_current_user_context()
-RETURNS VOID AS $$
-BEGIN
-    PERFORM set_config('app.current_user_id', '', false);
-END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+-- Note: RLS helper functions are defined in 001_consolidated_functions.sql
 
 -- ============================================================================
 -- ROW-LEVEL SECURITY

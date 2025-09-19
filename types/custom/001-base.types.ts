@@ -1147,13 +1147,6 @@ export interface IGameResponse {
       logo: string;
       nickname?: string;
     };
-    away: {
-      id?: string | number;
-      name: string;
-      code: string;
-      logo: string;
-      nickname?: string;
-    };
   };
   scores?: {
     home: {
@@ -1873,8 +1866,26 @@ export interface ISearchResultsProps {
     total: number;
     page?: number;
     limit?: number;
+    facets?: {
+      [key: string]: Array<{
+        value: string;
+        count: number;
+      }>;
+    };
   };
   query: string;
+}
+
+export interface IPlayerEngagementData {
+  total_game_logs: number;
+  public_game_logs: number;
+  private_game_logs: number;
+  total_public_comments: number;
+  total_public_reactions: number;
+  total_all_comments: number;
+  total_all_reactions: number;
+  unique_users_logged: number;
+  unique_public_users: number;
 }
 
 export interface IGameLogSearchResultProps {
@@ -5541,7 +5552,10 @@ export interface IIntegratedGameLogsProps {
 }
 
 export interface IIntegratedGamesProps {
-  data?: IRecentGame[];
+  data?: {
+    finishedGames?: IRecentGame[];
+    currentGame?: IRecentGame;
+  };
 }
 
 export interface ILandingPageClientFallbackProps {
@@ -5657,8 +5671,8 @@ export interface IPopularTeam {
   logo?: string;
   city: string;
   gameLogCount?: number;
-  commentCount?: number;
-  reactionCount?: number;
+  totalComments?: number;
+  totalReactions?: number;
   popularityScore?: number;
   engagement?: {
     total: number;
@@ -5685,21 +5699,13 @@ export interface IPopularPlayer {
   id: string;
   name: string;
   position: string;
-  team: {
-    id: string;
-    name: string;
-    code: string;
-    logo?: string;
-  };
-  gameLogCount?: number;
-  commentCount?: number;
-  reactionCount?: number;
-  popularityScore?: number;
-  engagement?: {
-    total: number;
-    public: number;
-    private: number;
-  };
+  currentTeam: string;
+  teamLogo: string;
+  totalGameLogs: number;
+  publicGameLogs: number;
+  totalComments: number;
+  totalReactions: number;
+  popularityScore: number;
 }
 
 /**

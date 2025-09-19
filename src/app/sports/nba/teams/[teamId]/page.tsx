@@ -184,7 +184,7 @@ export default function NBATeamDetailPage({ params: _params }: ITeamDetailPagePr
 
         const playersData = await response.json();
         if (playersData.success && playersData.data?.response) {
-          setTeamPlayers(playersData.data.response);
+          setTeamPlayers(playersData.data?.response?.length === 0 ? [] : playersData.data.response);
         } else {
           throw new Error(playersData.error || 'Failed to fetch team players');
         }

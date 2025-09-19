@@ -1090,7 +1090,7 @@ function* generateNestedPublicCommentsStream(
           ? faker.internet.email()
           : null,
       parent_id: parentComment.id,
-      parent_type: TARGET_TYPES.COMMENT,
+      parent_type: TARGET_TYPES.PUBLIC_COMMENT,
       content: generateCommentContent(),
       depth: currentDepth,
       is_approved: faker.datatype.boolean({ probability: 0.95 }),
@@ -1121,7 +1121,7 @@ export function* generatePublicReactionsStream(
     ...nbaGames.map(game => ({ id: game.id, type: TARGET_TYPES.BASKETBALL_GAME })),
     ...nbaPlayers.map(player => ({ id: player.id, type: TARGET_TYPES.BASKETBALL_PLAYER })),
     ...basketball_teams.map(team => ({ id: team.id, type: TARGET_TYPES.BASKETBALL_TEAM })),
-    ...publicComments.map(comment => ({ id: comment.id, type: TARGET_TYPES.COMMENT })),
+    ...publicComments.map(comment => ({ id: comment.id, type: TARGET_TYPES.PUBLIC_COMMENT })),
   ];
 
   for (const target of allTargets) {

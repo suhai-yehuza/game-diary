@@ -41,12 +41,7 @@ describe('Search API Route', () => {
         totalTeams: 0,
         totalPlayers: 0,
       },
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        pages: 0,
-      },
+      total: 0,
     });
   });
 
@@ -71,12 +66,7 @@ describe('Search API Route', () => {
         totalTeams: 0,
         totalPlayers: 0,
       },
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        pages: 0,
-      },
+      total: 0,
     });
   });
 
@@ -90,18 +80,20 @@ describe('Search API Route', () => {
     expect(response.status).toBe(200);
     expect(data).toMatchObject({
       success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 0,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
+      results: [],
+      total: 0,
+      query: 'test',
+      filters: {},
+      facets: {
+        type: [
+          { value: 'users', count: 0 },
+          { value: 'gameLogs', count: 0 },
+          { value: 'games', count: 0 },
+          { value: 'teams', count: 0 },
+          { value: 'players', count: 0 },
+        ],
       },
+      took: 0,
     });
   });
 
@@ -126,12 +118,7 @@ describe('Search API Route', () => {
         totalTeams: 0,
         totalPlayers: 0,
       },
-      pagination: {
-        page: 1,
-        limit: 20,
-        total: 0,
-        pages: 0,
-      },
+      total: 0,
     });
   });
 
@@ -147,24 +134,20 @@ describe('Search API Route', () => {
     // In test environment, should return mock data with pagination info
     expect(data).toMatchObject({
       success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 0,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
+      results: [],
+      total: 0,
+      query: 'test',
+      filters: {},
+      facets: {
+        type: [
+          { value: 'users', count: 0 },
+          { value: 'gameLogs', count: 0 },
+          { value: 'games', count: 0 },
+          { value: 'teams', count: 0 },
+          { value: 'players', count: 0 },
+        ],
       },
-      pagination: {
-        page: 2,
-        limit: 10,
-        total: 0,
-        pages: 0,
-      },
+      took: 0,
     });
   });
 
@@ -177,18 +160,20 @@ describe('Search API Route', () => {
     expect(response.status).toBe(200);
     expect(data).toMatchObject({
       success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 0,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
+      results: [],
+      total: 0,
+      query: 'test',
+      filters: {},
+      facets: {
+        type: [
+          { value: 'users', count: 0 },
+          { value: 'gameLogs', count: 0 },
+          { value: 'games', count: 0 },
+          { value: 'teams', count: 0 },
+          { value: 'players', count: 0 },
+        ],
       },
+      took: 0,
     });
   });
 
@@ -201,18 +186,20 @@ describe('Search API Route', () => {
     expect(response.status).toBe(200);
     expect(data).toMatchObject({
       success: true,
-      data: {
-        users: [],
-        gameLogs: [],
-        games: [],
-        teams: [],
-        players: [],
-        totalUsers: 0,
-        totalGameLogs: 0,
-        totalGames: 0,
-        totalTeams: 0,
-        totalPlayers: 0,
+      results: [],
+      total: 0,
+      query: 'test',
+      filters: {},
+      facets: {
+        type: [
+          { value: 'users', count: 0 },
+          { value: 'gameLogs', count: 0 },
+          { value: 'games', count: 0 },
+          { value: 'teams', count: 0 },
+          { value: 'players', count: 0 },
+        ],
       },
+      took: 0,
     });
   });
 });

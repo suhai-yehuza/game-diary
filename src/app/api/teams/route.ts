@@ -32,6 +32,46 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'name';
     const sortDirection = searchParams.get('sortDirection') || 'asc';
 
+    // Check if we're in mock mode
+    if (process.env.MOCK_MODE === 'true') {
+      logger.info('Teams API request - Mock Mode', {
+        page,
+        limit,
+        search,
+        conference,
+        division,
+        sortBy,
+        sortDirection,
+        league,
+        bypassCache,
+      });
+
+      // Return mock teams data
+      const mockTeams = {
+        success: true,
+        data: {
+          teams: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+          cacheInfo: {
+            hit: false,
+            key: `teams:${page}:${limit}:${search}:${conference}:${division}:${sortBy}:${sortDirection}:${league || 'all'}`,
+            status: 'mock',
+          },
+        },
+        timestamp: new Date().toISOString(),
+        mock: true,
+      };
+
+      return NextResponse.json(mockTeams);
+    }
+
     logger.info('Teams API request', {
       page,
       limit,

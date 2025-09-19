@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
             {
               error: 'Type parameter is required for mock-data action',
               message:
-                'Please specify a type: live-games, nba-games, nba-teams, nba-players, nba-standings, nba-statistics',
+                'Please specify a type: live-games, nba-games, nba-teams, nba-players, nba-standings, nba-statistics, trending-content, recent-games, popular-games, popular-teams, popular-players',
             },
             { status: 400 }
           );

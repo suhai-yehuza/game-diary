@@ -50,15 +50,15 @@ export function useGameDetails({
             logo: game.teams?.home?.logo || '',
           },
           away: {
-            id: game.teams?.away?.id || 0,
-            name: game.teams?.away?.name || '',
-            nickname: game.teams?.away?.nickname || '',
-            code: game.teams?.away?.code || '',
-            logo: game.teams?.away?.logo || '',
+            id: game.teams?.visitors?.id || 0,
+            name: game.teams?.visitors?.name || '',
+            nickname: game.teams?.visitors?.nickname || '',
+            code: game.teams?.visitors?.code || '',
+            logo: game.teams?.visitors?.logo || '',
           },
           scores: {
             home: game.scores?.home?.points || 0,
-            away: game.scores?.away?.points || 0,
+            away: game.scores?.visitors?.points || 0,
           },
           status: {
             long: game.status?.long || '',

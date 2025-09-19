@@ -88,14 +88,14 @@ export function PublicCommentForm({
           onChange={e => setContent(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none dark:bg-gray-700 dark:text-white"
+          className="w-full px-3 py-2 border border-theme-primary rounded-lg focus:ring-2 focus:ring-brand-primary focus:border-transparent resize-none bg-surface-card text-theme-primary"
           rows={3}
           disabled={loading || isSubmitting}
         />
       </div>
 
       <div className="flex items-center justify-between">
-        <div className="text-xs text-gray-500 dark:text-gray-400">
+        <div className="text-xs text-theme-muted">
           {user
             ? `Commenting as ${user.username || user.firstName || 'User'}`
             : 'Commenting anonymously'}
@@ -106,14 +106,14 @@ export function PublicCommentForm({
             type="button"
             onClick={handleCancel}
             disabled={loading || isSubmitting}
-            className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 disabled:opacity-50"
+            className="px-3 py-1 text-sm text-theme-secondary hover:text-theme-primary disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={!content.trim() || loading || isSubmitting}
-            className="px-4 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-1 text-sm bg-brand-primary text-white rounded-lg hover:bg-brand-primary-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Submitting...' : 'Submit'}
           </button>

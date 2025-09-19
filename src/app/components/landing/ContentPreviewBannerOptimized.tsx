@@ -120,9 +120,7 @@ export function ContentPreviewBannerOptimized() {
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-gray-700 dark:text-gray-300">
-                  No trending content yet
-                </div>
+                <div className="text-sm text-theme-secondary">No trending content yet</div>
               )}
             </Link>
 

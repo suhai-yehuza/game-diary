@@ -42,11 +42,17 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
     setShowAllTime(!showAllTime);
   };
 
-  const formatPercentage = (value: number) => {
+  const formatPercentage = (value: number | undefined | null) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0%';
+    }
     return `${value.toFixed(1)}%`;
   };
 
-  const formatNumber = (value: number, decimals = 1) => {
+  const formatNumber = (value: number | undefined | null, decimals = 1) => {
+    if (value === undefined || value === null || isNaN(value)) {
+      return '0.0';
+    }
     return value.toFixed(decimals);
   };
 
@@ -104,7 +110,7 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
     );
   }
 
-  if (!stats) {
+  if (!stats?.winPercentage) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -134,16 +140,12 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-              <BarChart3 className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center">
+              <BarChart3 className="w-5 h-5 text-brand-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Team Statistics Filters
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                Filter team statistics by season
-              </p>
+              <h3 className="text-lg font-semibold text-theme-primary">Team Statistics Filters</h3>
+              <p className="text-sm text-theme-secondary">Filter team statistics by season</p>
             </div>
           </div>
 
@@ -174,10 +176,8 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
         {/* Filter Controls */}
         <div className="mt-6 space-y-4">
           <div className="flex items-center gap-3">
-            <Calendar className="w-4 h-4 text-gray-500" />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 min-w-[80px]">
-              Season:
-            </span>
+            <Calendar className="w-4 h-4 text-theme-muted" />
+            <span className="text-sm font-medium text-theme-primary min-w-[80px]">Season:</span>
             <CustomSelect
               value={selectedSeason}
               onChange={handleSeasonChange}
@@ -192,19 +192,19 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
 
       {/* Team Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="relative overflow-hidden bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-800">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-brand-primary/10 to-brand-primary/20 border-brand-primary/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-blue-600 dark:text-blue-400 text-sm font-medium uppercase tracking-wide">
+                <p className="text-brand-primary text-sm font-medium uppercase tracking-wide">
                   Win Percentage
                 </p>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">
-                  {formatPercentage(stats.winPercentage)}
+                <p className="text-2xl font-bold text-brand-primary mt-1">
+                  {formatPercentage(stats?.winPercentage)}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-blue-500/10 dark:bg-blue-400/10 rounded-xl flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+              <div className="w-12 h-12 bg-brand-primary/10 rounded-xl flex items-center justify-center">
+                <Trophy className="w-6 h-6 text-brand-primary" />
               </div>
             </div>
           </CardContent>
@@ -218,7 +218,7 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
                   Games Played
                 </p>
                 <p className="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mt-1">
-                  {stats.gamesPlayed}
+                  {stats?.gamesPlayed || 0}
                 </p>
               </div>
               <div className="w-12 h-12 bg-emerald-500/10 dark:bg-emerald-400/10 rounded-xl flex items-center justify-center">
@@ -228,37 +228,37 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-800">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-semantic-info/10 to-semantic-info/20 border-semantic-info/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-purple-600 dark:text-purple-400 text-sm font-medium uppercase tracking-wide">
+                <p className="text-semantic-info text-sm font-medium uppercase tracking-wide">
                   Record
                 </p>
-                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100 mt-1">
-                  {stats.wins}-{stats.losses}
+                <p className="text-2xl font-bold text-semantic-info mt-1">
+                  {stats?.wins || 0}-{stats?.losses || 0}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-purple-500/10 dark:bg-purple-400/10 rounded-xl flex items-center justify-center">
-                <Target className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+              <div className="w-12 h-12 bg-semantic-info/10 rounded-xl flex items-center justify-center">
+                <Target className="w-6 h-6 text-semantic-info" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20 border-orange-200 dark:border-orange-800">
+        <Card className="relative overflow-hidden bg-gradient-to-br from-semantic-warning/10 to-semantic-warning/20 border-semantic-warning/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-orange-600 dark:text-orange-400 text-sm font-medium uppercase tracking-wide">
+                <p className="text-semantic-warning text-sm font-medium uppercase tracking-wide">
                   Conference
                 </p>
-                <p className="text-xl font-bold text-orange-900 dark:text-orange-100 mt-1">
-                  {stats.conference}
+                <p className="text-xl font-bold text-semantic-warning mt-1">
+                  {stats?.conference || 'N/A'}
                 </p>
               </div>
-              <div className="w-12 h-12 bg-orange-500/10 dark:bg-orange-400/10 rounded-xl flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-orange-600 dark:text-orange-400" />
+              <div className="w-12 h-12 bg-semantic-warning/10 rounded-xl flex items-center justify-center">
+                <MapPin className="w-6 h-6 text-semantic-warning" />
               </div>
             </div>
           </CardContent>
@@ -276,12 +276,15 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-                {stats.homeRecord.wins}-{stats.homeRecord.losses}
+              <div className="text-3xl font-bold text-semantic-success">
+                {stats?.homeRecord?.wins || 0}-{stats?.homeRecord?.losses || 0}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div className="text-sm text-theme-secondary mt-1">
                 {formatPercentage(
-                  (stats.homeRecord.wins / (stats.homeRecord.wins + stats.homeRecord.losses)) * 100
+                  stats?.homeRecord?.wins && stats?.homeRecord?.losses
+                    ? (stats.homeRecord.wins / (stats.homeRecord.wins + stats.homeRecord.losses)) *
+                        100
+                    : 0
                 )}{' '}
                 win rate
               </div>
@@ -298,12 +301,15 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-center">
-              <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                {stats.awayRecord.wins}-{stats.awayRecord.losses}
+              <div className="text-3xl font-bold text-brand-primary">
+                {stats?.awayRecord?.wins || 0}-{stats?.awayRecord?.losses || 0}
               </div>
-              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              <div className="text-sm text-theme-secondary mt-1">
                 {formatPercentage(
-                  (stats.awayRecord.wins / (stats.awayRecord.wins + stats.awayRecord.losses)) * 100
+                  stats?.awayRecord?.wins && stats?.awayRecord?.losses
+                    ? (stats.awayRecord.wins / (stats.awayRecord.wins + stats.awayRecord.losses)) *
+                        100
+                    : 0
                 )}{' '}
                 win rate
               </div>
@@ -321,13 +327,15 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           <CardContent>
             <div className="text-center">
               <div className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                {stats.lastTenRecord.wins}-{stats.lastTenRecord.losses}
+                {stats?.lastTenRecord?.wins || 0}-{stats?.lastTenRecord?.losses || 0}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 {formatPercentage(
-                  (stats.lastTenRecord.wins /
-                    (stats.lastTenRecord.wins + stats.lastTenRecord.losses)) *
-                    100
+                  stats?.lastTenRecord?.wins && stats?.lastTenRecord?.losses
+                    ? (stats.lastTenRecord.wins /
+                        (stats.lastTenRecord.wins + stats.lastTenRecord.losses)) *
+                        100
+                    : 0
                 )}{' '}
                 win rate
               </div>
@@ -348,57 +356,57 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                {formatNumber(stats.points.avg)}
+                {formatNumber(stats?.points?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Points per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.points.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.points?.diff || 0)}`}
               >
-                {getTrendIcon(stats.points.diff)}
-                {stats.points.diff > 0 ? '+' : ''}
-                {formatNumber(stats.points.diff)}
+                {getTrendIcon(stats?.points?.diff || 0)}
+                {(stats?.points?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.points?.diff)}
               </div>
             </div>
 
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                {formatNumber(stats.assists.avg)}
+              <div className="text-2xl font-bold text-brand-primary">
+                {formatNumber(stats?.assists?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Assists per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.assists.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.assists?.diff || 0)}`}
               >
-                {getTrendIcon(stats.assists.diff)}
-                {stats.assists.diff > 0 ? '+' : ''}
-                {formatNumber(stats.assists.diff)}
+                {getTrendIcon(stats?.assists?.diff || 0)}
+                {(stats?.assists?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.assists?.diff)}
               </div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                {formatPercentage(stats.fgPct.avg)}
+                {formatPercentage(stats?.fgPct?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Field Goal %</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.fgPct.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.fgPct?.diff || 0)}`}
               >
-                {getTrendIcon(stats.fgPct.diff)}
-                {stats.fgPct.diff > 0 ? '+' : ''}
-                {formatNumber(stats.fgPct.diff, 1)}%
+                {getTrendIcon(stats?.fgPct?.diff || 0)}
+                {(stats?.fgPct?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.fgPct?.diff, 1)}%
               </div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                {formatPercentage(stats.fg3Pct.avg)}
+                {formatPercentage(stats?.fg3Pct?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">3-Point %</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.fg3Pct.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.fg3Pct?.diff || 0)}`}
               >
-                {getTrendIcon(stats.fg3Pct.diff)}
-                {stats.fg3Pct.diff > 0 ? '+' : ''}
-                {formatNumber(stats.fg3Pct.diff, 1)}%
+                {getTrendIcon(stats?.fg3Pct?.diff || 0)}
+                {(stats?.fg3Pct?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.fg3Pct?.diff, 1)}%
               </div>
             </div>
           </div>
@@ -417,57 +425,57 @@ export function TeamStats({ teamId, teamName: _teamName }: ITeamStatsProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="text-center">
               <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-                {formatNumber(stats.rebounds.avg)}
+                {formatNumber(stats?.rebounds?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Rebounds per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.rebounds.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.rebounds?.diff || 0)}`}
               >
-                {getTrendIcon(stats.rebounds.diff)}
-                {stats.rebounds.diff > 0 ? '+' : ''}
-                {formatNumber(stats.rebounds.diff)}
+                {getTrendIcon(stats?.rebounds?.diff || 0)}
+                {(stats?.rebounds?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.rebounds?.diff)}
               </div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-                {formatNumber(stats.steals.avg)}
+                {formatNumber(stats?.steals?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Steals per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.steals.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.steals?.diff || 0)}`}
               >
-                {getTrendIcon(stats.steals.diff)}
-                {stats.steals.diff > 0 ? '+' : ''}
-                {formatNumber(stats.steals.diff)}
+                {getTrendIcon(stats?.steals?.diff || 0)}
+                {(stats?.steals?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.steals?.diff)}
               </div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                {formatNumber(stats.blocks.avg)}
+                {formatNumber(stats?.blocks?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Blocks per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats.blocks.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(stats?.blocks?.diff || 0)}`}
               >
-                {getTrendIcon(stats.blocks.diff)}
-                {stats.blocks.diff > 0 ? '+' : ''}
-                {formatNumber(stats.blocks.diff)}
+                {getTrendIcon(stats?.blocks?.diff || 0)}
+                {(stats?.blocks?.diff || 0) > 0 ? '+' : ''}
+                {formatNumber(stats?.blocks?.diff)}
               </div>
             </div>
 
             <div className="text-center">
               <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">
-                {formatNumber(stats.turnovers.avg)}
+                {formatNumber(stats?.turnovers?.avg)}
               </div>
               <div className="text-sm text-gray-600 dark:text-gray-400">Turnovers per Game</div>
               <div
-                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(-stats.turnovers.diff)}`}
+                className={`text-xs mt-1 flex items-center justify-center gap-1 ${getTrendColor(-(stats?.turnovers?.diff || 0))}`}
               >
-                {getTrendIcon(-stats.turnovers.diff)}
-                {stats.turnovers.diff > 0 ? '-' : '+'}
-                {formatNumber(Math.abs(stats.turnovers.diff))}
+                {getTrendIcon(-(stats?.turnovers?.diff || 0))}
+                {(stats?.turnovers?.diff || 0) > 0 ? '-' : '+'}
+                {formatNumber(Math.abs(stats?.turnovers?.diff || 0))}
               </div>
             </div>
           </div>

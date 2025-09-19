@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useLiveGames } from '@/hooks/use-live-games';
@@ -107,7 +107,7 @@ export function LiveGamesBanner() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get the games to display using our centralized logic
-  const displayGames = getDisplayGames(games);
+  const displayGames = useMemo(() => getDisplayGames(games), [games]);
 
   // Update last updated timestamp when games change
   useEffect(() => {
@@ -123,7 +123,7 @@ export function LiveGamesBanner() {
       const timer = setTimeout(() => setIsLoading(false), 1000);
       return () => clearTimeout(timer);
     }
-  }, [displayGames.length]);
+  }, [displayGames]);
 
   // Pause animation on hover/touch for better UX
   const handleMouseEnter = useCallback(() => setIsPaused(true), []);
@@ -153,7 +153,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-gradient-to-r from-theme-muted to-brand-primary text-text-inverse py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-lg"
+      className="fixed top-0 left-0 right-0 z-[60] bg-brand-primary text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-2xl border-b-4 border-pink-300"
       style={
         {
           position: 'fixed',

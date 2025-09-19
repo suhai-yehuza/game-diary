@@ -51,6 +51,9 @@
     --color-semantic-error: hsl(0, 84%, 60%);
     --color-semantic-info: hsl(221, 83%, 53%);
 
+    --color-accent-orange: hsl(25, 95%, 53%);
+    --color-accent-purple: hsl(262, 83%, 58%);
+
     /* Legacy Shadcn/UI Variables - Updated for better contrast */
     --background: 0 0% 98%;
     --foreground: 0 0% 9%;
@@ -102,7 +105,7 @@
     --color-text-tertiary: hsl(0, 0%, 75%);
     --color-text-muted: hsl(0, 0%, 65%);
     --color-text-disabled: hsl(0, 0%, 45%);
-    --color-text-inverse: hsl(0, 0%, 9%);
+    --color-text-inverse: hsl(0, 0%, 100%);
 
     /* Dark Theme Border Colors */
     --color-border-primary: hsl(0, 0%, 20%);
@@ -126,6 +129,9 @@
     --color-semantic-warning: hsl(38, 92%, 50%);
     --color-semantic-error: hsl(0, 84%, 60%);
     --color-semantic-info: hsl(221, 83%, 53%);
+
+    --color-accent-orange: hsl(25, 95%, 53%);
+    --color-accent-purple: hsl(262, 83%, 58%);
 
     /* Legacy Shadcn/UI Variables - Dark theme */
     --background: 0 0% 8%;
@@ -2136,24 +2142,33 @@ dd.team-detail-value.bg-orange-50 {
 }
 
 /* Ensure active state uses semantic colors */
+.nav-item-google-style.bg-brand-primary,
 .dark .nav-item-google-style.bg-brand-primary {
   background-color: var(--color-brand-primary) !important;
   color: var(--color-text-inverse) !important;
   border-color: var(--color-brand-primary) !important;
 }
 
-/* Force semantic colors for active state in dark mode */
+/* Force semantic colors for active state in both light and dark modes */
+.nav-item-google-style.bg-brand-primary,
 .dark .nav-item-google-style.bg-brand-primary,
+.nav-item-google-style.bg-brand-secondary,
 .dark .nav-item-google-style.bg-brand-secondary,
+.nav-item-google-style.bg-semantic-error,
 .dark .nav-item-google-style.bg-semantic-error,
+.nav-item-google-style.bg-semantic-info,
 .dark .nav-item-google-style.bg-semantic-info {
   color: var(--color-text-inverse) !important;
 }
 
 /* Override any conflicting styles for active state */
+.nav-item-google-style.bg-brand-primary *,
 .dark .nav-item-google-style.bg-brand-primary *,
+.nav-item-google-style.bg-brand-secondary *,
 .dark .nav-item-google-style.bg-brand-secondary *,
+.nav-item-google-style.bg-semantic-error *,
 .dark .nav-item-google-style.bg-semantic-error *,
+.nav-item-google-style.bg-semantic-info *,
 .dark .nav-item-google-style.bg-semantic-info * {
   color: var(--color-text-inverse) !important;
 }
@@ -2162,6 +2177,13 @@ dd.team-detail-value.bg-orange-50 {
 .nav-item-google-style.text-white,
 .nav-item-google-style.text-white * {
   color: rgb(255, 255, 255) !important; /* Force white text for active state in dark mode */
+}
+
+/* Ensure brand-primary background overrides all other styles */
+.nav-item-google-style.bg-brand-primary,
+.dark .nav-item-google-style.bg-brand-primary {
+  background-color: var(--color-brand-primary) !important;
+  border-color: var(--color-brand-primary) !important;
 }
 
 /* Active state styling - Semantic colors with proper text */

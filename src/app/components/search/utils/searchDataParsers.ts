@@ -154,8 +154,19 @@ export function parseTeams(teams: unknown): string | null {
         return teamsData
           .map(team => {
             if (typeof team === 'object' && team !== null) {
-              const teamObj = team as { team_name?: string; name?: string };
-              return teamObj.team_name || teamObj.name || 'Unknown Team';
+              const teamObj = team as {
+                team_name?: string;
+                name?: string;
+                nickname?: string;
+                code?: string;
+              };
+              return (
+                teamObj.team_name?.trim() ||
+                teamObj.name?.trim() ||
+                teamObj.nickname?.trim() ||
+                teamObj.code?.trim() ||
+                'Unknown Team'
+              );
             }
             return String(team);
           })
@@ -175,8 +186,18 @@ export function parseTeams(teams: unknown): string | null {
     return teams
       .map((team: unknown) =>
         typeof team === 'object' && team !== null
-          ? (team as { team_name?: string; name?: string }).team_name ||
-            (team as { team_name?: string; name?: string }).name ||
+          ? (
+              team as { team_name?: string; name?: string; nickname?: string; code?: string }
+            ).team_name?.trim() ||
+            (
+              team as { team_name?: string; name?: string; nickname?: string; code?: string }
+            ).name?.trim() ||
+            (
+              team as { team_name?: string; name?: string; nickname?: string; code?: string }
+            ).nickname?.trim() ||
+            (
+              team as { team_name?: string; name?: string; nickname?: string; code?: string }
+            ).code?.trim() ||
             'Unknown Team'
           : String(team)
       )

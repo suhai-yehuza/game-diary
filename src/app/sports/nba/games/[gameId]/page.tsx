@@ -120,7 +120,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
 
   // Get team IDs for fetching players
   const homeTeamId = game?.teams?.home?.id?.toString();
-  const awayTeamId = game?.teams?.away?.id?.toString();
+  const awayTeamId = game?.teams?.visitors?.id?.toString();
 
   // Fetch team players for both teams
   const {
@@ -334,7 +334,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
 
   return (
     <SportsPageLayout
-      title={`${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
+      title={`${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`}
       description={`NBA Game - ${formatGameDate(typeof game.date === 'string' ? game.date : game.date?.start || '')}`}
       showLiveGamesButton={false}
     >
@@ -392,7 +392,7 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold">
-              {game.teams?.away?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
+              {game.teams?.visitors?.name || 'Unknown'} @ {game.teams?.home?.name || 'Unknown'}
             </CardTitle>
             <Badge
               className={`px-3 py-1 text-sm font-medium ${getStatusColor(typeof game.status === 'string' ? game.status : game.status?.short?.toString() || 'scheduled')}`}
@@ -437,19 +437,19 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
               }`}
             >
               <div className="mb-4">
-                {game.teams?.away?.logo && (
+                {game.teams?.visitors?.logo && (
                   <Image
-                    src={game.teams?.away?.logo}
-                    alt={`${game.teams?.away?.name || 'Team'} logo`}
+                    src={game.teams?.visitors?.logo}
+                    alt={`${game.teams?.visitors?.name || 'Team'} logo`}
                     width={64}
                     height={64}
                     className="w-16 h-16 mx-auto mb-2"
                   />
                 )}
                 <h3 className="text-xl font-bold score-text">
-                  {game.teams?.away?.name || 'Unknown'}
+                  {game.teams?.visitors?.name || 'Unknown'}
                 </h3>
-                <p className="nba-team-nickname">{game.teams?.away?.nickname || ''}</p>
+                <p className="nba-team-nickname">{game.teams?.visitors?.nickname || ''}</p>
               </div>
               <div className="text-4xl font-bold score-text">
                 {game.scores?.visitors?.points ?? '-'}
@@ -538,7 +538,9 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
                     </thead>
                     <tbody>
                       <tr className="border-b">
-                        <td className="py-2 font-medium">{game.teams?.away?.nickname || 'Away'}</td>
+                        <td className="py-2 font-medium">
+                          {game.teams?.visitors?.nickname || 'Away'}
+                        </td>
                         {(
                           game.scores?.visitors as { points: number; linescore?: number[] }
                         )?.linescore?.map((score: number, index: number) => (
@@ -677,10 +679,10 @@ export default function NBAGameDetailPage({ params: _params }: IGameDetailPagePr
             ? (() => {
                 const preSelectedGame = {
                   id: game.id,
-                  name: `${game.teams?.away?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
+                  name: `${game.teams?.visitors?.name || 'Unknown'} @ ${game.teams?.home?.name || 'Unknown'}`,
                   date: typeof game.date === 'string' ? game.date : game.date?.start || '',
                   homeTeam: game.teams?.home?.name || 'Unknown',
-                  awayTeam: game.teams?.away?.name || 'Unknown',
+                  awayTeam: game.teams?.visitors?.name || 'Unknown',
                 };
                 console.log('🔍 preSelectedGame for modal:', preSelectedGame);
                 return preSelectedGame;

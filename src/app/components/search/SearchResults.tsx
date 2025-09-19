@@ -24,22 +24,23 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
     (filter: IResultType): number => {
       switch (filter) {
         case 'all':
+          // Use total from API response
           return results.total || 0;
         case 'users':
-          return results.results?.filter(r => r.type === 'user').length || 0;
+          return results.facets?.type?.find(f => f.value === 'users')?.count || 0;
         case 'games':
-          return results.results?.filter(r => r.type === 'game').length || 0;
+          return results.facets?.type?.find(f => f.value === 'games')?.count || 0;
         case 'gameLogs':
-          return results.results?.filter(r => r.type === 'gameLog').length || 0;
+          return results.facets?.type?.find(f => f.value === 'gameLogs')?.count || 0;
         case 'teams':
-          return results.results?.filter(r => r.type === 'team').length || 0;
+          return results.facets?.type?.find(f => f.value === 'teams')?.count || 0;
         case 'players':
-          return results.results?.filter(r => r.type === 'player').length || 0;
+          return results.facets?.type?.find(f => f.value === 'players')?.count || 0;
         default:
           return 0;
       }
     },
-    [results.results, results.total]
+    [results.total, results.facets]
   );
 
   // Enhanced search insights
@@ -85,13 +86,11 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
     >
       <div className="max-w-4xl mx-auto space-y-8" data-testid="search-results">
         {/* Modern Results Header */}
-        <div className="bg-gradient-to-r from-white to-gray-50 dark:from-gray-900 dark:to-gray-800 rounded-xl p-4 sm:p-6 border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="bg-gradient-to-r from-surface-card to-bg-theme-secondary rounded-xl p-4 sm:p-6 border border-theme-primary shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 sm:mb-6">
             <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                Search Results
-              </h1>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+              <h1 className="text-xl sm:text-2xl font-bold text-theme-primary">Search Results</h1>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs sm:text-sm text-theme-secondary">
                 <span className="font-medium">
                   {formatNumberShort(searchInsights.total)} results found
                 </span>
@@ -347,7 +346,7 @@ export function SearchResults({ results, query }: ISearchResultsProps) {
               <div className="text-center pt-6">
                 <button
                   onClick={() => handleFilterChange('all')}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium rounded-lg transition-colors"
                 >
                   <RotateCcw className="w-4 h-4" />
                   View All {formatNumberShort(searchInsights.total)} Results

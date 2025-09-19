@@ -132,7 +132,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
         </div>
         <div className="p-4 sm:p-6 flex-1 flex flex-col">
           <div className="flex-1">
-            <IntegratedGames data={data?.recentGames} />
+            <IntegratedGames data={{ finishedGames: data?.recentGames }} />
           </div>
         </div>
       </section>

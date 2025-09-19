@@ -97,18 +97,29 @@ export async function GET(
       !gameStatsData.response ||
       gameStatsData.response.length === 0
     ) {
-      logger.info('No game statistics available for this game', {
+      logger.info('No game statistics available for this game - returning empty array', {
         gameId,
         nbaGameId,
         results: gameStatsData.results,
       });
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No game statistics available for this game',
-        },
-        { status: 404 }
-      );
+
+      // Return successful response with empty array
+      const emptyResponse = {
+        ...gameStatsData,
+        response: [],
+        results: 0,
+      };
+
+      // Cache the empty response for 1 hour to avoid repeated API calls
+      simpleCacheService.set(cacheKey, emptyResponse, {
+        ttl: 3600, // 1 hour in seconds
+        tags: ['game-statistics', `game-${gameId}`, `nba-game-${nbaGameId}`],
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: emptyResponse,
+      });
     }
 
     logger.info('Game statistics fetched successfully', {

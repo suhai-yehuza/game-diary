@@ -84,16 +84,17 @@ CREATE INDEX IF NOT EXISTS "idx_index_usage_stats_recorded_at" ON "index_usage_s
 -- ============================================================================
 
 -- Function to record migration version
+DROP FUNCTION IF EXISTS record_migration_version(TEXT, TEXT, TEXT, TEXT);
 CREATE OR REPLACE FUNCTION record_migration_version(
-    file_name TEXT,
-    version TEXT,
-    checksum TEXT DEFAULT NULL,
-    rollback_sql TEXT DEFAULT NULL
+    p_file_name TEXT,
+    p_version TEXT,
+    p_checksum TEXT DEFAULT NULL,
+    p_rollback_sql TEXT DEFAULT NULL
 )
 RETURNS VOID AS $$
 BEGIN
     INSERT INTO migration_versions (file_name, version, checksum, rollback_sql, applied_at)
-    VALUES (file_name, version, checksum, rollback_sql, NOW())
+    VALUES (p_file_name, p_version, p_checksum, p_rollback_sql, NOW())
     ON CONFLICT (file_name) DO UPDATE SET
         version = EXCLUDED.version,
         checksum = EXCLUDED.checksum,
@@ -154,7 +155,7 @@ BEGIN
     -- Insert current index usage statistics
     INSERT INTO index_usage_stats (table_name, index_name, index_scans, index_tuples_read, index_tuples_fetched, recorded_at)
     SELECT
-        schemaname || '.' || tablename as table_name,
+        schemaname || '.' || relname as table_name,
         indexrelname as index_name,
         idx_scan as index_scans,
         idx_tup_read as index_tuples_read,

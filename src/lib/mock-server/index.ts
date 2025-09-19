@@ -187,6 +187,16 @@ class MockServer {
         return mockDataProvider.getNbaStandingsMock();
       case 'nba-statistics':
         return mockDataProvider.getNbaGameStatisticsMock();
+      case 'trending-content':
+        return mockDataProvider.getTrendingContentMock();
+      case 'recent-games':
+        return mockDataProvider.getRecentGamesMock();
+      case 'popular-games':
+        return mockDataProvider.getPopularGamesMock();
+      case 'popular-teams':
+        return mockDataProvider.getPopularTeamsMock();
+      case 'popular-players':
+        return mockDataProvider.getPopularPlayersMock();
       default:
         throw new Error(`Unknown mock data type: ${type}`);
     }

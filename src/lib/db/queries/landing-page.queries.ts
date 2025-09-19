@@ -228,7 +228,7 @@ export async function getRecentFinishedGamesQuery() {
     throw new Error('Database connection not available');
   }
 
-  // Simple query for recent games - get any recent games first, then filter by status
+  // Query for recent finished games - filter for finished status at database level
   const recentGamesQuery = sql`
     SELECT
       g.id,
@@ -239,6 +239,7 @@ export async function getRecentFinishedGamesQuery() {
       g.arena
     FROM basketball_games g
     WHERE g.deleted_at IS NULL
+      AND LOWER(g.status->>'long') = 'finished'
     ORDER BY g.date DESC
     LIMIT 20
   `;
@@ -402,4 +403,53 @@ export async function getPopularTeamsQuery() {
 
   const teamsResult = await database.execute(teamsQuery);
   return teamsResult.rows || [];
+}
+
+/**
+ * Get popular players directly from database
+ */
+export async function getPopularPlayersQuery() {
+  const database = db();
+  if (!database) {
+    throw new Error('Database connection not available');
+  }
+
+  // Get player information with engagement data from public_comments and public_reactions
+  const playersQuery = sql`
+    SELECT
+      p.id,
+      (p.first_name || ' ' || p.last_name) as name,
+      'Unknown' as position,
+      COALESCE(comment_counts.total_comments, 0) as total_comments,
+      COALESCE(reaction_counts.total_reactions, 0) as total_reactions
+    FROM basketball_players p
+    LEFT JOIN (
+      SELECT
+        parent_id,
+        COUNT(*) as total_comments
+      FROM public_comments
+      WHERE parent_type = 'BASKETBALL_PLAYER'
+        AND is_approved = true
+        AND deleted_at IS NULL
+      GROUP BY parent_id
+    ) comment_counts ON p.id = comment_counts.parent_id
+    LEFT JOIN (
+      SELECT
+        target_id,
+        COUNT(*) as total_reactions
+      FROM public_reactions
+      WHERE target_type = 'BASKETBALL_PLAYER'
+        AND is_approved = true
+        AND deleted_at IS NULL
+      GROUP BY target_id
+    ) reaction_counts ON p.id = reaction_counts.target_id
+    WHERE p.deleted_at IS NULL
+    ORDER BY
+      (COALESCE(comment_counts.total_comments, 0) + COALESCE(reaction_counts.total_reactions, 0)) DESC,
+      (p.first_name || ' ' || p.last_name)
+    LIMIT 10
+  `;
+
+  const playersResult = await database.execute(playersQuery);
+  return playersResult.rows || [];
 }

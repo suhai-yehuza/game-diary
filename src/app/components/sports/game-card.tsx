@@ -8,7 +8,13 @@ import type { IGameCardProps, IGameResponse } from '@/types';
 
 export function GameCard({ game, highlightTeam }: IGameCardProps) {
   const formatGameDate = (dateString: string) => {
+    if (!dateString || dateString.trim() === '') {
+      return 'TBD';
+    }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'TBD';
+    }
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
@@ -18,7 +24,13 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
   };
 
   const formatGameTime = (dateString: string) => {
+    if (!dateString || dateString.trim() === '') {
+      return 'TBD';
+    }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'TBD';
+    }
     return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
@@ -178,7 +190,10 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                       </div>
                     </div>
                     <div className="font-semibold text-xs xs:text-sm sm:text-base md:text-lg text-theme-primary break-words leading-tight min-h-[2rem] xs:min-h-[2.5rem] sm:min-h-[3rem] md:min-h-[3.5rem] flex items-center justify-center">
-                      {game.teams.visitors.name ?? 'Away Team'}
+                      {game.teams.visitors.name ||
+                        game.teams.visitors.nickname ||
+                        game.teams.visitors.code ||
+                        'Away Team'}
                     </div>
                     <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-theme-primary">
                       {game.scores?.visitors?.points ?? '-'}
@@ -205,7 +220,10 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
                       </div>
                     </div>
                     <div className="font-semibold text-xs xs:text-sm sm:text-base md:text-lg text-theme-primary break-words leading-tight min-h-[2rem] xs:min-h-[2.5rem] sm:min-h-[3rem] md:min-h-[3.5rem] flex items-center justify-center">
-                      {game.teams.home.name ?? 'Home Team'}
+                      {game.teams.home.name ||
+                        game.teams.home.nickname ||
+                        game.teams.home.code ||
+                        'Home Team'}
                     </div>
                     <div className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-theme-primary">
                       {game.scores?.home?.points ?? '-'}

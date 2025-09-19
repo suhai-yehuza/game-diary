@@ -116,6 +116,8 @@ const config = {
         accent: {
           DEFAULT: 'hsl(var(--accent))',
           foreground: 'hsl(var(--accent-foreground))',
+          orange: 'var(--color-accent-orange)',
+          purple: 'var(--color-accent-purple)',
         },
         popover: {
           DEFAULT: 'hsl(var(--popover))',

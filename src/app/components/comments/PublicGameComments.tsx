@@ -72,38 +72,33 @@ export function PublicGameComments({ gameId, showComments = false }: IPublicGame
           {/* Comments List */}
           <div className="space-y-4">
             {comments.map((comment: IPublicComment) => (
-              <div
-                key={comment.id}
-                className="border-b border-gray-100 dark:border-gray-700 pb-4 last:border-b-0"
-              >
+              <div key={comment.id} className="border-b border-theme-primary pb-4 last:border-b-0">
                 <div className="flex items-start space-x-3">
                   <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                    <div className="w-8 h-8 bg-bg-theme-secondary rounded-full flex items-center justify-center">
+                      <span className="text-sm font-medium text-theme-secondary">
                         {comment.user?.first_name?.[0] || 'U'}
                       </span>
                     </div>
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center space-x-2">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                      <p className="text-sm font-medium text-theme-primary">
                         {comment.user?.first_name} {comment.user?.last_name}
                       </p>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="text-xs text-theme-muted">
                         {new Date(comment.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
-                      {comment.content}
-                    </p>
+                    <p className="text-sm text-theme-secondary mt-1">{comment.content}</p>
                     <div className="flex items-center space-x-4 mt-2">
                       {(comment.totalReactionCount || 0) > 0 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-theme-muted">
                           {comment.totalReactionCount} reactions
                         </span>
                       )}
                       {(comment.totalChildCommentCount || 0) > 0 && (
-                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                        <span className="text-xs text-theme-muted">
                           {comment.totalChildCommentCount} replies
                         </span>
                       )}

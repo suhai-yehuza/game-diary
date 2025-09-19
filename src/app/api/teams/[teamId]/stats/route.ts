@@ -262,10 +262,30 @@ export async function GET(
       !Array.isArray(statsData.response) ||
       statsData.response.length === 0
     ) {
-      return NextResponse.json(
-        { success: false, error: 'No team statistics data received from external API' },
-        { status: 500 }
-      );
+      logger.info('No team statistics data available - returning empty array', {
+        teamId,
+        season,
+        results: statsData?.results,
+        responseLength: statsData?.response?.length,
+      });
+
+      // Return successful response with empty array
+      const emptyResponse = {
+        ...statsData,
+        response: [],
+        results: 0,
+      };
+
+      // Cache the empty response for 1 hour to avoid repeated API calls
+      simpleCacheService.set(cacheKey, emptyResponse, {
+        ttl: 3600, // 1 hour in seconds
+        tags: ['team-stats', `team-${teamId}`, `season-${season}`],
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: emptyResponse,
+      });
     }
 
     // Transform the external API response to our internal format

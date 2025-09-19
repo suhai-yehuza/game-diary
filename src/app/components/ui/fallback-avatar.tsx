@@ -132,7 +132,7 @@ export function FallbackAvatar({
     return (
       <div
         className={cn(
-          'flex items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold shadow-lg',
+          'flex items-center justify-center rounded-full bg-gradient-to-br from-brand-primary to-purple-600 text-white font-semibold shadow-lg',
           sizeClasses[size],
           className
         )}
