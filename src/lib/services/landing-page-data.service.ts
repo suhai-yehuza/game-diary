@@ -7,6 +7,7 @@ import {
   getRecentFinishedGamesQuery,
   getPopularGamesQuery,
   getPopularTeamsQuery,
+  getPopularPlayersQuery,
 } from '@/lib/db/queries';
 import { logger } from '@/lib/utils/logger';
 import { getServerApiUrl } from '@/lib/utils/server-api-client';
@@ -154,36 +155,41 @@ export class LandingPageDataService {
       });
 
       // Transform database rows to typed objects and filter for finished games
-      const allGames = result.map((row: Record<string, unknown>) => {
-        // Handle JSONB arena field properly
-        let arenaData: { name: string; city: string } | null = null;
-        if (row.arena && typeof row.arena === 'object' && row.arena !== null) {
-          const arena = row.arena as Record<string, unknown>;
-          const arenaName = arena.name;
-          const arenaCity = arena.city;
-          if (arenaName && arenaCity) {
-            arenaData = {
-              name:
-                typeof arenaName === 'string'
-                  ? arenaName
-                  : (arenaName as { toString?: () => string })?.toString?.() || 'Unknown Arena',
-              city:
-                typeof arenaCity === 'string'
-                  ? arenaCity
-                  : (arenaCity as { toString?: () => string })?.toString?.() || 'Unknown City',
-            };
+      const allGames = result
+        .filter((row: Record<string, unknown>) => {
+          // Only include games with valid dates
+          return row.date && !isNaN(new Date(row.date as string).getTime());
+        })
+        .map((row: Record<string, unknown>) => {
+          // Handle JSONB arena field properly
+          let arenaData: { name: string; city: string } | null = null;
+          if (row.arena && typeof row.arena === 'object' && row.arena !== null) {
+            const arena = row.arena as Record<string, unknown>;
+            const arenaName = arena.name;
+            const arenaCity = arena.city;
+            if (arenaName && arenaCity) {
+              arenaData = {
+                name:
+                  typeof arenaName === 'string'
+                    ? arenaName
+                    : (arenaName as { toString?: () => string })?.toString?.() || 'Unknown Arena',
+                city:
+                  typeof arenaCity === 'string'
+                    ? arenaCity
+                    : (arenaCity as { toString?: () => string })?.toString?.() || 'Unknown City',
+              };
+            }
           }
-        }
 
-        return {
-          id: row.id as string,
-          date: row.date as string,
-          status: row.status,
-          teams: row.teams as IGameTeamsDataService,
-          scores: row.scores as IGameScoresData,
-          arena: arenaData || undefined,
-        };
-      });
+          return {
+            id: row.id as string,
+            date: row.date as string,
+            status: row.status,
+            teams: row.teams as IGameTeamsDataService,
+            scores: row.scores as IGameScoresData,
+            arena: arenaData || undefined,
+          };
+        });
 
       // Filter for finished games based on status
       const games = allGames
@@ -840,14 +846,14 @@ export class LandingPageDataService {
         const allReactions = team.totalReactions;
         const gameLogs = team.totalGameLogs;
 
-        // Calculate popularity score using similar algorithm to games and players
+        // Calculate popularity score using hybrid approach: current method + public data emphasis
         const publicEngagementScore = publicComments * 2 + publicReactions * 1;
         const totalEngagementScore = allComments * 1.5 + allReactions * 0.8;
         const gameLogVolumeScore = Math.log(gameLogs + 1) * 1.5;
 
         const popularityScore =
-          Math.log(publicEngagementScore + 1) * 0.4 +
-          Math.log(totalEngagementScore + 1) * 0.4 +
+          Math.log(publicEngagementScore + 1) * 0.5 + // Increased weight for public data
+          Math.log(totalEngagementScore + 1) * 0.3 + // Reduced weight for total data
           gameLogVolumeScore * 0.2;
 
         team.popularityScore = popularityScore;
@@ -985,18 +991,33 @@ export class LandingPageDataService {
         return cached;
       }
 
-      // Fetch from internal API endpoint
-      const response = await fetch(getServerApiUrl('/api/landing-page/data/popularPlayers'));
-      if (!response.ok) {
-        throw new Error(`Failed to fetch popular players: ${response.statusText}`);
-      }
+      // Fetch directly from database
+      const players = await getPopularPlayersQuery();
 
-      const result = await response.json();
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to fetch popular players');
-      }
+      // Transform players data with real engagement data
+      const enrichedPlayers = players.map(player => {
+        const totalComments = Number(player.total_comments) || 0;
+        const totalReactions = Number(player.total_reactions) || 0;
+        const totalEngagement = totalComments + totalReactions;
 
-      const data = { mostPopular: result.data.mostPopular || [] };
+        return {
+          id: String(player.id),
+          name: String(player.name),
+          position: String(player.position),
+          currentTeam: 'Unknown Team',
+          teamLogo: '',
+          totalGameLogs: 0,
+          publicGameLogs: 0,
+          totalComments,
+          totalReactions,
+          popularityScore: totalEngagement, // Use real engagement as popularity score
+        };
+      });
+
+      // Sort by popularity score (total engagement)
+      const sortedPlayers = enrichedPlayers.sort((a, b) => b.popularityScore - a.popularityScore);
+
+      const data = { mostPopular: sortedPlayers };
 
       simpleCacheService.set(cacheKey, data, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes

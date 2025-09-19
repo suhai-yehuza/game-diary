@@ -333,13 +333,6 @@ export async function seedGames(
                   code: externalGame.teams.visitors?.code || '',
                   logo: externalGame.teams.visitors?.logo || '',
                 },
-                away: {
-                  id: externalGame.teams.visitors?.id?.toString() || '',
-                  name: externalGame.teams.visitors?.name || '',
-                  nickname: externalGame.teams.visitors?.nickname || '',
-                  code: externalGame.teams.visitors?.code || '',
-                  logo: externalGame.teams.visitors?.logo || '',
-                },
               }
             : undefined,
           scores: externalGame.scores
@@ -575,8 +568,8 @@ async function insertPlayerWithTeams(
     .insert(schema.basketball_players)
     .values({
       id: playerId,
-      first_name: player.firstname ?? 'missing-first-name',
-      last_name: player.lastname ?? 'missing-last-name',
+      first_name: player.first_name ?? 'missing-first-name',
+      last_name: player.last_name ?? 'missing-last-name',
       birth: player.birth || '{}', // Store as JSONB object directly
       nba: player.nba || '{}', // Store as JSONB object directly
       height: player.height || '{}', // Store as JSONB object directly
@@ -782,37 +775,29 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
       }
     }
 
-    // Generate child comments (replies) for some of the created comments
+    // Generate nested comments (replies) up to 5 levels deep for some of the created comments
     const commentsToReplyTo = faker.helpers.arrayElements(
       createdComments,
-      Math.floor(createdComments.length * 0.2)
+      Math.floor(createdComments.length * 0.5) // Increased from 0.3 to 0.5 for more nested comments
     );
-    let childCommentCount = 0;
+    let totalNestedCommentCount = 0;
+    let totalNestedReactionCount = 0;
+
+    console.log(
+      `🌳 Creating nested comments up to 5 levels deep for ${commentsToReplyTo.length} parent comments...`
+    );
 
     for (const parentComment of commentsToReplyTo) {
-      // Generate 1-2 replies per parent comment
-      const numReplies = faker.number.int({ min: 1, max: 2 });
-
-      for (let i = 0; i < numReplies; i++) {
-        const replyId = faker.string.uuid();
-        const replyContent = generateReplyComment();
-
-        await db
-          .insert(schema.publicComments)
-          .values({
-            id: replyId,
-            parent_id: parentComment.id,
-            parent_type: 'PUBLIC_COMMENT' as const,
-            content: replyContent,
-            anonymous_name: faker.internet.displayName(),
-            anonymous_email: faker.internet.email(),
-            depth: 1,
-            is_approved: true,
-          })
-          .onConflictDoNothing();
-
-        childCommentCount++;
-      }
+      const nestedResult = await createNestedComments(
+        db,
+        parentComment.id,
+        'PUBLIC_COMMENT',
+        0, // Start at depth 0 (parent is depth 0, so children start at depth 1)
+        5, // Max depth of 5 levels
+        componentName
+      );
+      totalNestedCommentCount += nestedResult.commentCount;
+      totalNestedReactionCount += nestedResult.reactionCount;
     }
 
     // Generate reactions for some comments
@@ -848,7 +833,7 @@ export async function seedPublicComments(db: Database, componentName = 'Public C
     }
 
     console.log(
-      `✅ Seeded ${commentCount} public comments, ${childCommentCount} replies, and ${commentReactionCount} comment reactions for ${selectedGames.length} games`
+      `✅ Seeded ${commentCount} public comments, ${totalNestedCommentCount} nested comments (up to 5 levels deep), ${commentReactionCount} parent comment reactions, and ${totalNestedReactionCount} nested comment reactions for ${selectedGames.length} games`
     );
   } catch (error) {
     errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
@@ -885,28 +870,502 @@ function generateGameComment(game: {
 }
 
 /**
- * Generate realistic reply comments using faker
+ * Generate realistic nested comments based on depth level
  */
-function generateReplyComment(): string {
-  const replyTemplates = [
-    'Totally agree! This was an amazing game.',
-    'I was there and the atmosphere was incredible!',
-    "Couldn't have said it better myself!",
-    'This game will be remembered for years to come.',
-    'The players really brought their A-game tonight.',
-    'What a performance by both teams!',
-    "I've been following this team all season and this was their best game yet.",
-    'The energy in the arena was off the charts!',
-    'This is why I love basketball - games like this!',
-    "Absolutely incredible! Can't wait for the next one.",
-    'You said it perfectly! This was basketball at its finest.',
-    'The intensity was something else tonight.',
-    'Both teams deserve respect for that performance.',
-    'This game had everything - drama, skill, and heart.',
-    'What a nail-biter! My heart was racing the whole time.',
-  ];
+function generateNestedComment(depth: number): string {
+  const templatesByDepth = {
+    0: [
+      'What a game! The energy was incredible!',
+      'Amazing performance by both teams!',
+      'This game had everything - great plays and intense moments!',
+      "Can't believe how close this game was!",
+      'The atmosphere must have been electric!',
+    ],
+    1: [
+      'Totally agree! This was an amazing game.',
+      'I was there and the atmosphere was incredible!',
+      "Couldn't have said it better myself!",
+      'This game will be remembered for years to come.',
+      'The players really brought their A-game tonight.',
+    ],
+    2: [
+      'Exactly! The intensity was off the charts!',
+      'You nailed it! This is why I love basketball.',
+      'So true! Every possession mattered in this one.',
+      'I completely agree with your take on this.',
+      'Well said! The players showed incredible heart.',
+    ],
+    3: [
+      "Right on! Couldn't have said it better.",
+      'Absolutely! This game was something special.',
+      "You're spot on! The energy was contagious.",
+      'Perfect analysis! This is basketball at its finest.',
+      'Exactly my thoughts! What a performance.',
+    ],
+    4: [
+      'This! 👏👏👏',
+      '100% agree!',
+      'You said it perfectly!',
+      "Couldn't agree more!",
+      'This is the truth!',
+    ],
+    5: ['Facts! 💯', 'This!', 'Exactly!', 'So true!', 'Agreed!'],
+  };
 
-  return faker.helpers.arrayElement(replyTemplates);
+  const templates = templatesByDepth[depth as keyof typeof templatesByDepth] || templatesByDepth[5];
+  return faker.helpers.arrayElement(templates);
+}
+
+/**
+ * Recursively create nested comments up to specified depth
+ */
+async function createNestedComments(
+  db: Database,
+  parentId: string,
+  parentType: 'PUBLIC_COMMENT' | 'BASKETBALL_GAME' | 'BASKETBALL_TEAM' | 'BASKETBALL_PLAYER',
+  currentDepth: number,
+  maxDepth: number,
+  componentName: string
+): Promise<{ commentCount: number; reactionCount: number }> {
+  if (currentDepth >= maxDepth) {
+    return { commentCount: 0, reactionCount: 0 };
+  }
+
+  let totalComments = 0;
+  let totalReactions = 0;
+
+  // Determine how many child comments to create based on depth
+  // Deeper levels have fewer comments to maintain realism
+  const commentCounts = [2, 3, 2, 1, 1]; // Comments per level: 0->1, 1->2, 2->3, 3->4, 4->5
+  const numComments = commentCounts[currentDepth] || 1;
+
+  for (let i = 0; i < numComments; i++) {
+    // Only create child comments for a percentage of parent comments to keep it realistic
+    if (faker.datatype.boolean({ probability: 0.6 })) {
+      const commentId = faker.string.uuid();
+      const commentContent = generateNestedComment(currentDepth + 1);
+
+      try {
+        await db
+          .insert(schema.publicComments)
+          .values({
+            id: commentId,
+            parent_id: parentId,
+            parent_type: parentType,
+            content: commentContent,
+            anonymous_name: faker.internet.displayName(),
+            anonymous_email: faker.internet.email(),
+            depth: currentDepth + 1,
+            is_approved: true,
+          })
+          .onConflictDoNothing();
+
+        totalComments++;
+
+        // Generate reactions for some nested comments (higher probability for deeper levels)
+        const reactionProbability = Math.min(0.4 + currentDepth * 0.1, 0.8); // 40% to 80% based on depth
+        if (faker.datatype.boolean({ probability: reactionProbability })) {
+          const numReactions = faker.number.int({ min: 1, max: Math.max(1, 4 - currentDepth) }); // Fewer reactions at deeper levels
+
+          for (let j = 0; j < numReactions; j++) {
+            const reactionId = faker.string.uuid();
+            const emoji = faker.helpers.arrayElement(Object.values(REACTION_EMOJIS));
+
+            await db
+              .insert(schema.publicReactions)
+              .values({
+                id: reactionId,
+                target_id: commentId,
+                target_type: 'PUBLIC_COMMENT' as const,
+                emoji: emoji,
+                anonymous_name: faker.internet.displayName(),
+                anonymous_email: faker.internet.email(),
+                is_approved: true,
+              })
+              .onConflictDoNothing();
+
+            totalReactions++;
+          }
+        }
+
+        // Recursively create nested comments for this comment
+        const nestedResult = await createNestedComments(
+          db,
+          commentId,
+          'PUBLIC_COMMENT',
+          currentDepth + 1,
+          maxDepth,
+          componentName
+        );
+        totalComments += nestedResult.commentCount;
+        totalReactions += nestedResult.reactionCount;
+      } catch (error) {
+        errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+          component: componentName,
+          action: 'Create nested comment',
+        });
+        console.error(`❌ Error creating nested comment at depth ${currentDepth + 1}:`, error);
+      }
+    }
+  }
+
+  return { commentCount: totalComments, reactionCount: totalReactions };
+}
+
+/**
+ * Generate realistic user comment content based on depth level
+ */
+function generateUserCommentContent(depth: number): string {
+  const templatesByDepth = {
+    0: [
+      'Great game! The energy was incredible!',
+      'Amazing performance by both teams!',
+      'This game had everything - great plays and intense moments!',
+      "Can't believe how close this game was!",
+      'The atmosphere must have been electric!',
+      'What a nail-biter! This is why I love basketball.',
+      'Both teams brought their A-game tonight. Respect!',
+      'This game will be remembered for a long time.',
+      'The intensity in this game was something else.',
+      'What a display of skill and determination!',
+    ],
+    1: [
+      'Totally agree! This was an amazing game.',
+      'I was there and the atmosphere was incredible!',
+      "Couldn't have said it better myself!",
+      'This game will be remembered for years to come.',
+      'The players really brought their A-game tonight.',
+      'What a performance by both teams!',
+      "I've been following this team all season and this was their best game yet.",
+      'The energy in the arena was off the charts!',
+      'This is why I love basketball - games like this!',
+      "Absolutely incredible! Can't wait for the next one.",
+    ],
+    2: [
+      'Exactly! The intensity was off the charts!',
+      'You nailed it! This is why I love basketball.',
+      'So true! Every possession mattered in this one.',
+      'I completely agree with your take on this.',
+      'Well said! The players showed incredible heart.',
+      "Right on! Couldn't have said it better.",
+      'Absolutely! This game was something special.',
+      "You're spot on! The energy was contagious.",
+      'Perfect analysis! This is basketball at its finest.',
+      'Exactly my thoughts! What a performance.',
+    ],
+    3: [
+      'This! 👏👏👏',
+      '100% agree!',
+      'You said it perfectly!',
+      "Couldn't agree more!",
+      'This is the truth!',
+      'Facts! 💯',
+      'This!',
+      'Exactly!',
+      'So true!',
+      'Agreed!',
+    ],
+    4: ['Facts! 💯', 'This!', 'Exactly!', 'So true!', 'Agreed!'],
+    5: ['Facts! 💯', 'This!', 'Exactly!', 'So true!', 'Agreed!'],
+  };
+
+  const templates = templatesByDepth[depth as keyof typeof templatesByDepth] || templatesByDepth[5];
+  return faker.helpers.arrayElement(templates);
+}
+
+/**
+ * Recursively create nested user comments up to specified depth
+ */
+async function createNestedUserComments(
+  db: Database,
+  parentId: string,
+  parentType: 'COMMENT' | 'GAME_LOG',
+  currentDepth: number,
+  maxDepth: number,
+  users: Array<{ id: string }>,
+  componentName: string
+): Promise<{ commentCount: number; reactionCount: number }> {
+  if (currentDepth >= maxDepth) {
+    return { commentCount: 0, reactionCount: 0 };
+  }
+
+  let totalComments = 0;
+  let totalReactions = 0;
+
+  // Determine how many child comments to create based on depth
+  // Deeper levels have fewer comments to maintain realism
+  const commentCounts = [2, 3, 2, 1, 1]; // Comments per level: 0->1, 1->2, 2->3, 3->4, 4->5
+  const numComments = commentCounts[currentDepth] || 1;
+
+  for (let i = 0; i < numComments; i++) {
+    // Only create child comments for a percentage of parent comments to keep it realistic
+    if (faker.datatype.boolean({ probability: 0.6 })) {
+      const commentId = faker.string.uuid();
+      const commentContent = generateUserCommentContent(currentDepth + 1);
+      const commenter = faker.helpers.arrayElement(users);
+
+      try {
+        await db
+          .insert(schema.comments)
+          .values({
+            id: commentId,
+            user_id: commenter.id,
+            parent_id: parentId,
+            parent_type: parentType,
+            content: commentContent,
+            depth: currentDepth + 1,
+          })
+          .onConflictDoNothing();
+
+        totalComments++;
+
+        // Generate reactions for some nested comments (higher probability for deeper levels)
+        const reactionProbability = Math.min(0.4 + currentDepth * 0.1, 0.8); // 40% to 80% based on depth
+        if (faker.datatype.boolean({ probability: reactionProbability })) {
+          const numReactions = faker.number.int({ min: 1, max: Math.max(1, 4 - currentDepth) }); // Fewer reactions at deeper levels
+
+          for (let j = 0; j < numReactions; j++) {
+            const reactionId = faker.string.uuid();
+            const emoji = faker.helpers.arrayElement(Object.values(REACTION_EMOJIS));
+            const reactor = faker.helpers.arrayElement(users);
+
+            await db
+              .insert(schema.reactions)
+              .values({
+                id: reactionId,
+                user_id: reactor.id,
+                target_id: commentId,
+                target_type: 'COMMENT' as const,
+                emoji: emoji,
+              })
+              .onConflictDoNothing();
+
+            totalReactions++;
+          }
+        }
+
+        // Recursively create nested comments for this comment
+        const nestedResult = await createNestedUserComments(
+          db,
+          commentId,
+          'COMMENT',
+          currentDepth + 1,
+          maxDepth,
+          users,
+          componentName
+        );
+        totalComments += nestedResult.commentCount;
+        totalReactions += nestedResult.reactionCount;
+      } catch (error) {
+        errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+          component: componentName,
+          action: 'Create nested user comment',
+        });
+        console.error(`❌ Error creating nested user comment at depth ${currentDepth + 1}:`, error);
+      }
+    }
+  }
+
+  return { commentCount: totalComments, reactionCount: totalReactions };
+}
+
+/**
+ * Seed user comments for game logs with nested comments up to 5 levels deep
+ */
+export async function seedUserComments(db: Database, componentName = 'User Comments Seeding') {
+  console.log('💬 Seeding user comments for game logs with nested comments...');
+
+  try {
+    // Get some users for commenting
+    const users = await db.select().from(schema.users).limit(20); // Limit to 20 users for performance
+
+    if (users.length === 0) {
+      console.warn('⚠️  No users found, skipping user comments seeding');
+      return;
+    }
+
+    // Get some game logs to comment on
+    const gameLogs = await db.select().from(schema.game_logs).limit(10); // Limit to 10 game logs for performance
+
+    if (gameLogs.length === 0) {
+      console.warn('⚠️  No game logs found, skipping user comments seeding');
+      return;
+    }
+
+    console.log(`📅 Using ${users.length} users and ${gameLogs.length} game logs for comments`);
+
+    let commentCount = 0;
+    const createdComments: Array<{ id: string; gameLogId: string }> = [];
+
+    // Generate realistic comments for each selected game log
+    for (const gameLog of gameLogs) {
+      // Generate 3-8 comments per game log (increased from 2-5)
+      const numComments = faker.number.int({ min: 3, max: 8 });
+
+      for (let i = 0; i < numComments; i++) {
+        const commentId = faker.string.uuid();
+        const commentContent = generateUserCommentContent(0);
+        const commenter = faker.helpers.arrayElement(users);
+
+        // Skip if same user as game log author
+        if (commenter.id === gameLog.user_id) continue;
+
+        await db
+          .insert(schema.comments)
+          .values({
+            id: commentId,
+            user_id: commenter.id,
+            parent_id: gameLog.id,
+            parent_type: 'GAME_LOG' as const,
+            content: commentContent,
+            depth: 0,
+          })
+          .onConflictDoNothing();
+
+        createdComments.push({ id: commentId, gameLogId: gameLog.id });
+        commentCount++;
+      }
+    }
+
+    // Generate nested comments (replies) up to 5 levels deep for some of the created comments
+    const commentsToReplyTo = faker.helpers.arrayElements(
+      createdComments,
+      Math.floor(createdComments.length * 0.5) // Increased from 30% to 50% of comments get nested replies
+    );
+    let totalNestedCommentCount = 0;
+    let totalNestedReactionCount = 0;
+
+    console.log(
+      `🌳 Creating nested user comments up to 5 levels deep for ${commentsToReplyTo.length} parent comments...`
+    );
+
+    for (const parentComment of commentsToReplyTo) {
+      const nestedResult = await createNestedUserComments(
+        db,
+        parentComment.id,
+        'COMMENT',
+        0, // Start at depth 0 (parent is depth 0, so children start at depth 1)
+        5, // Max depth of 5 levels
+        users,
+        componentName
+      );
+      totalNestedCommentCount += nestedResult.commentCount;
+      totalNestedReactionCount += nestedResult.reactionCount;
+    }
+
+    // Generate reactions for some parent comments
+    const commentsToReactTo = faker.helpers.arrayElements(
+      createdComments,
+      Math.floor(createdComments.length * 0.3)
+    );
+    let commentReactionCount = 0;
+
+    for (const comment of commentsToReactTo) {
+      // Generate 1-3 reactions per comment
+      const numReactions = faker.number.int({ min: 1, max: 3 });
+
+      for (let i = 0; i < numReactions; i++) {
+        const reactionId = faker.string.uuid();
+        const emoji = faker.helpers.arrayElement(Object.values(REACTION_EMOJIS));
+        const reactor = faker.helpers.arrayElement(users);
+
+        await db
+          .insert(schema.reactions)
+          .values({
+            id: reactionId,
+            user_id: reactor.id,
+            target_id: comment.id,
+            target_type: 'COMMENT' as const,
+            emoji: emoji,
+          })
+          .onConflictDoNothing();
+
+        commentReactionCount++;
+      }
+    }
+
+    console.log(
+      `✅ Seeded ${commentCount} user comments, ${totalNestedCommentCount} nested comments (up to 5 levels deep), ${commentReactionCount} parent comment reactions, and ${totalNestedReactionCount} nested comment reactions for ${gameLogs.length} game logs`
+    );
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: componentName,
+      action: 'Seed user comments',
+    });
+    console.error('❌ Error seeding user comments:', error);
+    throw error;
+  }
+}
+
+/**
+ * Seed user reactions for game logs
+ */
+export async function seedUserReactions(db: Database, componentName = 'User Reactions Seeding') {
+  console.log('👍 Seeding user reactions for game logs...');
+
+  try {
+    // Get some users for reacting
+    const users = await db.select().from(schema.users).limit(20); // Limit to 20 users for performance
+
+    if (users.length === 0) {
+      console.warn('⚠️  No users found, skipping user reactions seeding');
+      return;
+    }
+
+    // Get some game logs to react to
+    const gameLogs = await db.select().from(schema.game_logs).limit(10); // Limit to 10 game logs for performance
+
+    if (gameLogs.length === 0) {
+      console.warn('⚠️  No game logs found, skipping user reactions seeding');
+      return;
+    }
+
+    console.log(
+      `🎯 Selected ${gameLogs.length} game logs for reactions with ${users.length} users`
+    );
+
+    // Common reaction emojis for game logs
+    const reactionEmojis = Object.values(REACTION_EMOJIS);
+
+    let reactionCount = 0;
+
+    // Generate realistic reactions for each selected game log
+    for (const gameLog of gameLogs) {
+      // Generate 2-8 reactions per game log
+      const numReactions = faker.number.int({ min: 2, max: 8 });
+
+      for (let i = 0; i < numReactions; i++) {
+        const reactionId = faker.string.uuid();
+        const emoji = faker.helpers.arrayElement(reactionEmojis);
+        const reactor = faker.helpers.arrayElement(users);
+
+        // Skip if same user as game log author
+        if (reactor.id === gameLog.user_id) continue;
+
+        await db
+          .insert(schema.reactions)
+          .values({
+            id: reactionId,
+            user_id: reactor.id,
+            target_id: gameLog.id,
+            target_type: 'GAME_LOG' as const,
+            emoji: emoji,
+          })
+          .onConflictDoNothing();
+
+        reactionCount++;
+      }
+    }
+
+    console.log(`✅ Seeded ${reactionCount} user reactions for ${gameLogs.length} game logs`);
+  } catch (error) {
+    errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
+      component: componentName,
+      action: 'Seed user reactions',
+    });
+    console.error('❌ Error seeding user reactions:', error);
+    throw error;
+  }
 }
 
 /**

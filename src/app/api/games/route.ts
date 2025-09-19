@@ -33,6 +33,42 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get('status') || 'all';
     const bypassCache = searchParams.get('bypass-cache') === 'true';
 
+    // Check if we're in mock mode
+    if (process.env.MOCK_MODE === 'true') {
+      logger.info('Games API request - Mock Mode', {
+        season,
+        page,
+        limit,
+        status,
+        bypassCache,
+      });
+
+      // Return mock games data
+      const mockGames = {
+        success: true,
+        data: {
+          games: [],
+          pagination: {
+            page,
+            limit,
+            total: 0,
+            totalPages: 0,
+            hasNext: false,
+            hasPrev: false,
+          },
+          cacheInfo: {
+            hit: false,
+            key: `games:${season}:${page}:${limit}:${status}`,
+            status: status,
+          },
+        },
+        timestamp: new Date().toISOString(),
+        mock: true,
+      };
+
+      return NextResponse.json(mockGames);
+    }
+
     logger.info('Games API request', {
       season,
       page,
@@ -153,21 +189,30 @@ export async function GET(request: NextRequest) {
     // Determine cache TTL based on game statuses
     const cacheTTL = getGamesCacheTTL(games);
 
-    // Transform games data
-    const transformedGames = games.map((game: IDatabaseGame) => ({
-      id: game.id,
-      date: game.date,
-      status: game.status,
-      teams: game.teams,
-      scores: game.scores,
-      arena: game.arena,
-      periods: game.periods,
-      season: game.season,
-      stage: game.stage,
-      nugget: game.nugget,
-      average_rating: (game as { average_rating?: number }).average_rating,
-      total_ratings: (game as { total_ratings?: number }).total_ratings,
-    }));
+    // Transform games data, filter out games with invalid dates, and deduplicate by ID
+    const transformedGames = games
+      .filter((game: IDatabaseGame) => {
+        // Only include games with valid dates
+        return game.date && !isNaN(new Date(game.date).getTime());
+      })
+      .map((game: IDatabaseGame) => ({
+        id: game.id,
+        date: { start: game.date.toISOString() },
+        status: game.status,
+        teams: game.teams,
+        scores: game.scores,
+        arena: game.arena,
+        periods: game.periods,
+        season: game.season,
+        stage: game.stage,
+        nugget: game.nugget,
+        average_rating: (game as { average_rating?: number }).average_rating,
+        total_ratings: (game as { total_ratings?: number }).total_ratings,
+      }))
+      .filter((game, index, array) => {
+        // Deduplicate by ID - keep only the first occurrence
+        return array.findIndex(g => g.id === game.id) === index;
+      });
 
     const responseData = {
       success: true,

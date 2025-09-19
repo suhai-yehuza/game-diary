@@ -8,6 +8,7 @@ import { logger } from '@src/lib/utils/logger';
 import { sqlClient } from './connection';
 import { execAsync } from './command-utils';
 import { checkTablesExist } from './table-operations';
+import { recordStandardCustomMigrations } from './migration-recorder';
 
 export interface MigrationResult {
   success: boolean;
@@ -117,6 +118,11 @@ async function performSafeMigration(dryRun: boolean, result: MigrationResult): P
   await execAsync('pnpm db:copy-custom-migrations');
   result.appliedMigrations.push('copy-custom-migrations');
 
+  // Step 2.5: Record custom migrations in migration_versions table
+  logger.info('📋 Recording custom migrations...');
+  await recordStandardCustomMigrations(process.env.NODE_ENV || 'development');
+  result.appliedMigrations.push('record-custom-migrations');
+
   // Step 3: Apply migrations using drizzle-kit migrate (safe method)
   logger.info('📋 Applying migrations using drizzle-kit migrate...');
   try {
@@ -152,6 +158,11 @@ async function performStandardMigration(dryRun: boolean, result: MigrationResult
   // Copy custom migrations
   await execAsync('pnpm db:copy-custom-migrations');
   result.appliedMigrations.push('copy-custom-migrations');
+
+  // Record custom migrations in migration_versions table
+  logger.info('📋 Recording custom migrations...');
+  await recordStandardCustomMigrations(process.env.NODE_ENV || 'development');
+  result.appliedMigrations.push('record-custom-migrations');
 
   // Apply migrations using migrate (safe method)
   await execAsync('pnpm exec drizzle-kit migrate');

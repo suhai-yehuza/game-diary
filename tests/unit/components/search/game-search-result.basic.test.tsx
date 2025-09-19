@@ -104,6 +104,8 @@ describe('GameSearchResult', () => {
       away_team_nickname: undefined,
       home_team_name: undefined,
       away_team_name: undefined,
+      home_team_code: undefined,
+      away_team_code: undefined,
     };
 
     render(<GameSearchResult game={gameWithoutNames} />);

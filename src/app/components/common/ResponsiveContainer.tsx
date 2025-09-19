@@ -160,9 +160,8 @@ export function ResponsiveButton({
   const variantClasses = {
     primary: 'bg-brand-primary text-white hover:bg-brand-primary-dark',
     secondary: 'bg-brand-secondary text-white hover:bg-brand-secondary-dark',
-    outline:
-      'border border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800',
-    ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800',
+    outline: 'border border-theme-primary bg-transparent hover:bg-bg-theme-secondary',
+    ghost: 'bg-transparent hover:bg-bg-theme-secondary',
   };
 
   const sizeClasses = {

@@ -115,7 +115,7 @@ export function FilterSkeleton() {
 // Table Row Skeleton
 export function TableRowSkeleton({ columns = 5 }: { columns?: number }) {
   return (
-    <tr className="border-b border-gray-200 dark:border-gray-700">
+    <tr className="border-b border-theme-primary">
       {Array.from({ length: columns }, (_, index) => {
         const uniqueId = `skeleton-cell-${columns}-${index}`;
         return (

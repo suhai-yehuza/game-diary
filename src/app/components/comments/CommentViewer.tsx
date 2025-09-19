@@ -28,11 +28,11 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
     return (
       <div className={`p-4 ${className}`}>
         <div className="animate-pulse">
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2" />
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-4" />
+          <div className="h-4 bg-theme-muted rounded w-3/4 mb-2" />
+          <div className="h-4 bg-theme-muted rounded w-1/2 mb-4" />
           <div className="space-y-2">
-            <div className="h-3 bg-gray-200 rounded w-full" />
-            <div className="h-3 bg-gray-200 rounded w-5/6" />
+            <div className="h-3 bg-theme-muted rounded w-full" />
+            <div className="h-3 bg-theme-muted rounded w-5/6" />
           </div>
         </div>
       </div>
@@ -41,11 +41,13 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
 
   if (error) {
     return (
-      <div className={`p-4 bg-red-50 border border-red-200 rounded-lg ${className}`}>
-        <p className="text-red-600">Error loading comment: {error.message}</p>
+      <div
+        className={`p-4 bg-semantic-error/10 border border-semantic-error/20 rounded-lg ${className}`}
+      >
+        <p className="text-semantic-error">Error loading comment: {error.message}</p>
         <button
           onClick={() => void refetch()}
-          className="mt-2 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          className="mt-2 px-3 py-1 bg-semantic-error text-white rounded text-sm hover:bg-semantic-error/90"
         >
           Retry
         </button>
@@ -54,7 +56,7 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
   }
 
   return (
-    <div className={`p-4 border border-gray-200 rounded-lg ${className}`}>
+    <div className={`p-4 border border-theme-primary rounded-lg ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold">Comment View</h3>
@@ -70,7 +72,7 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
           </label>
           <button
             onClick={() => void refetch()}
-            className="px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
+            className="px-3 py-1 bg-brand-primary text-white rounded text-sm hover:bg-brand-primary-hover"
           >
             Refresh
           </button>
@@ -78,22 +80,22 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
       </div>
 
       {/* Comment ID */}
-      <div className="mb-4 p-3 bg-gray-50 rounded">
-        <p className="text-sm text-gray-600">
+      <div className="mb-4 p-3 bg-bg-theme-secondary rounded">
+        <p className="text-sm text-theme-secondary">
           <strong>Comment ID:</strong> {commentId}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="p-3 bg-blue-50 rounded">
-          <p className="text-sm text-blue-600 font-medium">Total Replies</p>
-          <p className="text-2xl font-bold text-blue-800">{totalReplyCount}</p>
+        <div className="p-3 bg-brand-primary/10 rounded">
+          <p className="text-sm text-brand-primary font-medium">Total Replies</p>
+          <p className="text-2xl font-bold text-brand-primary">{totalReplyCount}</p>
         </div>
         {totalReactionCount > 0 && (
-          <div className="p-3 bg-green-50 rounded">
-            <p className="text-sm text-green-600 font-medium">Total Reactions</p>
-            <p className="text-2xl font-bold text-green-800">{totalReactionCount}</p>
+          <div className="p-3 bg-semantic-success/10 rounded">
+            <p className="text-sm text-semantic-success font-medium">Total Reactions</p>
+            <p className="text-2xl font-bold text-semantic-success">{totalReactionCount}</p>
           </div>
         )}
       </div>
@@ -106,7 +108,7 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
             {reactionGroups.map((group: { emoji: string; count: number }) => (
               <div
                 key={group.emoji}
-                className="flex items-center space-x-1 px-2 py-1 bg-gray-100 rounded-full"
+                className="flex items-center space-x-1 px-2 py-1 bg-bg-theme-secondary rounded-full"
               >
                 <span className="text-lg">{group.emoji}</span>
                 <span className="text-sm font-medium">{group.count}</span>
@@ -120,7 +122,7 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
       <div className="mb-4">
         <button
           onClick={() => setShowReplies(!showReplies)}
-          className="flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+          className="flex items-center space-x-2 px-4 py-2 bg-bg-theme-secondary hover:bg-bg-theme-tertiary rounded-lg transition-colors"
         >
           <span className="font-medium">
             {showReplies ? 'Hide' : 'Show'} Replies ({totalReplyCount})
@@ -180,7 +182,7 @@ export function CommentViewer({ commentId, className = '' }: ICommentViewerProps
             <div className="text-center">
               <button
                 onClick={() => void loadMore()}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                className="px-4 py-2 bg-brand-primary text-white rounded hover:bg-brand-primary-hover transition-colors"
               >
                 Load More Replies
               </button>

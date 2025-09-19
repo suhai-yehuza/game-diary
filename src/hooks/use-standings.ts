@@ -55,7 +55,24 @@ export function useStandings(options: IUseStandingsOptions = {}): IUseStandingsR
         throw new Error(result.error || 'Failed to fetch standings');
       }
 
-      setStandings(result.data);
+      // Handle empty standings data gracefully
+      if (
+        result.data &&
+        (result.data.results === 0 || !result.data.response || result.data.response.length === 0)
+      ) {
+        logger.info('No standings data found - setting empty standings', {
+          results: result.data.results,
+          responseLength: result.data.response?.length,
+          options,
+        });
+        setStandings({
+          ...result.data,
+          response: [],
+          results: 0,
+        });
+      } else {
+        setStandings(result.data);
+      }
       logger.info('Standings fetched successfully', {
         resultsCount: result.data?.results || 0,
         season: options.season,

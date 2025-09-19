@@ -3,11 +3,11 @@ import { config } from 'dotenv';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { test, expect, describe, beforeAll, afterAll, afterEach } from 'vitest';
 
-import { errorHandlers } from '@src/lib/utils/error-handler';
+import { errorHandlers } from '../../src/lib/utils/error-handler';
 import {
   disableNotificationTriggers,
   enableNotificationTriggers,
-} from '@scripts/seeding-notification-bypass';
+} from '../../scripts/seeding-notification-bypass';
 import {
   cleanupTestData,
   cleanupNotificationTests,
@@ -501,19 +501,30 @@ describe('Database Operations Integration Tests', () => {
   const localCleanupTestData = () => cleanupTestData({ usingRealDatabase, db });
 
   describe('User Operations', () => {
-    test('should create a new user', async () => {
-      testUserId = `integration-test-user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    beforeAll(async () => {
+      // Create test user that will be used across all user operation tests
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substr(2, 9);
+      testUserId = `integration-test-user-${timestamp}-${randomId}`;
 
-      const result = (await db.execute(`
+      await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'integration-test-basic-user', 'integration-test-basic@example.com', 'Test', 'User', NOW(), NOW())
-        RETURNING id, username, email_address
+        VALUES ('${testUserId}', 'integration-test-basic-user-${timestamp}', 'integration-test-basic-${timestamp}@example.com', 'Test', 'User', NOW(), NOW())
+      `);
+    });
+
+    test('should create a new user', async () => {
+      // Verify the user was created in beforeAll
+      const result = (await db.execute(`
+        SELECT id, username, email_address
+        FROM users
+        WHERE id = '${testUserId}'
       `)) as unknown as { rows: Array<{ id: string; username: string; email_address: string }> };
 
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0].id).toBe(testUserId);
-      expect(result.rows[0].username).toBe('integration-test-basic-user');
-      expect(result.rows[0].email_address).toBe('integration-test-basic@example.com');
+      expect(result.rows[0].username).toMatch(/^integration-test-basic-user-\d+$/);
+      expect(result.rows[0].email_address).toMatch(/^integration-test-basic-\d+@example\.com$/);
     });
 
     test('should retrieve user by ID', async () => {
@@ -533,7 +544,7 @@ describe('Database Operations Integration Tests', () => {
 
       expect(result.rows).toHaveLength(1);
       expect(result.rows[0].id).toBe(testUserId);
-      expect(result.rows[0].username).toBe('integration-test-basic-user');
+      expect(result.rows[0].username).toMatch(/^integration-test-basic-user-\d+$/);
     });
 
     test('should update user information', async () => {
@@ -817,13 +828,15 @@ describe('Database Operations Integration Tests', () => {
   });
 
   describe('Notification Operations', () => {
+    let notificationTestUserId: string;
+
     beforeAll(async () => {
-      // Ensure test user exists
+      // Ensure test user exists for notification tests
       const timestamp = Date.now();
-      testUserId = `integration-test-gamelog-user-${timestamp}`;
+      notificationTestUserId = `integration-test-gamelog-user-${timestamp}`;
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('${testUserId}', 'integration-test-gamelog-user', 'integration-test-gamelog-${timestamp}@example.com', 'GameLog', 'User', NOW(), NOW())
+        VALUES ('${notificationTestUserId}', 'integration-test-gamelog-user', 'integration-test-gamelog-${timestamp}@example.com', 'GameLog', 'User', NOW(), NOW())
       `);
     });
 
@@ -833,14 +846,14 @@ describe('Database Operations Integration Tests', () => {
 
       const result = (await db.execute(`
         INSERT INTO notifications (id, user_id, type, title, message, created_at)
-        VALUES ('${testNotificationId}', '${testUserId}', 'game_log_created', 'New Game Log', 'You created a new game log', NOW())
+        VALUES ('${testNotificationId}', '${notificationTestUserId}', 'game_log_created', 'New Game Log', 'You created a new game log', NOW())
         RETURNING id, user_id, type, title, message
       `)) as unknown as {
         rows: Array<{ id: string; user_id: string; type: string; title: string; message: string }>;
       };
 
       expect(result.rows).toHaveLength(1);
-      expect(result.rows[0].user_id).toBe(testUserId);
+      expect(result.rows[0].user_id).toBe(notificationTestUserId);
       expect(result.rows[0].type).toBe('game_log_created');
     });
 
@@ -848,7 +861,7 @@ describe('Database Operations Integration Tests', () => {
       const result = (await db.execute(`
         SELECT id, type, title, message, created_at, user_id
         FROM notifications
-        WHERE user_id = '${testUserId}'
+        WHERE user_id = '${notificationTestUserId}'
         ORDER BY created_at DESC
       `)) as unknown as {
         rows: Array<{
@@ -862,7 +875,7 @@ describe('Database Operations Integration Tests', () => {
       };
 
       expect(result.rows.length).toBeGreaterThan(0);
-      expect(result.rows[0].user_id).toBe(testUserId);
+      expect(result.rows[0].user_id).toBe(notificationTestUserId);
     });
 
     test('should mark notification as read', async () => {
@@ -891,19 +904,22 @@ describe('Database Operations Integration Tests', () => {
 
   describe('Data Integrity and Constraints', () => {
     test('should enforce unique email constraint', async () => {
-      const duplicateEmail = 'duplicate@example.com';
+      const timestamp = Date.now();
+      const duplicateEmail = `duplicate-${timestamp}@example.com`;
+      const userId1 = `integration-test-user-1-${timestamp}`;
+      const userId2 = `integration-test-user-2-${timestamp}`;
 
       // Create first user
       await db.execute(`
         INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-        VALUES ('integration-test-user-1', 'user1', '${duplicateEmail}', 'User', 'One', NOW(), NOW())
+        VALUES ('${userId1}', 'user1-${timestamp}', '${duplicateEmail}', 'User', 'One', NOW(), NOW())
       `);
 
       // Try to create second user with same email
       try {
         await db.execute(`
           INSERT INTO users (id, username, email_address, first_name, last_name, created_at, updated_at)
-          VALUES ('integration-test-user-2', 'user2', '${duplicateEmail}', 'User', 'Two', NOW(), NOW())
+          VALUES ('${userId2}', 'user2-${timestamp}', '${duplicateEmail}', 'User', 'Two', NOW(), NOW())
         `);
         throw new Error('Should have failed due to unique constraint');
       } catch (error) {

@@ -46,7 +46,7 @@ const getTagColor = (tag: string) => {
     // Emerald - green
     'bg-emerald-100 text-emerald-900 dark:bg-emerald-900/60 dark:text-emerald-100 border-emerald-300 dark:border-emerald-700',
     // Blue
-    'bg-blue-100 text-blue-900 dark:bg-blue-900/60 dark:text-blue-100 border-blue-300 dark:border-blue-700',
+    'bg-brand-primary/10 text-brand-primary dark:bg-brand-primary/20 dark:text-brand-primary border-brand-primary/30 dark:border-brand-primary/50',
     // Orange
     'bg-orange-100 text-orange-900 dark:bg-orange-900/60 dark:text-orange-100 border-orange-300 dark:border-orange-700',
     // Purple

@@ -18,7 +18,14 @@ export function NavigationLinks({
 }: INavigationLinksProps) {
   const mounted = useMounted();
   const isMobile = useMobileDetection();
-  if (!mounted) return null;
+
+  // In mock mode, always render regardless of mount status
+  if (process.env.MOCK_MODE === 'true') {
+    // Force render in mock mode - bypass useMounted check
+  } else if (!mounted && process.env.NODE_ENV === 'production') {
+    // In production, wait for mount to prevent hydration mismatches
+    return null;
+  }
 
   // Only close menu on mobile
   const handleNavClick = () => {

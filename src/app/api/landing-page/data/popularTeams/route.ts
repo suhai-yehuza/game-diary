@@ -1,40 +1,58 @@
+import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { LandingPageDataService } from '@/lib/services/landing-page-data.service';
 import { logger } from '@/lib/utils/logger';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
-export async function GET() {
+const landingPageService = new LandingPageDataService();
+
+export async function GET(_request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    logger.info('Fetching popular teams data...');
+    // In mock mode, return empty data
+    if (isMockModeEnabled()) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          mostPopular: [],
+        },
+        timestamp: new Date().toISOString(),
+        mock: true,
+      });
+    }
 
-    const landingPageService = new LandingPageDataService();
-    const data = await landingPageService.getPopularTeamsWithCache();
+    // Fetch popular teams data using the service
+    const popularTeamsData = await landingPageService.getPopularTeamsWithCache();
+    const responseTime = Date.now() - startTime;
 
-    logger.info(`Popular teams fetched successfully`, {
-      mostPopular: data.mostPopular.length,
+    logger.info('Popular teams data fetched', {
+      teamsCount: popularTeamsData.mostPopular.length,
+      responseTime,
     });
 
     return NextResponse.json({
       success: true,
-      data,
+      data: popularTeamsData,
       timestamp: new Date().toISOString(),
+      responseTime,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : undefined;
+    const responseTime = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    logger.error('Error fetching popular teams:', {
+    logger.error('Failed to fetch popular teams data', {
       error: errorMessage,
-      stack: errorStack,
-      name: error instanceof Error ? error.name : 'Unknown',
+      responseTime,
     });
 
     return NextResponse.json(
       {
         success: false,
-        error: 'Failed to fetch popular teams',
-        details: errorMessage,
+        error: errorMessage,
         timestamp: new Date().toISOString(),
+        responseTime,
       },
       { status: 500 }
     );

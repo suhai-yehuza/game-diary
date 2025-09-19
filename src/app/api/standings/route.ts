@@ -18,6 +18,39 @@ export async function GET(request: NextRequest) {
     const league = searchParams.get('league') || 'standard';
     const bypassCache = searchParams.get('bypass-cache') === 'true';
 
+    // Check if we're in mock mode
+    if (process.env.MOCK_MODE === 'true') {
+      logger.info('Standings API request - Mock Mode', {
+        season,
+        conference,
+        division,
+        team,
+        league,
+      });
+
+      // Return mock standings data
+      const mockStandings = {
+        success: true,
+        data: {
+          get: 'standings',
+          parameters: {
+            season: season || '2024',
+            conference: conference || 'all',
+            division: division || 'all',
+            team: team || 'all',
+            league: league || 'standard',
+          },
+          errors: [],
+          results: 0,
+          response: [],
+        },
+        timestamp: new Date().toISOString(),
+        mock: true,
+      };
+
+      return NextResponse.json(mockStandings);
+    }
+
     logger.info('Standings API request', {
       season,
       conference,
@@ -78,22 +111,47 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'External API error' }, { status: 502 });
     }
 
-    // Check if external API has no data
+    // Check if external API has no data - return empty array instead of error
     if (
       !standingsData ||
       standingsData.results === 0 ||
       !standingsData.response ||
       standingsData.response.length === 0
     ) {
-      logger.warn('No standings data available from external API', {
+      logger.info('No standings data available - returning empty array', {
         results: standingsData?.results,
         responseLength: standingsData?.response?.length,
+        season,
+        conference,
+        division,
+        team,
+        league,
       });
 
-      return NextResponse.json(
-        { success: false, error: 'No standings data available' },
-        { status: 404 }
-      );
+      // Return successful response with empty array
+      const emptyResponse = {
+        ...standingsData,
+        response: [],
+        results: 0,
+      };
+
+      // Cache the empty response for 1 hour to avoid repeated API calls
+      simpleCacheService.set(cacheKey, emptyResponse, {
+        ttl: 3600, // 1 hour in seconds
+        tags: [
+          'standings',
+          `season-${season}`,
+          conference ? `conference-${conference}` : '',
+          division ? `division-${division}` : '',
+          team ? `team-${team}` : '',
+          league ? `league-${league}` : '',
+        ].filter(Boolean),
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: emptyResponse,
+      });
     }
 
     // Process the data to calculate missing W, L, PCT from Home/Away data

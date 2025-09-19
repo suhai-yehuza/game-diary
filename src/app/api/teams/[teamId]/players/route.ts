@@ -81,24 +81,35 @@ export async function GET(
       );
     }
 
-    // Check if there are no results
+    // Check if there are no results - return empty array instead of error
     if (
       teamPlayersData.results === 0 ||
       !teamPlayersData.response ||
       teamPlayersData.response.length === 0
     ) {
-      logger.info('No team players available', {
+      logger.info('No team players available - returning empty array', {
         teamId,
         season,
         results: teamPlayersData.results,
       });
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'No team players available for this team and season',
-        },
-        { status: 404 }
-      );
+
+      // Return successful response with empty array
+      const emptyResponse = {
+        ...teamPlayersData,
+        response: [],
+        results: 0,
+      };
+
+      // Cache the empty response for 1 hour to avoid repeated API calls
+      simpleCacheService.set(cacheKey, emptyResponse, {
+        ttl: 3600, // 1 hour in seconds
+        tags: ['team-players', `team-${teamId}`, `season-${season}`],
+      });
+
+      return NextResponse.json({
+        success: true,
+        data: emptyResponse,
+      });
     }
 
     logger.info('Team players fetched successfully', {

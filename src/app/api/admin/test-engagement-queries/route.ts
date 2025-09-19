@@ -65,7 +65,7 @@ export async function GET(_request: NextRequest) {
     // Test player engagement if we have a player
     if (samplePlayer) {
       try {
-        const playerEngagement = await getPlayerEngagementQuery(String(samplePlayer.id));
+        const playerEngagement = getPlayerEngagementQuery(String(samplePlayer.id));
         results.playerEngagement = playerEngagement;
       } catch (error) {
         results.playerEngagementError = error instanceof Error ? error.message : String(error);

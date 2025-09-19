@@ -104,7 +104,7 @@ export function Comment({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+                  <span className="text-sm font-medium text-theme-primary">
                     {displayComment.user.first_name || displayComment.user.username || 'Anonymous'}
                   </span>
                   <span className="text-xs text-theme-muted">

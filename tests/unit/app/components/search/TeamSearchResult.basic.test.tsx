@@ -81,26 +81,54 @@ describe('TeamSearchResult', () => {
     expect(mockPush).toHaveBeenCalledWith('/sports/nba/teams/123');
   });
 
-  it('displays "Unknown Team" when name is missing', () => {
+  it('displays nickname when name is missing but nickname exists', () => {
     const teamWithoutName: ISearchResult = {
       ...defaultTeam,
       name: '',
+      nickname: 'Lakers',
     };
 
     render(<TeamSearchResult team={teamWithoutName} />);
 
+    expect(screen.getByText('Lakers')).toBeInTheDocument();
+  });
+
+  it('displays team code when name and nickname are missing but code exists', () => {
+    const teamWithoutNameOrNickname: ISearchResult = {
+      ...defaultTeam,
+      name: '',
+      nickname: '',
+      code: 'LAL',
+    };
+
+    render(<TeamSearchResult team={teamWithoutNameOrNickname} />);
+
+    expect(screen.getByText('LAL')).toBeInTheDocument();
+  });
+
+  it('displays "Unknown Team" when name, nickname, and code are all missing', () => {
+    const teamWithoutAnyName: ISearchResult = {
+      ...defaultTeam,
+      name: '',
+      nickname: '',
+      code: '',
+    };
+
+    render(<TeamSearchResult team={teamWithoutAnyName} />);
+
     expect(screen.getByText('Unknown Team')).toBeInTheDocument();
   });
 
-  it('displays "Unknown Team" when name is only whitespace', () => {
+  it('displays nickname when name is only whitespace but nickname exists', () => {
     const teamWithWhitespaceName: ISearchResult = {
       ...defaultTeam,
       name: '   ',
+      nickname: 'Lakers',
     };
 
     render(<TeamSearchResult team={teamWithWhitespaceName} />);
 
-    expect(screen.getByText('Unknown Team')).toBeInTheDocument();
+    expect(screen.getByText('Lakers')).toBeInTheDocument();
   });
 
   it('handles missing nickname correctly', () => {

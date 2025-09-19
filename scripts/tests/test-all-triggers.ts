@@ -220,12 +220,12 @@ class TriggerValidator {
     // Insert test basketball_teams if they do not exist
     await this.db.execute(sql`
       INSERT INTO basketball_teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
-      VALUES (${homeTeamId}, 'Integration Test Home Team', 'ITHT', 'ITHT', 'Test City', true, NOW(), NOW())
+      VALUES (${homeTeamId}, 'Integration Test Home Team', 'ITHT', 'ITHT', 'Test City', true, ${sql`NOW()`}, ${sql`NOW()`})
       ON CONFLICT (id) DO NOTHING
     `);
     await this.db.execute(sql`
       INSERT INTO basketball_teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
-      VALUES (${awayTeamId}, 'Integration Test Away Team', 'ITAT', 'ITAT', 'Test City', true, NOW(), NOW())
+      VALUES (${awayTeamId}, 'Integration Test Away Team', 'ITAT', 'ITAT', 'Test City', true, ${sql`NOW()`}, ${sql`NOW()`})
       ON CONFLICT (id) DO NOTHING
     `);
 
@@ -238,7 +238,7 @@ class TriggerValidator {
       const statusJson = `{"short":"3","long":"Finished","clock":"0:00"}`;
       await this.db.execute(sql`
         INSERT INTO basketball_games (id, season, date, teams, status, created_at, updated_at)
-        VALUES (${gameId}, '2024', NOW(), ${teamsJson}, ${statusJson}, NOW(), NOW())
+        VALUES (${gameId}, '2024', NOW(), ${teamsJson}, ${statusJson}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
     } catch (error: any) {
       console.error('basketball_games insert error:', error);
@@ -251,6 +251,36 @@ class TriggerValidator {
     return gameId;
   }
 
+  private async getTestTeam(): Promise<string> {
+    // Use real Atlanta Hawks team ID (SAFE: we only reference this ID, never delete it)
+    const teamId = '1';
+
+    // Ensure the Atlanta Hawks team exists (it should already be in the database)
+    // SAFE: ON CONFLICT DO NOTHING means we never modify existing records
+    await this.db.execute(sql`
+      INSERT INTO basketball_teams (id, name, nickname, code, city, nba_franchise, created_at, updated_at)
+      VALUES (${teamId}, 'Atlanta Hawks', 'Hawks', 'ATL', 'Atlanta', true, ${sql`NOW()`}, ${sql`NOW()`})
+      ON CONFLICT (id) DO NOTHING
+    `);
+
+    return teamId;
+  }
+
+  private async getTestPlayer(): Promise<string> {
+    // Use real Luka Dončić player ID (SAFE: we only reference this ID, never delete it)
+    const playerId = '963';
+
+    // Ensure Luka Dončić exists (he should already be in the database)
+    // SAFE: ON CONFLICT DO NOTHING means we never modify existing records
+    await this.db.execute(sql`
+          INSERT INTO basketball_players (id, first_name, last_name, created_at, updated_at)
+          VALUES (${playerId}, 'Luka', 'Dončić', ${sql`NOW()`}, ${sql`NOW()`})
+          ON CONFLICT (id) DO NOTHING
+        `);
+
+    return playerId;
+  }
+
   async runAllTests(): Promise<void> {
     logger.info('🧪 Starting Comprehensive Trigger Validation...\n');
 
@@ -258,6 +288,12 @@ class TriggerValidator {
       { name: 'Game Ratings - Insert', test: this.testGameRatingsInsert.bind(this) },
       { name: 'Game Ratings - Update', test: this.testGameRatingsUpdate.bind(this) },
       { name: 'Game Ratings - Delete', test: this.testGameRatingsDelete.bind(this) },
+      { name: 'Team Ratings - Insert', test: this.testTeamRatingsInsert.bind(this) },
+      { name: 'Team Ratings - Update', test: this.testTeamRatingsUpdate.bind(this) },
+      { name: 'Team Ratings - Delete', test: this.testTeamRatingsDelete.bind(this) },
+      { name: 'Player Ratings - Insert', test: this.testPlayerRatingsInsert.bind(this) },
+      { name: 'Player Ratings - Update', test: this.testPlayerRatingsUpdate.bind(this) },
+      { name: 'Player Ratings - Delete', test: this.testPlayerRatingsDelete.bind(this) },
       { name: 'Comment Notifications - Game Log', test: this.testCommentOnGameLog.bind(this) },
       { name: 'Comment Notifications - Reply', test: this.testCommentReply.bind(this) },
       { name: 'Comment Notifications - Self Comment', test: this.testSelfComment.bind(this) },
@@ -322,21 +358,21 @@ class TriggerValidator {
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Insert second user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Insert two game_logs for the same game, different users, different ratings
       await this.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, watched_date, rating_for_game, created_at, updated_at)
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, watched_date, rating_for_game, created_at, updated_at)
         VALUES
-          (${generateId()}, ${userId1}, ${gameId}, NOW(), 4, NOW(), NOW()),
-          (${generateId()}, ${userId2}, ${gameId}, NOW(), 2, NOW(), NOW())
+          (${generateId()}, ${userId1}, ${gameId}, 'TV', 'FULL_GAME', NOW(), 4, ${sql`NOW()`}, ${sql`NOW()`}),
+          (${generateId()}, ${userId2}, ${gameId}, 'TV', 'FULL_GAME', NOW(), 2, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Validate average and total ratings
       const ratings = (await this.db.execute(sql`
@@ -364,14 +400,14 @@ class TriggerValidator {
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Insert second user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Insert two game_logs for the same game, different users, different ratings
       const logId1 = generateId();
@@ -379,8 +415,8 @@ class TriggerValidator {
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, watched_date, rating_for_game, created_at, updated_at)
         VALUES
-          (${logId1}, ${userId1}, ${gameId}, NOW(), 4, NOW(), NOW()),
-          (${logId2}, ${userId2}, ${gameId}, NOW(), 2, NOW(), NOW())
+          (${logId1}, ${userId1}, ${gameId}, NOW(), 4, ${sql`NOW()`}, ${sql`NOW()`}),
+          (${logId2}, ${userId2}, ${gameId}, NOW(), 2, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Update one rating
       await this.db.execute(sql`
@@ -412,14 +448,14 @@ class TriggerValidator {
       await this.db.execute(sql`SELECT set_current_user_context(${userId1})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId1}, 'user1', ${userId1 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Insert second user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${userId2})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, NOW(), NOW())
+        VALUES (${userId2}, 'user2', ${userId2 + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Insert two game_logs for the same game, different users, different ratings
       const logId1 = generateId();
@@ -427,8 +463,8 @@ class TriggerValidator {
       await this.db.execute(sql`
         INSERT INTO game_logs (id, user_id, game_id, watched_date, rating_for_game, created_at, updated_at)
         VALUES
-          (${logId1}, ${userId1}, ${gameId}, NOW(), 4, NOW(), NOW()),
-          (${logId2}, ${userId2}, ${gameId}, NOW(), 2, NOW(), NOW())
+          (${logId1}, ${userId1}, ${gameId}, NOW(), 4, ${sql`NOW()`}, ${sql`NOW()`}),
+          (${logId2}, ${userId2}, ${gameId}, NOW(), 2, ${sql`NOW()`}, ${sql`NOW()`})
       `);
       // Delete one log
       await this.db.execute(sql`
@@ -451,6 +487,246 @@ class TriggerValidator {
   }
 
   // ============================================================================
+  // TEAM RATINGS TRIGGER TESTS
+  // ============================================================================
+
+  private async testTeamRatingsInsert(): Promise<boolean> {
+    try {
+      const teamId = await this.getTestTeam();
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a public comment on the team
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${teamId}, 'BASKETBALL_TEAM', 'Test team comment')
+      `);
+
+      // Check if team ratings record was created/updated
+      const teamRatings = (await this.db.execute(sql`
+        SELECT id, team_id, last_calculated_at FROM team_ratings WHERE team_id = ${teamId}
+      `)) as any;
+
+      if (teamRatings.rows.length > 0) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async testTeamRatingsUpdate(): Promise<boolean> {
+    try {
+      const teamId = await this.getTestTeam();
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a public comment on the team
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${teamId}, 'BASKETBALL_TEAM', 'Test team comment')
+      `);
+
+      // Get initial timestamp
+      const initialRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM team_ratings WHERE team_id = ${teamId}
+      `)) as any;
+      const initialTime = initialRatings.rows[0]?.last_calculated_at;
+
+      // Update the comment
+      await this.db.execute(sql`
+        UPDATE public_comments SET content = 'Updated team comment' WHERE id = ${commentId}
+      `);
+
+      // Check if timestamp was updated
+      const updatedRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM team_ratings WHERE team_id = ${teamId}
+      `)) as any;
+      const updatedTime = updatedRatings.rows[0]?.last_calculated_at;
+
+      return updatedTime > initialTime;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async testTeamRatingsDelete(): Promise<boolean> {
+    try {
+      const teamId = await this.getTestTeam(); // Atlanta Hawks (ID: 1) - SAFE: we only reference this ID
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a test public comment on the team (SAFE: we create our own test comment)
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${teamId}, 'BASKETBALL_TEAM', 'Test team comment')
+      `);
+
+      // Get initial timestamp
+      const initialRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM team_ratings WHERE team_id = ${teamId}
+      `)) as any;
+      const initialTime = initialRatings.rows[0]?.last_calculated_at;
+
+      // Delete ONLY our test comment (SAFE: we only delete the test comment we created)
+      await this.db.execute(sql`
+        DELETE FROM public_comments WHERE id = ${commentId}
+      `);
+
+      // Check if timestamp was updated
+      const updatedRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM team_ratings WHERE team_id = ${teamId}
+      `)) as any;
+      const updatedTime = updatedRatings.rows[0]?.last_calculated_at;
+
+      return updatedTime > initialTime;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // ============================================================================
+  // PLAYER RATINGS TRIGGER TESTS
+  // ============================================================================
+
+  private async testPlayerRatingsInsert(): Promise<boolean> {
+    try {
+      const playerId = await this.getTestPlayer();
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a public comment on the player
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${playerId}, 'BASKETBALL_PLAYER', 'Test player comment')
+      `);
+
+      // Check if player ratings record was created/updated
+      const playerRatings = (await this.db.execute(sql`
+        SELECT id, player_id, last_calculated_at FROM player_ratings WHERE player_id = ${playerId}
+      `)) as any;
+
+      return playerRatings.rows.length > 0;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async testPlayerRatingsUpdate(): Promise<boolean> {
+    try {
+      const playerId = await this.getTestPlayer();
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a public comment on the player
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${playerId}, 'BASKETBALL_PLAYER', 'Test player comment')
+      `);
+
+      // Get initial timestamp
+      const initialRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM player_ratings WHERE player_id = ${playerId}
+      `)) as any;
+      const initialTime = initialRatings.rows[0]?.last_calculated_at;
+
+      // Update the comment
+      await this.db.execute(sql`
+        UPDATE public_comments SET content = 'Updated player comment' WHERE id = ${commentId}
+      `);
+
+      // Check if timestamp was updated
+      const updatedRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM player_ratings WHERE player_id = ${playerId}
+      `)) as any;
+      const updatedTime = updatedRatings.rows[0]?.last_calculated_at;
+
+      return updatedTime > initialTime;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  private async testPlayerRatingsDelete(): Promise<boolean> {
+    try {
+      const playerId = await this.getTestPlayer(); // Luka Dončić (ID: 963) - SAFE: we only reference this ID
+      const commentId = `integration-test-trigger-comment-${generateId()}`;
+
+      // Create test user first
+      const userId = `integration-test-user-${generateId()}`;
+      await this.db.execute(sql`
+        INSERT INTO users (id, username, email_address, created_at, updated_at)
+        VALUES (${userId}, 'testuser', ${userId + '@test.com'}, NOW(), NOW())
+        ON CONFLICT (id) DO NOTHING
+      `);
+
+      // Insert a test public comment on the player (SAFE: we create our own test comment)
+      await this.db.execute(sql`
+        INSERT INTO public_comments (id, user_id, parent_id, parent_type, content)
+        VALUES (${commentId}, ${userId}, ${playerId}, 'BASKETBALL_PLAYER', 'Test player comment')
+      `);
+
+      // Get initial timestamp
+      const initialRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM player_ratings WHERE player_id = ${playerId}
+      `)) as any;
+      const initialTime = initialRatings.rows[0]?.last_calculated_at;
+
+      // Delete ONLY our test comment (SAFE: we only delete the test comment we created)
+      await this.db.execute(sql`
+        DELETE FROM public_comments WHERE id = ${commentId}
+      `);
+
+      // Check if timestamp was updated
+      const updatedRatings = (await this.db.execute(sql`
+        SELECT last_calculated_at FROM player_ratings WHERE player_id = ${playerId}
+      `)) as any;
+      const updatedTime = updatedRatings.rows[0]?.last_calculated_at;
+
+      return updatedTime > initialTime;
+    } catch (e) {
+      throw e;
+    }
+  }
+
+  // ============================================================================
   // COMMENT NOTIFICATION TRIGGER TESTS
   // ============================================================================
 
@@ -466,20 +742,20 @@ class TriggerValidator {
       await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create second user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Get notification count before
@@ -490,7 +766,7 @@ class TriggerValidator {
       // Create comment
       await this.db.execute(sql`
         INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
-        VALUES (${commentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Great game!', 0, NOW(), NOW())
+        VALUES (${commentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Great game!', 0, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check if notification was created
@@ -524,26 +800,26 @@ class TriggerValidator {
       await this.db.execute(sql`SELECT set_current_user_context(${user1Id})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create second user with proper context
       await this.db.execute(sql`SELECT set_current_user_context(${user2Id})`);
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Create parent comment
       await this.db.execute(sql`
         INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
-        VALUES (${parentCommentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Parent comment', 0, NOW(), NOW())
+        VALUES (${parentCommentId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', 'Parent comment', 0, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before
@@ -554,7 +830,7 @@ class TriggerValidator {
       // Create reply
       await this.db.execute(sql`
         INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
-        VALUES (${replyId}, ${user1Id}, ${parentCommentId}, 'COMMENT', 'Reply to comment', 1, NOW(), NOW())
+        VALUES (${replyId}, ${user1Id}, ${parentCommentId}, 'COMMENT', 'Reply to comment', 1, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check if notification was created
@@ -588,13 +864,13 @@ class TriggerValidator {
       // Create test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Get notification count before
@@ -605,7 +881,7 @@ class TriggerValidator {
       // Create self-comment
       await this.db.execute(sql`
         INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
-        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Self comment', 0, NOW(), NOW())
+        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Self comment', 0, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check that no notification was created
@@ -644,7 +920,7 @@ class TriggerValidator {
       // Create first test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Set user context for the second user before inserting
@@ -653,13 +929,13 @@ class TriggerValidator {
       // Create second test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Get notification count before
@@ -670,7 +946,7 @@ class TriggerValidator {
       // Create reaction
       await this.db.execute(sql`
         INSERT INTO reactions (id, user_id, target_id, target_type, emoji, created_at, updated_at)
-        VALUES (${reactionId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', '👍', NOW(), NOW())
+        VALUES (${reactionId}, ${user2Id}, ${gameLogId}, 'GAME_LOG', '👍', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check if notification was created
@@ -706,7 +982,7 @@ class TriggerValidator {
       // Create first test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Set user context for the second user before inserting
@@ -715,19 +991,19 @@ class TriggerValidator {
       // Create second test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Create test comment
       await this.db.execute(sql`
         INSERT INTO comments (id, user_id, parent_id, parent_type, content, depth, created_at, updated_at)
-        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Test comment', 0, NOW(), NOW())
+        VALUES (${commentId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', 'Test comment', 0, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before
@@ -738,7 +1014,7 @@ class TriggerValidator {
       // Create reaction
       await this.db.execute(sql`
         INSERT INTO reactions (id, user_id, target_id, target_type, emoji, created_at, updated_at)
-        VALUES (${reactionId}, ${user2Id}, ${commentId}, 'COMMENT', '❤️', NOW(), NOW())
+        VALUES (${reactionId}, ${user2Id}, ${commentId}, 'COMMENT', '❤️', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check if notification was created
@@ -773,13 +1049,13 @@ class TriggerValidator {
       // Create test user
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create test game log
       await this.db.execute(sql`
-        INSERT INTO game_logs (id, user_id, game_id, notes, rating_for_game, watched_date, created_at, updated_at)
-        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'Test game log', 5, NOW(), NOW(), NOW())
+        INSERT INTO game_logs (id, user_id, game_id, watched_setting, watched_scope, notes, rating_for_game, watched_date, created_at, updated_at)
+        VALUES (${gameLogId}, ${user1Id}, ${gameId}, 'TV', 'FULL_GAME', 'Test game log', 5, ${sql`NOW()`}, ${sql`NOW()`}, NOW())
       `);
 
       // Get notification count before
@@ -790,7 +1066,7 @@ class TriggerValidator {
       // Create self-reaction
       await this.db.execute(sql`
         INSERT INTO reactions (id, user_id, target_id, target_type, emoji, created_at, updated_at)
-        VALUES (${reactionId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', '👍', NOW(), NOW())
+        VALUES (${reactionId}, ${user1Id}, ${gameLogId}, 'GAME_LOG', '👍', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check that no notification was created
@@ -824,8 +1100,8 @@ class TriggerValidator {
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`}),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before
@@ -836,7 +1112,7 @@ class TriggerValidator {
       // Create friend request
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Check if notification was created
@@ -868,14 +1144,14 @@ class TriggerValidator {
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`}),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before
@@ -917,14 +1193,14 @@ class TriggerValidator {
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`}),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create pending friend request first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'PENDING', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before
@@ -966,14 +1242,14 @@ class TriggerValidator {
       // Create test users
       await this.db.execute(sql`
         INSERT INTO users (id, username, email_address, created_at, updated_at)
-        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, NOW(), NOW()),
-               (${user2Id}, 'user2', ${user2Id + '@test.com'}, NOW(), NOW())
+        VALUES (${user1Id}, 'user1', ${user1Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`}),
+               (${user2Id}, 'user2', ${user2Id + '@test.com'}, ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Create accepted friendship first
       await this.db.execute(sql`
         INSERT INTO friendships (id, user_id, friend_id, status, created_at, updated_at)
-        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'ACCEPTED', NOW(), NOW())
+        VALUES (${friendshipId}, ${user1Id}, ${user2Id}, 'ACCEPTED', ${sql`NOW()`}, ${sql`NOW()`})
       `);
 
       // Get notification count before

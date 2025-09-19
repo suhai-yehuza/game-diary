@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { LandingPageDataService } from '@/lib/services/landing-page-data.service';
 import { logger } from '@/lib/utils/logger';
+import { isMockModeEnabled } from '@/lib/utils/mock-mode';
 
 const landingPageService = new LandingPageDataService();
 
@@ -10,38 +11,44 @@ export async function GET(_request: NextRequest) {
   const startTime = Date.now();
 
   try {
-    logger.info('Fetching popular games data...');
+    // In mock mode, return empty data
+    if (isMockModeEnabled()) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          topRated: [],
+          mostRated: [],
+          mostPopular: [],
+        },
+        timestamp: new Date().toISOString(),
+        mock: true,
+      });
+    }
 
-    const popularGames = await landingPageService.getPopularGamesWithCache();
-    const totalTime = Date.now() - startTime;
+    // Fetch popular games data using the service
+    const popularGamesData = await landingPageService.getPopularGamesWithCache();
+    const responseTime = Date.now() - startTime;
 
-    logger.info('Popular games fetched successfully', {
-      itemCount:
-        (popularGames?.topRated?.length || 0) +
-        (popularGames?.mostRated?.length || 0) +
-        (popularGames?.mostPopular?.length || 0),
-      duration: totalTime,
+    logger.info('Popular games data fetched', {
+      topRatedCount: popularGamesData.topRated.length,
+      mostRatedCount: popularGamesData.mostRated.length,
+      mostPopularCount: popularGamesData.mostPopular.length,
+      responseTime,
     });
 
     return NextResponse.json({
       success: true,
-      data: popularGames,
-      performance: {
-        totalTime,
-        itemCount:
-          (popularGames?.topRated?.length || 0) +
-          (popularGames?.mostRated?.length || 0) +
-          (popularGames?.mostPopular?.length || 0),
-      },
+      data: popularGamesData,
       timestamp: new Date().toISOString(),
+      responseTime,
     });
   } catch (error) {
-    const totalTime = Date.now() - startTime;
+    const responseTime = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
 
-    logger.error('Failed to fetch popular games', {
+    logger.error('Failed to fetch popular games data', {
       error: errorMessage,
-      duration: totalTime,
+      responseTime,
     });
 
     return NextResponse.json(
@@ -49,6 +56,7 @@ export async function GET(_request: NextRequest) {
         success: false,
         error: errorMessage,
         timestamp: new Date().toISOString(),
+        responseTime,
       },
       { status: 500 }
     );

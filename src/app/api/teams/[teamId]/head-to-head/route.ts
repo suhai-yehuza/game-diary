@@ -82,13 +82,6 @@ export async function GET(
               code: 'BOS',
               logo: '',
             },
-            away: {
-              id: '2',
-              name: 'Boston Celtics',
-              nickname: 'Celtics',
-              code: 'BOS',
-              logo: '',
-            },
           },
           scores: {
             home: { points: 110 },
@@ -124,13 +117,6 @@ export async function GET(
               logo: '',
             },
             visitors: {
-              id: teamId,
-              name: 'Atlanta Hawks',
-              nickname: 'Hawks',
-              code: 'ATL',
-              logo: '',
-            },
-            away: {
               id: teamId,
               name: 'Atlanta Hawks',
               nickname: 'Hawks',
@@ -293,13 +279,6 @@ export async function GET(
               logo: game.teams.home?.logo || '',
             },
             visitors: {
-              id: game.teams.visitors?.id?.toString() || '',
-              name: game.teams.visitors?.name || '',
-              nickname: game.teams.visitors?.nickname || '',
-              code: game.teams.visitors?.code || '',
-              logo: game.teams.visitors?.logo || '',
-            },
-            away: {
               id: game.teams.visitors?.id?.toString() || '',
               name: game.teams.visitors?.name || '',
               nickname: game.teams.visitors?.nickname || '',

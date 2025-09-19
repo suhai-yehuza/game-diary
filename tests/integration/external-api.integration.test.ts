@@ -8,9 +8,6 @@ describe('External API Integration Tests', () => {
   describe('NBA API Integration', () => {
     test('should handle NBA API rate limiting gracefully', async () => {
       const nbaEndpoints = ['/api/proxy/games', '/api/proxy/teams', '/api/proxy/players'];
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // Reduced timeout to 15 seconds
-
       // Make multiple rapid requests to test rate limiting
       const promises = Array.from(
         { length: 3 }, // Reduced from 5 to 3 requests
@@ -18,14 +15,18 @@ describe('External API Integration Tests', () => {
           _,
           i // Reduced from 10 to 5 requests
         ) =>
-          fetch(`${BASE_URL}${nbaEndpoints[i % nbaEndpoints.length]}?season=2024&league=standard`, {
-            signal: controller.signal,
-          })
+          fetch(`${BASE_URL}${nbaEndpoints[i % nbaEndpoints.length]}?season=2024&league=standard`)
+      );
+
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 15000)
       );
 
       try {
-        const responses = await Promise.all(promises);
-        clearTimeout(timeoutId);
+        const responses = (await Promise.race([
+          Promise.all(promises),
+          timeoutPromise,
+        ])) as Response[];
 
         responses.forEach(response => {
           expect([200, 400, 429, 500]).toContain(response.status);
@@ -224,11 +225,13 @@ describe('External API Integration Tests', () => {
       const endpoint = '/api/proxy/games';
       const params = '?season=2024&league=standard';
 
-      try {
-        const response = await fetch(`${BASE_URL}${endpoint}${params}`, {
-          signal: AbortSignal.timeout(30000), // 30 second timeout
-        });
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 30000)
+      );
 
+      try {
+        const fetchPromise = fetch(`${BASE_URL}${endpoint}${params}`);
+        const response = (await Promise.race([fetchPromise, timeoutPromise])) as Response;
         expect([200, 400, 500, 408]).toContain(response.status);
 
         if (response.status === 408) {

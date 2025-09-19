@@ -46,8 +46,8 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
 
   if (error || !topGameLogs.length) {
     return (
-      <div className="text-center py-8">
-        <div className="text-theme-muted mb-4">No trending game logs available</div>
+      <div className="text-center py-2">
+        <div className="text-theme-secondary mb-1 text-xs">No trending game logs available</div>
         <Link
           href="/protected/dashboard"
           className="inline-block px-6 py-2 bg-semantic-success text-text-inverse rounded-lg hover:bg-semantic-success/90 transition-colors"
@@ -297,7 +297,7 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
       <div className="mt-auto pt-4">
         <Link
           href="/protected/dashboard"
-          className="block w-full text-center py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-lg hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium"
+          className="block w-full text-center py-3 bg-brand-primary text-theme-inverse rounded-lg hover:bg-brand-primary-hover transition-all duration-200 font-medium"
         >
           View All Game Logs
         </Link>

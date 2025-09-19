@@ -18,69 +18,73 @@ const RESUME_FREQUENT_POLLING_AFTER_MS = 600000; // Resume frequent polling afte
 
 // Helper function to transform external API games to internal format
 function transformExternalGamesToInternal(games: IExternalGame[]): IGameResponse[] {
-  return games.map(game => ({
-    id: game.id.toString(),
-    date: typeof game.date === 'string' ? { start: game.date } : { start: game.date?.start || '' },
-    home_team: game.teams?.home?.name || '',
-    away_team: game.teams?.visitors?.name || '',
-    home_score: game.scores?.home?.points || 0,
-    away_score: game.scores?.visitors?.points || 0,
-    status:
-      typeof game.status === 'string'
-        ? { short: game.status }
-        : { short: game.status?.short || '', long: game.status?.long, clock: game.status?.clock },
-    teams: game.teams
-      ? {
-          home: {
-            id: game.teams.home?.id?.toString() || '',
-            name: game.teams.home?.name || '',
-            nickname: game.teams.home?.nickname || '',
-            code: game.teams.home?.code || '',
-            logo: game.teams.home?.logo || '',
-          },
-          visitors: {
-            id: game.teams.visitors?.id?.toString() || '',
-            name: game.teams.visitors?.name || '',
-            nickname: game.teams.visitors?.nickname || '',
-            code: game.teams.visitors?.code || '',
-            logo: game.teams.visitors?.logo || '',
-          },
-          away: {
-            id: game.teams.visitors?.id?.toString() || '',
-            name: game.teams.visitors?.name || '',
-            nickname: game.teams.visitors?.nickname || '',
-            code: game.teams.visitors?.code || '',
-            logo: game.teams.visitors?.logo || '',
-          },
-        }
-      : undefined,
-    scores: game.scores
-      ? {
-          home: {
-            points: game.scores.home?.points || 0,
-          },
-          visitors: {
-            points: game.scores.visitors?.points || 0,
-          },
-        }
-      : undefined,
-    season: game.season,
-    stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
-    nugget: game.nugget,
-    arena: game.arena
-      ? {
-          name: game.arena.name || '',
-          city: game.arena.city || '',
-          state: game.arena.state || '',
-        }
-      : undefined,
-    periods: game.periods
-      ? {
-          current: game.periods.current || 0,
-          total: game.periods.total || 0,
-        }
-      : undefined,
-  }));
+  return games
+    .filter(game => {
+      // Only include games with valid dates
+      const gameDate = typeof game.date === 'string' ? game.date : game.date?.start;
+      return gameDate && gameDate.trim() !== '' && !isNaN(new Date(gameDate).getTime());
+    })
+    .map(game => ({
+      id: game.season ? `${game.season}-${game.id.toString()}` : game.id.toString(),
+      date:
+        typeof game.date === 'string' ? { start: game.date } : { start: game.date?.start || '' },
+      home_team: game.teams?.home?.name || '',
+      away_team: game.teams?.visitors?.name || '',
+      home_score: game.scores?.home?.points || 0,
+      away_score: game.scores?.visitors?.points || 0,
+      status:
+        typeof game.status === 'string'
+          ? { short: game.status }
+          : { short: game.status?.short || '', long: game.status?.long, clock: game.status?.clock },
+      teams: game.teams
+        ? {
+            home: {
+              id: game.teams.home?.id?.toString() || '',
+              name: game.teams.home?.name || '',
+              nickname: game.teams.home?.nickname || '',
+              code: game.teams.home?.code || '',
+              logo: game.teams.home?.logo || '',
+            },
+            visitors: {
+              id: game.teams.visitors?.id?.toString() || '',
+              name: game.teams.visitors?.name || '',
+              nickname: game.teams.visitors?.nickname || '',
+              code: game.teams.visitors?.code || '',
+              logo: game.teams.visitors?.logo || '',
+            },
+          }
+        : undefined,
+      scores: game.scores
+        ? {
+            home: {
+              points: game.scores.home?.points || 0,
+            },
+            visitors: {
+              points: game.scores.visitors?.points || 0,
+            },
+          }
+        : undefined,
+      season: game.season,
+      stage: typeof game.stage === 'string' ? parseInt(game.stage) || 0 : game.stage || 0,
+      nugget: game.nugget,
+      arena: game.arena
+        ? {
+            name: game.arena.name || '',
+            city: game.arena.city || '',
+            state: game.arena.state || '',
+          }
+        : undefined,
+      periods: game.periods
+        ? {
+            current: game.periods.current || 0,
+            total: game.periods.total || 0,
+          }
+        : undefined,
+    }))
+    .filter((game, index, array) => {
+      // Deduplicate by ID - keep only the first occurrence
+      return array.findIndex(g => g.id === game.id) === index;
+    });
 }
 
 // Singleton to manage global polling state
@@ -265,7 +269,9 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
     }
   }, [getAdaptivePollingInterval, liveGames?.response]);
 
-  const games = liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : [];
+  const games = useMemo(() => {
+    return liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : [];
+  }, [liveGames?.response]);
 
   // Helper function to format time since last live games
   const getTimeSinceLastLiveGames = useCallback(() => {
@@ -277,8 +283,12 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
     return `${minutes}m ${seconds}s ago`;
   }, [lastLiveGamesFound]);
 
+  const liveGamesTransformed = useMemo(() => {
+    return liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : null;
+  }, [liveGames?.response]);
+
   return {
-    liveGames: liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : null,
+    liveGames: liveGamesTransformed,
     games: games,
     loading,
     error,

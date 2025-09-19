@@ -3,7 +3,6 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 // import { cache } from '@/lib/cache'; // DISABLED: Using only NBA API cache now
-import { API_CONFIG } from '@/lib/config/app.config';
 import { createDatabaseClient } from '@/lib/db';
 // import { CacheNamespace } from '@/types'; // Unused import
 import { errorHandlers } from '@/lib/utils/error-handler';
@@ -76,11 +75,6 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get('q')?.trim();
-    const page = parseInt(searchParams.get('page') ?? '1');
-    const limit = parseInt(
-      searchParams.get('limit') ?? API_CONFIG.pagination.DEFAULT_PAGE_SIZE.toString()
-    );
-    const offset = (page - 1) * limit;
 
     // Input validation
     if (!query || query.length < 2) {
@@ -98,24 +92,8 @@ export async function GET(request: NextRequest) {
           totalTeams: 0,
           totalPlayers: 0,
         },
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          pages: 0,
-        },
+        total: 0,
       });
-    }
-
-    // Validate pagination parameters
-    if (page < 1 || limit < 1 || limit > 100) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Invalid pagination parameters',
-        },
-        { status: 400 }
-      );
     }
 
     // Check if we're in test/mock mode
@@ -123,29 +101,25 @@ export async function GET(request: NextRequest) {
       // Return mock data for test environment
       return NextResponse.json({
         success: true,
-        data: {
-          users: [],
-          gameLogs: [],
-          games: [],
-          teams: [],
-          players: [],
-          totalUsers: 0,
-          totalGameLogs: 0,
-          totalGames: 0,
-          totalTeams: 0,
-          totalPlayers: 0,
+        results: [],
+        total: 0,
+        query,
+        filters: {},
+        facets: {
+          type: [
+            { value: 'users', count: 0 },
+            { value: 'gameLogs', count: 0 },
+            { value: 'games', count: 0 },
+            { value: 'teams', count: 0 },
+            { value: 'players', count: 0 },
+          ],
         },
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          pages: 0,
-        },
+        took: 0,
       });
     }
 
     // Generate cache key based on search parameters
-    const _cacheKey = `search:${query}:${page}:${limit}`;
+    const _cacheKey = `search:${query}`;
 
     // DISABLED: Database caching - execute search directly
     console.log(`[Search API] Executing search for query: ${query} (no caching)...`);
@@ -157,24 +131,20 @@ export async function GET(request: NextRequest) {
       // If database connection fails, return empty results with success
       return NextResponse.json({
         success: true,
-        data: {
-          users: [],
-          gameLogs: [],
-          games: [],
-          teams: [],
-          players: [],
-          totalUsers: 0,
-          totalGameLogs: 0,
-          totalGames: 0,
-          totalTeams: 0,
-          totalPlayers: 0,
+        results: [],
+        total: 0,
+        query,
+        filters: {},
+        facets: {
+          type: [
+            { value: 'users', count: 0 },
+            { value: 'gameLogs', count: 0 },
+            { value: 'games', count: 0 },
+            { value: 'teams', count: 0 },
+            { value: 'players', count: 0 },
+          ],
         },
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          pages: 0,
-        },
+        took: 0,
       });
     }
 
@@ -196,7 +166,6 @@ export async function GET(request: NextRequest) {
         last_name ILIKE ${searchPattern} OR
         email_address ILIKE ${searchPattern}
       ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const usersCountQuery = sql`
@@ -222,7 +191,6 @@ export async function GET(request: NextRequest) {
       FROM game_logs
       WHERE notes ILIKE ${searchPattern}
       ORDER BY created_at DESC
-      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const gameLogsCountQuery = sql`
@@ -247,7 +215,6 @@ export async function GET(request: NextRequest) {
         teams->'home'->>'nickname' ILIKE ${searchPattern} OR
         teams->'away'->>'nickname' ILIKE ${searchPattern}
       ORDER BY date DESC
-      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const gamesCountQuery = sql`
@@ -274,7 +241,6 @@ export async function GET(request: NextRequest) {
         city ILIKE ${searchPattern} OR
         conference ILIKE ${searchPattern}
       ORDER BY name ASC
-      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const teamsCountQuery = sql`
@@ -311,7 +277,6 @@ export async function GET(request: NextRequest) {
         teams::text ILIKE ${searchPattern} OR
         leagues::text ILIKE ${searchPattern}
       ORDER BY last_name ASC, first_name ASC
-      LIMIT ${limit} OFFSET ${offset}
     `;
 
     const playersCountQuery = sql`
@@ -396,21 +361,39 @@ export async function GET(request: NextRequest) {
         const teams = gameData.teams as Record<string, unknown> | undefined;
         const homeTeam = (teams?.home as Record<string, unknown>) ?? {};
         const awayTeam = (teams?.away as Record<string, unknown>) ?? {};
-        const homeTeamName = safeString(homeTeam.name) || 'Home';
-        const awayTeamName = safeString(awayTeam.name) || 'Away';
+
+        // Improved fallback logic: name -> nickname -> code -> generic fallback
+        const homeTeamName =
+          safeString(homeTeam.name)?.trim() ||
+          safeString(homeTeam.nickname)?.trim() ||
+          safeString(homeTeam.code)?.trim() ||
+          'Home Team';
+        const awayTeamName =
+          safeString(awayTeam.name)?.trim() ||
+          safeString(awayTeam.nickname)?.trim() ||
+          safeString(awayTeam.code)?.trim() ||
+          'Away Team';
+
         const gameDate = gameData.date
           ? new Date(safeString(gameData.date)).toLocaleDateString()
           : 'Unknown Date';
         return {
           id: safeString(gameData.id),
-          title: `${homeTeamName} vs ${awayTeamName}`,
+          title: `${awayTeamName} @ ${homeTeamName}`,
           description: `Game on ${gameDate}`,
           type: 'game' as const,
           url: `/games/${safeString(gameData.id)}`,
           metadata: {
-            subtitle: `${homeTeamName} vs ${awayTeamName}`,
+            subtitle: `${awayTeamName} @ ${homeTeamName}`,
             imageUrl: safeString(homeTeam.logo),
           },
+          // Include team data for the GameSearchResult component
+          home_team_name: safeString(homeTeam.name),
+          home_team_nickname: safeString(homeTeam.nickname),
+          home_team_code: safeString(homeTeam.code),
+          away_team_name: safeString(awayTeam.name),
+          away_team_nickname: safeString(awayTeam.nickname),
+          away_team_code: safeString(awayTeam.code),
           ...gameData,
         };
       }),
@@ -444,8 +427,6 @@ export async function GET(request: NextRequest) {
       success: true,
       results: allResults,
       total: totalResults,
-      page,
-      limit,
       query,
       filters: {},
       facets: {
@@ -487,12 +468,7 @@ export async function GET(request: NextRequest) {
           totalTeams: 0,
           totalPlayers: 0,
         },
-        pagination: {
-          page: 1,
-          limit: 10,
-          total: 0,
-          pages: 0,
-        },
+        total: 0,
       },
       { status: 500 }
     );

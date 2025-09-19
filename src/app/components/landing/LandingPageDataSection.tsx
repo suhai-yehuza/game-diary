@@ -16,8 +16,8 @@ import { ProgressiveDataLoader } from './ProgressiveDataLoader';
 // Individual section components for progressive loading
 function TrendingContentSection() {
   return (
-    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">📈</div>
           <h2 className="text-lg sm:text-xl font-bold">Trending Game Logs</h2>
@@ -26,31 +26,29 @@ function TrendingContentSection() {
           See what&apos;s hot in the community
         </p>
       </div>
-      <div className="p-4 sm:p-6 flex-1 flex flex-col">
-        <div className="flex-1">
-          <Suspense
+      <div className="p-4 sm:p-6">
+        <Suspense
+          fallback={
+            <div className="animate-pulse space-y-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
+                />
+              ))}
+            </div>
+          }
+        >
+          <ProgressiveDataLoader
+            dataKey="trendingContent"
             fallback={
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
-                  />
-                ))}
-              </div>
+              <div className="text-center py-4 text-theme-muted">Loading trending content...</div>
             }
           >
-            <ProgressiveDataLoader
-              dataKey="trendingContent"
-              fallback={
-                <div className="text-center py-4 text-theme-muted">Loading trending content...</div>
-              }
-            >
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {data => <IntegratedGameLogs data={data as any} />}
-            </ProgressiveDataLoader>
-          </Suspense>
-        </div>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {data => <IntegratedGameLogs data={data as any} />}
+          </ProgressiveDataLoader>
+        </Suspense>
       </div>
     </section>
   );
@@ -58,39 +56,37 @@ function TrendingContentSection() {
 
 function RecentGamesSection() {
   return (
-    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">📅</div>
           <h2 className="text-lg sm:text-xl font-bold">Recent Games</h2>
         </div>
         <p className="text-text-inverse/90 mt-1 text-sm sm:text-base">Latest results and scores</p>
       </div>
-      <div className="p-4 sm:p-6 flex-1 flex flex-col">
-        <div className="flex-1">
-          <Suspense
+      <div className="p-4 sm:p-6">
+        <Suspense
+          fallback={
+            <div className="animate-pulse space-y-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
+                />
+              ))}
+            </div>
+          }
+        >
+          <ProgressiveDataLoader
+            dataKey="recentGames"
             fallback={
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
-                  />
-                ))}
-              </div>
+              <div className="text-center py-4 text-theme-muted">Loading recent games...</div>
             }
           >
-            <ProgressiveDataLoader
-              dataKey="recentGames"
-              fallback={
-                <div className="text-center py-4 text-theme-muted">Loading recent games...</div>
-              }
-            >
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {data => <IntegratedGames data={data as any} />}
-            </ProgressiveDataLoader>
-          </Suspense>
-        </div>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {data => <IntegratedGames data={data as any} />}
+          </ProgressiveDataLoader>
+        </Suspense>
       </div>
     </section>
   );
@@ -98,8 +94,8 @@ function RecentGamesSection() {
 
 function PopularGamesSection() {
   return (
-    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">⭐</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Games</h2>
@@ -108,31 +104,29 @@ function PopularGamesSection() {
           Top rated and most popular games
         </p>
       </div>
-      <div className="p-4 sm:p-6 flex-1 flex flex-col">
-        <div className="flex-1">
-          <Suspense
+      <div className="p-4 sm:p-6">
+        <Suspense
+          fallback={
+            <div className="animate-pulse space-y-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
+                />
+              ))}
+            </div>
+          }
+        >
+          <ProgressiveDataLoader
+            dataKey="popularGames"
             fallback={
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
-                  />
-                ))}
-              </div>
+              <div className="text-center py-4 text-theme-muted">Loading popular games...</div>
             }
           >
-            <ProgressiveDataLoader
-              dataKey="popularGames"
-              fallback={
-                <div className="text-center py-4 text-theme-muted">Loading popular games...</div>
-              }
-            >
-              {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-              {data => <PopularGames data={data as any} />}
-            </ProgressiveDataLoader>
-          </Suspense>
-        </div>
+            {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+            {data => <PopularGames data={data as any} />}
+          </ProgressiveDataLoader>
+        </Suspense>
       </div>
     </section>
   );
@@ -140,8 +134,8 @@ function PopularGamesSection() {
 
 function PopularTeamsSection() {
   return (
-    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">🏀</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Teams</h2>
@@ -150,23 +144,21 @@ function PopularTeamsSection() {
           Teams with the most engagement
         </p>
       </div>
-      <div className="p-4 sm:p-6 flex-1 flex flex-col">
-        <div className="flex-1">
-          <Suspense
-            fallback={
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
-                  />
-                ))}
-              </div>
-            }
-          >
-            <PopularTeams />
-          </Suspense>
-        </div>
+      <div className="p-4 sm:p-6">
+        <Suspense
+          fallback={
+            <div className="animate-pulse space-y-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
+                />
+              ))}
+            </div>
+          }
+        >
+          <PopularTeams />
+        </Suspense>
       </div>
     </section>
   );
@@ -174,8 +166,8 @@ function PopularTeamsSection() {
 
 function PopularPlayersSection() {
   return (
-    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
-      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
+    <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300">
+      <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="w-5 h-5 sm:w-6 sm:h-6">👤</div>
           <h2 className="text-lg sm:text-xl font-bold">Popular Players</h2>
@@ -184,23 +176,21 @@ function PopularPlayersSection() {
           Players generating the most buzz
         </p>
       </div>
-      <div className="p-4 sm:p-6 flex-1 flex flex-col">
-        <div className="flex-1">
-          <Suspense
-            fallback={
-              <div className="animate-pulse space-y-3">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
-                  />
-                ))}
-              </div>
-            }
-          >
-            <PopularPlayers />
-          </Suspense>
-        </div>
+      <div className="p-4 sm:p-6">
+        <Suspense
+          fallback={
+            <div className="animate-pulse space-y-3">
+              {Array.from({ length: 3 }, (_, i) => (
+                <div
+                  key={`skeleton-${i}`}
+                  className="h-4 bg-bg-theme-secondary rounded w-full mb-2"
+                />
+              ))}
+            </div>
+          }
+        >
+          <PopularPlayers />
+        </Suspense>
       </div>
     </section>
   );

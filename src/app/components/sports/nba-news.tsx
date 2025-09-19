@@ -101,7 +101,13 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
   }, [limit]);
 
   const formatDate = (dateString: string) => {
+    if (!dateString || dateString.trim() === '') {
+      return 'TBD';
+    }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'TBD';
+    }
     return date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
@@ -110,7 +116,13 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
   };
 
   const formatTimeAgo = (dateString: string) => {
+    if (!dateString || dateString.trim() === '') {
+      return 'TBD';
+    }
     const date = new Date(dateString);
+    if (isNaN(date.getTime())) {
+      return 'TBD';
+    }
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
 
@@ -184,7 +196,7 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
                 <span>{formatTimeAgo(item.publishedAt)}</span>
               </div>
 
-              <h3 className="font-semibold news-title mb-2 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h3 className="font-semibold news-title mb-2 line-clamp-2 group-hover:text-brand-primary transition-colors">
                 {item.title}
               </h3>
 
@@ -194,7 +206,7 @@ export function NBANews({ limit = 6 }: INBANewsProps) {
                 href={item.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-brand-primary hover:text-brand-primary-hover font-medium transition-colors"
               >
                 Read More
                 <ExternalLink className="w-3 h-3" />

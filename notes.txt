@@ -16,8 +16,8 @@ NOTES
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm reseed:soft:prod
 
 # seed user data (for dev only)
-> pnpm seed:user-data:large-pareto:dev
-# > ALLOW_ACCESS_TO_PRODUCTION_DB=true DISABLE_USER_SEEDING=false pnpm seed:user-data:large-pareto:prod
+> pnpm seed:user-data:medium-pareto:dev
+# > ALLOW_ACCESS_TO_PRODUCTION_DB=true DISABLE_USER_SEEDING=false pnpm seed:user-data:medium-pareto:prod
 
 > pnpm seed:test-user-interactions:clean:dev
 # > ALLOW_ACCESS_TO_PRODUCTION_DB=true pnpm seed:test-user-interactions:clean:prod

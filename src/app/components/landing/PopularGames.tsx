@@ -63,10 +63,10 @@ export function PopularGames({ data }: IPopularGamesProps) {
 
   if (error || (!topRated.length && !mostRated.length && !mostPopular.length)) {
     return (
-      <div className="text-center py-8">
-        <div className="text-theme-muted mb-4">No popular games available</div>
+      <div className="text-center py-2">
+        <div className="text-theme-secondary mb-1 text-xs">No popular games available</div>
         <Link
-          href="/sports/all-sports"
+          href="/sports/nba/games"
           className="inline-block px-6 py-2 bg-brand-primary text-theme-inverse rounded-lg hover:bg-brand-primary-hover transition-colors"
         >
           Browse All Games
@@ -171,10 +171,8 @@ export function PopularGames({ data }: IPopularGamesProps) {
               {game.arena && (
                 <div className="bg-surface-card rounded-lg p-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                        🏟️
-                      </span>
+                    <div className="w-4 h-4 bg-brand-primary/10 dark:bg-brand-primary/20 rounded-full flex items-center justify-center">
+                      <span className="text-xs font-semibold text-brand-primary">🏟️</span>
                     </div>
                     <span className="text-xs font-medium text-theme-primary truncate">
                       {game.arena.name}
@@ -271,7 +269,7 @@ export function PopularGames({ data }: IPopularGamesProps) {
       <div className="mt-auto pt-4">
         <Link
           href="/sports/all-sports"
-          className="block w-full text-center py-3 bg-brand-secondary text-theme-inverse rounded-lg hover:bg-brand-secondary-hover transition-all duration-200 font-medium"
+          className="block w-full text-center py-3 bg-brand-primary text-theme-inverse rounded-lg hover:bg-brand-primary-hover transition-all duration-200 font-medium"
         >
           View All Games
         </Link>

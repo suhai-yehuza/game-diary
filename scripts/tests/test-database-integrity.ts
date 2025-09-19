@@ -513,10 +513,16 @@ class DatabaseIntegrityValidator {
 
   async testTriggerExistence(): Promise<void> {
     const expectedTriggers = [
+      'game_logs_ratings_trigger',
       'reaction_notification_trigger',
       'comment_notification_trigger',
       'friendship_notification_trigger',
       'friendship_deletion_notification_trigger',
+      'trigger_update_team_ratings_on_game_logs',
+      'trigger_update_team_ratings_on_public_comments',
+      'trigger_update_team_ratings_on_public_reactions',
+      'trigger_update_player_ratings_on_public_comments',
+      'trigger_update_player_ratings_on_public_reactions',
     ];
 
     for (const trigger of expectedTriggers) {

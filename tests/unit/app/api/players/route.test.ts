@@ -37,6 +37,8 @@ describe('GET /api/players', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Disable MOCK_MODE for these tests so the route calls actual database functions
+    vi.stubEnv('MOCK_MODE', 'false');
     // Cache system disabled - ensure cache always misses
   });
 

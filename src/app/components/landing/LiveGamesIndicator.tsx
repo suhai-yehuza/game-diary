@@ -28,7 +28,7 @@ export function LiveGamesIndicator() {
 
       <div className="hidden sm:block w-px h-4 bg-theme-primary" />
 
-      <div className="flex items-center gap-2 text-gray-300 dark:text-gray-400">
+      <div className="flex items-center gap-2 text-theme-secondary">
         <Trophy className="w-4 h-4" />
         <span>Multiple sports</span>
       </div>

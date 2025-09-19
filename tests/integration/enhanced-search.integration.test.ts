@@ -72,9 +72,11 @@ describe('Enhanced Search Integration Tests', () => {
       if (response.status === 200) {
         expect(data).toHaveProperty('success');
         expect(data.success).toBe(true);
-        expect(data).toHaveProperty('data');
-        expect(data.data).toHaveProperty('players');
-        expect(Array.isArray(data.data.players)).toBe(true);
+        expect(data).toHaveProperty('results');
+        expect(Array.isArray(data.results)).toBe(true);
+        // Check if any results are players
+        const playerResults = data.results.filter((result: any) => result.type === 'player');
+        expect(Array.isArray(playerResults)).toBe(true);
       } else if (response.status === 500) {
         // Server error - check if it has error information
         try {
@@ -97,9 +99,11 @@ describe('Enhanced Search Integration Tests', () => {
       if (response.status === 200) {
         expect(data).toHaveProperty('success');
         expect(data.success).toBe(true);
-        expect(data).toHaveProperty('data');
-        expect(data.data).toHaveProperty('teams');
-        expect(Array.isArray(data.data.teams)).toBe(true);
+        expect(data).toHaveProperty('results');
+        expect(Array.isArray(data.results)).toBe(true);
+        // Check if any results are teams
+        const teamResults = data.results.filter((result: any) => result.type === 'team');
+        expect(Array.isArray(teamResults)).toBe(true);
       } else if (response.status === 500) {
         // Server error - check if it has error information
         try {
@@ -122,9 +126,11 @@ describe('Enhanced Search Integration Tests', () => {
       if (response.status === 200) {
         expect(data).toHaveProperty('success');
         expect(data.success).toBe(true);
-        expect(data).toHaveProperty('data');
-        expect(data.data).toHaveProperty('users');
-        expect(Array.isArray(data.data.users)).toBe(true);
+        expect(data).toHaveProperty('results');
+        expect(Array.isArray(data.results)).toBe(true);
+        // Check if any results are users
+        const userResults = data.results.filter((result: any) => result.type === 'user');
+        expect(Array.isArray(userResults)).toBe(true);
       } else if (response.status === 500) {
         // Server error - check if it has error information
         try {
@@ -147,9 +153,11 @@ describe('Enhanced Search Integration Tests', () => {
       if (response.status === 200) {
         expect(data).toHaveProperty('success');
         expect(data.success).toBe(true);
-        expect(data).toHaveProperty('data');
-        expect(data.data).toHaveProperty('gameLogs');
-        expect(Array.isArray(data.data.gameLogs)).toBe(true);
+        expect(data).toHaveProperty('results');
+        expect(Array.isArray(data.results)).toBe(true);
+        // Check if any results are game logs
+        const gameLogResults = data.results.filter((result: any) => result.type === 'gameLog');
+        expect(Array.isArray(gameLogResults)).toBe(true);
       } else if (response.status === 500) {
         // Server error - check if it has error information
         try {

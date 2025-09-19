@@ -1,5 +1,9 @@
--- 001_reaction_emojis.sql
--- Reference data for reaction emojis
+-- ============================================================================
+-- REACTION EMOJIS REFERENCE DATA - Game Diary Database
+-- ============================================================================
+-- Last Updated: 2024-12-19
+-- Purpose: Reference data for reaction emojis
+-- Dependencies: Base schema (000_base_schema.sql)
 --
 -- This file populates the reaction_emojis table with allowed emojis.
 -- The source of truth is src/lib/constants/index.ts REACTION_EMOJIS
@@ -7,6 +11,7 @@
 -- To update emojis:
 -- 1. Edit src/lib/constants/index.ts REACTION_EMOJIS
 -- 2. Run: pnpm db:ensure-fixes:dev (calls syncReactionEmojis)
+-- ============================================================================
 
 -- ============================================================================
 -- REACTION EMOJIS REFERENCE DATA

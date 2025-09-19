@@ -222,5 +222,28 @@ SELECT * FROM migration_versions WHERE file_name = 'problematic_migration.sql';
 ---
 
 **Last Updated**: 2024-12-19
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Maintainer**: Game Diary Development Team
+
+## 🔄 **Recent Updates (v1.1.0)**
+
+### **Schema Reorganization:**
+
+- ✅ **Reorganized base schema** with logical section grouping
+- ✅ **Fixed missing constraints** (user_id NOT NULL for comments/reactions)
+- ✅ **Standardized naming** and documentation throughout
+- ✅ **Enhanced data integrity** with complete constraint coverage
+
+### **Migration Optimizations:**
+
+- ✅ **Removed duplicate functions** from RLS policies file
+- ✅ **Added nested comment indexes** for depth-based queries
+- ✅ **Improved documentation** with consistent headers
+- ✅ **Enhanced performance** with optimized index coverage
+
+### **New Features:**
+
+- ✅ **Nested comment support** up to 5 levels deep
+- ✅ **Enhanced reaction system** for both user and public content
+- ✅ **Improved search capabilities** with trigram indexes
+- ✅ **Better performance monitoring** with comprehensive metrics

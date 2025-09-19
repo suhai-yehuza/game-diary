@@ -41,6 +41,79 @@ export async function GET(request: NextRequest) {
     const limit = (limitParam && parseInt(limitParam)) || API_LIMITS.PLAYERS.LARGE;
     const offset = (page - 1) * limit;
 
+    // Check if we're in mock mode
+    if (process.env.MOCK_MODE === 'true') {
+      logger.info('Players API request - Mock Mode', {
+        searchTerm,
+        positionFilter,
+        yearFilter,
+        collegeFilter,
+        countryFilter,
+        sortBy,
+        sortDirection,
+        page,
+        limit,
+        bypassCache,
+      });
+
+      // Special endpoint for filter options
+      const getOptions = searchParams.get('options');
+      if (getOptions === 'true') {
+        const mockFilterOptions = {
+          success: true,
+          data: {
+            positions: [],
+            years: [],
+            colleges: [],
+            countries: [],
+          },
+          timestamp: new Date().toISOString(),
+          mock: true,
+        };
+        return NextResponse.json(mockFilterOptions);
+      }
+
+      // Return mock players data
+      const mockPlayers = {
+        success: true,
+        get: 'players',
+        parameters: {
+          league: 'standard',
+          season: '2024',
+          ...(searchTerm && { search: searchTerm }),
+          ...(positionFilter && { position: positionFilter }),
+          ...(yearFilter && { year: yearFilter }),
+          ...(collegeFilter && { college: collegeFilter }),
+          ...(countryFilter && { country: countryFilter }),
+        },
+        errors: [],
+        results: 0,
+        response: [],
+        timestamp: new Date().toISOString(),
+        requestId: crypto.randomUUID(),
+        players: [],
+        total: 0,
+        page: page,
+        limit: limit,
+        pagination: {
+          page,
+          limit,
+          totalCount: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+        cacheInfo: {
+          hit: false,
+          key: `players:${searchTerm || 'all'}:${positionFilter || 'all'}:${yearFilter || 'all'}:${collegeFilter || 'all'}:${countryFilter || 'all'}:${page}:${limit}`,
+          ttl: 3600,
+        },
+        mock: true,
+      };
+
+      return NextResponse.json(mockPlayers);
+    }
+
     // Special endpoint for filter options
     const getOptions = searchParams.get('options');
     if (getOptions === 'true') {

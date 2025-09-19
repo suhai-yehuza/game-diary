@@ -76,6 +76,24 @@ export function setupMockModeEnvironment(): void {
 }
 
 /**
+ * Check if mock mode is enabled on the client side only
+ * This is safe to use in client components
+ */
+export function isMockModeEnabledClient(): boolean {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  const extendedWindow = window as IExtendedWindow;
+  return (
+    extendedWindow.__MOCK_MODE__ === true ||
+    extendedWindow.__API_MOCK_MODE__ === true ||
+    extendedWindow.__E2E_MOCK_MODE__ === true ||
+    document.documentElement.getAttribute('data-mock-mode') === 'true'
+  );
+}
+
+/**
  * Check if we're in a test environment that should use mock data
  */
 export function shouldUseMockData(): boolean {

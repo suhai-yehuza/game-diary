@@ -23,6 +23,34 @@ export async function GET(request: Request) {
     const startTime = Date.now();
     console.log('📊 Fetching NBA Hub counts...', { bypassCache });
 
+    // Check if we're in mock mode
+    if (process.env.MOCK_MODE === 'true') {
+      console.log('📊 NBA Hub counts - Mock Mode');
+
+      const mockCounts = {
+        games: 0,
+        teams: 0,
+        players: 0,
+        gameLogs: 0,
+        reactions: 0,
+      };
+
+      const response = NextResponse.json({
+        success: true,
+        counts: mockCounts,
+        timestamp: new Date().toISOString(),
+        source: 'mock',
+        totalTime: Date.now() - startTime,
+        mock: true,
+      });
+
+      // Set cache headers for browser caching
+      response.headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=600');
+      response.headers.set('ETag', `"mock-${Date.now()}"`);
+
+      return response;
+    }
+
     // Test cache service availability and environment
     console.log('🔍 Testing cache service...');
     console.log('🔍 Environment check:');

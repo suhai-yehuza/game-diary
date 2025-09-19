@@ -80,7 +80,7 @@ const PopularTeamsContent = ({ data }: { data: IPopularTeamsData }) => {
       {/* Popular Teams List with Scroll Animation */}
       <div
         ref={containerRef}
-        className="h-[42rem] overflow-auto relative scroll-container animate-scroll"
+        className="max-h-[42rem] overflow-auto relative scroll-container animate-scroll"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
@@ -117,11 +117,11 @@ const PopularTeamsContent = ({ data }: { data: IPopularTeamsData }) => {
               <div className="flex items-center gap-4 text-sm">
                 <div className="flex items-center gap-1 text-theme-secondary">
                   <MessageCircle className="w-4 h-4" />
-                  <span>{formatEngagement(team.commentCount)}</span>
+                  <span>{formatEngagement(team.totalComments)}</span>
                 </div>
                 <div className="flex items-center gap-1 text-theme-secondary">
                   <Heart className="w-4 h-4" />
-                  <span>{formatEngagement(team.reactionCount)}</span>
+                  <span>{formatEngagement(team.totalReactions)}</span>
                 </div>
                 <div className="flex items-center gap-1 text-brand-primary">
                   <Star className="w-4 h-4" />
@@ -134,9 +134,9 @@ const PopularTeamsContent = ({ data }: { data: IPopularTeamsData }) => {
       </div>
 
       {data.mostPopular.length === 0 && (
-        <div className="text-center py-8 text-theme-muted">
-          <Users className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>No popular teams data available yet</p>
+        <div className="text-center py-2 text-theme-secondary">
+          <Users className="w-4 h-4 mx-auto mb-1 opacity-50" />
+          <p className="text-xs">No popular teams data available yet</p>
         </div>
       )}
 

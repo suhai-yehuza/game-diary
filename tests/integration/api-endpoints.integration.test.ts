@@ -447,10 +447,12 @@ describe('API Endpoints Integration Tests', () => {
   describe('Error Handling', () => {
     test('should handle 404 for non-existent endpoints', async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/non-existent`, {
-          // Add timeout to prevent hanging
-          signal: AbortSignal.timeout(5000),
-        });
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Request timeout')), 5000)
+        );
+
+        const fetchPromise = fetch(`${BASE_URL}/api/non-existent`);
+        const response = (await Promise.race([fetchPromise, timeoutPromise])) as Response;
         expect(response.status).toBe(404);
       } catch (error) {
         // Use centralized error handling

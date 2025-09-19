@@ -79,18 +79,18 @@ export function NestedComment({
 
   return (
     <div className="mb-4">
-      <Card className="border-l-4 border-l-blue-500 bg-white dark:bg-gray-800">
+      <Card className="border-l-4 border-l-brand-primary bg-surface-card">
         <CardContent className="p-4">
           <div className="flex items-start justify-between">
             <div className="flex items-start space-x-3 flex-1">
-              <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-blue-600 dark:text-blue-400">
+              <div className="w-8 h-8 rounded-full bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+                <span className="text-sm font-medium text-brand-primary">
                   {comment.user.first_name?.[0] || comment.user.username?.[0] || 'U'}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <span className="text-sm font-medium text-theme-primary">
                     {comment.user.first_name || comment.user.username || 'Anonymous'}
                   </span>
                   <span className="text-xs text-theme-muted">

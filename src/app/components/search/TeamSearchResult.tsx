@@ -44,7 +44,13 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center space-x-3 mb-2">
               <h3 className={`${SEARCH_STYLES.content.title} truncate`}>
-                {team.name && team.name.trim() !== '' ? team.name : 'Unknown Team'}
+                {team.name && team.name.trim() !== ''
+                  ? team.name
+                  : team.nickname && team.nickname.trim() !== ''
+                    ? team.nickname
+                    : team.code && team.code.trim() !== ''
+                      ? team.code
+                      : 'Unknown Team'}
               </h3>
               <span className={`${SEARCH_STYLES.badge.base} ${SEARCH_STYLES.badge.team}`}>
                 <span
@@ -54,15 +60,17 @@ export function TeamSearchResult({ team }: ITeamSearchResultProps) {
               </span>
             </div>
 
-            {/* Team Nickname */}
-            {team.nickname && (
-              <div className="flex items-center space-x-1 mb-3">
-                <Star className="w-4 h-4 text-gray-400" />
-                <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  {team.nickname}
-                </span>
-              </div>
-            )}
+            {/* Team Nickname - only show if it's different from the title */}
+            {team.nickname &&
+              team.nickname.trim() !== '' &&
+              team.name &&
+              team.name.trim() !== '' &&
+              team.name !== team.nickname && (
+                <div className="flex items-center space-x-1 mb-3">
+                  <Star className="w-4 h-4 text-theme-muted" />
+                  <span className="text-sm font-medium text-theme-secondary">{team.nickname}</span>
+                </div>
+              )}
 
             <div className={SEARCH_STYLES.content.meta}>
               {location && (

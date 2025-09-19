@@ -158,7 +158,8 @@ function useSearchLogic() {
       if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
         const encodedQuery = encodeURIComponent(trimmedQuery);
         if (pathname.startsWith('/protected/admin')) {
-          router.push(`/protected/admin/database?q=${encodedQuery}`);
+          // Preserve the current admin page instead of always going to database
+          router.push(`${pathname}?q=${encodedQuery}`);
         } else {
           router.push(`/search?q=${encodedQuery}`);
         }
@@ -185,8 +186,9 @@ function useSearchLogic() {
             router.push('/');
           }
         } else if (pathname.startsWith('/protected/admin')) {
-          // If we're on admin page, remove the query parameter
-          router.push('/protected/admin/database');
+          // If we're on admin page, remove the query parameter but stay on the same page
+          const currentPath = pathname.split('?')[0]; // Remove any existing query parameters
+          router.push(currentPath);
         } else {
           // Return to the previous page when search is cleared, but only if it's a valid path
           const previousPath = previousPathRef.current;
@@ -212,7 +214,8 @@ function useSearchLogic() {
       if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
         const encodedQuery = encodeURIComponent(trimmedQuery);
         if (pathname.startsWith('/protected/admin')) {
-          router.push(`/protected/admin/database?q=${encodedQuery}`);
+          // Preserve the current admin page instead of always going to database
+          router.push(`${pathname}?q=${encodedQuery}`);
         } else {
           router.push(`/search?q=${encodedQuery}`);
         }
@@ -250,7 +253,9 @@ function useSearchLogic() {
         router.push('/');
       }
     } else if (pathname?.startsWith('/protected/admin')) {
-      router.push('/protected/admin/database');
+      // Remove query parameters but stay on the same admin page
+      const currentPath = pathname.split('?')[0];
+      router.push(currentPath);
     }
   }, [pathname, router]);
 
@@ -264,7 +269,8 @@ function useSearchLogic() {
         if (trimmedQuery && pathname && pathname !== '/_not-found' && !pathname.includes('404')) {
           const encodedQuery = encodeURIComponent(trimmedQuery);
           if (pathname.startsWith('/protected/admin')) {
-            router.push(`/protected/admin/database?q=${encodedQuery}`);
+            // Preserve the current admin page instead of always going to database
+            router.push(`${pathname}?q=${encodedQuery}`);
           } else {
             router.push(`/search?q=${encodedQuery}`);
           }

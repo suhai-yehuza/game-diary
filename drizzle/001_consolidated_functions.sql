@@ -667,6 +667,301 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ============================================================================
+-- TEAM AND PLAYER RATING FUNCTIONS
+-- ============================================================================
+
+-- Function to update team ratings when game logs change
+CREATE OR REPLACE FUNCTION update_team_ratings()
+RETURNS TRIGGER AS $$
+DECLARE
+    team_id_var varchar(255);
+    is_public boolean;
+BEGIN
+    -- Determine if this is an INSERT, UPDATE, or DELETE
+    IF TG_OP = 'DELETE' THEN
+        -- Get team ID from the deleted record
+        SELECT
+            CASE
+                WHEN (OLD.game_id IS NOT NULL) THEN
+                    CASE
+                        WHEN (bg.teams->'home'->>'id')::text IS NOT NULL THEN (bg.teams->'home'->>'id')::text
+                        WHEN (bg.teams->'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->'visitors'->>'id')::text
+                    END
+            END INTO team_id_var
+        FROM basketball_games bg
+        WHERE bg.id = OLD.game_id;
+
+        is_public := (OLD.classification = 'PUBLIC');
+    ELSE
+        -- Get team ID from the new/updated record
+        SELECT
+            CASE
+                WHEN (bg.teams->'home'->>'id')::text IS NOT NULL THEN (bg.teams->'home'->>'id')::text
+                WHEN (bg.teams->'visitors'->>'id')::text IS NOT NULL THEN (bg.teams->'visitors'->>'id')::text
+            END INTO team_id_var
+        FROM basketball_games bg
+        WHERE bg.id = NEW.game_id;
+
+        is_public := (NEW.classification = 'PUBLIC');
+    END IF;
+
+    -- Only proceed if we found a team ID
+    IF team_id_var IS NOT NULL THEN
+        -- Insert or update team rating record
+        INSERT INTO team_ratings (
+            id, team_id, last_calculated_at, updated_at
+        ) VALUES (
+            'team_' || team_id_var, team_id_var, now(), now()
+        ) ON CONFLICT (id) DO UPDATE SET
+            last_calculated_at = now(),
+            updated_at = now();
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update team ratings when public comments change
+CREATE OR REPLACE FUNCTION update_team_ratings_on_public_comments()
+RETURNS TRIGGER AS $$
+DECLARE
+    team_id_var varchar(255);
+BEGIN
+    -- Get team ID from the public comment
+    IF TG_OP = 'DELETE' THEN
+        team_id_var := OLD.parent_id;
+    ELSE
+        team_id_var := NEW.parent_id;
+    END IF;
+
+    -- Only proceed if this is a team public comment
+    IF (TG_OP = 'DELETE' AND OLD.parent_type = 'BASKETBALL_TEAM') OR
+       (TG_OP != 'DELETE' AND NEW.parent_type = 'BASKETBALL_TEAM') THEN
+
+        -- Insert or update team rating record
+        INSERT INTO team_ratings (
+            id, team_id, last_calculated_at, updated_at
+        ) VALUES (
+            'team_' || team_id_var, team_id_var, now(), now()
+        ) ON CONFLICT (id) DO UPDATE SET
+            last_calculated_at = now(),
+            updated_at = now();
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update team ratings when public reactions change
+CREATE OR REPLACE FUNCTION update_team_ratings_on_public_reactions()
+RETURNS TRIGGER AS $$
+DECLARE
+    team_id_var varchar(255);
+BEGIN
+    -- Get team ID from the public reaction's target
+    IF TG_OP = 'DELETE' THEN
+        team_id_var := OLD.target_id;
+    ELSE
+        team_id_var := NEW.target_id;
+    END IF;
+
+    -- Only proceed if this is a reaction on a team
+    IF (TG_OP = 'DELETE' AND OLD.target_type = 'BASKETBALL_TEAM') OR
+       (TG_OP != 'DELETE' AND NEW.target_type = 'BASKETBALL_TEAM') THEN
+
+        -- Insert or update team rating record
+        INSERT INTO team_ratings (
+            id, team_id, last_calculated_at, updated_at
+        ) VALUES (
+            'team_' || team_id_var, team_id_var, now(), now()
+        ) ON CONFLICT (id) DO UPDATE SET
+            last_calculated_at = now(),
+            updated_at = now();
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update player ratings when public comments change
+CREATE OR REPLACE FUNCTION update_player_ratings_on_public_comments()
+RETURNS TRIGGER AS $$
+DECLARE
+    player_id_var varchar(255);
+BEGIN
+    -- Get player ID from the public comment
+    IF TG_OP = 'DELETE' THEN
+        player_id_var := OLD.parent_id;
+    ELSE
+        player_id_var := NEW.parent_id;
+    END IF;
+
+    -- Only proceed if this is a player public comment
+    IF (TG_OP = 'DELETE' AND OLD.parent_type = 'BASKETBALL_PLAYER') OR
+       (TG_OP != 'DELETE' AND NEW.parent_type = 'BASKETBALL_PLAYER') THEN
+
+        -- Insert or update player rating record
+        INSERT INTO player_ratings (
+            id, player_id, last_calculated_at, updated_at
+        ) VALUES (
+            'player_' || player_id_var, player_id_var, now(), now()
+        ) ON CONFLICT (id) DO UPDATE SET
+            last_calculated_at = now(),
+            updated_at = now();
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to update player ratings when public reactions change
+CREATE OR REPLACE FUNCTION update_player_ratings_on_public_reactions()
+RETURNS TRIGGER AS $$
+DECLARE
+    player_id_var varchar(255);
+BEGIN
+    -- Get player ID from the public reaction's target
+    IF TG_OP = 'DELETE' THEN
+        player_id_var := OLD.target_id;
+    ELSE
+        player_id_var := NEW.target_id;
+    END IF;
+
+    -- Only proceed if this is a reaction on a player
+    IF (TG_OP = 'DELETE' AND OLD.target_type = 'BASKETBALL_PLAYER') OR
+       (TG_OP != 'DELETE' AND NEW.target_type = 'BASKETBALL_PLAYER') THEN
+
+        -- Insert or update player rating record
+        INSERT INTO player_ratings (
+            id, player_id, last_calculated_at, updated_at
+        ) VALUES (
+            'player_' || player_id_var, player_id_var, now(), now()
+        ) ON CONFLICT (id) DO UPDATE SET
+            last_calculated_at = now(),
+            updated_at = now();
+    END IF;
+
+    RETURN COALESCE(NEW, OLD);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to recalculate team ratings
+CREATE OR REPLACE FUNCTION recalculate_team_ratings(team_id_param varchar(255))
+RETURNS void AS $$
+DECLARE
+    rating_record record;
+BEGIN
+    -- Calculate engagement metrics for the team
+    SELECT
+        COALESCE(COUNT(DISTINCT gl.id), 0) as total_game_logs,
+        COALESCE(COUNT(DISTINCT CASE WHEN gl.classification = 'PUBLIC' THEN gl.id END), 0) as public_game_logs,
+        COALESCE(SUM(CASE WHEN gl.classification = 'PUBLIC' THEN gl_engagement.comments ELSE 0 END), 0) as public_comments,
+        COALESCE(SUM(CASE WHEN gl.classification = 'PUBLIC' THEN gl_engagement.reactions ELSE 0 END), 0) as public_reactions,
+        COALESCE(SUM(gl_engagement.comments), 0) as total_comments,
+        COALESCE(SUM(gl_engagement.reactions), 0) as total_reactions
+    INTO rating_record
+    FROM game_logs gl
+    LEFT JOIN basketball_games bg ON gl.game_id = bg.id
+    LEFT JOIN (
+        SELECT
+            gl_sub.id,
+            COALESCE(comment_counts.count, 0) as comments,
+            COALESCE(reaction_counts.count, 0) as reactions
+        FROM game_logs gl_sub
+        LEFT JOIN (
+            SELECT parent_id, COUNT(*) as count
+            FROM comments
+            WHERE parent_type = 'GAME_LOG' AND deleted_at IS NULL
+            GROUP BY parent_id
+        ) comment_counts ON gl_sub.id = comment_counts.parent_id
+        LEFT JOIN (
+            SELECT target_id, COUNT(*) as count
+            FROM reactions
+            WHERE target_type = 'GAME_LOG' AND deleted_at IS NULL
+            GROUP BY target_id
+        ) reaction_counts ON gl_sub.id = reaction_counts.target_id
+        WHERE gl_sub.deleted_at IS NULL
+    ) gl_engagement ON gl.id = gl_engagement.id
+    WHERE gl.deleted_at IS NULL
+      AND (
+        (bg.teams->'home'->>'id')::text = team_id_param OR
+        (bg.teams->'visitors'->>'id')::text = team_id_param
+      );
+
+    -- Calculate popularity score using hybrid approach
+    DECLARE
+        public_engagement_score numeric;
+        total_engagement_score numeric;
+        game_log_volume_score numeric;
+        popularity_score numeric;
+    BEGIN
+        public_engagement_score := rating_record.public_comments * 2 + rating_record.public_reactions * 1;
+        total_engagement_score := rating_record.total_comments * 1.5 + rating_record.total_reactions * 0.8;
+        game_log_volume_score := ln(rating_record.total_game_logs + 1) * 1.5;
+
+        popularity_score :=
+            ln(public_engagement_score + 1) * 0.5 +
+            ln(total_engagement_score + 1) * 0.3 +
+            game_log_volume_score * 0.2;
+
+        -- Update team ratings
+        UPDATE team_ratings SET
+            total_comments = rating_record.total_comments,
+            total_reactions = rating_record.total_reactions,
+            public_comments = rating_record.public_comments,
+            public_reactions = rating_record.public_reactions,
+            total_game_logs = rating_record.total_game_logs,
+            public_game_logs = rating_record.public_game_logs,
+            popularity_score = popularity_score,
+            last_calculated_at = now(),
+            updated_at = now()
+        WHERE team_id = team_id_param;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to recalculate player ratings (only public data)
+CREATE OR REPLACE FUNCTION recalculate_player_ratings(player_id_param varchar(255))
+RETURNS void AS $$
+DECLARE
+    rating_record record;
+BEGIN
+    -- Calculate engagement metrics for the player (only public data)
+    SELECT
+        COALESCE(COUNT(pc.id), 0) as public_comments,
+        COALESCE(COUNT(pr.id), 0) as public_reactions
+    INTO rating_record
+    FROM public_comments pc
+    FULL OUTER JOIN public_reactions pr ON pc.parent_id = pr.target_id AND pc.parent_type = pr.target_type
+    WHERE (pc.parent_type = 'BASKETBALL_PLAYER' AND pc.parent_id = player_id_param AND pc.deleted_at IS NULL)
+       OR (pr.target_type = 'BASKETBALL_PLAYER' AND pr.target_id = player_id_param AND pr.deleted_at IS NULL);
+
+    -- Calculate popularity score (only public data)
+    DECLARE
+        public_engagement_score numeric;
+        popularity_score numeric;
+    BEGIN
+        public_engagement_score := rating_record.public_comments * 2 + rating_record.public_reactions * 1;
+        popularity_score :=
+            LN(public_engagement_score + 1) * 0.5 +
+            LN(rating_record.public_comments + 1) * 0.3 +
+            LN(rating_record.public_reactions + 1) * 0.2;
+
+        -- Update player ratings
+        UPDATE player_ratings SET
+            total_comments = rating_record.public_comments,
+            total_reactions = rating_record.public_reactions,
+            public_comments = rating_record.public_comments,
+            public_reactions = rating_record.public_reactions,
+            popularity_score = popularity_score,
+            last_calculated_at = now(),
+            updated_at = now()
+        WHERE player_id = player_id_param;
+    END;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
 -- FUNCTION DOCUMENTATION
 -- ============================================================================
 

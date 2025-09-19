@@ -70,6 +70,31 @@ export async function cleanupTestData(options: CleanupOptions): Promise<void> {
           ...additionalPatterns.filter(p => p.includes('game_log')),
         ],
       },
+      // Public comments and reactions (depends on users, need special handling)
+      {
+        table: 'public_comments',
+        patterns: [
+          "user_id LIKE 'test-%'",
+          "id LIKE 'test-%'",
+          "user_id LIKE 'integration-test%'",
+          "id LIKE 'integration-test%'",
+          "anonymous_name LIKE 'test-%'",
+          "anonymous_name LIKE 'integration-test%'",
+          ...additionalPatterns.filter(p => p.includes('public_comment')),
+        ],
+      },
+      {
+        table: 'public_reactions',
+        patterns: [
+          "user_id LIKE 'test-%'",
+          "id LIKE 'test-%'",
+          "user_id LIKE 'integration-test%'",
+          "id LIKE 'integration-test%'",
+          "anonymous_name LIKE 'test-%'",
+          "anonymous_name LIKE 'integration-test%'",
+          ...additionalPatterns.filter(p => p.includes('public_reaction')),
+        ],
+      },
       // Basketball games (depends on basketball_teams)
       {
         table: 'basketball_games',
@@ -273,6 +298,10 @@ export async function needsCleanup(db: any): Promise<boolean> {
         SELECT 1 FROM friendships WHERE user_id LIKE 'test-%' OR friend_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR friend_id LIKE 'integration-test%' OR id LIKE 'integration-test%'
         UNION ALL
         SELECT 1 FROM game_logs WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%'
+        UNION ALL
+        SELECT 1 FROM public_comments WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%' OR anonymous_name LIKE 'test-%' OR anonymous_name LIKE 'integration-test%'
+        UNION ALL
+        SELECT 1 FROM public_reactions WHERE user_id LIKE 'test-%' OR id LIKE 'test-%' OR user_id LIKE 'integration-test%' OR id LIKE 'integration-test%' OR anonymous_name LIKE 'test-%' OR anonymous_name LIKE 'integration-test%'
         UNION ALL
         SELECT 1 FROM basketball_games WHERE id LIKE 'test-%' OR id LIKE 'integration-test-%' OR id LIKE 'integration-test-game-%'
         UNION ALL

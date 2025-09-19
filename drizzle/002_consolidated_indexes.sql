@@ -173,6 +173,9 @@ CREATE INDEX IF NOT EXISTS idx_comments_parent_type_parent_id ON comments (paren
 CREATE INDEX IF NOT EXISTS idx_comments_parent_type_parent_id_created ON comments (parent_type, parent_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_comments_user_id_created ON comments (user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_comments_deleted_at ON comments (deleted_at) WHERE deleted_at IS NULL;
+CREATE INDEX IF NOT EXISTS idx_comments_depth ON comments (depth);
+CREATE INDEX IF NOT EXISTS idx_comments_parent_depth ON comments (parent_id, depth);
+CREATE INDEX IF NOT EXISTS idx_comments_user_parent_type ON comments (user_id, parent_type);
 
 -- Enhanced comments indexes for efficient count queries
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_parent_id_parent_type_deleted
@@ -272,7 +275,7 @@ WHERE deleted_at IS NULL;
 -- Index for finished games specifically
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_finished_date
 ON basketball_games (date DESC)
-WHERE deleted_at IS NULL AND status = 'finished';
+WHERE deleted_at IS NULL AND status->>'long' = 'finished';
 
 -- Index for game ratings join performance
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_id_deleted
@@ -306,15 +309,8 @@ CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_name_search
 ON basketball_players (first_name, last_name)
 WHERE deleted_at IS NULL;
 
--- Index for player team data JSONB queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_teams_gin
-ON basketball_players USING gin (teams)
-WHERE deleted_at IS NULL;
-
--- Index for NBA data JSONB queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_players_nba_gin
-ON basketball_players USING gin (nba)
-WHERE deleted_at IS NULL;
+-- Note: teams and nba fields are text, not jsonb, so GIN indexes are not applicable
+-- If these fields need to be searchable, consider converting them to jsonb or using text search indexes
 
 -- ============================================================================
 -- FRIENDSHIPS TABLE INDEXES
@@ -349,6 +345,9 @@ CREATE INDEX IF NOT EXISTS idx_public_comments_anonymous_name ON public_comments
 CREATE INDEX IF NOT EXISTS idx_public_comments_is_approved ON public_comments (is_approved);
 CREATE INDEX IF NOT EXISTS idx_public_comments_created_at ON public_comments (created_at);
 CREATE INDEX IF NOT EXISTS idx_public_comments_content_gin ON public_comments USING gin (to_tsvector('english', content));
+CREATE INDEX IF NOT EXISTS idx_public_comments_depth ON public_comments (depth);
+CREATE INDEX IF NOT EXISTS idx_public_comments_parent_depth ON public_comments (parent_id, depth);
+CREATE INDEX IF NOT EXISTS idx_public_comments_user_parent_type ON public_comments (user_id, parent_type);
 
 -- ============================================================================
 -- PUBLIC REACTIONS TABLE INDEXES
@@ -361,6 +360,26 @@ CREATE INDEX IF NOT EXISTS idx_public_reactions_anonymous_name ON public_reactio
 CREATE INDEX IF NOT EXISTS idx_public_reactions_emoji ON public_reactions (emoji);
 CREATE INDEX IF NOT EXISTS idx_public_reactions_is_approved ON public_reactions (is_approved);
 CREATE INDEX IF NOT EXISTS idx_public_reactions_created_at ON public_reactions (created_at);
+
+-- ============================================================================
+-- TEAM RATINGS TABLE INDEXES
+-- ============================================================================
+
+-- Team ratings performance indexes
+CREATE INDEX IF NOT EXISTS idx_team_ratings_team_id ON team_ratings (team_id);
+CREATE INDEX IF NOT EXISTS idx_team_ratings_popularity_score ON team_ratings (popularity_score DESC);
+CREATE INDEX IF NOT EXISTS idx_team_ratings_total_ratings ON team_ratings (total_ratings DESC);
+CREATE INDEX IF NOT EXISTS idx_team_ratings_last_calculated ON team_ratings (last_calculated_at);
+
+-- ============================================================================
+-- PLAYER RATINGS TABLE INDEXES
+-- ============================================================================
+
+-- Player ratings performance indexes
+CREATE INDEX IF NOT EXISTS idx_player_ratings_player_id ON player_ratings (player_id);
+CREATE INDEX IF NOT EXISTS idx_player_ratings_popularity_score ON player_ratings (popularity_score DESC);
+CREATE INDEX IF NOT EXISTS idx_player_ratings_total_ratings ON player_ratings (total_ratings DESC);
+CREATE INDEX IF NOT EXISTS idx_player_ratings_last_calculated ON player_ratings (last_calculated_at);
 
 -- ============================================================================
 -- NOTIFICATIONS TABLE INDEXES
@@ -427,15 +446,14 @@ COMMENT ON INDEX "idx_friendships_friend_user_status" IS 'Optimizes friend-user-
 
 -- NBA games index comments
 COMMENT ON INDEX "idx_basketball_games_season" IS 'Optimizes season-based game queries';
-COMMENT ON INDEX "idx_basketball_games_date" IS 'Optimizes date-based game queries';
+COMMENT ON INDEX "idx_basketball_games_date_desc" IS 'Optimizes date-based game queries (descending)';
 COMMENT ON INDEX "idx_basketball_games_status" IS 'Optimizes status-based game filtering';
-COMMENT ON INDEX "idx_basketball_games_season_date" IS 'Optimizes season and date range queries';
-COMMENT ON INDEX "idx_basketball_games_game_id" IS 'Optimizes external API ID lookups';
+COMMENT ON INDEX "idx_basketball_games_id_deleted" IS 'Optimizes external API ID lookups with deleted filter';
 
 -- NBA players index comments
 COMMENT ON INDEX "idx_basketball_players_first_name" IS 'Optimizes first name searches';
 COMMENT ON INDEX "idx_basketball_players_last_name" IS 'Optimizes last name searches';
-COMMENT ON INDEX "idx_basketball_players_teams" IS 'Optimizes JSON team data searches using GIN index';
+COMMENT ON INDEX "idx_basketball_players_name_search" IS 'Optimizes player name searches for Popular Players';
 
 -- Game ratings index comments
 COMMENT ON INDEX idx_game_ratings_average_rating_desc IS 'Critical for Popular Games queries - orders by rating and total ratings';
@@ -445,8 +463,6 @@ COMMENT ON INDEX idx_game_ratings_popular_games IS 'Composite index optimized fo
 
 -- Basketball players additional index comments
 COMMENT ON INDEX idx_basketball_players_name_search IS 'Optimizes player name searches for Popular Players';
-COMMENT ON INDEX idx_basketball_players_teams_gin IS 'GIN index for JSONB teams data queries';
-COMMENT ON INDEX idx_basketball_players_nba_gin IS 'GIN index for JSONB NBA data queries';
 
 -- Basketball games additional index comments
 COMMENT ON INDEX idx_basketball_games_status_date IS 'Optimizes Latest Results queries by status and date';
@@ -518,6 +534,8 @@ WHERE deleted_at IS NULL;
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_basketball_games_date_status_season
 ON basketball_games (date DESC, status, season)
 WHERE deleted_at IS NULL;
+
+COMMENT ON INDEX "idx_basketball_games_date_status_season" IS 'Optimizes season and date range queries';
 
 CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_comments_parent_created
 ON comments (parent_id, created_at DESC)

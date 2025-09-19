@@ -220,14 +220,14 @@ export function generateGameRating(): number {
  * - Some get many comments (viral content)
  */
 export function generateCommentCount(): number {
-  const isViral = Math.random() < 0.05; // 5% viral content
+  const isViral = Math.random() < 0.15; // Increased from 5% to 15% viral content
 
   if (isViral) {
     // Viral content: many comments (Power Law)
     return Math.round(powerLawDistribution(10, 100, 2.0));
   } else {
-    // Regular content: few comments (Poisson)
-    return poissonDistribution(3);
+    // Regular content: more comments (Poisson with higher lambda)
+    return poissonDistribution(6); // Increased from 3 to 6
   }
 }
 
@@ -471,7 +471,7 @@ export const DEFAULT_DISTRIBUTION_CONFIG: IStatisticalSeedingConfig = {
   },
   commentCount: {
     type: 'poisson',
-    parameters: { lambda: 3 },
+    parameters: { lambda: 6 }, // Increased from 3 to 6 for more comments
   },
   reactionCount: {
     type: 'pareto',
@@ -560,7 +560,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userContentQuality: { type: 'uniform', parameters: { min: 0.1, max: 1.0 } },
     userActivityAge: { type: 'uniform', parameters: { min: 0, max: 365 } },
     gameRating: { type: 'uniform', parameters: { min: 1, max: 5 } },
-    commentCount: { type: 'uniform', parameters: { min: 0, max: 30 } }, // Min 0 for Pareto distribution
+    commentCount: { type: 'uniform', parameters: { min: 0, max: 50 } }, // Increased from 30 to 50 for more comments
     reactionCount: { type: 'uniform', parameters: { min: 0, max: 80 } }, // Min 0 for Pareto distribution
     contentViralProbability: { type: 'uniform', parameters: { min: 0, max: 1 } },
     activityAge: { type: 'uniform', parameters: { min: 0, max: 365 } },
@@ -592,7 +592,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     userContentQuality: { type: 'pareto', parameters: { min: 0.1, max: 1.0, alpha: 1.0 } },
     userActivityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
     gameRating: { type: 'pareto', parameters: { min: 1, max: 5, alpha: 1.0 } },
-    commentCount: { type: 'pareto', parameters: { min: 0, max: 30, alpha: 1.0 } }, // Min 0 for Pareto distribution
+    commentCount: { type: 'pareto', parameters: { min: 0, max: 50, alpha: 1.0 } }, // Increased from 30 to 50 for more comments
     reactionCount: { type: 'pareto', parameters: { min: 0, max: 80, alpha: 1.0 } }, // Min 0 for Pareto distribution
     contentViralProbability: { type: 'pareto', parameters: { min: 0, max: 1, alpha: 1.0 } },
     activityAge: { type: 'pareto', parameters: { min: 0, max: 365, alpha: 1.0 } },
@@ -627,7 +627,7 @@ export const DISTRIBUTION_CONFIG_PRESETS = {
     },
     userActivityAge: { type: 'normal', parameters: { mean: 180, stdDev: 90, min: 0, max: 365 } },
     gameRating: { type: 'normal', parameters: { mean: 3, stdDev: 1, min: 1, max: 5 } },
-    commentCount: { type: 'normal', parameters: { mean: 15, stdDev: 8, min: 0, max: 30 } }, // Min 0 for Pareto distribution
+    commentCount: { type: 'normal', parameters: { mean: 25, stdDev: 12, min: 0, max: 50 } }, // Increased mean from 15 to 25, max from 30 to 50
     reactionCount: { type: 'normal', parameters: { mean: 40, stdDev: 20, min: 0, max: 80 } }, // Min 0 for Pareto distribution
     contentViralProbability: {
       type: 'normal',

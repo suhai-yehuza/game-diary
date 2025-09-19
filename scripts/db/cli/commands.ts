@@ -7,6 +7,7 @@ import { setupDatabase } from '../setup/database-setup';
 import { parseScriptArgs, parseResetArgs } from './argument-parser';
 import { runCommand } from '../core/command-utils';
 import { applyAllMigrations } from '../core/migration-runner';
+import { recordStandardCustomMigrations } from '../core/migration-recorder';
 
 /**
  * Run canonical reset using the reset-with-env.ts script
@@ -149,6 +150,10 @@ export async function handleCopyMigrationsCommand(): Promise<void> {
     }
 
     logger.info('✅ Custom migrations copied successfully');
+
+    // Record the custom migrations in the migration_versions table
+    logger.info('📋 Recording custom migrations in migration_versions table...');
+    await recordStandardCustomMigrations(process.env.NODE_ENV || 'development');
   } catch (error) {
     logger.error(
       '❌ Failed to copy custom migrations:',
