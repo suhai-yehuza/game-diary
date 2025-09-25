@@ -7,7 +7,7 @@ export function MobileMenuButton({ onToggle }: IMobileMenuButtonProps) {
     <button
       aria-label="Toggle menu"
       onClick={onToggle}
-      className="lg:hidden mr-4 relative z-50 p-2 hover:bg-bg-theme-secondary rounded-md transition-colors"
+      className="lg:hidden mr-4 relative z-50 p-2 hover:bg-gray-600 rounded-md transition-colors"
       style={{ pointerEvents: 'auto' }}
       data-testid="mobile-menu-button"
     >

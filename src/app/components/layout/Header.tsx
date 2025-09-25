@@ -1,7 +1,7 @@
 /// <reference types="node" />
 'use client';
 import { usePathname } from 'next/navigation';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import {
   HeaderRightSection,
@@ -21,6 +21,9 @@ export function Header() {
   // Consider compact if below tablet breakpoint so tablets without full nav use mobile menu
   const isCompactViewport = useMobileDetection(TABLET_BREAKPOINT);
   const { shouldDisplayBanner, bannerHeight } = useBannerVisibility();
+
+  // Scroll detection state - always flush to top when scrolling
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Menu is stacked only if expanded and in mobile/overlay mode
   const isStacked = isMenuExpanded && isCompactViewport;
@@ -44,11 +47,29 @@ export function Header() {
 
   const handleCloseMenu = useCallback(() => setIsMenuExpanded(false), [setIsMenuExpanded]);
 
+  // Scroll detection effect - always flush to top when scrolling
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // If at the very top of the page, keep header floating
+      if (currentScrollY < 16) {
+        setIsScrolled(false);
+      } else {
+        // Any scrolling (up or down) - flush to top
+        setIsScrolled(true);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
       <header
         data-testid="header"
-        className={`sticky top-0 w-full bg-background z-50 transition-all duration-300 ease-in-out`}
+        className={`fixed ${isScrolled ? 'top-0 left-0 right-0 w-full rounded-none' : 'top-4 left-4 right-4 w-auto rounded-xl'} bg-gray-800 border-gray-600 text-white backdrop-blur-md border shadow-xl z-50 transition-all duration-300 ease-in-out force-dark-header`}
         style={{
           marginTop: shouldDisplayBanner ? `${bannerHeight}px` : '0px',
         }}
@@ -64,7 +85,7 @@ export function Header() {
             style={{ border: 'none', background: 'transparent', padding: 0, margin: 0 }}
           />
         )}
-        <div className="grid grid-cols-[auto_1fr_auto] h-12 items-center w-full relative z-50">
+        <div className="grid grid-cols-[auto_1fr_auto] h-14 items-center w-full relative z-50 px-4">
           {/* Logo Section */}
           <Logo isMenuExpanded={isMenuExpanded} />
 

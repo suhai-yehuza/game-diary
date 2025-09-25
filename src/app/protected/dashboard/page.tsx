@@ -6,6 +6,8 @@ import React from 'react';
 import { ErrorBoundary } from '@/app/components/ErrorBoundary';
 import { PaginatedGameLogsTable } from '@/app/components/game-logs/PaginatedGameLogsTable';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
+import { ContentLoading } from '@/app/components/ui/loading-states';
+import { HoverAnimation, FadeIn, StaggerAnimation } from '@/app/components/ui/micro-interactions';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/app/components/ui/Tabs';
 import { ActivityTable } from '@/app/protected/dashboard/components/ActivityTable';
 import { OptimizedFriendsTable } from '@/app/protected/dashboard/components/FriendsTable';
@@ -59,94 +61,93 @@ export default function UserDashboardPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <UserGreeting />
+      <FadeIn>
+        <UserGreeting />
+      </FadeIn>
+
       <div className="container mx-auto px-4 py-4 sm:py-8">
-        <Tabs value={selectedTab} onValueChange={handleTabChange}>
-          {/* Enhanced Responsive Tabs with better visual design */}
-          <TabsList
-            className={`mb-6 sm:mb-8 ${
-              isMobile ? 'grid w-full grid-cols-3 gap-2' : 'flex w-full flex-row gap-4'
-            }`}
-          >
-            <TabsTrigger
-              value="game-logs"
-              className={
-                isMobile
-                  ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }
+        <FadeIn delay={100}>
+          <Tabs value={selectedTab} onValueChange={handleTabChange}>
+            {/* Enhanced Responsive Tabs with cleaner design */}
+            <TabsList
+              className={`mb-6 sm:mb-8 ${
+                isMobile ? 'grid w-full grid-cols-3 gap-2' : 'flex w-full flex-row gap-4'
+              }`}
             >
-              {isMobile ? 'Game Logs' : 'Game Logs'}
-            </TabsTrigger>
-            <TabsTrigger
-              value="friends"
-              className={
-                isMobile
-                  ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }
-            >
-              {isMobile ? 'Friends' : 'Friends'}
-            </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className={
-                isMobile
-                  ? 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 transition-all duration-300 font-semibold text-xs sm:text-sm py-3 px-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-                  : 'text-gray-700 dark:text-gray-300 data-[state=active]:text-white dark:data-[state=active]:text-white data-[state=active]:bg-brand-primary dark:data-[state=active]:bg-brand-primary data-[state=active]:shadow-lg data-[state=active]:scale-105 border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 py-3 px-6 transition-all duration-300 font-semibold text-sm sm:text-base rounded-xl hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }
-            >
-              {isMobile ? 'Activity' : 'Activity & Timeline'}
-            </TabsTrigger>
-          </TabsList>
+              <HoverAnimation>
+                <TabsTrigger
+                  value="game-logs"
+                  className="data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium text-sm py-3 px-4 rounded-lg border border-border hover:bg-muted hover-lift"
+                >
+                  Game Logs
+                </TabsTrigger>
+              </HoverAnimation>
+              <HoverAnimation>
+                <TabsTrigger
+                  value="friends"
+                  className="data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium text-sm py-3 px-4 rounded-lg border border-border hover:bg-muted hover-lift"
+                >
+                  Friends
+                </TabsTrigger>
+              </HoverAnimation>
+              <HoverAnimation>
+                <TabsTrigger
+                  value="activity"
+                  className="data-[state=active]:bg-brand-primary data-[state=active]:text-white data-[state=active]:shadow-md transition-all duration-200 font-medium text-sm py-3 px-4 rounded-lg border border-border hover:bg-muted hover-lift"
+                >
+                  {isMobile ? 'Activity' : 'Activity & Timeline'}
+                </TabsTrigger>
+              </HoverAnimation>
+            </TabsList>
 
-          {/* Tab Content - Responsive padding and spacing */}
-          <TabsContent value="game-logs" className="mt-0">
-            <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+            {/* Tab Content with improved loading states and animations */}
+            <TabsContent value="game-logs" className="mt-0">
+              <StaggerAnimation delay={200}>
+                <div className={isMobile ? 'space-y-4' : 'space-y-6'}>
+                  {isLoading ? (
+                    <ContentLoading type="table" count={5} />
+                  ) : (
+                    <ErrorBoundary>
+                      <PaginatedGameLogsTable />
+                    </ErrorBoundary>
+                  )}
                 </div>
-              ) : (
-                <ErrorBoundary>
-                  <PaginatedGameLogsTable />
-                </ErrorBoundary>
-              )}
-            </div>
-          </TabsContent>
+              </StaggerAnimation>
+            </TabsContent>
 
-          <TabsContent value="friends" className="mt-0">
-            <div
-              className={`rounded-lg border bg-background ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8`}
-            >
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+            <TabsContent value="friends" className="mt-0">
+              <StaggerAnimation delay={200}>
+                <div
+                  className={`rounded-lg border bg-card ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8 hover-lift`}
+                >
+                  {isLoading ? (
+                    <ContentLoading type="list" count={4} />
+                  ) : (
+                    <ErrorBoundary>
+                      <OptimizedFriendsTable />
+                    </ErrorBoundary>
+                  )}
                 </div>
-              ) : (
-                <ErrorBoundary>
-                  <OptimizedFriendsTable />
-                </ErrorBoundary>
-              )}
-            </div>
-          </TabsContent>
+              </StaggerAnimation>
+            </TabsContent>
 
-          <TabsContent value="activity" className="mt-0">
-            <div
-              className={`rounded-lg border bg-background ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8`}
-            >
-              {isLoading ? (
-                <div className="flex justify-center items-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary" />
+            <TabsContent value="activity" className="mt-0">
+              <StaggerAnimation delay={200}>
+                <div
+                  className={`rounded-lg border bg-card ${isMobile ? 'p-3' : 'p-6'} mb-4 sm:mb-8 hover-lift`}
+                >
+                  {isLoading ? (
+                    <ContentLoading type="table" count={3} />
+                  ) : (
+                    <ErrorBoundary>
+                      <ActivityTable />
+                    </ErrorBoundary>
+                  )}
                 </div>
-              ) : (
-                <ErrorBoundary>
-                  <ActivityTable />
-                </ErrorBoundary>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+              </StaggerAnimation>
+            </TabsContent>
+          </Tabs>
+        </FadeIn>
       </div>
     </div>
   );

@@ -566,22 +566,6 @@ export function OptimizedFriendsTable() {
 
   return (
     <div className="space-y-6">
-      {/* Performance Notice */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <Check className="h-5 w-5 text-green-400" />
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-green-800">Optimized Performance</h3>
-            <p className="mt-1 text-sm text-green-700">
-              This friends table uses optimized GraphQL queries with specialized fragments for
-              60-70% performance improvement over the standard implementation.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* User Search Section */}
       <Card className="h-auto">
         <CardHeader>

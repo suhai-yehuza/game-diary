@@ -92,9 +92,12 @@ describe('ThemeToggle', () => {
 
       const darkButton = screen.getByLabelText('Dark');
       expect(darkButton).toHaveClass(
-        'bg-brand-primary',
-        'text-theme-toggle-active',
-        'shadow-theme-toggle'
+        'bg-blue-600',
+        'text-white',
+        'border-2',
+        'border-blue-600',
+        'shadow-lg',
+        'shadow-black/20'
       );
     });
 
@@ -108,8 +111,8 @@ describe('ThemeToggle', () => {
 
       const darkButton = screen.getByLabelText('Dark');
       const systemButton = screen.getByLabelText('System');
-      expect(darkButton).toHaveClass('text-theme-toggle-inactive');
-      expect(systemButton).toHaveClass('text-theme-toggle-inactive');
+      expect(darkButton).toHaveClass('text-gray-400', 'border-2', 'border-transparent');
+      expect(systemButton).toHaveClass('text-gray-400', 'border-2', 'border-transparent');
     });
   });
 
@@ -224,8 +227,8 @@ describe('ThemeToggle', () => {
         'rounded-full',
         'p-0.5',
         'border',
-        'bg-theme-toggle-container',
-        'border-theme-toggle-border'
+        'bg-gray-700',
+        'border-gray-600'
       );
     });
 

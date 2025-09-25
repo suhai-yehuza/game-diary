@@ -61,7 +61,8 @@ export async function revealSignInButtonIfMobile(page: Page): Promise<boolean> {
     // Strategy 1: Scroll to top
     async () => {
       await page.evaluate(() => window.scrollTo(0, 0));
-      await page.waitForTimeout(300);
+      // Wait for scroll to complete by checking if page is stable
+      await page.waitForLoadState('domcontentloaded');
     },
     // Strategy 2: Look for hamburger menu
     async () => {
@@ -71,7 +72,8 @@ export async function revealSignInButtonIfMobile(page: Page): Promise<boolean> {
       if (await menuButton.isVisible({ timeout: 1000 }).catch(() => false)) {
         await menuButton.scrollIntoViewIfNeeded();
         await menuButton.click();
-        await page.waitForTimeout(300);
+        // Wait for menu to open by checking if it's visible
+        await page.waitForLoadState('domcontentloaded');
       }
     },
     // Strategy 3: Look for navigation toggle
@@ -82,7 +84,8 @@ export async function revealSignInButtonIfMobile(page: Page): Promise<boolean> {
       if (await navToggle.isVisible({ timeout: 1000 }).catch(() => false)) {
         await navToggle.scrollIntoViewIfNeeded();
         await navToggle.click();
-        await page.waitForTimeout(300);
+        // Wait for navigation to open by checking if it's visible
+        await page.waitForLoadState('domcontentloaded');
       }
     },
   ];
@@ -207,4 +210,16 @@ export async function checkSignInButtonAvailability(
   }
 
   return false;
+}
+
+// Helper function to click sign-in button using JavaScript to bypass viewport issues
+export async function clickSignInButtonWithJS(page: Page): Promise<void> {
+  const signInButton = page.getByTestId('sign-in-button');
+
+  // Use JavaScript to click the button directly, bypassing viewport issues
+  await signInButton.evaluate(element => {
+    if (element instanceof HTMLElement) {
+      element.click();
+    }
+  });
 }

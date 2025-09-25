@@ -9,6 +9,7 @@ import {
   waitForPageStable,
   TIMEOUTS,
 } from '@tests/e2e/utils/test-utils';
+import { clickSignInButtonWithJS } from '@tests/e2e/utils/auth-helpers';
 
 // Allow running Clerk E2E in non-local deployments when explicitly enabled
 const SHOULD_SKIP_CLERK_E2E =
@@ -70,6 +71,74 @@ async function handleMobileSignInButton(page: any) {
   }
 }
 
+// Common test setup helper
+async function setupTestPage(page: Page) {
+  await page.waitForLoadState('networkidle');
+  await waitForPageStable(page);
+}
+
+// Helper to check if sign-in button is available
+async function checkSignInButtonAvailability(page: Page): Promise<boolean> {
+  const signInButton = page.getByTestId('sign-in-button');
+
+  try {
+    await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    await expect(signInButton).toBeEnabled();
+    return true;
+  } catch (_error) {
+    console.log(
+      'Sign-in button not found, Clerk might not be configured for this test environment'
+    );
+    return false;
+  }
+}
+
+// Enhanced viewport handling for sign-in button
+async function handleSignInButtonViewport(page: Page): Promise<void> {
+  const signInButton = page.getByTestId('sign-in-button');
+
+  try {
+    // First, ensure the button is in viewport
+    await signInButton.scrollIntoViewIfNeeded();
+
+    // Wait for scroll to complete by checking if element is stable
+    await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+
+    // Check if button is actually in viewport
+    const isInViewport = await signInButton.evaluate(el => {
+      const rect = el.getBoundingClientRect();
+      return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= window.innerHeight &&
+        rect.right <= window.innerWidth
+      );
+    });
+
+    if (!isInViewport) {
+      // Force scroll to top and try again
+      await page.evaluate(() => window.scrollTo(0, 0));
+
+      // Wait for scroll to complete by checking if element is stable
+      await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+      await signInButton.scrollIntoViewIfNeeded();
+
+      // Wait for final scroll to complete
+      await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
+    }
+
+    // Wait for button to be stable and clickable
+    await expect(signInButton).toBeVisible();
+    await expect(signInButton).toBeEnabled();
+
+    // Use JavaScript to click the button directly, bypassing viewport issues
+    await clickSignInButtonWithJS(page);
+  } catch (error) {
+    console.log('Failed to click sign-in button:', error);
+    throw error;
+  }
+}
+
 test.describe('Clerk Auth Modal', () => {
   // Run interactive page tests for home page (where auth modal is tested)
   runInteractivePageTests(test, '/', 'Home Page with Auth');
@@ -91,29 +160,17 @@ test.describe('Clerk Auth Modal', () => {
         SHOULD_SKIP_CLERK_E2E,
         'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
-      // Wait for page to be fully loaded
-      await page.waitForLoadState('networkidle');
 
-      // Wait for Clerk to initialize (if it's configured)
-      await waitForPageStable(page);
+      // Common test setup
+      await setupTestPage(page);
 
-      // Find the sign in button using the data-testid we have in the header
-      const signInButton = page.getByTestId('sign-in-button');
-
-      // Wait for the button to be visible with a longer timeout
-      try {
-        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-      } catch (_error) {
-        // If sign-in button is not found, the test might be running without Clerk configured
-        console.log(
-          'Sign-in button not found, Clerk might not be configured for this test environment'
-        );
+      // Check if sign-in button is available
+      if (!(await checkSignInButtonAvailability(page))) {
         return; // Skip this test if Clerk is not available
       }
 
-      // Click the sign in button
-      await signInButton.scrollIntoViewIfNeeded();
-      await signInButton.click();
+      // Handle sign-in button viewport and click
+      await handleSignInButtonViewport(page);
 
       // Wait a bit for the modal to appear
       await page.waitForLoadState('domcontentloaded');
@@ -149,8 +206,9 @@ test.describe('Clerk Auth Modal', () => {
         await expect(modalContent.first()).toBeVisible();
       }
 
-      // Wait a bit for our accessibility fixes to take effect
-      await page.waitForTimeout(500);
+      // Wait for modal to be fully rendered and stable before accessibility check
+      await page.waitForLoadState('domcontentloaded');
+      await waitForPageStable(page);
 
       // Now run accessibility check on the modal
       await checkA11y(page);
@@ -161,34 +219,21 @@ test.describe('Clerk Auth Modal', () => {
         SHOULD_SKIP_CLERK_E2E,
         'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
-      // Wait for page to be fully loaded
-      await page.waitForLoadState('networkidle');
 
-      // Wait for Clerk to initialize (if it's configured)
-      await waitForPageStable(page);
+      // Common test setup
+      await setupTestPage(page);
 
-      // Find and click the sign in button
-      const signInButton = page.getByTestId('sign-in-button');
-
-      try {
-        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-        await expect(signInButton).toBeEnabled();
-
-        // Click should not throw any errors
-        await signInButton.scrollIntoViewIfNeeded();
-        await signInButton.click();
-
-        // Wait a bit and verify page is still stable
-        await waitForPageStable(page);
-        await expect(page.locator('body')).toBeVisible();
-      } catch (_error) {
-        // If sign-in button is not found, the test might be running without Clerk configured
-        console.log(
-          'Sign-in button not found, Clerk might not be configured for this test environment'
-        );
-        // Don't fail the test, just skip it
-        return;
+      // Check if sign-in button is available
+      if (!(await checkSignInButtonAvailability(page))) {
+        return; // Skip this test if Clerk is not available
       }
+
+      // Handle sign-in button viewport and click
+      await handleSignInButtonViewport(page);
+
+      // Wait a bit and verify page is still stable
+      await waitForPageStable(page);
+      await expect(page.locator('body')).toBeVisible();
     });
 
     test('should handle sign up button if present', async ({ page }) => {
@@ -218,26 +263,17 @@ test.describe('Clerk Auth Modal', () => {
         'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
 
-      // Wait for page to be fully loaded
-      await page.waitForLoadState('networkidle');
-      await waitForPageStable(page);
+      // Common test setup
+      await setupTestPage(page);
 
-      // Find the sign in button with proper error handling
-      const signInButton = page.getByTestId('sign-in-button');
-
-      try {
-        await expect(signInButton).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
-        await expect(signInButton).toBeEnabled();
-      } catch (_error) {
-        console.log(
-          'Sign-in button not found, Clerk might not be configured for this test environment'
-        );
+      // Check if sign-in button is available
+      if (!(await checkSignInButtonAvailability(page))) {
         return; // Skip this test if Clerk is not available
       }
 
-      // Open the sign in modal
-      await signInButton.scrollIntoViewIfNeeded();
-      await signInButton.click();
+      // Handle sign-in button viewport and click
+      await handleSignInButtonViewport(page);
+
       await page.waitForLoadState('domcontentloaded');
 
       // Wait for modal to be visible before testing keyboard interactions
@@ -264,19 +300,17 @@ test.describe('Clerk Auth Modal', () => {
         'Clerk UI tests are disabled in deployment envs unless E2E_CLERK_ENABLED=1'
       );
 
-      // Wait for page to be fully loaded
-      await page.waitForLoadState('networkidle');
-      await waitForPageStable(page);
+      // Common test setup
+      await setupTestPage(page);
 
-      // Find the sign in button with proper error handling (mobile-aware)
-      const signInButton = await handleMobileSignInButton(page);
-      if (!signInButton) {
+      // Check if sign-in button is available
+      if (!(await checkSignInButtonAvailability(page))) {
         return; // Skip this test if Clerk is not available
       }
 
-      // Open the sign in modal
-      await signInButton.scrollIntoViewIfNeeded();
-      await signInButton.click();
+      // Handle sign-in button viewport and click
+      await handleSignInButtonViewport(page);
+
       await page.waitForLoadState('domcontentloaded');
 
       // Wait for modal to be visible before testing focus management

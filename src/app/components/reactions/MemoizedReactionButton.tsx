@@ -19,18 +19,16 @@ export const MemoizedReactionButton = memo(function MemoizedReactionButton({
       key={group.emoji}
       onClick={() => onClick(group.emoji)}
       disabled={loading}
-      className={`group inline-flex items-center gap-2 transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2 ${sizeClasses} ${
+      className={`group inline-flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${sizeClasses} ${
         group.hasUserReacted
-          ? 'text-brand-primary'
-          : 'text-theme-primary hover:text-theme-secondary'
+          ? 'bg-gray-700 dark:bg-gray-600 text-white'
+          : 'bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-500 dark:hover:bg-gray-600'
       }`}
       aria-label={`React with ${formatReactionCountWithEmoji(group.count, getEmojiName(group.emoji))}`}
     >
       <span className="text-base transition-transform group-hover:scale-110">{group.emoji}</span>
       {showCount && group.count > 0 && (
-        <span className="font-medium text-xs text-theme-primary min-w-[1.25rem] text-center">
-          {formatReactionCount(group.count)}
-        </span>
+        <span className="font-medium text-xs text-current">{formatReactionCount(group.count)}</span>
       )}
     </button>
   );

@@ -13,7 +13,7 @@ const Button = React.forwardRef<HTMLButtonElement, IButtonProps>(
           {
             'bg-brand-primary text-theme-inverse hover:bg-brand-primary-hover':
               variant === 'default',
-            'border border-theme-primary bg-bg-theme-secondary hover:bg-bg-theme-tertiary text-theme-primary':
+            'bg-bg-theme-secondary hover:bg-bg-theme-tertiary text-theme-primary':
               variant === 'outline',
             'hover:bg-bg-theme-secondary text-theme-primary': variant === 'ghost',
             'bg-semantic-error text-theme-inverse hover:bg-semantic-error/90':

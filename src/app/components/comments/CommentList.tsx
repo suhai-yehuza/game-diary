@@ -103,13 +103,13 @@ export function CommentList({
       {/* Show Comment Form Button */}
       {!showCommentForm && (
         <div className="text-center">
-          <Button
-            variant="outline"
+          <button
             onClick={() => setShowCommentForm(true)}
-            className="text-semantic-info hover:text-semantic-info/80"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
           >
+            <MessageCircle className="h-4 w-4" />
             Add a comment
-          </Button>
+          </button>
         </div>
       )}
     </div>

@@ -15,12 +15,12 @@ export function LiveGamesIndicator() {
   return (
     <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 text-sm mb-8">
       {hasLiveGames ? (
-        <div className="flex items-center gap-2 text-theme-muted">
+        <div className="flex items-center gap-2 text-theme-secondary">
           <div className="w-2 h-2 bg-semantic-success rounded-full animate-pulse" />
           <span>Live games available</span>
         </div>
       ) : (
-        <div className="flex items-center gap-2 text-theme-muted">
+        <div className="flex items-center gap-2 text-theme-secondary">
           <div className="w-2 h-2 bg-theme-muted rounded-full" />
           <span>No live games right now</span>
         </div>

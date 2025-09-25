@@ -137,23 +137,23 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
       >
         {/* Drag Handle */}
         <div className="flex justify-center pt-4 pb-3">
-          <div className="w-12 h-1 bg-theme-muted rounded-full" />
+          <div className="w-12 h-1 bg-gray-500 rounded-full" />
         </div>
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-theme-primary">
-          <h2 className="text-xl font-semibold text-theme-primary">Menu</h2>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-500">
+          <h2 className="text-xl font-semibold text-white">Menu</h2>
           <button
             onClick={() => setIsMenuExpanded(false)}
-            className="p-2 rounded-full hover:bg-bg-theme-secondary transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+            className="p-2 rounded-full hover:bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
             aria-label="Close menu"
           >
-            <X className="w-6 h-6 text-theme-primary" />
+            <X className="w-6 h-6 text-white" />
           </button>
         </div>
 
         {/* Navigation Content */}
-        <div className="flex-1 px-6 py-6 overflow-y-auto text-theme-primary">
+        <div className="flex-1 px-6 py-6 overflow-y-auto text-white">
           <ClientOnlyNavigationLinks
             isActive={isActive}
             _isMenuExpanded={isMenuExpanded}
@@ -164,8 +164,8 @@ export function MobileMenuSheet({ isActive }: IMobileMenuSheetProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-theme-primary bg-bg-theme-secondary">
-          <div className="text-sm text-theme-muted text-center flex items-center justify-center gap-2">
+        <div className="px-6 py-4 border-t border-gray-500 bg-gray-600">
+          <div className="text-sm text-gray-400 text-center flex items-center justify-center gap-2">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"

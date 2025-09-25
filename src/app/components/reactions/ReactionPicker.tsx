@@ -91,7 +91,7 @@ export const ReactionPicker = memo(function ReactionPicker({
             group={group}
             onClick={() => void handleReactionClick(group.emoji)}
             loading={loading}
-            sizeClasses="p-1.5 text-sm"
+            sizeClasses="text-sm"
             showCount={true}
           />
         ))}
@@ -102,7 +102,7 @@ export const ReactionPicker = memo(function ReactionPicker({
           onClick={handleToggle}
           onMouseDown={e => e.stopPropagation()}
           onMouseUp={e => e.stopPropagation()}
-          className="flex items-center gap-1 px-2 py-1 text-sm text-theme-muted hover:text-text-inverse hover:bg-theme-muted rounded-md transition-colors"
+          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm text-white bg-gray-600 dark:bg-gray-700 hover:bg-gray-500 dark:hover:bg-gray-600 transition-colors"
           title={isOpen ? 'Hide Reactions' : 'Show Reactions'}
           aria-label="Add reaction"
         >

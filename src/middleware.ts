@@ -55,6 +55,21 @@ export const middleware = (
     return NextResponse.next();
   }
 
+  // Skip auth for search page (public search functionality)
+  if (url.pathname === '/search') {
+    return NextResponse.next();
+  }
+
+  // Skip auth for sports pages (public sports information)
+  if (url.pathname.startsWith('/sports/')) {
+    return NextResponse.next();
+  }
+
+  // Skip auth for home page (public landing page)
+  if (url.pathname === '/') {
+    return NextResponse.next();
+  }
+
   // Handle OAuth callbacks - let Clerk handle these properly
   if (url.pathname.includes('oauth_callback') || url.searchParams.has('__clerk_status')) {
     return NextResponse.next();

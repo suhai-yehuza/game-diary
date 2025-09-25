@@ -45,7 +45,7 @@ function SearchInput({
       <input
         type="search"
         placeholder={placeholder}
-        data-theme="light"
+        data-theme="dark"
         className={`w-full border-none focus:ring-0 outline-none transition-all duration-200 search-input-fixed search-text-dark search-input-force-dark ${value ? 'pl-1.5 xs:pl-2 sm:pl-2.5 md:pl-3' : 'pl-6 xs:pl-7 sm:pl-8 md:pl-9'} ${className}`}
         style={{
           textShadow: 'none',
@@ -330,11 +330,11 @@ function SearchBarContent({
 
   // Responsive form class for normal state
   const baseFormClass =
-    'relative max-w-[120px] xs:max-w-[140px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[240px] xl:max-w-[280px] h-8 xs:h-9 sm:h-10 md:h-11 bg-surface-card border border-theme-primary shadow flex items-center px-1.5 xs:px-2 sm:px-2.5 md:px-3 transition-all duration-200 text-xs xs:text-sm sm:text-sm md:text-base';
+    'relative max-w-[120px] xs:max-w-[140px] sm:max-w-[160px] md:max-w-[200px] lg:max-w-[240px] xl:max-w-[280px] h-8 xs:h-9 sm:h-10 md:h-11 bg-gray-800 border-2 border-gray-600 shadow flex items-center px-1.5 xs:px-2 sm:px-2.5 md:px-3 transition-all duration-200 text-xs xs:text-sm sm:text-sm md:text-base';
 
   // Expanded form class for focused state (responsive, no overlay)
   const expandedFormClass =
-    'relative w-full max-w-[95vw] xs:max-w-[calc(100vw-1rem)] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[700px] h-10 xs:h-11 sm:h-12 md:h-12 bg-surface-card backdrop-blur-sm border border-theme-primary shadow-2xl flex items-center px-2 xs:px-3 sm:px-4 md:px-5 py-2 rounded-md transition-all duration-200 text-sm xs:text-base sm:text-base md:text-lg z-[100]';
+    'relative w-full max-w-[95vw] xs:max-w-[calc(100vw-1rem)] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] xl:max-w-[700px] h-10 xs:h-11 sm:h-12 md:h-12 bg-gray-800 backdrop-blur-sm border-2 border-gray-600 shadow-2xl flex items-center px-2 xs:px-3 sm:px-4 md:px-5 py-2 rounded-md transition-all duration-200 text-sm xs:text-base sm:text-base md:text-lg z-[100]';
 
   // Handle suggestion selection
   const handleSuggestionSelect = useCallback(
@@ -420,9 +420,7 @@ export function SearchBar(props: {
   setIsFocusedAction?: (v: boolean) => void;
 }) {
   return (
-    <Suspense
-      fallback={<div className="w-[200px] h-10 bg-bg-theme-secondary animate-pulse rounded-md" />}
-    >
+    <Suspense fallback={<div className="w-[200px] h-10 bg-gray-600 animate-pulse rounded-md" />}>
       <SearchBarContent {...props} />
     </Suspense>
   );

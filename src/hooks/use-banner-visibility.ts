@@ -10,10 +10,17 @@ import { useLiveGames } from './use-live-games';
 /**
  * Hook to determine if the live games banner should be displayed
  * Handles client-side detection and hydration properly
+ *
+ * Features:
+ * - Dynamic banner height measurement for perfect header positioning
+ * - Responsive behavior with resize and orientation change listeners
+ * - Mobile-optimized with debounced resize handling
+ * - Automatic re-measurement when banner visibility changes
  */
 export function useBannerVisibility() {
   const { games } = useLiveGames();
   const [isClient, setIsClient] = useState(false);
+  const [bannerHeight, setBannerHeight] = useState(0);
 
   useEffect(() => {
     setIsClient(true);
@@ -28,9 +35,60 @@ export function useBannerVisibility() {
       isMockModeEnabled() ||
       isTestOrCIEnvironment());
 
+  // Measure the actual banner height when it's displayed
+  useEffect(() => {
+    const measureBannerHeight = () => {
+      if (shouldDisplayBanner && isClient) {
+        const bannerElement = document.querySelector('[data-testid="live-games-banner"]');
+        if (bannerElement) {
+          const height = bannerElement.getBoundingClientRect().height;
+          setBannerHeight(height);
+        }
+      } else {
+        setBannerHeight(0);
+      }
+    };
+
+    // Initial measurement
+    measureBannerHeight();
+
+    // Debounced resize handler for better mobile performance
+    let resizeTimeout: NodeJS.Timeout;
+    const handleResize = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        // Use requestAnimationFrame to ensure DOM has updated
+        requestAnimationFrame(measureBannerHeight);
+      }, 16); // ~60fps, good for mobile
+    };
+
+    // Add resize listener for responsive behavior
+    window.addEventListener('resize', handleResize, { passive: true });
+
+    // Add orientation change listener for mobile devices
+    // Use a longer delay for orientation changes as they need more time to settle
+    const handleOrientationChange = () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        requestAnimationFrame(measureBannerHeight);
+      }, 100); // Longer delay for orientation changes
+    };
+    window.addEventListener('orientationchange', handleOrientationChange, { passive: true });
+
+    // Also re-measure when banner visibility changes
+    const timeoutId = setTimeout(measureBannerHeight, 100);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+      clearTimeout(timeoutId);
+      clearTimeout(resizeTimeout);
+    };
+  }, [shouldDisplayBanner, isClient]);
+
   return {
     shouldDisplayBanner,
     isClient,
-    bannerHeight: shouldDisplayBanner ? 88 : 0,
+    bannerHeight,
   };
 }

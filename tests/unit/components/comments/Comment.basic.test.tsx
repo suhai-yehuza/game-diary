@@ -399,10 +399,10 @@ describe('Comment', () => {
 
     render(<Comment comment={commentWithReplies} />);
 
-    // Should show the reply count button with white text
-    const replyButton = screen.getByText(/3 replies/);
+    // Should show the reply count button with correct text colors
+    const replyButton = screen.getByText(/3 replies/).closest('button');
     expect(replyButton).toBeInTheDocument();
-    expect(replyButton).toHaveClass('text-neutral-900', 'dark:text-neutral-100');
+    expect(replyButton).toHaveClass('text-gray-600', 'dark:text-gray-400');
   });
 
   it('should show singular "reply" when totalChildCommentCount is 1', () => {

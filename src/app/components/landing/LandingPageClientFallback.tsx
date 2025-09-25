@@ -24,7 +24,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
   if (loading && !serverData) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10">
-        <div className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
+        <div className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
           <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
             <div className="animate-pulse">
               <div className="h-6 bg-bg-theme-secondary rounded w-3/4 mb-2" />
@@ -42,7 +42,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
             </div>
           </div>
         </div>
-        <div className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
+        <div className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
           <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
             <div className="animate-pulse">
               <div className="h-6 bg-bg-theme-secondary rounded w-3/4 mb-2" />
@@ -60,7 +60,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
             </div>
           </div>
         </div>
-        <div className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
+        <div className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden">
           <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse">
             <div className="animate-pulse">
               <div className="h-6 bg-bg-theme-secondary rounded w-3/4 mb-2" />
@@ -101,7 +101,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8 lg:gap-10">
       {/* Trending Game Logs Section */}
-      <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <section className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
         <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-5 h-5 sm:w-6 sm:h-6">📈</div>
@@ -120,7 +120,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
       </section>
 
       {/* Recent Games Section */}
-      <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <section className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
         <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-5 h-5 sm:w-6 sm:h-6">📅</div>
@@ -138,7 +138,7 @@ export function LandingPageClientFallback({ serverData }: ILandingPageClientFall
       </section>
 
       {/* Popular Games Section */}
-      <section className="bg-surface-card/80 backdrop-blur-sm rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
+      <section className="bg-surface-card rounded-xl sm:rounded-2xl shadow-xl border border-theme-primary/50 overflow-hidden hover:shadow-2xl transition-all duration-300 flex flex-col">
         <div className="bg-theme-muted p-4 sm:p-6 text-text-inverse flex-shrink-0">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-5 h-5 sm:w-6 sm:h-6">⭐</div>

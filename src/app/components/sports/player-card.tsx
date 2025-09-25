@@ -188,9 +188,9 @@ export function PlayerCard({ player }: IPlayerCardProps) {
           {/* View Player Button */}
           <Button
             onClick={() => (window.location.href = `/sports/nba/players/${player.id}`)}
-            variant="outline"
+            variant="default"
             size="sm"
-            className="w-full bg-surface-card hover:bg-bg-theme-secondary text-theme-primary hover:text-theme-secondary border-theme-primary hover:border-theme-secondary shadow-sm transition-all duration-200 font-medium text-xs py-1.5"
+            className="w-full bg-brand-primary hover:bg-brand-primary-hover text-white border-brand-primary hover:border-brand-primary-hover shadow-md hover:shadow-lg transition-all duration-200 font-medium text-xs py-1.5"
           >
             View Player
           </Button>

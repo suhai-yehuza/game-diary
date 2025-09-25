@@ -4259,7 +4259,7 @@ export interface IButtonProps extends IBaseComponentProps {
   disabled?: boolean;
   loading?: boolean;
   fullWidth?: boolean;
-  onClick?: (e?: React.MouseEvent) => void;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
   href?: string;
   target?: string;
 }

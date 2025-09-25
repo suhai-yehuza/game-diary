@@ -11,8 +11,8 @@ export function IntegratedGames({ data }: IIntegratedGamesProps) {
   const loading = !data;
   const error = null; // No error handling needed for server-side data
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 2,
-    mobileSpeed: 1,
+    speed: 1.0, // Much slower for better readability
+    mobileSpeed: 0.5, // Even slower on mobile
   });
 
   // Extract recent games from cached data

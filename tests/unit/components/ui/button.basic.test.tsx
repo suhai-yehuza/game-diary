@@ -35,8 +35,6 @@ describe('Button', () => {
 
     const button = screen.getByRole('button', { name: 'Outline Button' });
     expect(button).toHaveClass(
-      'border',
-      'border-theme-primary',
       'bg-bg-theme-secondary',
       'hover:bg-bg-theme-tertiary',
       'text-theme-primary'
@@ -136,13 +134,7 @@ describe('Button', () => {
     );
 
     const button = screen.getByRole('button', { name: 'Combined Button' });
-    expect(button).toHaveClass(
-      'border',
-      'border-theme-primary',
-      'bg-bg-theme-secondary',
-      'h-11',
-      'px-8'
-    );
+    expect(button).toHaveClass('bg-bg-theme-secondary', 'h-11', 'px-8');
   });
 
   it('renders with complex children', () => {

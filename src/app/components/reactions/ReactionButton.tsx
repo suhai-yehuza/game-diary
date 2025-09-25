@@ -20,9 +20,9 @@ export const ReactionButton = memo(function ReactionButton({
   const [isPressed, setIsPressed] = useState(false);
 
   const sizeClasses = {
-    sm: 'px-2 py-1 text-xs',
-    md: 'px-3 py-1.5 text-sm',
-    lg: 'px-4 py-2 text-base',
+    sm: 'px-1.5 py-0.5 text-xs',
+    md: 'px-2 py-1 text-sm',
+    lg: 'px-3 py-1.5 text-base',
   };
 
   const handleClick = () => {
@@ -36,11 +36,11 @@ export const ReactionButton = memo(function ReactionButton({
     <button
       onClick={handleClick}
       className={cn(
-        'group inline-flex items-center gap-2 rounded-lg border transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+        'group inline-flex items-center gap-1.5 px-2 py-1 rounded-full transition-all duration-200 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
         sizeClasses[size],
         hasReacted
-          ? 'border-semantic-info bg-semantic-info/10 text-semantic-info shadow-sm ring-1 ring-semantic-info/20'
-          : 'border-theme-primary bg-surface-card text-theme-primary hover:border-theme-secondary hover:bg-bg-theme-secondary hover:shadow-sm',
+          ? 'bg-gray-700 dark:bg-gray-600 text-white'
+          : 'bg-gray-600 dark:bg-gray-700 text-white hover:bg-gray-500 dark:hover:bg-gray-600',
         isPressed && 'scale-95',
         className
       )}
@@ -52,9 +52,7 @@ export const ReactionButton = memo(function ReactionButton({
     >
       <span className="text-base transition-transform group-hover:scale-110">{emoji}</span>
       {showCount && count > 0 && (
-        <span className="font-medium text-xs bg-bg-theme-secondary text-theme-primary px-2 py-0.5 rounded-full min-w-[1.25rem] text-center">
-          {formatReactionCount(count)}
-        </span>
+        <span className="font-medium text-xs text-current">{formatReactionCount(count)}</span>
       )}
     </button>
   );
