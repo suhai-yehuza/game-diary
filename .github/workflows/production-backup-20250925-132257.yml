@@ -1,0 +1,637 @@
+name: Production Deployment (1 Business Day Soak Period)
+
+# Manual trigger and automated schedule for production deployments
+on:
+  workflow_dispatch:
+    inputs:
+      skip-soak-check:
+        description: 'Skip 1 business day soak period check (emergency use only)'
+        required: false
+        type: boolean
+        default: false
+      force-deploy:
+        description: 'Force deployment even if staging deployment failed or no new commits'
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # Automated production deployment on MTWTh at 9am Pacific
+    - cron: '0 17 * * 1-4' # Monday-Thursday at 9am Pacific (5pm UTC)
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  # Check soak period and staging deployment status
+  validate-deployment-readiness:
+    name: Validate Deployment Readiness
+    runs-on: ubuntu-latest
+    if: ${{ !inputs.skip-soak-check || github.event_name == 'schedule' }}
+    outputs:
+      ready-for-production: ${{ steps.check-readiness.outputs.ready }}
+      staging-deployment-age: ${{ steps.check-readiness.outputs.age-hours }}
+      staging-deployment-status: ${{ steps.check-readiness.outputs.status }}
+      has-eligible-commits: ${{ steps.check-readiness.outputs.has-eligible-commits }}
+      staging-commit-hash: ${{ steps.check-readiness.outputs.staging-commit }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check staging deployment readiness
+        id: check-readiness
+        run: |
+          echo "Checking staging deployment readiness for production..."
+
+          # Get the latest staging deployment
+          STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=Staging%20Deployment%20(Automatic%20from%20Master)&branch=staging&status=completed&conclusion=success&per_page=1" | \
+            jq -r '.workflow_runs[0] // empty')
+
+          # Get the latest failed staging deployment (if any)
+          FAILED_STAGING_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=Staging%20Deployment%20(Automatic%20from%20Master)&branch=staging&status=completed&conclusion=failure&per_page=1" | \
+            jq -r '.workflow_runs[0] // empty')
+
+          if [ -z "$STAGING_DEPLOYMENT" ]; then
+            echo "❌ No successful staging deployment found"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "status=no-staging-deployment" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
+            echo "staging-commit=none" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Get deployment timestamp and commit hash
+          DEPLOYMENT_TIME=$(echo "$STAGING_DEPLOYMENT" | jq -r '.created_at')
+          DEPLOYMENT_ID=$(echo "$STAGING_DEPLOYMENT" | jq -r '.id')
+          STAGING_COMMIT=$(echo "$STAGING_DEPLOYMENT" | jq -r '.head_sha')
+
+          echo "Latest staging deployment: $DEPLOYMENT_ID at $DEPLOYMENT_TIME"
+          echo "Staging commit: $STAGING_COMMIT"
+          echo "staging-commit=$STAGING_COMMIT" >> $GITHUB_OUTPUT
+
+          # Check if there are recent failures that are more recent than the last successful deployment
+          if [ -n "$FAILED_STAGING_DEPLOYMENT" ]; then
+            FAILED_TIME=$(echo "$FAILED_STAGING_DEPLOYMENT" | jq -r '.created_at')
+            FAILED_COMMIT=$(echo "$FAILED_STAGING_DEPLOYMENT" | jq -r '.head_sha')
+
+            echo "Found failed staging deployment: $FAILED_COMMIT at $FAILED_TIME"
+
+            # Check if the failed deployment is more recent than the last successful one
+            if [ "$FAILED_TIME" \> "$DEPLOYMENT_TIME" ]; then
+              echo "❌ Recent staging deployment failure detected - blocking production deployment"
+              echo "ready=false" >> $GITHUB_OUTPUT
+              echo "status=staging-failure" >> $GITHUB_OUTPUT
+              echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+          fi
+
+          # Calculate business days in Pacific time
+          # Convert deployment time to Pacific time and calculate business days
+
+          # Set timezone to Pacific
+          export TZ="America/Los_Angeles"
+
+          # Convert deployment time to Pacific timestamp
+          DEPLOYMENT_TIME_PACIFIC=$(date -d "$DEPLOYMENT_TIME" +%s)
+          CURRENT_TIME_PACIFIC=$(date +%s)
+
+          # Calculate total seconds difference
+          AGE_SECONDS=$((CURRENT_TIME_PACIFIC - DEPLOYMENT_TIME_PACIFIC))
+          AGE_HOURS=$((AGE_SECONDS / 3600))
+
+          echo "Deployment age: $AGE_HOURS hours (Pacific time)"
+          echo "age-hours=$AGE_HOURS" >> $GITHUB_OUTPUT
+
+          # Calculate business days passed (Pacific time)
+          # Business hours: Monday-Friday, 9 AM - 5 PM Pacific (8 hours per day)
+          # 1 business day = 8 business hours
+          BUSINESS_HOURS_PASSED=$((AGE_HOURS / 8))
+
+          # Get current Pacific time for logging
+          CURRENT_PACIFIC_TIME=$(date)
+          DEPLOYMENT_PACIFIC_TIME=$(date -d "$DEPLOYMENT_TIME")
+
+          echo "Deployment time (Pacific): $DEPLOYMENT_PACIFIC_TIME"
+          echo "Current time (Pacific): $CURRENT_PACIFIC_TIME"
+          echo "Business days passed: $BUSINESS_HOURS_PASSED"
+
+          if [ "$BUSINESS_HOURS_PASSED" -ge 1 ]; then
+            echo "✅ 1 business day has passed in Pacific time (8 business hours)"
+            echo "ready=true" >> $GITHUB_OUTPUT
+            echo "status=ready" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=true" >> $GITHUB_OUTPUT
+          else
+            echo "⏳ Only $BUSINESS_HOURS_PASSED business days have passed in Pacific time (need 1)"
+            echo "ready=false" >> $GITHUB_OUTPUT
+            echo "status=soak-period-incomplete" >> $GITHUB_OUTPUT
+            echo "has-eligible-commits=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Analyze commits and deployment readiness
+  analyze-commits:
+    name: Analyze Commits and Deployment Readiness
+    runs-on: ubuntu-latest
+    if: ${{ inputs.force-deploy || needs.validate-deployment-readiness.outputs.ready-for-production == 'true' }}
+    needs: [validate-deployment-readiness]
+    outputs:
+      has-new-commits: ${{ steps.analyze-commits.outputs.has-new-commits }}
+      current-commit: ${{ steps.analyze-commits.outputs.current-commit }}
+      last-production-commit: ${{ steps.analyze-commits.outputs.last-production-commit }}
+      last-production-deployment-id: ${{ steps.analyze-commits.outputs.last-production-deployment-id }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Analyze commits and deployment readiness
+        id: analyze-commits
+        run: |
+          echo "Analyzing commits and deployment readiness..."
+
+          # Get the current commit hash
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+          echo "Current commit: $CURRENT_COMMIT"
+          echo "current-commit=$CURRENT_COMMIT" >> $GITHUB_OUTPUT
+
+          # Get the staging commit from the previous job
+          STAGING_COMMIT="${{ needs.validate-deployment-readiness.outputs.staging-commit-hash }}"
+          echo "Staging deployment commit: $STAGING_COMMIT"
+
+                    # Get the latest production deployment from GitHub releases
+          echo "Reading production deployment information from GitHub releases..."
+
+          # Try to get the latest production deployment from releases
+          if [ -f "scripts/get-latest-deployment.sh" ]; then
+            # Make script executable if needed
+            chmod +x scripts/get-latest-deployment.sh
+
+            # Get latest production deployment
+            if PRODUCTION_COMMIT=$(./scripts/get-latest-deployment.sh production commit_hash 2>/dev/null); then
+              PRODUCTION_ID=$(./scripts/get-latest-deployment.sh production deployment_id 2>/dev/null)
+              WORKFLOW_RUN_ID=$(./scripts/get-latest-deployment.sh production workflow_run_id 2>/dev/null)
+
+              echo "Found production deployment in GitHub releases:"
+              echo "  Commit: $PRODUCTION_COMMIT"
+              echo "  Deployment ID: $PRODUCTION_ID"
+              echo "  Workflow Run ID: $WORKFLOW_RUN_ID"
+
+              echo "last-production-commit=$PRODUCTION_COMMIT" >> $GITHUB_OUTPUT
+              echo "last-production-deployment-id=$PRODUCTION_ID" >> $GITHUB_OUTPUT
+            else
+              echo "No previous production deployment found in GitHub releases"
+              echo "last-production-commit=none" >> $GITHUB_OUTPUT
+              echo "last-production-deployment-id=none" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Deployment script not found, falling back to workflow search..."
+
+            # Fallback to old method for backward compatibility
+            WORKFLOW_NAME="Production Deployment (1 Business Day Soak Period)"
+
+            echo "Searching for production deployments with workflow name: '$WORKFLOW_NAME'"
+
+            # Try to get the latest deployment from the workflow
+            PRODUCTION_DEPLOYMENT=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/runs?workflow_id=${WORKFLOW_NAME// /%20}&status=completed&conclusion=success&per_page=1" | \
+              jq -r '.workflow_runs[0] // empty')
+
+            if [ -z "$PRODUCTION_DEPLOYMENT" ]; then
+              echo "No previous production deployment found"
+              echo "last-production-commit=none" >> $GITHUB_OUTPUT
+              echo "last-production-deployment-id=none" >> $GITHUB_OUTPUT
+            else
+              # Get deployment commit hash and ID
+              PRODUCTION_COMMIT=$(echo "$PRODUCTION_DEPLOYMENT" | jq -r '.head_sha')
+              PRODUCTION_ID=$(echo "$PRODUCTION_DEPLOYMENT" | jq -r '.id')
+              PRODUCTION_TIME=$(echo "$PRODUCTION_DEPLOYMENT" | jq -r '.created_at')
+
+              echo "Last production deployment: $PRODUCTION_ID at $PRODUCTION_TIME"
+              echo "Last production commit: $PRODUCTION_COMMIT"
+              echo "last-production-commit=$PRODUCTION_COMMIT" >> $GITHUB_OUTPUT
+              echo "last-production-deployment-id=$PRODUCTION_ID" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+          # Check if deployment is needed (unless force deploy is enabled)
+          if [ "${{ inputs.force-deploy }}" = "true" ]; then
+            echo "Force deploy enabled - proceeding with deployment"
+            echo "has-new-commits=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$STAGING_COMMIT" = "none" ]; then
+            echo "No staging deployment found, proceeding with deployment"
+            echo "has-new-commits=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check if current commit is different from staging commit
+          if [ "$CURRENT_COMMIT" = "$STAGING_COMMIT" ]; then
+            echo "No new commits since staging deployment"
+            echo "has-new-commits=false" >> $GITHUB_OUTPUT
+          else
+            echo "New commits found since staging deployment"
+            echo "has-new-commits=true" >> $GITHUB_OUTPUT
+          fi
+
+  # Deploy and verify using reusable workflow
+  deploy:
+    name: Deploy to Production
+    needs: [validate-deployment-readiness, analyze-commits]
+    if: ${{ inputs.force-deploy || (inputs.skip-soak-check || needs.validate-deployment-readiness.outputs.ready-for-production == 'true') && (inputs.force-deploy || needs.analyze-commits.outputs.has-new-commits == 'true') }}
+    uses: ./.github/workflows/deploy-and-verify.yml
+    with:
+      workflow-name: 'Production Deployment (1 Business Day Soak Period)'
+      environment: 'Production'
+    secrets:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+      CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+      CLERK_WEBHOOK_SIGNING_SECRET: ${{ secrets.CLERK_WEBHOOK_SIGNING_SECRET }}
+      VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+
+  # Create deployment release for tracking
+  create-deployment-release:
+    name: Create Deployment Release
+    needs: [deploy]
+    runs-on: ubuntu-latest
+    if: success()
+    outputs:
+      release-id: ${{ steps.create-release.outputs.release_id }}
+      release-url: ${{ steps.create-release.outputs.release_url }}
+      release-tag: ${{ steps.create-release.outputs.release_tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Deployment Release
+        id: create-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Creating deployment release for tracking..."
+
+          # Get current commit hash
+          CURRENT_COMMIT=$(git rev-parse HEAD)
+
+          # Get deployment ID from Vercel (this would need to be passed from the deploy job)
+          # For now, we'll use the workflow run ID as a proxy
+          DEPLOYMENT_ID="${{ github.run_id }}"
+          WORKFLOW_RUN_ID="${{ github.run_id }}"
+
+          # Create the release
+          if [ -f "scripts/create-deployment-release.sh" ]; then
+            chmod +x scripts/create-deployment-release.sh
+            ./scripts/create-deployment-release.sh production "$CURRENT_COMMIT" "$DEPLOYMENT_ID" "$WORKFLOW_RUN_ID"
+
+            # Outputs are written directly by scripts/create-deployment-release.sh to $GITHUB_OUTPUT
+          else
+            echo "Deployment release script not found, skipping release creation"
+          fi
+
+  # Job to handle when deployment is completed successfully with no new commits
+  deployment-skipped:
+    name: Deployment Completed (No New Commits)
+    needs: [validate-deployment-readiness, analyze-commits]
+    runs-on: ubuntu-latest
+    if: always() && !inputs.force-deploy && (needs.validate-deployment-readiness.outputs.has-eligible-commits != 'true' || needs.analyze-commits.outputs.has-new-commits != 'true')
+    steps:
+      - name: Generate Completion Summary
+        run: |
+          echo "## ✅ Production Deployment Summary (Completed Successfully)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 1 Business Day Soak Period" >> $GITHUB_STEP_SUMMARY
+          echo "**Schedule:** MTWTh at 9am Pacific" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "no-staging-deployment" ]; then
+            echo "### ⏭️ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** SKIPPED" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No successful staging deployment found" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "### ⏭️ Staging Status Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** BLOCKED" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Recent staging deployment failure detected" >> $GITHUB_STEP_SUMMARY
+            echo "**Action Required:** Fix staging deployment before proceeding to production" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "soak-period-incomplete" ]; then
+            echo "### ⏭️ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏳ INCOMPLETE" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
+            echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
+            echo "**Required:** 1 business day (8 business hours) in Pacific time" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** 1 business day soak period has not elapsed in Pacific time" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "ready" ]; then
+            echo "### ⏭️ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
+            echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
+            echo "**Required:** 1 business day (8 business hours) in Pacific time" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** 1 business day soak period has been completed successfully" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏭️ Commit Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**Current Commit:** ${{ needs.check-new-commits.outputs.current-commit }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Commit:** ${{ needs.validate-deployment-readiness.outputs.staging-commit-hash }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No new commits since staging deployment - correctly identified no deployment needed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "**Status:** ⏭️ BLOCKED (staging failure)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Cannot deploy to production due to staging deployment failure" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ✅ PASSED (no deployment needed)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No new commits since staging deployment - deployment correctly skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "**Status:** ⏭️ BLOCKED (staging failure)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Cannot verify production due to staging deployment failure" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ✅ PASSED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No deployment was needed, verification correctly skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "**Status:** ⏭️ BLOCKED (staging failure)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Cannot update domain due to staging deployment failure" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ✅ PASSED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No deployment was needed, domain update correctly skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "- 🔍 Investigate the failed staging deployment" >> $GITHUB_STEP_SUMMARY
+            echo "- 🛠️ Fix the issues that caused the staging failure" >> $GITHUB_STEP_SUMMARY
+            echo "- 🔄 Ensure staging deployment succeeds before proceeding to production" >> $GITHUB_STEP_SUMMARY
+            echo "- ⚡ Use 'Force deployment' option if you need to bypass this check (emergency only)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "soak-period-incomplete" ]; then
+            echo "- Wait for 1 business day to complete" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Wait for new commits to be deployed to staging" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "- Continue testing in staging environment" >> $GITHUB_STEP_SUMMARY
+          echo "- Next scheduled deployment will check for eligible commits" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.validate-deployment-readiness.outputs.staging-deployment-status }}" = "staging-failure" ]; then
+            echo "**Note:** Production deployment is blocked until staging deployment issues are resolved. This prevents deploying broken code to production." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Note:** This deployment completed successfully - no new commits were available for deployment. This is the expected behavior when staging and production are in sync." >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # Summary job to provide deployment information
+  deployment-summary:
+    name: Production Deployment Summary
+    needs:
+      [
+        validate-deployment-readiness,
+        analyze-commits,
+        deploy,
+        deployment-skipped,
+        create-deployment-release,
+      ]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Deployment Summary
+        run: |
+          echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Source Branch:** staging" >> $GITHUB_STEP_SUMMARY
+          echo "**Workflow Type:** 1 Business Day Soak Period" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            echo "**Schedule:** MTWTh at 9am Pacific" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Commit Information Section
+          echo "### 📋 Commit Information" >> $GITHUB_STEP_SUMMARY
+
+          # Last production commit
+          LAST_PRODUCTION_COMMIT="${{ needs.analyze-commits.outputs.last-production-commit }}"
+          if [ "$LAST_PRODUCTION_COMMIT" = "none" ]; then
+            echo "**Last Production Commit:** No previous production deployment found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Last Production Commit:** \`$LAST_PRODUCTION_COMMIT\`" >> $GITHUB_STEP_SUMMARY
+            echo "**Last Production Deployment ID:** ${{ needs.analyze-commits.outputs.last-production-deployment-id }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Current staging commit
+          STAGING_COMMIT="${{ needs.validate-deployment-readiness.outputs.staging-commit-hash }}"
+          if [ "$STAGING_COMMIT" = "none" ]; then
+            echo "**Current Staging Commit:** No staging deployment found" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Current Staging Commit:** \`$STAGING_COMMIT\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Current HEAD commit
+          CURRENT_COMMIT="${{ needs.analyze-commits.outputs.current-commit }}"
+          echo "**Current HEAD Commit:** \`$CURRENT_COMMIT\`" >> $GITHUB_STEP_SUMMARY
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Commits between production and staging
+          if [ "$LAST_PRODUCTION_COMMIT" != "none" ] && [ "$STAGING_COMMIT" != "none" ]; then
+            echo "### 🔄 Commits Between Production and Staging" >> $GITHUB_STEP_SUMMARY
+
+            # Check if staging is ahead of production
+            if git merge-base --is-ancestor "$LAST_PRODUCTION_COMMIT" "$STAGING_COMMIT" 2>/dev/null; then
+              # Staging is ahead of production
+              COMMIT_COUNT=$(git rev-list --count "$LAST_PRODUCTION_COMMIT".."$STAGING_COMMIT")
+              if [ "$COMMIT_COUNT" -eq 0 ]; then
+                echo "**Status:** ✅ Production and staging are in sync" >> $GITHUB_STEP_SUMMARY
+                echo "**Commits:** No new commits to deploy" >> $GITHUB_STEP_SUMMARY
+              else
+                echo "**Status:** 📦 $COMMIT_COUNT commit(s) ready for deployment" >> $GITHUB_STEP_SUMMARY
+                echo "**Commits:**" >> $GITHUB_STEP_SUMMARY
+                git log --oneline --no-merges "$LAST_PRODUCTION_COMMIT".."$STAGING_COMMIT" | while read line; do
+                  echo "- \`$line\`" >> $GITHUB_STEP_SUMMARY
+                done
+              fi
+            else
+              echo "**Status:** ⚠️ Staging is not ahead of production" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits:** Unable to determine commit differences" >> $GITHUB_STEP_SUMMARY
+            fi
+          elif [ "$LAST_PRODUCTION_COMMIT" = "none" ] && [ "$STAGING_COMMIT" != "none" ]; then
+            echo "### 🔄 Commits Between Production and Staging" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** 🚀 First Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits:** This will be the first production deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Commit:** \`$STAGING_COMMIT\` will be deployed to production" >> $GITHUB_STEP_SUMMARY
+          elif [ "$LAST_PRODUCTION_COMMIT" != "none" ] && [ "$STAGING_COMMIT" = "none" ]; then
+            echo "### 🔄 Commits Between Production and Staging" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⚠️ No Staging Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits:** No staging deployment found to compare against" >> $GITHUB_STEP_SUMMARY
+            echo "**Last Production Commit:** \`$LAST_PRODUCTION_COMMIT\`" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔄 Commits Between Production and Staging" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⚠️ No Deployment History" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits:** No previous production or staging deployments found" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** This appears to be the first deployment" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Commits between staging and current HEAD
+          if [ "$STAGING_COMMIT" != "none" ] && [ "$CURRENT_COMMIT" != "$STAGING_COMMIT" ]; then
+            echo "### 📝 Commits Between Staging and Current HEAD" >> $GITHUB_STEP_SUMMARY
+
+            # Check if current HEAD is ahead of staging
+            if git merge-base --is-ancestor "$STAGING_COMMIT" "$CURRENT_COMMIT" 2>/dev/null; then
+              # Current HEAD is ahead of staging
+              COMMIT_COUNT=$(git rev-list --count "$STAGING_COMMIT".."$CURRENT_COMMIT")
+              echo "**Status:** ⏳ $COMMIT_COUNT commit(s) waiting for staging deployment" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits:**" >> $GITHUB_STEP_SUMMARY
+              git log --oneline --no-merges "$STAGING_COMMIT".."$CURRENT_COMMIT" | while read line; do
+                echo "- \`$line\`" >> $GITHUB_STEP_SUMMARY
+              done
+            else
+              echo "**Status:** ⚠️ Current HEAD is not ahead of staging" >> $GITHUB_STEP_SUMMARY
+              echo "**Commits:** Unable to determine commit differences" >> $GITHUB_STEP_SUMMARY
+            fi
+          elif [ "$STAGING_COMMIT" != "none" ] && [ "$CURRENT_COMMIT" = "$STAGING_COMMIT" ]; then
+            echo "### 📝 Commits Between Staging and Current HEAD" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ Current HEAD matches staging deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Commits:** No new commits since staging deployment" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 📝 Commits Between Staging and Current HEAD" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⚠️ Unable to determine commit differences" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Missing staging deployment information" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Soak period summary
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+            echo "### ⏳ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ SKIPPED (no new commits)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No new commits since staging deployment - soak period check not needed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.skip-soak-check }}" = "true" ]; then
+            echo "### ⏳ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ Skipped (emergency bypass)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Soak period check was bypassed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⏳ Soak Period Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Deployment Age:** ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} hours" >> $GITHUB_STEP_SUMMARY
+            echo "**Business Days Passed:** $(( ${{ needs.validate-deployment-readiness.outputs.staging-deployment-age }} / 8 )) days" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Commit check summary
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+            echo "### 🔍 Commit Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ SKIPPED (no new commits)" >> $GITHUB_STEP_SUMMARY
+            echo "**Current Commit:** ${{ needs.analyze-commits.outputs.current-commit }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Commit:** ${{ needs.validate-deployment-readiness.outputs.staging-commit-hash }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No new commits since staging deployment - commit check correctly identified no deployment needed" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ inputs.force-deploy }}" = "true" ]; then
+            echo "### 🔍 Commit Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ Skipped (force deploy)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** Force deployment bypassed commit check" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔍 Commit Check" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ✅ PASSED" >> $GITHUB_STEP_SUMMARY
+            echo "**Current Commit:** ${{ needs.analyze-commits.outputs.current-commit }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Staging Commit:** ${{ needs.validate-deployment-readiness.outputs.staging-commit-hash }}" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Check if deployment was skipped
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+            echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ SKIPPED (no new commits)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No new commits since staging deployment - deployment correctly skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ SKIPPED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No deployment was needed, verification correctly skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** ⏭️ SKIPPED (no deployment performed)" >> $GITHUB_STEP_SUMMARY
+            echo "**Reason:** No deployment was needed, domain update correctly skipped" >> $GITHUB_STEP_SUMMARY
+          else
+            # Deployment summary
+            if [ "${{ needs.deploy.result }}" = "success" ]; then
+              echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+              echo "**Deployment URL:** ${{ needs.deploy.outputs.deployment-url }}" >> $GITHUB_STEP_SUMMARY
+              echo "**Domain:** https://www.game-diary.io" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### 🚀 Production Deployment" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Post-deployment verification summary
+            if [ "${{ needs.deploy.result }}" = "success" ]; then
+              echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### 🔍 Post-Deployment Verification" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Domain update summary
+            if [ "${{ needs.deploy.result }}" = "success" ]; then
+              echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ✅ Success" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### 🔗 Domain Update" >> $GITHUB_STEP_SUMMARY
+              echo "**Status:** ❌ Failed" >> $GITHUB_STEP_SUMMARY
+            fi
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.deployment-skipped.result }}" = "success" ]; then
+            echo "- Wait for new commits to be deployed to staging" >> $GITHUB_STEP_SUMMARY
+            echo "- Continue testing in staging environment" >> $GITHUB_STEP_SUMMARY
+            echo "- Next scheduled deployment will check for eligible commits" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** This deployment completed successfully - no new commits were available for deployment. This is the expected behavior when staging and production are in sync." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- Monitor production environment for any issues" >> $GITHUB_STEP_SUMMARY
+            echo "- Check application logs and metrics" >> $GITHUB_STEP_SUMMARY
+            echo "- Verify all features are working as expected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Note:** This deployment completed the 1 business day soak period requirement." >> $GITHUB_STEP_SUMMARY
+          fi
