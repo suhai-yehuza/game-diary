@@ -25,17 +25,16 @@ export function NavItem({
   const getSportColors = () => {
     if (!sport) {
       return {
-        active:
-          'text-white dark:text-white bg-brand-primary border-2 border-brand-primary shadow-lg font-semibold',
+        active: 'text-white bg-brand-primary border-2 border-brand-primary shadow-lg font-semibold',
         inactive:
-          'text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:border-brand-primary hover:bg-brand-primary/10 hover:text-brand-primary shadow-md',
+          'text-white bg-gray-700 rounded-full border-2 border-gray-600 hover:border-brand-primary hover:bg-brand-primary/10 hover:text-brand-primary shadow-md',
       };
     }
 
     const sportClass = getSportsButtonClass(sport);
     return {
-      active: `text-white dark:text-white ${sportClass} border-2 border-opacity-30 shadow-lg font-semibold`,
-      inactive: `text-theme-primary bg-theme-secondary rounded-full border-2 border-theme-secondary hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} hover:text-text-inverse shadow-md`,
+      active: `text-white ${sportClass} border-2 border-opacity-30 shadow-lg font-semibold`,
+      inactive: `text-white bg-gray-700 rounded-full border-2 border-gray-600 hover:${sportClass.replace('bg-', 'bg-').replace('hover:bg-', 'hover:bg-')} hover:text-white shadow-md`,
     };
   };
 

@@ -141,34 +141,30 @@ export function Comment({
           </div>
 
           {/* Comment actions */}
-          <div className="flex items-center gap-2 mt-3">
+          <div className="flex items-center gap-1 mt-3">
             {canReply && (
-              <Button
-                variant="ghost"
-                size="sm"
+              <button
                 onClick={handleReply}
-                className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
               >
-                <Reply className="h-4 w-4 mr-1" />
+                <Reply className="h-4 w-4" />
                 Reply
-              </Button>
+              </button>
             )}
 
             {/* Child comments count */}
             {(displayComment.totalChildCommentCount as number) &&
               (displayComment.totalChildCommentCount as number) > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
                   onClick={() => setShowRepliesState(!showRepliesState)}
-                  className="text-neutral-600 hover:text-neutral-800 dark:text-neutral-400 dark:hover:text-neutral-200"
+                  className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
                 >
-                  <MessageCircle className="h-4 w-4 mr-1" />
-                  <span className="text-neutral-900 dark:text-neutral-100">
+                  <MessageCircle className="h-4 w-4" />
+                  <span>
                     {displayComment.totalChildCommentCount as number}{' '}
                     {(displayComment.totalChildCommentCount as number) === 1 ? 'reply' : 'replies'}
                   </span>
-                </Button>
+                </button>
               )}
 
             {/* Reactions */}

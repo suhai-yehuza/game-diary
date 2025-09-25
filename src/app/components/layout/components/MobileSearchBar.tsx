@@ -83,10 +83,10 @@ export function MobileSearchBar() {
       {!isExpanded && (
         <button
           onClick={() => setIsExpanded(true)}
-          className="flex items-center justify-center w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-full bg-bg-theme-secondary hover:bg-theme-muted transition-colors touch-manipulation"
+          className="flex items-center justify-center w-9 h-9 xs:w-10 xs:h-10 sm:w-11 sm:h-11 rounded-full bg-gray-600 hover:bg-gray-500 transition-colors touch-manipulation"
           aria-label="Open search"
         >
-          <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-theme-muted" />
+          <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 text-gray-400" />
         </button>
       )}
 
@@ -96,7 +96,7 @@ export function MobileSearchBar() {
           <div className="flex items-center justify-center min-h-screen px-2 xs:px-3 sm:px-4 md:px-6">
             <div className="w-full max-w-[calc(100vw-1rem)] xs:max-w-md sm:max-w-lg md:max-w-xl">
               <form onSubmit={handleSubmit} className="relative">
-                <div className="relative bg-surface-card rounded-2xl shadow-2xl">
+                <div className="relative bg-gray-900 rounded-2xl shadow-2xl border-2 border-gray-600">
                   {/* Search Input */}
                   <div className="flex items-center px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4">
                     {!searchQuery && (
@@ -109,10 +109,10 @@ export function MobileSearchBar() {
                       onChange={handleInputChange}
                       placeholder="Search games, teams, players..."
                       className={`flex-1 border-none outline-none text-sm xs:text-base sm:text-lg md:text-xl search-input-fixed search-text-dark search-input-force-dark ${searchQuery ? 'pl-0' : 'pl-0'}`}
-                      data-theme="light"
+                      data-theme="dark"
                       style={{
-                        color: 'var(--color-text-primary)', // Pure black text for maximum visibility
-                        WebkitTextFillColor: 'var(--color-text-primary)', // For webkit browsers
+                        color: 'white', // White text for dark header
+                        WebkitTextFillColor: 'white', // For webkit browsers
                       }}
                       autoComplete="off"
                       spellCheck="false"
@@ -121,23 +121,23 @@ export function MobileSearchBar() {
                       <button
                         type="button"
                         onClick={handleClear}
-                        className="ml-2 p-1 rounded-full hover:bg-bg-theme-secondary transition-colors"
+                        className="ml-2 p-1 rounded-full hover:bg-gray-600 transition-colors"
                         aria-label="Clear search"
                       >
-                        <X className="w-4 h-4 text-theme-primary" />
+                        <X className="w-4 h-4 text-white" />
                       </button>
                     )}
                   </div>
 
                   {/* Search Actions */}
-                  <div className="flex items-center justify-between px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4 border-t border-gray-600">
                     <button
                       type="button"
                       onClick={() => {
                         setIsExpanded(false);
                         setSearchQuery('');
                       }}
-                      className="text-sm xs:text-base sm:text-lg md:text-xl text-theme-muted hover:text-theme-secondary transition-colors touch-manipulation"
+                      className="text-sm xs:text-base sm:text-lg md:text-xl text-gray-400 hover:text-gray-300 transition-colors touch-manipulation"
                     >
                       Cancel
                     </button>

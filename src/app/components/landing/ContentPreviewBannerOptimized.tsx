@@ -62,7 +62,7 @@ export function ContentPreviewBannerOptimized() {
             {/* Trending Preview */}
             <Link
               href="/protected/dashboard"
-              className="bg-gradient-to-r from-semantic-success/10 to-semantic-success/20 rounded-lg p-4 border border-semantic-success/30 hover:from-semantic-success/20 hover:to-semantic-success/30 transition-all duration-200 group animate-in zoom-in-50 fade-in hover:scale-105 hover:shadow-lg"
+              className="bg-gradient-to-r from-semantic-success/10 to-semantic-success/20 rounded-lg p-4 border-2 border-green-500 hover:from-semantic-success/20 hover:to-semantic-success/30 transition-all duration-200 group animate-in zoom-in-50 fade-in hover:scale-105 hover:shadow-lg"
             >
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-semantic-success animate-pulse" />
@@ -127,7 +127,7 @@ export function ContentPreviewBannerOptimized() {
             {/* Recent Games Preview */}
             <Link
               href="/sports/all-sports"
-              className="bg-gradient-to-r from-semantic-info/10 to-semantic-warning/10 rounded-lg p-4 border border-semantic-info/30 hover:from-semantic-info/20 hover:to-semantic-warning/20 transition-all duration-200 group animate-in bounce-in fade-in delay-200 hover:scale-105 hover:shadow-lg"
+              className="bg-gradient-to-r from-semantic-info/10 to-semantic-warning/10 rounded-lg p-4 border-2 border-blue-500 hover:from-semantic-info/20 hover:to-semantic-warning/20 transition-all duration-200 group animate-in bounce-in fade-in delay-200 hover:scale-105 hover:shadow-lg"
             >
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-4 h-4 text-semantic-info animate-bounce" />

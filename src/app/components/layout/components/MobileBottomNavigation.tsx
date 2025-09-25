@@ -79,14 +79,14 @@ export function MobileBottomNavigation() {
 
   return (
     <nav
-      className={`fixed bottom-0 left-0 right-0 z-50 bg-theme-primary border-t border-theme-primary transition-transform duration-300 ease-in-out ${
+      className={`fixed bottom-0 left-0 right-0 z-50 bg-gray-700 border-t border-gray-500 transition-transform duration-300 ease-in-out ${
         isVisible ? 'translate-y-0' : 'translate-y-full'
       }`}
       style={{
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
+      <div className="flex items-center justify-around px-2 py-2" style={{ pointerEvents: 'auto' }}>
         {bottomNavItems.map(({ href, label, icon: Icon, action, isAction }) => {
           const active = isActive(href);
           const isMenuActive = isAction && isMenuExpanded;
@@ -101,6 +101,7 @@ export function MobileBottomNavigation() {
                     ? 'text-brand-primary bg-brand-primary/20'
                     : 'text-text-inverse hover:text-text-inverse'
                 }`}
+                style={{ pointerEvents: 'auto' }}
                 aria-label={label}
                 aria-expanded={isMenuActive}
               >
@@ -123,6 +124,7 @@ export function MobileBottomNavigation() {
                   ? 'text-brand-primary bg-brand-primary/20'
                   : 'text-text-inverse hover:text-text-inverse'
               }`}
+              style={{ pointerEvents: 'auto' }}
               onClick={handleTouch}
               aria-label={label}
               aria-current={active ? 'page' : undefined}

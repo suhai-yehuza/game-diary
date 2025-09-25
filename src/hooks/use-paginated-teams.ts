@@ -32,6 +32,9 @@ export function usePaginatedTeams(options: IPaginatedTeamsOptions = {}): IPagina
     ttl: number;
   } | null>(null);
 
+  // Internal state for page management
+  const [currentPage, setCurrentPage] = useState(page);
+
   const fetchTeams = useCallback(async () => {
     if (skip) return;
 
@@ -40,7 +43,7 @@ export function usePaginatedTeams(options: IPaginatedTeamsOptions = {}): IPagina
       setError(null);
 
       const params = new URLSearchParams({
-        page: page.toString(),
+        page: currentPage.toString(),
         limit: limit.toString(),
         search,
         conference,
@@ -76,21 +79,21 @@ export function usePaginatedTeams(options: IPaginatedTeamsOptions = {}): IPagina
     } finally {
       setLoading(false);
     }
-  }, [skip, page, limit, search, conference, division, sortBy, sortDirection, forceRefresh]);
+  }, [skip, currentPage, limit, search, conference, division, sortBy, sortDirection, forceRefresh]);
 
   // Reset page to 1 when filters change
   useEffect(() => {
-    if (page !== 1) {
-      // This will be handled by the parent component
+    if (currentPage !== 1) {
+      setCurrentPage(1);
     }
-  }, [page, search, conference, division, sortBy, sortDirection]);
+  }, [currentPage, search, conference, division, sortBy, sortDirection]);
 
   useEffect(() => {
     void fetchTeams();
   }, [fetchTeams]);
 
-  const setPage = useCallback((_newPage: number) => {
-    // This will be handled by the parent component
+  const setPage = useCallback((newPage: number) => {
+    setCurrentPage(newPage);
   }, []);
 
   const setSearch = useCallback((_newSearch: string) => {

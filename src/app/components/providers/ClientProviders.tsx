@@ -2,7 +2,7 @@
 
 import { ApolloProvider } from '@apollo/client';
 import dynamic from 'next/dynamic';
-import { ThemeProvider } from 'next-themes';
+import { ThemeProvider, useTheme } from 'next-themes';
 import { Suspense, memo } from 'react';
 import { Toaster } from 'sonner';
 
@@ -22,6 +22,27 @@ const NotificationOnLogin = dynamic(
     ssr: false,
   }
 );
+
+// Theme-aware Toaster component that properly detects and uses the current theme
+const DynamicToaster = memo(() => {
+  const { resolvedTheme } = useTheme();
+
+  // Determine the theme for Sonner - it needs explicit 'light' or 'dark'
+  const sonnerTheme = resolvedTheme === 'dark' ? 'dark' : 'light';
+
+  return (
+    <Toaster
+      position="top-right"
+      richColors
+      closeButton
+      duration={10000}
+      expand={true}
+      theme={sonnerTheme}
+    />
+  );
+});
+
+DynamicToaster.displayName = 'DynamicToaster';
 
 // Optimized loading fallback component
 const LoadingFallback = memo(() => (
@@ -64,14 +85,7 @@ export const OptimizedProviders = memo(({ children }: IClientProvidersProps) => 
     <Suspense fallback={<LoadingFallback />}>
       <NotificationProviders>{children}</NotificationProviders>
     </Suspense>
-    <Toaster
-      position="top-right"
-      richColors
-      closeButton
-      duration={10000}
-      expand={true}
-      theme="dark"
-    />
+    <DynamicToaster />
   </CoreProviders>
 ));
 

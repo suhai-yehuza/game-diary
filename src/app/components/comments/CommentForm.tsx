@@ -5,7 +5,6 @@ import { Send, X } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 import { Textarea } from '@/app/components/ui';
-import { Button } from '@/app/components/ui/button';
 import { useCreateComment, useUpdateComment } from '@/hooks/use-comments';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import type { IComment, ICommentFormProps, ParentType } from '@/types';
@@ -120,25 +119,22 @@ export function CommentForm({
           <div className="flex items-center justify-between mt-2">
             <div className="text-xs text-theme-muted">Press Cmd+Enter to submit, Esc to cancel</div>
             <div className="flex items-center space-x-2">
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
                 onClick={handleCancel}
                 disabled={loading}
-                className="text-theme-muted hover:text-theme-secondary"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
               >
                 <X className="h-4 w-4" />
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
-                size="sm"
                 disabled={!content.trim() || loading}
-                className="bg-brand-primary hover:bg-brand-primary-hover"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Send className="h-4 w-4 mr-1" />
+                <Send className="h-4 w-4" />
                 {initialContent ? 'Update' : 'Comment'}
-              </Button>
+              </button>
             </div>
           </div>
         </div>

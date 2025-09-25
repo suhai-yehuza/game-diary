@@ -251,6 +251,25 @@ export function GameLogModal({
   const abortControllerRef = useRef<AbortController | null>(null);
   const [selectedSeason, setSelectedSeason] = useState<'latest' | number | 'all'>('latest');
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Handle date picker close events
+  useEffect(() => {
+    const handleDatePickerClose = () => {
+      setIsDatePickerOpen(false);
+    };
+
+    const input = document.getElementById('watched-date-input') as HTMLInputElement;
+    if (input) {
+      input.addEventListener('change', handleDatePickerClose);
+      input.addEventListener('blur', handleDatePickerClose);
+
+      return () => {
+        input.removeEventListener('change', handleDatePickerClose);
+        input.removeEventListener('blur', handleDatePickerClose);
+      };
+    }
+  }, []);
 
   // Use appropriate schema and form data type based on mode
   const schema = mode === 'create' ? createGameLogSchema : updateGameLogSchema;
@@ -839,25 +858,25 @@ export function GameLogModal({
   const isFormValid = mode === 'create' ? isValid && selectedGameId : isValid;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-
+    <div
+      className="fixed inset-0 z-[9999] flex items-start justify-center -mt-8 sm:-mt-16 md:-mt-24 lg:-mt-36 pb-4 sm:pb-8 px-2 sm:px-4"
+      onClick={onClose}
+    >
       <Card
-        className="relative w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto border border-theme-primary rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal"
+        className="relative w-full max-w-sm sm:max-w-md md:max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000]"
+        onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: document.documentElement.classList.contains('dark')
-            ? 'var(--color-background-secondary)'
-            : 'var(--color-text-primary)',
+          backgroundColor: '#f8fafc', // Light slate background that works on both themes
+          color: '#1e293b', // Dark slate text for excellent contrast
         }}
       >
-        <div className="p-6 text-theme-primary">
+        <div className="p-4 sm:p-6" style={{ color: '#1e293b' }}>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-theme-primary">
+              <h2 className="text-xl font-semibold" style={{ color: '#0f172a' }}>
                 {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
               </h2>
-              <p className="text-sm text-theme-secondary mt-1">
+              <p className="text-sm mt-1" style={{ color: '#475569' }}>
                 {mode === 'create' ? 'Add a new game log entry' : 'Update your game log details'}
               </p>
             </div>
@@ -865,7 +884,7 @@ export function GameLogModal({
               variant="ghost"
               size="sm"
               onClick={onClose}
-              className="text-theme-muted hover:text-theme-primary hover:bg-bg-theme-tertiary rounded-full p-2"
+              className="rounded-full p-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-500"
             >
               <X className="w-4 h-4" />
             </Button>
@@ -933,7 +952,10 @@ export function GameLogModal({
                 ) : (
                   <div className="relative">
                     <div className="relative">
-                      <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4" />
+                      <Search
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4"
+                        style={{ left: '12px' }}
+                      />
                       <input
                         type="text"
                         value={searchTerm}
@@ -943,7 +965,8 @@ export function GameLogModal({
                           // Use setTimeout to allow click events on dropdown items to fire first
                           setTimeout(() => setShowSearchResults(false), 150);
                         }}
-                        className="w-full pl-8 pr-8 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                        className="w-full pl-14 pr-8 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                        style={{ paddingLeft: '60px' }}
                         placeholder="Search by team name, arena, or date..."
                       />
                       {searchTerm && (
@@ -1018,7 +1041,7 @@ export function GameLogModal({
                           )}
 
                         {!searchLoading && !searchError && searchResults.length > 0 && (
-                          <div className="py-1">
+                          <div className="py-1 search-results">
                             {/* Debug: Rendering search results */}
                             {searchResults.map(game => (
                               <div
@@ -1029,7 +1052,7 @@ export function GameLogModal({
                                 <div className="font-medium text-theme-primary text-sm mb-0.5">
                                   {game.name}
                                 </div>
-                                <div className="flex items-center gap-3 text-xs text-theme-muted">
+                                <div className="flex items-center gap-3 text-xs text-black">
                                   <div className="flex items-center gap-1">
                                     <Calendar className="w-3 h-3" />
                                     {game.date}
@@ -1084,7 +1107,7 @@ export function GameLogModal({
             {/* Rating */}
             <div>
               <label className="block text-sm font-medium text-theme-primary mb-1">Rating *</label>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 rating-stars">
                 {[1, 2, 3, 4, 5].map(star => (
                   <button
                     key={star}
@@ -1093,9 +1116,7 @@ export function GameLogModal({
                     className="focus:outline-none"
                   >
                     <Star
-                      className={`w-5 h-5 ${
-                        star <= rating ? 'text-semantic-warning fill-current' : 'text-theme-muted'
-                      }`}
+                      className={`w-5 h-5 ${star <= rating ? 'star-selected' : 'star-unselected'}`}
                     />
                   </button>
                 ))}
@@ -1142,11 +1163,19 @@ export function GameLogModal({
                   onClick={() => {
                     const input = document.getElementById('watched-date-input') as HTMLInputElement;
                     if (input) {
-                      input.focus();
-                      if (typeof input.showPicker === 'function') {
-                        input.showPicker();
+                      if (isDatePickerOpen) {
+                        // Close the date picker by blurring the input
+                        input.blur();
+                        setIsDatePickerOpen(false);
                       } else {
-                        input.click();
+                        // Open the date picker
+                        input.focus();
+                        if (typeof input.showPicker === 'function') {
+                          input.showPicker();
+                        } else {
+                          input.click();
+                        }
+                        setIsDatePickerOpen(true);
                       }
                     }
                   }}
@@ -1250,7 +1279,7 @@ export function GameLogModal({
                             onClick={() => handleRemoveTag(tag)}
                             className="text-white hover:text-semantic-error/80 transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <X className="w-2 h-2" />
                           </button>
                         </span>
                       ));

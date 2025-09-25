@@ -159,15 +159,13 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
           {/* Comment Form Toggle */}
           {!showCommentForm && (
             <div className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
+              <button
                 onClick={() => setShowCommentForm(true)}
-                className="w-full"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
               >
-                <MessageCircle className="h-4 w-4 mr-2" />
+                <MessageCircle className="h-4 w-4" />
                 Add Comment
-              </Button>
+              </button>
             </div>
           )}
         </div>

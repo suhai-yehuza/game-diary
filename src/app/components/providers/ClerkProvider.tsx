@@ -23,33 +23,41 @@ export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
       appearance={{
         elements: {
           formButtonPrimary: 'bg-brand-primary hover:bg-brand-primary-hover text-theme-inverse',
-          card: 'bg-surface-card shadow-lg border border-theme-primary',
-          headerTitle: 'text-theme-primary',
-          headerSubtitle: 'text-theme-secondary',
+          card: 'bg-white shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-600',
+          headerTitle: 'text-gray-900 dark:text-white',
+          headerSubtitle: 'text-gray-600 dark:text-gray-300',
           socialButtonsBlockButton:
-            'bg-surface-card border border-theme-primary hover:bg-bg-theme-secondary',
-          socialButtonsBlockButtonText: 'text-theme-primary',
-          formFieldLabel: 'text-theme-primary',
+            'bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-500 dark:hover:border-gray-500',
+          socialButtonsBlockButtonText: 'font-medium',
+          formFieldLabel: 'text-gray-700 dark:text-gray-200',
           formFieldInput:
-            'border border-theme-primary rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary bg-surface-card text-theme-primary',
-          footerActionLink: 'text-brand-primary hover:text-brand-primary-hover',
-          alternativeMethodsBlockButton: 'text-theme-primary hover:text-theme-secondary',
-          alternativeMethodsBlockButtonText: 'text-theme-primary hover:text-theme-secondary',
-          formFieldAction: 'text-theme-primary hover:text-theme-secondary',
-          formFieldActionText: 'text-theme-primary hover:text-theme-secondary',
-          identityPreviewText: 'text-theme-primary',
-          identityPreviewEditButton: 'text-theme-primary hover:text-theme-secondary',
-          formFieldActionLink: 'text-theme-primary hover:text-theme-secondary',
-          formFieldActionLinkText: 'text-theme-primary hover:text-theme-secondary',
+            'border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white',
+          footerActionLink: 'text-black hover:text-gray-700',
+          alternativeMethodsBlockButton:
+            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
+          alternativeMethodsBlockButtonText:
+            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
+          formFieldAction:
+            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
+          formFieldActionText:
+            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
+          identityPreviewText: 'text-gray-900 dark:text-white',
+          identityPreviewEditButton:
+            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
+          formFieldActionLink: 'text-black hover:text-gray-700',
+          formFieldActionLinkText: 'text-black hover:text-gray-700',
         },
         variables: {
           colorPrimary: 'hsl(221, 83%, 53%)',
-          colorText: 'var(--color-text-primary)',
-          colorTextSecondary: 'var(--color-text-secondary)',
+          colorText: '#1f2937', // Dark gray for light mode
+          colorTextSecondary: '#6b7280', // Medium gray for light mode
           colorDanger: 'hsl(0, 84%, 60%)',
           colorSuccess: 'hsl(142, 76%, 36%)',
           colorWarning: 'hsl(38, 92%, 50%)',
-          colorNeutral: 'var(--color-text-muted)',
+          colorNeutral: '#9ca3af', // Light gray for light mode
+          colorBackground: '#ffffff', // White background for light mode
+          colorInputBackground: '#ffffff', // White input background for light mode
+          colorInputText: '#1f2937', // Dark text for inputs in light mode
         },
       }}
       // Add proper configuration for SSO callbacks

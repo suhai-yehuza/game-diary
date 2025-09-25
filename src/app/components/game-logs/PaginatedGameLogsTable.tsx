@@ -27,7 +27,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/app/components/ui/DropdownMenu';
-import { GridSkeleton, Skeleton } from '@/app/components/ui/skeleton-loader';
+import { ContentLoading } from '@/app/components/ui/loading-states';
+import { FadeIn } from '@/app/components/ui/micro-interactions';
+import { SkeletonCard } from '@/app/components/ui/skeleton';
 import { VirtualScroll } from '@/app/components/ui/virtual-scroll';
 import { usePaginatedGameLogs } from '@/hooks/use-paginated-game-logs';
 import { API_CONFIG } from '@/lib/config/app.config';
@@ -544,164 +546,168 @@ export function PaginatedGameLogsTable() {
   // Show loading skeleton while data is loading
   if (loading && gameLogs.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-theme-primary">Game Logs</h1>
-          <Skeleton className="h-10 w-32" />
+      <FadeIn>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-theme-primary">Game Logs</h1>
+            <SkeletonCard className="h-10 w-32" />
+          </div>
+          <ContentLoading type="table" count={6} />
         </div>
-        <GridSkeleton items={6} columns={2} />
-      </div>
+      </FadeIn>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Performance Optimization Toggle */}
-      {(useVirtualScrolling || useProgressiveLoading) && (
-        <div className="bg-semantic-info/10 border border-semantic-info/30 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-semantic-success rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-theme-primary">
-                Performance Mode Active
-              </span>
-            </div>
-            <div className="flex items-center gap-4 text-xs text-semantic-info">
-              {useVirtualScrolling && <span>Virtual Scrolling</span>}
-              {useProgressiveLoading && <span>Progressive Loading</span>}
+    <FadeIn>
+      <div className="space-y-6">
+        {/* Performance Optimization Toggle */}
+        {(useVirtualScrolling || useProgressiveLoading) && (
+          <div className="bg-semantic-info/10 border border-semantic-info/30 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-semantic-success rounded-full animate-pulse" />
+                <span className="text-sm font-medium text-theme-primary">
+                  Performance Mode Active
+                </span>
+              </div>
+              <div className="flex items-center gap-4 text-xs text-semantic-info">
+                {useVirtualScrolling && <span>Virtual Scrolling</span>}
+                {useProgressiveLoading && <span>Progressive Loading</span>}
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold text-theme-primary">Game Logs</h2>
-          <p className="text-sm text-theme-muted">
-            Share your basketball experiences and connect with other fans
-          </p>
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold text-theme-primary">Game Logs</h2>
+            <p className="text-sm text-theme-muted">
+              Share your basketball experiences and connect with other fans
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setCreateModalOpen(true)}
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            >
+              <Plus className="h-4 w-4" />
+              Create Game Log
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Filters */}
+        <GameLogsFilters onFiltersChange={handleFiltersChange} initialFilters={filters} />
+
+        {/* Tabs */}
+        <div className="flex space-x-1 bg-bg-theme-secondary p-1 rounded-lg">
+          {[
+            { key: 'my-logs', label: 'My Logs' },
+            { key: 'friends-logs', label: 'Friends' },
+            { key: 'public-logs', label: 'Public' },
+          ].map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => handleTabChange(key as 'my-logs' | 'friends-logs' | 'public-logs')}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                currentTab === key
+                  ? 'bg-surface-card text-theme-primary shadow-sm'
+                  : 'text-theme-muted hover:text-theme-primary'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Page Size Selector and Refresh Button */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 bg-surface-card/80 rounded-lg px-4 py-3 border border-semantic-success/30">
+            <span className="text-sm font-medium text-semantic-success">Page Size:</span>
+            <CustomSelect
+              value={pageSize >= 999999 ? 'all' : pageSize.toString()}
+              onChange={handlePageSizeChange}
+              options={pageSizeOptions}
+              size="sm"
+              variant="default"
+              className="min-w-[120px]"
+            />
+          </div>
+
           <Button
-            onClick={() => setCreateModalOpen(true)}
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 shadow-sm hover:shadow-md"
+            onClick={handleForceRefresh}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            disabled={isRefreshing}
           >
-            <Plus className="h-4 w-4" />
-            Create Game Log
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
           </Button>
         </div>
-      </div>
 
-      {/* Filters */}
-      <GameLogsFilters onFiltersChange={handleFiltersChange} initialFilters={filters} />
-
-      {/* Tabs */}
-      <div className="flex space-x-1 bg-bg-theme-secondary p-1 rounded-lg">
-        {[
-          { key: 'my-logs', label: 'My Logs' },
-          { key: 'friends-logs', label: 'Friends' },
-          { key: 'public-logs', label: 'Public' },
-        ].map(({ key, label }) => (
-          <button
-            key={key}
-            onClick={() => handleTabChange(key as 'my-logs' | 'friends-logs' | 'public-logs')}
-            className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-              currentTab === key
-                ? 'bg-surface-card text-theme-primary shadow-sm'
-                : 'text-theme-muted hover:text-theme-primary'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
-      {/* Page Size Selector and Refresh Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 bg-surface-card/80 rounded-lg px-4 py-3 border border-semantic-success/30">
-          <span className="text-sm font-medium text-semantic-success">Page Size:</span>
-          <CustomSelect
-            value={pageSize >= 999999 ? 'all' : pageSize.toString()}
-            onChange={handlePageSizeChange}
-            options={pageSizeOptions}
-            size="sm"
-            variant="default"
-            className="min-w-[120px]"
+        {/* Game Logs Grid */}
+        {useVirtualScrolling ? (
+          <VirtualScroll
+            items={gameLogs}
+            itemHeight={400} // Approximate height of a game log card
+            containerHeight={600} // Fixed container height
+            renderItem={renderGameLogCard}
+            overscan={3}
+            className="border border-theme-primary rounded-lg"
           />
-        </div>
+        ) : (
+          <PaginatedGrid
+            items={gameLogs}
+            loading={loading}
+            error={error}
+            pagination={pagination}
+            onPageChange={handlePageChange}
+            renderItem={renderGameLogCard}
+            gridClassName="grid grid-cols-1 gap-4 sm:gap-6"
+            showPagination={true}
+          />
+        )}
 
-        <Button
-          onClick={handleForceRefresh}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-2"
-          disabled={isRefreshing}
-        >
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          {isRefreshing ? 'Refreshing...' : 'Refresh'}
-        </Button>
-      </div>
-
-      {/* Game Logs Grid */}
-      {useVirtualScrolling ? (
-        <VirtualScroll
-          items={gameLogs}
-          itemHeight={400} // Approximate height of a game log card
-          containerHeight={600} // Fixed container height
-          renderItem={renderGameLogCard}
-          overscan={3}
-          className="border border-theme-primary rounded-lg"
+        {/* Modals */}
+        <CreateGameLogModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          onSuccess={() => {
+            setCreateModalOpen(false);
+            refetch();
+          }}
         />
-      ) : (
-        <PaginatedGrid
-          items={gameLogs}
-          loading={loading}
-          error={error}
-          pagination={pagination}
-          onPageChange={handlePageChange}
-          renderItem={renderGameLogCard}
-          gridClassName="grid grid-cols-1 gap-4 sm:gap-6"
-          showPagination={true}
-        />
-      )}
 
-      {/* Modals */}
-      <CreateGameLogModal
-        isOpen={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        onSuccess={() => {
-          setCreateModalOpen(false);
-          refetch();
-        }}
-      />
+        {selectedGameLog && (
+          <>
+            <EditGameLogModal
+              isOpen={editModalOpen}
+              onClose={() => setEditModalOpen(false)}
+              gameLog={selectedGameLog}
+              onSuccess={() => {
+                setEditModalOpen(false);
+                setSelectedGameLog(null);
+                refetch();
+              }}
+            />
 
-      {selectedGameLog && (
-        <>
-          <EditGameLogModal
-            isOpen={editModalOpen}
-            onClose={() => setEditModalOpen(false)}
-            gameLog={selectedGameLog}
-            onSuccess={() => {
-              setEditModalOpen(false);
-              setSelectedGameLog(null);
-              refetch();
-            }}
-          />
-
-          <DeleteGameLogModal
-            isOpen={deleteModalOpen}
-            onClose={() => setDeleteModalOpen(false)}
-            gameLog={selectedGameLog}
-            onSuccess={() => {
-              setDeleteModalOpen(false);
-              setSelectedGameLog(null);
-              refetch();
-            }}
-          />
-        </>
-      )}
-    </div>
+            <DeleteGameLogModal
+              isOpen={deleteModalOpen}
+              onClose={() => setDeleteModalOpen(false)}
+              gameLog={selectedGameLog}
+              onSuccess={() => {
+                setDeleteModalOpen(false);
+                setSelectedGameLog(null);
+                refetch();
+              }}
+            />
+          </>
+        )}
+      </div>
+    </FadeIn>
   );
 }

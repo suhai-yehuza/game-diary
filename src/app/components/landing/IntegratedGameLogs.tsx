@@ -11,8 +11,8 @@ export function IntegratedGameLogs({ data }: IIntegratedGameLogsProps) {
   const loading = !data;
   const error = null; // No error handling needed for server-side data
   const { containerRef, contentRef, handleMouseEnter, handleMouseLeave } = useScrollAnimation({
-    speed: 4, // Desktop speed - slowed down
-    mobileSpeed: 2, // Mobile speed - slower for better readability
+    speed: 1.0, // Desktop speed - much slower for better readability
+    mobileSpeed: 0.5, // Mobile speed - even slower for better readability
     pauseOnHover: true,
     autoStart: true,
   });

@@ -60,24 +60,20 @@ export function NavigationContainer({
 
   return (
     <nav className="flex justify-center">
-      <div className="flex h-16 items-center relative">
+      <div className="flex h-14 items-center relative">
         {/* Mobile Menu Button - for compact viewports (mobile and small tablets) */}
         <button
           aria-label={isMenuExpanded ? 'Close menu' : 'Open menu'}
           onClick={onMenuToggle}
           className={`md:block lg:hidden p-2 rounded-md transition-colors z-50 ${
             isMenuExpanded
-              ? 'fixed top-4 left-4 bg-surface-card/90 border border-theme-primary shadow-lg'
+              ? 'fixed top-4 left-4 bg-gray-800/90 border border-gray-500 shadow-lg'
               : 'mr-4 relative'
-          } hover:bg-bg-theme-secondary focus:outline-none focus:ring-2 focus:ring-brand-primary`}
+          } hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-brand-primary`}
           style={{ pointerEvents: 'auto' }}
           data-testid="mobile-menu-button"
         >
-          {isMenuExpanded ? (
-            <X className="h-7 w-7 text-theme-primary" />
-          ) : (
-            <Menu className="h-5 w-5" />
-          )}
+          {isMenuExpanded ? <X className="h-7 w-7 text-white" /> : <Menu className="h-5 w-5" />}
         </button>
 
         {/* Desktop/Tablet Nav Links - always visible in header on lg+ */}

@@ -45,8 +45,8 @@ function AuthControlsContent() {
   if (!mounted) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center">
-          <span className="text-xs text-theme-muted">Auth</span>
+        <div className="w-10 h-10 bg-gray-800 rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-gray-400">Auth</span>
         </div>
       </div>
     );
@@ -56,8 +56,8 @@ function AuthControlsContent() {
   if (isSSO) {
     return (
       <div className="flex items-center">
-        <div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center">
-          <span className="text-xs text-theme-muted">SSO</span>
+        <div className="w-10 h-10 bg-gray-800 rounded animate-pulse flex items-center justify-center">
+          <span className="text-xs text-gray-400">SSO</span>
         </div>
       </div>
     );
@@ -87,9 +87,9 @@ function AuthControlsContent() {
       <div className="flex items-center">
         <div
           data-testid="auth-placeholder"
-          className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse flex items-center justify-center"
+          className="w-10 h-10 bg-gray-800 rounded animate-pulse flex items-center justify-center"
         >
-          <span className="text-xs text-theme-muted">Auth</span>
+          <span className="text-xs text-gray-400">Auth</span>
         </div>
       </div>
     );
@@ -127,7 +127,7 @@ function AuthControlsContent() {
 
 export function ClientOnlyAuthControls() {
   return (
-    <Suspense fallback={<div className="w-10 h-10 bg-bg-theme-secondary rounded animate-pulse" />}>
+    <Suspense fallback={<div className="w-10 h-10 bg-gray-800 rounded animate-pulse" />}>
       <AuthControlsContent />
     </Suspense>
   );

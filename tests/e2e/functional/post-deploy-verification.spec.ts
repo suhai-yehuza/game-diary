@@ -201,6 +201,17 @@ export async function verifySearchFunctionalityCritical(page: Page) {
       await expect(page.locator('body')).toBeVisible({ timeout: TIMEOUTS.MEDIUM });
 
       // Critical functionality check - search input should be present
+      // Wait for Suspense boundary to resolve and main content to load
+      await page.waitForFunction(
+        () => {
+          const searchInput = document.querySelector(
+            'input[type="search"], input[placeholder*="search"], [data-testid*="search"]'
+          );
+          return searchInput && searchInput.offsetParent !== null; // Check if visible
+        },
+        { timeout: TIMEOUTS.MEDIUM }
+      );
+
       const searchInput = page.locator(
         'input[type="search"], input[placeholder*="search"], [data-testid*="search"]'
       );

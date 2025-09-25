@@ -7,6 +7,8 @@ import { useEffect, useCallback } from 'react';
 import { SportsPageLayout } from '@/app/components/sports';
 import { NBANews } from '@/app/components/sports/nba-news';
 import { Standings } from '@/app/components/sports/standings';
+import { FadeIn, HoverAnimation } from '@/app/components/ui/micro-interactions';
+import { SkeletonCard } from '@/app/components/ui/skeleton';
 import formatNumberShort from '@/app/protected/admin/database/components/utils/formatNumberShort';
 import { useLatestGames } from '@/hooks/use-latest-games';
 import { useLiveGames } from '@/hooks/use-live-games';
@@ -15,18 +17,8 @@ import { useNBAPlayers } from '@/hooks/use-nba-players';
 import { useNBATeams } from '@/hooks/use-nba-teams';
 import { API_LIMITS } from '@/lib/constants';
 
-// Skeleton components for better loading states
-const NavigationCardSkeleton = () => (
-  <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 animate-pulse">
-    <div className="flex items-center justify-between mb-4">
-      <div className="w-12 h-12 bg-gray-300 dark:bg-gray-600 rounded-lg" />
-      <div className="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded" />
-    </div>
-    <div className="h-6 bg-gray-300 dark:bg-gray-600 rounded mb-2" />
-    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-3" />
-    <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-1/2" />
-  </div>
-);
+// Enhanced skeleton component using our new standardized components
+const NavigationCardSkeleton = () => <SkeletonCard className="p-6" />;
 
 export default function NBAPage() {
   // Use the optimized NBA Hub counts hook with GraphQL
@@ -229,55 +221,61 @@ export default function NBAPage() {
         </div>
       )}
 
-      {/* Navigation Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
-        {countsAreLoading ? (
-          // Show skeleton loading for navigation cards - only when counts are loading
-          <>
-            <NavigationCardSkeleton />
-            <NavigationCardSkeleton />
-            <NavigationCardSkeleton />
-          </>
-        ) : (
-          navigationCards.map(card => {
-            const Icon = card.icon;
-            return (
-              <Link
-                key={card.title}
-                href={card.href}
-                className="group block p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 nba-nav-card"
-                aria-label={`Navigate to ${card.title} page`}
-              >
-                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                  <div className={`p-2 sm:p-3 rounded-lg ${card.color} text-white`}>
-                    <Icon className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
-                  </div>
-                  <ArrowRight
-                    className="w-4 h-4 sm:w-5 sm:h-5 nav-card-arrow group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
-                    aria-hidden="true"
-                  />
-                </div>
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                  {card.title}
-                </h3>
-                <p className="text-sm sm:text-base text-gray-800 dark:text-gray-300 mb-3">
-                  {card.description}
-                </p>
-                <div className="text-xs sm:text-sm nav-card-count">
-                  {card.loading ? (
-                    <span className="flex items-center gap-2">
-                      <RefreshCw className="w-3 h-3 animate-spin" />
-                      Loading...
-                    </span>
-                  ) : (
-                    card.formattedCount
-                  )}
-                </div>
-              </Link>
-            );
-          })
-        )}
-      </div>
+      {/* Navigation Cards with enhanced animations */}
+      <FadeIn delay={200}>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12">
+          {countsAreLoading ? (
+            // Show skeleton loading for navigation cards - only when counts are loading
+            <>
+              <NavigationCardSkeleton />
+              <NavigationCardSkeleton />
+              <NavigationCardSkeleton />
+              <NavigationCardSkeleton />
+            </>
+          ) : (
+            navigationCards.map((card, index) => {
+              const Icon = card.icon;
+              return (
+                <FadeIn key={card.title} delay={300 + index * 100}>
+                  <HoverAnimation scale={1.02}>
+                    <Link
+                      href={card.href}
+                      className="group block p-4 sm:p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 nba-nav-card hover-lift"
+                      aria-label={`Navigate to ${card.title} page`}
+                    >
+                      <div className="flex items-center justify-between mb-3 sm:mb-4">
+                        <div className={`p-2 sm:p-3 rounded-lg ${card.color} text-white`}>
+                          <Icon className="w-5 h-5 sm:w-6 sm:h-6" aria-hidden="true" />
+                        </div>
+                        <ArrowRight
+                          className="w-4 h-4 sm:w-5 sm:h-5 nav-card-arrow group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors"
+                          aria-hidden="true"
+                        />
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                        {card.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-800 dark:text-gray-300 mb-3">
+                        {card.description}
+                      </p>
+                      <div className="text-xs sm:text-sm nav-card-count">
+                        {card.loading ? (
+                          <span className="flex items-center gap-2">
+                            <RefreshCw className="w-3 h-3 animate-spin" />
+                            Loading...
+                          </span>
+                        ) : (
+                          card.formattedCount
+                        )}
+                      </div>
+                    </Link>
+                  </HoverAnimation>
+                </FadeIn>
+              );
+            })
+          )}
+        </div>
+      </FadeIn>
 
       {/* NBA Standings Section */}
       <section id="standings" aria-labelledby="nba-standings-heading" className="mt-8 sm:mt-12">
@@ -287,7 +285,7 @@ export default function NBAPage() {
           </div>
           <h2
             id="nba-standings-heading"
-            className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
+            className="text-xl sm:text-2xl font-bold text-theme-primary"
           >
             NBA Standings
           </h2>
@@ -302,10 +300,7 @@ export default function NBAPage() {
           <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
             <Newspaper className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600 dark:text-blue-400" />
           </div>
-          <h2
-            id="nba-news-heading"
-            className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white"
-          >
+          <h2 id="nba-news-heading" className="text-xl sm:text-2xl font-bold text-theme-primary">
             Latest NBA News
           </h2>
         </div>

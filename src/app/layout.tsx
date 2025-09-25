@@ -189,7 +189,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <HeaderWrapper />
           <main
             id="main-content"
-            className="grow pb-8 lg:pb-4 pt-4" // Reduced top padding since header is sticky
+            className="grow pb-8 lg:pb-4 pt-20" // Increased top padding to account for fixed header with margins
             style={{
               paddingBottom: 'calc(env(safe-area-inset-bottom) + 2rem)',
             }}
