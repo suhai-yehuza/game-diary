@@ -49,13 +49,13 @@ export default function HomePage() {
                 </p>
               </FadeIn>
 
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8 sm:mb-12">
+              <div className="mobile-button-container justify-center items-center mb-8 sm:mb-12">
                 {/* Primary CTA - Most prominent */}
                 <FadeIn delay={400}>
                   <HoverAnimation>
                     <Link
                       href="/sports/all-sports"
-                      className="w-full max-w-xs sm:max-w-sm px-8 sm:px-10 py-4 sm:py-5 bg-brand-primary text-white rounded-xl hover:bg-brand-primary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-brand-primary/30 focus:ring-offset-2 font-semibold text-lg sm:text-xl shadow-2xl hover:shadow-3xl min-h-touch-xl text-center hover-lift"
+                      className="mobile-button px-4 xs:px-6 sm:px-10 py-3 xs:py-4 sm:py-5 bg-brand-primary text-white rounded-xl hover:bg-brand-primary-dark transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-brand-primary/30 focus:ring-offset-2 font-semibold text-sm xs:text-base sm:text-xl shadow-2xl hover:shadow-3xl min-h-touch-xl text-center hover-lift"
                     >
                       Explore Sports
                     </Link>
@@ -67,7 +67,7 @@ export default function HomePage() {
                   <HoverAnimation>
                     <Link
                       href="/protected/dashboard"
-                      className="w-full max-w-xs sm:max-w-sm px-6 sm:px-8 py-3 sm:py-4 bg-transparent border-2 border-brand-secondary text-brand-secondary rounded-xl hover:bg-brand-secondary hover:text-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-secondary/30 focus:ring-offset-2 font-medium text-base sm:text-lg shadow-lg hover:shadow-xl min-h-touch text-center hover-lift"
+                      className="mobile-button px-3 xs:px-5 sm:px-8 py-2 xs:py-3 sm:py-4 bg-transparent border-2 border-brand-secondary text-brand-secondary rounded-xl hover:bg-brand-secondary hover:text-white transition-all duration-200 focus:outline-none focus:ring-4 focus:ring-brand-secondary/30 focus:ring-offset-2 font-medium text-sm xs:text-base sm:text-lg shadow-lg hover:shadow-xl min-h-touch text-center hover-lift"
                     >
                       Go to Dashboard
                     </Link>

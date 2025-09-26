@@ -215,7 +215,7 @@ export function IntegratedGames({ data }: IIntegratedGamesProps) {
       {/* View All Button */}
       <div className="mt-auto pt-4">
         <Link
-          href="/sports/all-sports"
+          href="/sports/nba/games"
           className="block w-full text-center py-3 bg-brand-primary text-theme-inverse rounded-lg hover:bg-brand-primary-hover transition-all duration-200 font-medium"
         >
           View All Games

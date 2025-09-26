@@ -36,6 +36,9 @@ export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
           socialButtonsBlockButton:
             'bg-white border border-gray-300 hover:bg-gray-50 rounded-lg shadow-sm',
           socialButtonsBlockButtonText: 'font-medium text-gray-900',
+          footer: 'py-6',
+          footerAction: 'py-6',
+          footerActionText: 'text-gray-900 hover:text-gray-700 py-6',
           footerActionLink: 'text-gray-900 hover:text-gray-700',
           alternativeMethodsBlockButton: 'text-gray-700 hover:text-gray-900',
           alternativeMethodsBlockButtonText: 'text-gray-700 hover:text-gray-900',
