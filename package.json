@@ -287,6 +287,7 @@
     "test:e2e:pages:sports": "./scripts/validation-pipeline.sh e2e run pages:sports",
     "test:e2e:performance": "./scripts/validation-pipeline.sh e2e run performance",
     "test:e2e:post-deploy": "pnpm test:e2e:smoke:deployed",
+    "test:e2e:responsive": "pnpm exec playwright test tests/e2e/functional/responsive.spec.ts",
     "test:e2e:pre-deploy": "echo '🚨 PRODUCTION PRE-DEPLOY TESTS BLOCKED: Use ALLOW_ACCESS_TO_PRODUCTION_DB=true to override' && exit 1",
     "test:e2e:pre-deploy:override": "ALLOW_ACCESS_TO_PRODUCTION_DB=true ./scripts/validation-pipeline.sh production --fast && ./scripts/validation-pipeline.sh e2e run performance",
     "test:e2e:run": "./scripts/validation-pipeline.sh dev --skip-db-tests",
