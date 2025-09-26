@@ -1,5 +1,6 @@
 import type { ICacheOptions } from '@/types';
 
+import { hybridCacheService } from './hybrid-cache-service';
 import { simpleCacheService } from './simple-cache-service';
 
 /**
@@ -15,7 +16,7 @@ export function CacheMethod(options: ICacheOptions = {}) {
       const cacheKey = generateMethodCacheKey(propertyKey, args);
 
       // Try to get from cache first
-      const cachedResult = simpleCacheService.get(cacheKey, options);
+      const cachedResult = await hybridCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -24,7 +25,7 @@ export function CacheMethod(options: ICacheOptions = {}) {
       const result = await originalMethod.apply(this, args);
 
       // Cache the result
-      simpleCacheService.set(cacheKey, result, options);
+      await hybridCacheService.set(cacheKey, result, options);
 
       return result;
     };
@@ -72,7 +73,7 @@ export function CacheAPI(options: ICacheOptions = {}) {
       const cacheKey = generateAPICacheKey(propertyKey, args);
 
       // Check cache first
-      const cachedResult = simpleCacheService.get(cacheKey, options);
+      const cachedResult = await hybridCacheService.get(cacheKey, options);
       if (cachedResult !== null) {
         return cachedResult;
       }
@@ -82,7 +83,7 @@ export function CacheAPI(options: ICacheOptions = {}) {
 
       // Cache successful responses only
       if (result && !result.error) {
-        simpleCacheService.set(cacheKey, result, options);
+        await hybridCacheService.set(cacheKey, result, options);
       }
 
       return result;

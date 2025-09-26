@@ -32,7 +32,7 @@ describe('SearchBar', () => {
 
   it('renders search input with placeholder', () => {
     render(<SearchBar />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
     expect(input).toBeInTheDocument();
   });
 
@@ -49,7 +49,7 @@ describe('SearchBar', () => {
     expect(screen.queryByTestId('close-icon')).not.toBeInTheDocument();
 
     // Type text to show close button
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
     await user.type(input, 'test');
     expect(screen.getByTestId('close-icon')).toBeInTheDocument();
   });
@@ -57,7 +57,7 @@ describe('SearchBar', () => {
   it('updates value when typing', async () => {
     const user = userEvent.setup();
     render(<SearchBar />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
     await user.type(input, 'test query');
     expect(input).toHaveValue('test query');
   });
@@ -66,7 +66,7 @@ describe('SearchBar', () => {
     const user = userEvent.setup();
     render(<SearchBar />);
     await user.tab(); // Tab to the input
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
     expect(input).toHaveFocus();
     await user.click(document.body); // Click outside to blur
     expect(input).not.toHaveFocus();
@@ -75,34 +75,34 @@ describe('SearchBar', () => {
   it('expands on focus and contracts on blur', async () => {
     const user = userEvent.setup();
     render(<SearchBar />);
-    let input = screen.getByPlaceholderText(/search/i);
+    let input = screen.getByTestId('search');
     // Initial: should have contracted class
     let form = input.closest('form');
     expect(form!.className).toContain('max-w-[140px]');
 
     // Focus (expand)
     await user.tab();
-    input = screen.getByPlaceholderText(/search/i);
+    input = screen.getByTestId('search');
     form = input.closest('form');
     expect(form!.className).toContain('max-w-[95vw]');
 
     // Blur (contract) by clicking outside
     await user.click(document.body);
-    input = screen.getByPlaceholderText(/search/i);
+    input = screen.getByTestId('search');
     form = input.closest('form');
     expect(form!.className).toContain('max-w-[140px]');
   });
 
   it('handles autoFocus prop', () => {
     render(<SearchBar autoFocus={true} />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
     expect(input).toHaveFocus();
   });
 
   it('handles special characters in search', async () => {
     const user = userEvent.setup();
     render(<SearchBar />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
 
     await user.type(input, 'test@#$%^&*()');
     expect(input).toHaveValue('test@#$%^&*()');
@@ -111,7 +111,7 @@ describe('SearchBar', () => {
   it('handles very long search queries', async () => {
     const user = userEvent.setup();
     render(<SearchBar />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
 
     const longQuery = 'a'.repeat(1000);
     await user.type(input, longQuery);
@@ -121,7 +121,7 @@ describe('SearchBar', () => {
   it('handles keyboard navigation', async () => {
     const user = userEvent.setup();
     render(<SearchBar />);
-    const input = screen.getByPlaceholderText(/search/i);
+    const input = screen.getByTestId('search');
 
     // Tab to focus
     await user.tab();
@@ -136,7 +136,7 @@ describe('SearchBar', () => {
     render(<SearchBar />);
     const input = screen.getByRole('searchbox');
     expect(input).toHaveAttribute('id', 'search-input');
-    expect(input).toHaveAttribute('placeholder', 'Global search...');
+    expect(input).toHaveAttribute('placeholder', '');
     expect(input).toHaveAttribute('type', 'search');
   });
 });

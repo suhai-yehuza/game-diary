@@ -8340,3 +8340,151 @@ header button {
     color: #ffffff !important;
   }
 }
+
+/* Ultra-specific override for search input text visibility */
+.force-dark-header input[type='search'] {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+.force-dark-header input[type='search']::placeholder {
+  color: rgb(156, 163, 175) !important;
+}
+
+/* Maximum specificity for search input text */
+html body .force-dark-header input[type='search'].search-input-fixed {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+html body .force-dark-header input[type='search'].search-input-fixed::placeholder {
+  color: rgb(156, 163, 175) !important;
+}
+
+/* Nuclear option - override everything */
+input[type='search'] {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+input[type='search']::placeholder {
+  color: rgb(156, 163, 175) !important;
+}
+
+/* Force white text on all search inputs in dark header */
+.force-dark-header input[type='search'],
+.force-dark-header input[type='search']:focus,
+.force-dark-header input[type='search']:active,
+.force-dark-header input[type='search']:hover,
+.force-dark-header input[type='search']:not(:placeholder-shown) {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+  text-shadow: none !important;
+}
+
+/* Ultra-specific force white text class */
+.force-white-text {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+}
+
+.force-white-text::placeholder {
+  color: white !important;
+}
+
+/* Maximum specificity nuclear option */
+html body div.force-dark-header form input[type='search'].search-input-fixed.force-white-text,
+html body div.force-dark-header form input[type='search'].search-input-fixed.force-white-text:focus,
+html
+  body
+  div.force-dark-header
+  form
+  input[type='search'].search-input-fixed.force-white-text:active,
+html body div.force-dark-header form input[type='search'].search-input-fixed.force-white-text:hover,
+html
+  body
+  div.force-dark-header
+  form
+  input[type='search'].search-input-fixed.force-white-text:not(:placeholder-shown) {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+html
+  body
+  div.force-dark-header
+  form
+  input[type='search'].search-input-fixed.force-white-text::placeholder {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* Ultimate nuclear option with data attribute */
+input[type='search'][data-force-white='true'] {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  caret-color: white !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+input[type='search'][data-force-white='true']::placeholder {
+  color: white !important;
+  opacity: 1 !important;
+}
+
+/* ULTIMATE OVERRIDE - Force white placeholder for search inputs */
+html body div.force-dark-header input[type='search']::placeholder,
+html body div.force-dark-header input[type='search'].search-input-fixed::placeholder,
+html body div.force-dark-header input[type='search'].force-white-text::placeholder,
+html body div.force-dark-header input[type='search'][data-force-white='true']::placeholder,
+input[type='search']::placeholder {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* NUCLEAR OPTION - Override ALL placeholder styles */
+*::placeholder {
+  color: white !important;
+}
+
+/* Force white placeholder on ALL inputs in dark header */
+.force-dark-header *::placeholder {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  opacity: 1 !important;
+}
+
+/* Alternative approach - Use pseudo-element for placeholder */
+.force-dark-header input[type='search']:not(:focus):not(:valid)::before {
+  content: attr(data-placeholder);
+  color: white !important;
+  position: absolute;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Force placeholder color with !important on all possible selectors */
+input[type='search']::placeholder,
+input[type='search'].search-input-fixed::placeholder,
+input[type='search'].force-white-text::placeholder,
+input[type='search'][data-force-white='true']::placeholder,
+.force-dark-header input::placeholder,
+.force-dark-header input[type='search']::placeholder {
+  color: white !important;
+  -webkit-text-fill-color: white !important;
+  opacity: 1 !important;
+  font-weight: normal !important;
+}

@@ -2,15 +2,16 @@
 
 import { Search, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
+import { SearchInput } from '@/app/components/ui/search-input';
 
 export function MobileSearchBar() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  // Removed inputRef since we're using the new SearchInput component
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -49,7 +50,6 @@ export function MobileSearchBar() {
   // Handle clear button
   const handleClear = () => {
     setSearchQuery('');
-    inputRef.current?.focus();
   };
 
   // Handle escape key
@@ -70,8 +70,9 @@ export function MobileSearchBar() {
 
   // Auto-focus when expanded
   useEffect(() => {
-    if (isExpanded && inputRef.current) {
-      inputRef.current.focus();
+    if (isExpanded) {
+      // Focus will be handled by the SearchInput component's autoFocus prop
+      // No need for manual focus management
     }
   }, [isExpanded]);
 
@@ -99,23 +100,14 @@ export function MobileSearchBar() {
                 <div className="relative bg-gray-900 rounded-2xl shadow-2xl border-2 border-gray-600">
                   {/* Search Input */}
                   <div className="flex items-center px-3 xs:px-4 sm:px-5 md:px-6 py-2.5 xs:py-3 sm:py-3.5 md:py-4">
-                    {!searchQuery && (
-                      <Search className="w-4 h-4 xs:w-5 xs:h-5 sm:w-5 sm:h-5 search-icon-enhanced mr-2 xs:mr-3 sm:mr-3 md:mr-4" />
-                    )}
-                    <input
-                      ref={inputRef}
-                      type="search"
+                    <SearchInput
                       value={searchQuery}
                       onChange={handleInputChange}
                       placeholder="Search games, teams, players..."
-                      className={`flex-1 border-none outline-none text-sm xs:text-base sm:text-lg md:text-xl search-input-fixed search-text-dark search-input-force-dark ${searchQuery ? 'pl-0' : 'pl-0'}`}
-                      data-theme="dark"
-                      style={{
-                        color: 'white', // White text for dark header
-                        WebkitTextFillColor: 'white', // For webkit browsers
-                      }}
+                      className="flex-1 text-sm xs:text-base sm:text-lg md:text-xl"
                       autoComplete="off"
-                      spellCheck="false"
+                      spellCheck={false}
+                      autoFocus={true}
                     />
                     {searchQuery && (
                       <button

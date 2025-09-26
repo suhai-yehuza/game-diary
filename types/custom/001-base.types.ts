@@ -45,6 +45,23 @@ import {
 
 // Import core types - now consolidated in this file
 
+// UI Component Props
+export interface SearchInputProps {
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  placeholder: string;
+  className?: string;
+  autoFocus?: boolean;
+  autoComplete?: string;
+  spellCheck?: boolean;
+  id?: string;
+  'aria-label'?: string;
+  'data-testid'?: string;
+}
+
 // Generated from constants
 export type IClassificationType = (typeof CLASSIFICATION)[keyof typeof CLASSIFICATION];
 export type IWatchedScopeType = (typeof WATCHED_SCOPE)[keyof typeof WATCHED_SCOPE];

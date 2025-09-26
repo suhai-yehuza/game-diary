@@ -26,7 +26,7 @@ vi.mock('@/lib/utils/error-handler', () => ({
 
 // Mock the cache service
 vi.mock('@/lib/cache', () => ({
-  simpleCacheService: {
+  hybridCacheService: {
     get: vi.fn().mockReturnValue(null), // Always return null (cache miss)
     set: vi.fn(),
   },

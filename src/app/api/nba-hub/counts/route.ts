@@ -115,7 +115,7 @@ export async function GET(request: Request) {
     if (!bypassCache) {
       console.log('🔍 Attempting to retrieve from hybrid cache...');
       const cacheStartTime = Date.now();
-      const cachedCounts = NBAHubCacheUtils.getCachedNBACounts();
+      const cachedCounts = await NBAHubCacheUtils.getCachedNBACounts();
       const cacheEndTime = Date.now();
 
       console.log(`⏱️ Cache operation took ${cacheEndTime - cacheStartTime}ms`);

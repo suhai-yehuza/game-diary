@@ -859,11 +859,11 @@ export function GameLogModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-start justify-center -mt-8 sm:-mt-16 md:-mt-24 lg:-mt-36 pb-4 sm:pb-8 px-2 sm:px-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
     >
       <Card
-        className="relative w-full max-w-sm sm:max-w-md md:max-w-lg max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-4rem)] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000]"
+        className="relative w-full max-w-sm sm:max-w-md md:max-w-lg max-h-[90vh] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000]"
         onClick={e => e.stopPropagation()}
         style={{
           backgroundColor: '#f8fafc', // Light slate background that works on both themes

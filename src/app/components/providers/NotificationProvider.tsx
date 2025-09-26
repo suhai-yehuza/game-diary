@@ -186,51 +186,59 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   // Cache management for notifications
   useEffect(() => {
-    if (user?.id && notificationsData?.userNotifications?.edges) {
-      const notificationList = notificationsData.userNotifications.edges.map(
-        edge =>
-          ({
-            id: edge.node.id,
-            userId: edge.node.user_id,
-            type: edge.node.type,
-            title: edge.node.title,
-            message: edge.node.message,
-            targetId: edge.node.target_id,
-            targetType: edge.node.target_type,
-            resolved: edge.node.resolved,
-            read: edge.node.read,
-            readAt: edge.node.read ? new Date() : null,
-            createdAt: new Date(edge.node.created_at),
-            updatedAt: new Date(edge.node.created_at), // GraphQL doesn't have updated_at
-            deletedAt: null,
-          }) as IAppNotification
-      );
+    const cacheNotifications = async () => {
+      if (user?.id && notificationsData?.userNotifications?.edges) {
+        const notificationList = notificationsData.userNotifications.edges.map(
+          edge =>
+            ({
+              id: edge.node.id,
+              userId: edge.node.user_id,
+              type: edge.node.type,
+              title: edge.node.title,
+              message: edge.node.message,
+              targetId: edge.node.target_id,
+              targetType: edge.node.target_type,
+              resolved: edge.node.resolved,
+              read: edge.node.read,
+              readAt: edge.node.read ? new Date() : null,
+              createdAt: new Date(edge.node.created_at),
+              updatedAt: new Date(edge.node.created_at), // GraphQL doesn't have updated_at
+              deletedAt: null,
+            }) as IAppNotification
+        );
 
-      // Cache the notifications
-      try {
-        NotificationCacheUtils.cacheUserNotifications(user.id, notificationList);
-      } catch (error) {
-        console.warn('Failed to cache notifications:', error);
+        // Cache the notifications
+        try {
+          await NotificationCacheUtils.cacheUserNotifications(user.id, notificationList);
+        } catch (error) {
+          console.warn('Failed to cache notifications:', error);
+        }
+
+        setNotifications(notificationList);
       }
+    };
 
-      setNotifications(notificationList);
-    }
+    void cacheNotifications();
   }, [notificationsData, user?.id]);
 
   // Cache management for unread count
   useEffect(() => {
-    if (user?.id && unreadCountData?.unreadNotificationsCount !== undefined) {
-      const count = unreadCountData.unreadNotificationsCount;
+    const cacheUnreadCount = async () => {
+      if (user?.id && unreadCountData?.unreadNotificationsCount !== undefined) {
+        const count = unreadCountData.unreadNotificationsCount;
 
-      // Cache the unread count
-      try {
-        NotificationCacheUtils.cacheUserUnreadCount(user.id, count);
-      } catch (error) {
-        console.warn('Failed to cache unread count:', error);
+        // Cache the unread count
+        try {
+          await NotificationCacheUtils.cacheUserUnreadCount(user.id, count);
+        } catch (error) {
+          console.warn('Failed to cache unread count:', error);
+        }
+
+        setUnreadCount(count);
       }
+    };
 
-      setUnreadCount(count);
-    }
+    void cacheUnreadCount();
   }, [unreadCountData, user?.id]);
 
   // Initialize from cache and handle authentication state changes

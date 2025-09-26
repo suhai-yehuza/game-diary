@@ -1,75 +1,14 @@
 'use client';
 
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 
-import {
-  MOBILE_BREAKPOINT,
-  FLUID_TYPOGRAPHY,
-} from '@/app/components/layout/components/breakpoints';
+import { MOBILE_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
 import { SearchSuggestions } from '@/app/components/search/SearchSuggestions';
+import { SearchInput } from '@/app/components/ui/search-input';
 
-// Common search input component
-function SearchInput({
-  value,
-  onChange,
-  onFocus,
-  onBlur,
-  onKeyDown,
-  placeholder,
-  className = '',
-  autoFocus = false,
-  autoComplete = 'off',
-  spellCheck = false,
-  id,
-  ariaLabel,
-  'data-testid': dataTestId,
-}: {
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onFocus?: () => void;
-  onBlur?: () => void;
-  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  placeholder: string;
-  className?: string;
-  autoFocus?: boolean;
-  autoComplete?: string;
-  spellCheck?: boolean;
-  id?: string;
-  ariaLabel?: string;
-  'data-testid'?: string;
-}) {
-  return (
-    <div className="relative flex-1">
-      {!value && (
-        <Search className="absolute left-1.5 xs:left-2 sm:left-2.5 md:left-3 top-1/2 -translate-y-1/2 h-3 w-3 xs:h-3.5 xs:w-3.5 sm:h-4 sm:w-4 md:h-4 md:w-4 search-icon-enhanced" />
-      )}
-      <input
-        type="search"
-        placeholder={placeholder}
-        data-theme="dark"
-        className={`w-full border-none focus:ring-0 outline-none transition-all duration-200 search-input-fixed search-text-dark search-input-force-dark ${value ? 'pl-1.5 xs:pl-2 sm:pl-2.5 md:pl-3' : 'pl-6 xs:pl-7 sm:pl-8 md:pl-9'} ${className}`}
-        style={{
-          textShadow: 'none',
-          backgroundColor: 'transparent',
-          fontSize: FLUID_TYPOGRAPHY.searchInput,
-        }}
-        value={value}
-        onChange={onChange}
-        onFocus={onFocus}
-        onBlur={onBlur}
-        onKeyDown={onKeyDown}
-        autoComplete={autoComplete}
-        spellCheck={spellCheck}
-        autoFocus={autoFocus}
-        id={id}
-        aria-label={ariaLabel}
-        data-testid={dataTestId}
-      />
-    </div>
-  );
-}
+// Legacy SearchInput component - now using the reusable UI component
 
 // Common close button component
 function CloseButton({

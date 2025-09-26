@@ -21,7 +21,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -39,7 +39,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -75,7 +75,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -96,7 +96,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -161,7 +161,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -179,7 +179,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -197,7 +197,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -215,7 +215,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -233,7 +233,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -251,7 +251,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -271,7 +271,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -289,7 +289,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -307,7 +307,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -328,7 +328,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {
@@ -352,7 +352,7 @@ test.describe('Search Functionality', () => {
       await page.waitForLoadState('networkidle');
 
       const searchInput = page.locator(
-        '[data-testid="search"], input[type="search"], input[placeholder*="search"]'
+        '[data-testid="search"], input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
       );
 
       if ((await searchInput.count()) > 0) {

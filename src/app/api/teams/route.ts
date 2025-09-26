@@ -2,7 +2,7 @@ import { and, eq, sql, desc, asc } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { simpleCacheService } from '@/lib/cache';
+import { hybridCacheService } from '@/lib/cache';
 import { db } from '@/lib/db';
 import { basketball_teams } from '@/lib/db/schema';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
@@ -116,7 +116,7 @@ export async function GET(request: NextRequest) {
 
     // Try to get from cache first (unless bypass is requested)
     if (!bypassCache) {
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
       if (cachedData) {
         logger.info('Teams cache hit', { key: cacheKey, isAllTeamsRequest });
         return NextResponse.json(cachedData);
@@ -211,7 +211,7 @@ export async function GET(request: NextRequest) {
           source: 'database',
         },
       };
-      simpleCacheService.set(cacheKey, emptyResponse, {
+      await hybridCacheService.set(cacheKey, emptyResponse, {
         ttl: cacheTTL,
         tags: ['teams', 'nba'],
       });
@@ -267,7 +267,7 @@ export async function GET(request: NextRequest) {
 
     // Cache the response
     try {
-      simpleCacheService.set(cacheKey, response, {
+      await hybridCacheService.set(cacheKey, response, {
         ttl: cacheTTL,
         tags: ['teams', 'nba'],
       });

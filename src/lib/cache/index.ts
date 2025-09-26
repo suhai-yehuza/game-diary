@@ -1,7 +1,11 @@
 import { errorHandlers } from '@/lib/utils/error-handler';
 
+import { hybridCacheService } from './hybrid-cache-service';
+
 // Main cache exports
 export { simpleCacheService, SimpleCacheService } from './simple-cache-service';
+export { redisCacheService, RedisCacheService } from './redis-cache-service';
+export { hybridCacheService, HybridCacheService } from './hybrid-cache-service';
 
 // Cache decorators
 export {
@@ -152,13 +156,20 @@ export function cleanupCache() {
 }
 
 // Cache health check function
-export function checkCacheHealth() {
+export async function checkCacheHealth() {
   try {
+    const healthStatus = await hybridCacheService.getHealthStatus();
+    const stats = await hybridCacheService.getStats();
+
     return {
-      healthy: true,
-      health: { redis: false, memory: true },
-      stats: {},
-      timestamp: new Date().toISOString(),
+      healthy: healthStatus.healthy,
+      health: {
+        redis: healthStatus.redis,
+        memory: healthStatus.memory,
+      },
+      stats,
+      strategy: healthStatus.strategy,
+      timestamp: healthStatus.timestamp,
     };
   } catch (error) {
     errorHandlers.database(error instanceof Error ? error : new Error(String(error)), {
