@@ -2,6 +2,10 @@
 
 import Link from 'next/link';
 
+import {
+  TOUCH_TARGET_LARGE,
+  FLUID_TYPOGRAPHY,
+} from '@/app/components/layout/components/breakpoints';
 import { getSportsButtonClass } from '@/lib/constants/colors';
 import type { INavItemExtendedProps, SportsConfigKey } from '@/types';
 
@@ -40,12 +44,10 @@ export function NavItem({
 
   const colors = getSportColors();
 
-  // Modern mobile styling with proper touch targets - Google Search button style
+  // Enhanced mobile styling with fluid typography and proper touch targets
   const mobileStackedClasses = `
     w-full max-w-sm mx-auto
-    min-h-[56px] px-6 py-4
     flex items-center justify-center
-    text-base font-medium
     rounded-lg
     transition-all duration-200 ease-out
     active:scale-98
@@ -56,10 +58,9 @@ export function NavItem({
     ${className}
   `;
 
-  // Desktop styling - Google Search button style
+  // Enhanced desktop styling with fluid typography
   const desktopClasses = `
     inline-block py-2.5 px-5
-    text-base font-medium
     transition-all duration-200
     whitespace-nowrap
     rounded-lg
@@ -69,10 +70,29 @@ export function NavItem({
     ${className}
   `;
 
+  // Apply fluid typography and touch target styles
+  const getInlineStyles = () => {
+    if (isStacked) {
+      return {
+        minHeight: TOUCH_TARGET_LARGE.minHeight,
+        minWidth: TOUCH_TARGET_LARGE.minWidth,
+        padding: TOUCH_TARGET_LARGE.padding,
+        fontSize: FLUID_TYPOGRAPHY.headerNav,
+        lineHeight: TOUCH_TARGET_LARGE.lineHeight,
+        fontWeight: '500',
+      };
+    }
+    return {
+      fontSize: FLUID_TYPOGRAPHY.headerNav,
+      fontWeight: '500',
+    };
+  };
+
   return (
     <Link
       href={href}
       className={isStacked ? mobileStackedClasses : desktopClasses}
+      style={getInlineStyles()}
       onClick={handleClick}
       {...props}
     >

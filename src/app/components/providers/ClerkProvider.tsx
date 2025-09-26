@@ -21,46 +21,48 @@ export function ClerkProviderWrapper({ children }: { children: ReactNode }) {
   return (
     <ClerkProvider
       appearance={{
+        cssLayerName: 'clerk',
         elements: {
-          formButtonPrimary: 'bg-brand-primary hover:bg-brand-primary-hover text-theme-inverse',
-          card: 'bg-white shadow-2xl border border-gray-200 dark:bg-gray-800 dark:border-gray-600',
-          headerTitle: 'text-gray-900 dark:text-white',
-          headerSubtitle: 'text-gray-600 dark:text-gray-300',
-          socialButtonsBlockButton:
-            'bg-white dark:bg-gray-700 border-2 border-gray-400 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 hover:border-gray-500 dark:hover:border-gray-500',
-          socialButtonsBlockButtonText: 'font-medium',
-          formFieldLabel: 'text-gray-700 dark:text-gray-200',
+          rootBox: 'clerk',
+          modalBackdrop: 'bg-black/60 backdrop-blur-sm',
+          card: 'bg-white border border-gray-200 shadow-xl rounded-2xl',
+          headerTitle: 'text-gray-900',
+          headerSubtitle: 'text-gray-600',
+          formFieldLabel: 'text-gray-700',
           formFieldInput:
-            'border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary bg-white dark:bg-gray-700 text-gray-900 dark:text-white',
-          footerActionLink: 'text-black hover:text-gray-700',
-          alternativeMethodsBlockButton:
-            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
-          alternativeMethodsBlockButtonText:
-            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
-          formFieldAction:
-            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
-          formFieldActionText:
-            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
-          identityPreviewText: 'text-gray-900 dark:text-white',
-          identityPreviewEditButton:
-            'text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white',
-          formFieldActionLink: 'text-black hover:text-gray-700',
-          formFieldActionLinkText: 'text-black hover:text-gray-700',
+            'border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary bg-white text-gray-900',
+          formButtonPrimary:
+            'bg-brand-primary hover:bg-brand-primary-hover text-white rounded-lg px-4 py-2 font-semibold',
+          socialButtonsBlockButton:
+            'bg-white border border-gray-300 hover:bg-gray-50 rounded-lg shadow-sm',
+          socialButtonsBlockButtonText: 'font-medium text-gray-900',
+          footerActionLink: 'text-gray-900 hover:text-gray-700',
+          alternativeMethodsBlockButton: 'text-gray-700 hover:text-gray-900',
+          alternativeMethodsBlockButtonText: 'text-gray-700 hover:text-gray-900',
+          formFieldAction: 'text-gray-700 hover:text-gray-900',
+          formFieldActionText: 'text-gray-700 hover:text-gray-900',
+          identityPreviewText: 'text-gray-900',
+          identityPreviewEditButton: 'text-gray-700 hover:text-gray-900',
+          formFieldActionLink: 'text-gray-900 hover:text-gray-700',
+          formFieldActionLinkText: 'text-gray-900 hover:text-gray-700',
         },
         variables: {
           colorPrimary: 'hsl(221, 83%, 53%)',
-          colorText: '#1f2937', // Dark gray for light mode
-          colorTextSecondary: '#6b7280', // Medium gray for light mode
+          colorText: '#1f2937',
+          colorTextSecondary: '#6b7280',
           colorDanger: 'hsl(0, 84%, 60%)',
           colorSuccess: 'hsl(142, 76%, 36%)',
           colorWarning: 'hsl(38, 92%, 50%)',
-          colorNeutral: '#9ca3af', // Light gray for light mode
-          colorBackground: '#ffffff', // White background for light mode
-          colorInputBackground: '#ffffff', // White input background for light mode
-          colorInputText: '#1f2937', // Dark text for inputs in light mode
+          colorNeutral: '#9ca3af',
+          colorBackground: '#ffffff',
+          colorInputBackground: '#ffffff',
+          colorInputText: '#1f2937',
+          colorBorder: '#e5e7eb',
+          borderRadius: '12px',
+          fontFamily: 'inherit',
+          fontSize: '14px',
         },
       }}
-      // Add proper configuration for SSO callbacks
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
     >
       {children}

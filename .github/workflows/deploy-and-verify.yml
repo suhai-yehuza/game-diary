@@ -1,4 +1,4 @@
-name: Deploy and Verify Workflow (Improved)
+name: Deploy and Verify Workflow
 
 on:
   workflow_call:
@@ -141,7 +141,7 @@ jobs:
           echo "🚀 Starting deployment..."
 
           # Set team context if available
-          local vercel_cmd="vercel"
+          vercel_cmd="vercel"
           if [ -n "${{ secrets.VERCEL_ORG_ID }}" ]; then
             vercel_cmd="$vercel_cmd --scope ${{ secrets.VERCEL_ORG_ID }}"
           fi
@@ -162,7 +162,7 @@ jobs:
           echo "🔧 Running: $vercel_cmd"
 
           # Execute deployment with retry logic
-          local deployment_output=""
+          deployment_output=""
           for attempt in {1..3}; do
             echo "Attempt $attempt/3: Deploying to Vercel..."
             if deployment_output=$($vercel_cmd 2>&1); then
@@ -185,13 +185,13 @@ jobs:
           echo "🔍 Extracting deployment URL..."
 
           # Method 1: Parse from deployment output
-          local deployment_url=$(echo "$deployment_output" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
+          deployment_url=$(echo "$deployment_output" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
 
           if [ -z "$deployment_url" ]; then
             echo "⚠️ Method 1 failed, trying Method 2..."
 
             # Method 2: Use vercel ls
-            local vercel_ls_output=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+            vercel_ls_output=$(vercel ls --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
             deployment_url=$(echo "$vercel_ls_output" | grep -E ".*\.vercel\.app" | head -1 | awk '{print $2}')
           fi
 
@@ -199,7 +199,7 @@ jobs:
             echo "⚠️ Method 2 failed, trying Method 3..."
 
             # Method 3: Use vercel inspect
-            local vercel_inspect_output=$(vercel inspect --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
+            vercel_inspect_output=$(vercel inspect --token ${{ secrets.VERCEL_TOKEN }} 2>&1)
             deployment_url=$(echo "$vercel_inspect_output" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1)
           fi
 
@@ -216,7 +216,7 @@ jobs:
           echo "url=$deployment_url" >> $GITHUB_OUTPUT
 
           # Extract deployment ID if possible
-          local deployment_id=$(echo "$deployment_output" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1 | sed 's/.*\///' | sed 's/\.vercel\.app//')
+          deployment_id=$(echo "$deployment_output" | grep -o 'https://[^[:space:]]*\.vercel\.app' | head -1 | sed 's/.*\///' | sed 's/\.vercel\.app//')
           if [ -n "$deployment_id" ]; then
             echo "deployment-id=$deployment_id" >> $GITHUB_OUTPUT
           fi

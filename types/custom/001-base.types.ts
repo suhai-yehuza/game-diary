@@ -1778,7 +1778,8 @@ export interface INavigationContainerProps {
   setIsMenuExpanded: (expanded: boolean) => void;
   closeMenu?: () => void;
   isStacked?: boolean;
-  onMenuToggle: () => void;
+  _onMenuToggle?: () => void;
+  isOverlapping?: boolean;
 }
 
 // ========================================
