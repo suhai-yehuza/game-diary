@@ -458,7 +458,9 @@ export async function openMobileSearch(page: Page, timeout = 10000): Promise<voi
       await expect(page).toHaveURL(/.*\/search.*/);
 
       // Wait for the search input to be visible on the search page
-      const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+      const searchInput = page.locator(
+        'input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
+      );
       await expect(searchInput.first()).toBeVisible({ timeout: 5000 });
       console.log('Successfully navigated to search page and input is visible');
       return;
@@ -471,7 +473,9 @@ export async function openMobileSearch(page: Page, timeout = 10000): Promise<voi
         await page.waitForLoadState('domcontentloaded');
 
         await expect(page).toHaveURL(/.*\/search.*/);
-        const searchInput = page.locator('input[type="search"], input[placeholder*="search"]');
+        const searchInput = page.locator(
+          'input[type="search"], input[placeholder*="search"], [data-testid="search-input"]'
+        );
         await expect(searchInput.first()).toBeVisible({ timeout: 5000 });
         console.log('Successfully navigated to search page with force click');
         return;

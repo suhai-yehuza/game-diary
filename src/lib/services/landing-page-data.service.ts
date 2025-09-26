@@ -1,4 +1,4 @@
-import { simpleCacheService, CACHE_CONFIG } from '@/lib/cache';
+import { hybridCacheService, CACHE_CONFIG } from '@/lib/cache';
 import {
   getGameEngagementQuery,
   debugDatabaseContentQuery,
@@ -608,7 +608,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:trendingContent';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -630,7 +630,7 @@ export class LandingPageDataService {
         mostActiveGameLog: data.length > 0 ? data[0] : null,
       };
 
-      simpleCacheService.set(cacheKey, result, {
+      await hybridCacheService.set(cacheKey, result, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'trending-content'],
       });
@@ -652,7 +652,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:latestResults';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -674,7 +674,7 @@ export class LandingPageDataService {
         latestFinishedGame: data.length > 0 ? data[0] : null,
       };
 
-      simpleCacheService.set(cacheKey, result, {
+      await hybridCacheService.set(cacheKey, result, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'latest-results'],
       });
@@ -696,7 +696,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:recentGames';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -742,7 +742,7 @@ export class LandingPageDataService {
         currentGame: finishedGames.length > 0 ? finishedGames[0] : null,
       };
 
-      simpleCacheService.set(cacheKey, result, {
+      await hybridCacheService.set(cacheKey, result, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE,
         tags: ['landing-page', 'recent-games'],
       });
@@ -766,7 +766,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:popularGames';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (
         cachedData !== null &&
@@ -787,7 +787,7 @@ export class LandingPageDataService {
 
       const data = await this.getPopularGames();
 
-      simpleCacheService.set(cacheKey, data, {
+      await hybridCacheService.set(cacheKey, data, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes for trending content
         tags: ['landing-page', 'popular-games'],
       });
@@ -915,7 +915,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:popularTeams';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (cachedData !== null && typeof cachedData === 'object' && 'mostPopular' in cachedData) {
         const cached = cachedData as {
@@ -938,7 +938,7 @@ export class LandingPageDataService {
       // Use direct implementation instead of API call to avoid circular dependency
       const data = await this.getPopularTeams();
 
-      simpleCacheService.set(cacheKey, data, {
+      await hybridCacheService.set(cacheKey, data, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
         tags: ['landing-page', 'popular-teams'],
       });
@@ -970,7 +970,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:popularPlayers';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (cachedData !== null && typeof cachedData === 'object' && 'mostPopular' in cachedData) {
         const cached = cachedData as {
@@ -1019,7 +1019,7 @@ export class LandingPageDataService {
 
       const data = { mostPopular: sortedPlayers };
 
-      simpleCacheService.set(cacheKey, data, {
+      await hybridCacheService.set(cacheKey, data, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
         tags: ['landing-page', 'popular-players'],
       });
@@ -1051,7 +1051,7 @@ export class LandingPageDataService {
   }> {
     try {
       const cacheKey = 'landingPage:landing-page-data:activeFans';
-      const cachedData = simpleCacheService.get(cacheKey);
+      const cachedData = await hybridCacheService.get(cacheKey);
 
       if (cachedData !== null && typeof cachedData === 'object' && 'mostActive' in cachedData) {
         const cached = cachedData as {
@@ -1085,7 +1085,7 @@ export class LandingPageDataService {
 
       const data = { mostActive: result.data.mostActive || [] };
 
-      simpleCacheService.set(cacheKey, data, {
+      await hybridCacheService.set(cacheKey, data, {
         ttl: CACHE_CONFIG.TTL.LANDING_PAGE * 2, // 10 minutes
         tags: ['landing-page', 'active-fans'],
       });
@@ -1101,7 +1101,7 @@ export class LandingPageDataService {
   /**
    * Invalidate specific cache sections based on tags or keys
    */
-  invalidateCacheSection(
+  async invalidateCacheSection(
     section:
       | 'trending-content'
       | 'latest-results'
@@ -1115,9 +1115,9 @@ export class LandingPageDataService {
     try {
       if (section === 'all') {
         // Invalidate all landing page caches
-        simpleCacheService.clear();
+        await hybridCacheService.clear();
         this.logger.info('Invalidated all landing page caches');
-        return Promise.resolve();
+        return;
       }
 
       // Invalidate specific section
@@ -1131,9 +1131,9 @@ export class LandingPageDataService {
         'active-fans': 'landing-page',
       };
 
-      simpleCacheService.invalidate({ pattern: `${tagMap[section]}:*` });
+      await hybridCacheService.invalidate({ pattern: `${tagMap[section]}:*` });
       this.logger.info(`Invalidated cache section: ${section}`);
-      return Promise.resolve();
+      return;
     } catch (error) {
       this.logger.error('Failed to invalidate cache section', { section, error });
       throw error;

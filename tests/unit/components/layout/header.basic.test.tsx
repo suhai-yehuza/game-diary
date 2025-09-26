@@ -84,7 +84,7 @@ describe('Header', () => {
       </NotificationProvider>
     );
     // Search bar
-    expect(screen.getByPlaceholderText('Global search...')).toBeInTheDocument();
+    expect(screen.getByTestId('search')).toBeInTheDocument();
     // Sign-in button
     expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
     // Logo image

@@ -119,7 +119,7 @@ export async function testSearchFunctionality(page: Page): Promise<void> {
 
   // Check search input
   const searchInput = page.locator(
-    'input[type="search"], input[name="search"], [data-testid="search-input"]'
+    'input[type="search"], input[name="search"], [data-testid="search-input"], [data-testid="search"]'
   );
   await expect(searchInput).toBeVisible({ timeout: TIMEOUT_CONFIG.ELEMENT_VISIBLE });
 

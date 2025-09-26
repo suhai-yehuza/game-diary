@@ -1,5 +1,4 @@
 import { logger } from '@/lib/utils/logger';
-import { getServerApiUrl } from '@/lib/utils/server-api-client';
 
 /**
  * Background service for automatically warming caches
@@ -75,6 +74,9 @@ export class CacheWarmingService {
     logger.info('Cache warming started');
 
     try {
+      // Add a small delay to ensure the server is fully ready
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
       // Warm up caches in parallel for better performance
       const warmingPromises = [
         this.warmGamesCache(),
@@ -153,7 +155,9 @@ export class CacheWarmingService {
   private async getAvailableSeasons(): Promise<number[]> {
     try {
       // Query the database to get available seasons
-      const response = await fetch(getServerApiUrl('/api/games?season=all&page=1&limit=1'));
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const response = await fetch(`${baseUrl}/api/games?season=all&page=1&limit=1`);
       if (!response.ok) {
         // If we can't query the database, fall back to recent seasons
         logger.warn('Could not query database for available seasons, using fallback');
@@ -187,8 +191,10 @@ export class CacheWarmingService {
       let totalCount = 0;
 
       for (const page of pagesToWarm) {
+        const baseUrl =
+          process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
         const response = await fetch(
-          getServerApiUrl(`/api/games?season=${season}&status=${status}&page=${page}&limit=50`)
+          `${baseUrl}/api/games?season=${season}&status=${status}&page=${page}&limit=50`
         );
 
         if (!response.ok) {
@@ -229,31 +235,70 @@ export class CacheWarmingService {
    */
   private async warmPlayersCache(): Promise<void> {
     try {
-      const [filterOptionsResponse, playersResponse] = await Promise.all([
-        fetch(getServerApiUrl('/api/players?options=true')),
-        fetch(getServerApiUrl('/api/players?limit=5000')), // Use LARGE limit to get all players
-      ]);
+      // Use the current server URL instead of getServerApiUrl to avoid port issues
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
 
-      if (!filterOptionsResponse.ok || !playersResponse.ok) {
-        throw new Error('Failed to warm players cache');
+      // Add retry logic for cache warming
+      const maxRetries = 3;
+      let lastError: Error | null = null;
+
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          const [filterOptionsResponse, playersResponse] = await Promise.all([
+            fetch(`${baseUrl}/api/players?options=true`, {
+              headers: { 'Content-Type': 'application/json' },
+              signal: AbortSignal.timeout(10000), // 10 second timeout
+            }),
+            fetch(`${baseUrl}/api/players?limit=5000`, {
+              headers: { 'Content-Type': 'application/json' },
+              signal: AbortSignal.timeout(10000), // 10 second timeout
+            }),
+          ]);
+
+          if (!filterOptionsResponse.ok || !playersResponse.ok) {
+            throw new Error(
+              `Failed to warm players cache: ${filterOptionsResponse.status} ${playersResponse.status}`
+            );
+          }
+
+          const [filterOptions, players] = await Promise.all([
+            filterOptionsResponse.json(),
+            playersResponse.json(),
+          ]);
+
+          logger.info('Players cache warmed', {
+            filterOptionsCount: Object.keys(filterOptions).length,
+            playersCount: players.response?.length || 0,
+          });
+
+          console.log(
+            `👥 Players cache warmed: ${players.response?.length || 0} players, ${Object.keys(filterOptions).length} filter options`
+          );
+
+          // Success - break out of retry loop
+          return;
+        } catch (error) {
+          lastError = error as Error;
+          logger.warn(`Players cache warming attempt ${attempt} failed`, {
+            error: String(error),
+            attempt,
+            maxRetries,
+          });
+
+          if (attempt < maxRetries) {
+            // Wait before retrying (exponential backoff)
+            await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+          }
+        }
       }
 
-      const [filterOptions, players] = await Promise.all([
-        filterOptionsResponse.json(),
-        playersResponse.json(),
-      ]);
-
-      logger.info('Players cache warmed', {
-        filterOptionsCount: Object.keys(filterOptions).length,
-        playersCount: players.response?.length || 0,
-      });
-
-      console.log(
-        `👥 Players cache warmed: ${players.response?.length || 0} players, ${Object.keys(filterOptions).length} filter options`
-      );
+      // If we get here, all retries failed
+      throw lastError || new Error('Players cache warming failed after all retries');
     } catch (error) {
       logger.error('Players cache warming failed', { error: String(error) });
-      throw error;
+      // Don't throw the error - just log it so it doesn't crash the app
+      console.warn('Players cache warming failed, continuing without cache warming:', error);
     }
   }
 
@@ -262,7 +307,9 @@ export class CacheWarmingService {
    */
   private async warmTeamsCache(): Promise<void> {
     try {
-      const response = await fetch(getServerApiUrl('/api/teams'));
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const response = await fetch(`${baseUrl}/api/teams`);
       if (!response.ok) {
         throw new Error(`Failed to warm teams cache: ${response.status}`);
       }
@@ -285,7 +332,9 @@ export class CacheWarmingService {
    */
   private async warmNBAHubCountsCache(): Promise<void> {
     try {
-      const response = await fetch(getServerApiUrl('/api/nba-hub/counts'));
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || `http://localhost:${process.env.PORT || 3000}`;
+      const response = await fetch(`${baseUrl}/api/nba-hub/counts`);
       if (!response.ok) {
         throw new Error(`Failed to warm NBA Hub counts cache: ${response.status}`);
       }

@@ -11,7 +11,7 @@ import type {
   Friendship,
 } from '@/types';
 
-import { simpleCacheService } from './simple-cache-service';
+import { hybridCacheService } from './hybrid-cache-service';
 
 /**
  * Cache utilities for different data types and use cases
@@ -25,9 +25,9 @@ export class GameCacheUtils {
   /**
    * Cache game data with appropriate TTL
    */
-  static cacheGame(gameId: string, gameData: Game, options: ICacheOptions = {}) {
+  static async cacheGame(gameId: string, gameData: Game, options: ICacheOptions = {}) {
     const cacheKey = `game:${gameId}`;
-    simpleCacheService.set(cacheKey, gameData, {
+    await hybridCacheService.set(cacheKey, gameData, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['game', `game:${gameId}`],
@@ -41,7 +41,7 @@ export class GameCacheUtils {
    */
   static async getCachedGame(gameId: string): Promise<Game | null> {
     const cacheKey = `game:${gameId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -50,14 +50,14 @@ export class GameCacheUtils {
   /**
    * Cache game list with pagination support
    */
-  static cacheGameList(
+  static async cacheGameList(
     filters: Record<string, unknown>,
     pagination: Record<string, unknown>,
     gameList: Game[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `gameList:${JSON.stringify(filters)}:${JSON.stringify(pagination)}`;
-    simpleCacheService.set(cacheKey, gameList, {
+    await hybridCacheService.set(cacheKey, gameList, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || 900, // 15 minutes for lists
       tags: ['gameList', 'games'],
@@ -74,7 +74,7 @@ export class GameCacheUtils {
     pagination: Record<string, unknown>
   ): Promise<Game[] | null> {
     const cacheKey = `gameList:${JSON.stringify(filters)}:${JSON.stringify(pagination)}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -83,18 +83,18 @@ export class GameCacheUtils {
   /**
    * Invalidate game-related caches
    */
-  static invalidateGameCaches(gameId?: string) {
+  static async invalidateGameCaches(gameId?: string): Promise<void> {
     if (gameId) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `game:${gameId}:*`,
       });
     } else {
-      simpleCacheService.invalidate({});
+      await hybridCacheService.invalidate({});
     }
 
     // Also invalidate NBA Hub counts since games count may have changed
-    ErrorHandler.getInstance().handleSync(
-      () => NBAHubCacheUtils.invalidateSpecificCountCaches('games'),
+    await ErrorHandler.getInstance().handleAsync(
+      async () => NBAHubCacheUtils.invalidateSpecificCountCaches('games'),
       {
         component: 'GameCacheUtils',
         action: 'invalidateAll',
@@ -111,9 +111,13 @@ export class UserCacheUtils {
   /**
    * Cache user data
    */
-  static cacheUser(userId: string, userData: UserSummary, options: ICacheOptions = {}) {
+  static async cacheUser(
+    userId: string,
+    userData: UserSummary,
+    options: ICacheOptions = {}
+  ): Promise<void> {
     const cacheKey = `user:${userId}`;
-    simpleCacheService.set(cacheKey, userData, {
+    await hybridCacheService.set(cacheKey, userData, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['user', `user:${userId}`],
@@ -127,7 +131,7 @@ export class UserCacheUtils {
    */
   static async getCachedUser(userId: string): Promise<UserSummary | null> {
     const cacheKey = `user:${userId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -136,13 +140,13 @@ export class UserCacheUtils {
   /**
    * Cache user friendships
    */
-  static cacheUserFriendships(
+  static async cacheUserFriendships(
     userId: string,
     friendships: Friendship[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `friendships:${userId}`;
-    simpleCacheService.set(cacheKey, friendships, {
+    await hybridCacheService.set(cacheKey, friendships, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || 1800, // 30 minutes
       tags: ['friendships', `user:${userId}`],
@@ -156,7 +160,7 @@ export class UserCacheUtils {
    */
   static async getCachedUserFriendships(userId: string): Promise<Friendship[] | null> {
     const cacheKey = `friendships:${userId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -165,13 +169,13 @@ export class UserCacheUtils {
   /**
    * Invalidate user-related caches
    */
-  static invalidateUserCaches(userId?: string) {
+  static async invalidateUserCaches(userId?: string): Promise<void> {
     if (userId) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `user:${userId}:*`,
       });
     } else {
-      simpleCacheService.invalidate({});
+      await hybridCacheService.invalidate({});
     }
   }
 }
@@ -184,9 +188,13 @@ export class CommentCacheUtils {
   /**
    * Cache comment data
    */
-  static cacheComment(commentId: string, commentData: IComment, options: ICacheOptions = {}) {
+  static async cacheComment(
+    commentId: string,
+    commentData: IComment,
+    options: ICacheOptions = {}
+  ): Promise<void> {
     const cacheKey = `comment:${commentId}`;
-    simpleCacheService.set(cacheKey, commentData, {
+    await hybridCacheService.set(cacheKey, commentData, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['comment', `comment:${commentId}`],
@@ -200,7 +208,7 @@ export class CommentCacheUtils {
    */
   static async getCachedComment(commentId: string): Promise<Comment | null> {
     const cacheKey = `comment:${commentId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -209,14 +217,14 @@ export class CommentCacheUtils {
   /**
    * Cache comment list for a parent
    */
-  static cacheCommentList(
+  static async cacheCommentList(
     parentId: string,
     parentType: string,
     comments: IComment[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `commentList:${parentType}:${parentId}`;
-    simpleCacheService.set(cacheKey, comments, {
+    await hybridCacheService.set(cacheKey, comments, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || 300, // 5 minutes for comment lists
       tags: ['commentList', `parent:${parentType}:${parentId}`],
@@ -233,7 +241,7 @@ export class CommentCacheUtils {
     parentType: string
   ): Promise<Comment[] | null> {
     const cacheKey = `commentList:${parentType}:${parentId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -242,17 +250,21 @@ export class CommentCacheUtils {
   /**
    * Invalidate comment caches
    */
-  static invalidateCommentCaches(commentId?: string, parentId?: string, parentType?: string) {
+  static async invalidateCommentCaches(
+    commentId?: string,
+    parentId?: string,
+    parentType?: string
+  ): Promise<void> {
     if (commentId) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `comment:${commentId}:*`,
       });
     } else if (parentId && parentType) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `parent:${parentType}:${parentId}:*`,
       });
     } else {
-      simpleCacheService.invalidate({});
+      await hybridCacheService.invalidate({});
     }
   }
 }
@@ -265,14 +277,14 @@ export class ReactionCacheUtils {
   /**
    * Cache reactions for a target
    */
-  static cacheReactions(
+  static async cacheReactions(
     targetId: string,
     targetType: string,
     reactions: Reaction[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `reactions:${targetType}:${targetId}`;
-    simpleCacheService.set(cacheKey, reactions, {
+    await hybridCacheService.set(cacheKey, reactions, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['reactions', `target:${targetType}:${targetId}`],
@@ -289,7 +301,7 @@ export class ReactionCacheUtils {
     targetType: string
   ): Promise<Reaction[] | null> {
     const cacheKey = `reactions:${targetType}:${targetId}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -298,13 +310,13 @@ export class ReactionCacheUtils {
   /**
    * Invalidate reaction caches
    */
-  static invalidateReactionCaches(targetId?: string, targetType?: string) {
+  static async invalidateReactionCaches(targetId?: string, targetType?: string): Promise<void> {
     if (targetId && targetType) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `target:${targetType}:${targetId}:*`,
       });
     } else {
-      simpleCacheService.invalidate({});
+      await hybridCacheService.invalidate({});
     }
   }
 }
@@ -317,14 +329,14 @@ export class SearchCacheUtils {
   /**
    * Cache search results
    */
-  static cacheSearchResults(
+  static async cacheSearchResults(
     query: string,
     searchType: string,
     results: unknown[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `search:${searchType}:${query}`;
-    simpleCacheService.set(cacheKey, results, {
+    await hybridCacheService.set(cacheKey, results, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['search', `searchType:${searchType}`],
@@ -341,7 +353,7 @@ export class SearchCacheUtils {
     searchType: string
   ): Promise<unknown[] | null> {
     const cacheKey = `search:${searchType}:${query}`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -350,13 +362,13 @@ export class SearchCacheUtils {
   /**
    * Invalidate search caches
    */
-  static invalidateSearchCaches(searchType?: string) {
+  static async invalidateSearchCaches(searchType?: string): Promise<void> {
     if (searchType) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `searchType:${searchType}:*`,
       });
     } else {
-      simpleCacheService.invalidate({});
+      await hybridCacheService.invalidate({});
     }
   }
 }
@@ -417,8 +429,8 @@ export class CacheMonitoringUtils {
   /**
    * Get comprehensive cache statistics
    */
-  static getCacheStats() {
-    const stats = simpleCacheService.getStats();
+  static async getCacheStats() {
+    const stats = await hybridCacheService.getStats();
     const health = { status: 'healthy', memory: true, redis: false, database: true };
 
     return {
@@ -431,8 +443,8 @@ export class CacheMonitoringUtils {
   /**
    * Monitor cache performance
    */
-  static monitorCachePerformance() {
-    const stats = this.getCacheStats();
+  static async monitorCachePerformance() {
+    const stats = await this.getCacheStats();
 
     // Log performance metrics
     console.log('[Cache Monitor] Performance Metrics:', {
@@ -452,16 +464,16 @@ export class NBAHubCacheUtils {
   /**
    * Cache NBA Hub counts (individual keys for better granularity)
    */
-  static cacheNBACounts(
+  static async cacheNBACounts(
     counts: { games: number; teams: number; players: number },
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const ttl = options.ttl || this.DEFAULT_TTL;
 
     // Cache each count separately for better granular control
-    void Promise.all([
+    await Promise.all([
       // Games count
-      simpleCacheService.set('games.count', counts.games, {
+      hybridCacheService.set('games.count', counts.games, {
         ttl,
         tags: ['nbaHub', 'counts', 'games'],
         strategy: 'hybrid',
@@ -469,7 +481,7 @@ export class NBAHubCacheUtils {
       }),
 
       // Teams count
-      simpleCacheService.set('teams.count', counts.teams, {
+      hybridCacheService.set('teams.count', counts.teams, {
         ttl,
         tags: ['nbaHub', 'counts', 'teams'],
         strategy: 'hybrid',
@@ -477,7 +489,7 @@ export class NBAHubCacheUtils {
       }),
 
       // Players count
-      simpleCacheService.set('players.count', counts.players, {
+      hybridCacheService.set('players.count', counts.players, {
         ttl,
         tags: ['nbaHub', 'counts', 'players'],
         strategy: 'hybrid',
@@ -489,22 +501,22 @@ export class NBAHubCacheUtils {
   /**
    * Get cached NBA Hub counts (aggregated from individual keys)
    */
-  static getCachedNBACounts(): {
+  static async getCachedNBACounts(): Promise<{
     totalGames: number;
     totalTeams: number;
     totalPlayers: number;
     liveGames: number;
-  } | null {
-    const result = ErrorHandler.getInstance().handleSync(
-      () => {
+  } | null> {
+    const result = await ErrorHandler.getInstance().handleAsync(
+      async () => {
         // Fetch all counts in parallel
-        const gamesCount = simpleCacheService.get<number>('games.count', {
+        const gamesCount = await hybridCacheService.get<number>('games.count', {
           strategy: 'hybrid',
         });
-        const teamsCount = simpleCacheService.get<number>('teams.count', {
+        const teamsCount = await hybridCacheService.get<number>('teams.count', {
           strategy: 'hybrid',
         });
-        const playersCount = simpleCacheService.get<number>('players.count', {
+        const playersCount = await hybridCacheService.get<number>('players.count', {
           strategy: 'hybrid',
         });
 
@@ -532,11 +544,11 @@ export class NBAHubCacheUtils {
   /**
    * Get individual cached count
    */
-  static getCachedCount(type: 'games' | 'teams' | 'players'): number | null {
+  static async getCachedCount(type: 'games' | 'teams' | 'players'): Promise<number | null> {
     return (
-      ErrorHandler.getInstance().handleSync(
-        () => {
-          const result = simpleCacheService.get<number>(`${type}.count`, {
+      (await ErrorHandler.getInstance().handleAsync(
+        async () => {
+          const result = await hybridCacheService.get<number>(`${type}.count`, {
             strategy: 'hybrid',
           });
           return result || null;
@@ -545,21 +557,21 @@ export class NBAHubCacheUtils {
           component: 'NBAHubCacheUtils',
           action: 'getCachedCount',
         }
-      ) || null
+      )) || null
     );
   }
 
   /**
    * Cache individual count
    */
-  static cacheCount(
+  static async cacheCount(
     type: 'games' | 'teams' | 'players',
     count: number,
     options: ICacheOptions = {}
-  ) {
-    ErrorHandler.getInstance().handleSync(
-      () => {
-        simpleCacheService.set(`${type}.count`, count, {
+  ): Promise<void> {
+    await ErrorHandler.getInstance().handleAsync(
+      async () => {
+        await hybridCacheService.set(`${type}.count`, count, {
           ttl: options.ttl || this.DEFAULT_TTL,
           tags: ['nbaHub', 'counts', type],
           strategy: 'hybrid',
@@ -577,8 +589,8 @@ export class NBAHubCacheUtils {
    * Invalidate NBA Hub count caches
    * Call this when games, teams, or players are added/removed
    */
-  static invalidateNBACountCaches() {
-    simpleCacheService.invalidate({
+  static async invalidateNBACountCaches(): Promise<void> {
+    await hybridCacheService.invalidate({
       pattern: 'nbaHub:*',
     });
   }
@@ -586,8 +598,8 @@ export class NBAHubCacheUtils {
   /**
    * Invalidate specific count caches
    */
-  static invalidateSpecificCountCaches(type: 'games' | 'teams' | 'players') {
-    simpleCacheService.invalidate({
+  static async invalidateSpecificCountCaches(type: 'games' | 'teams' | 'players'): Promise<void> {
+    await hybridCacheService.invalidate({
       pattern: `nbaHub:${type}:*`,
     });
   }
@@ -604,7 +616,7 @@ export class NBAHubCacheUtils {
         const data = await response.json();
 
         if (data.success) {
-          this.cacheNBACounts(data.counts);
+          await this.cacheNBACounts(data.counts);
           console.log('✅ NBA Hub counts cache warmed up successfully');
         }
       },
@@ -624,13 +636,13 @@ export class NotificationCacheUtils {
   /**
    * Cache user notifications
    */
-  static cacheUserNotifications(
+  static async cacheUserNotifications(
     userId: string,
     notifications: IAppNotification[],
     options: ICacheOptions = {}
-  ) {
+  ): Promise<void> {
     const cacheKey = `user:${userId}:notifications`;
-    simpleCacheService.set(cacheKey, notifications, {
+    await hybridCacheService.set(cacheKey, notifications, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['notifications', `user:${userId}`],
@@ -644,7 +656,7 @@ export class NotificationCacheUtils {
    */
   static async getCachedUserNotifications(userId: string): Promise<IAppNotification[] | null> {
     const cacheKey = `user:${userId}:notifications`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -653,9 +665,13 @@ export class NotificationCacheUtils {
   /**
    * Cache user unread count
    */
-  static cacheUserUnreadCount(userId: string, count: number, options: ICacheOptions = {}) {
+  static async cacheUserUnreadCount(
+    userId: string,
+    count: number,
+    options: ICacheOptions = {}
+  ): Promise<void> {
     const cacheKey = `user:${userId}:unreadCount`;
-    simpleCacheService.set(cacheKey, count, {
+    await hybridCacheService.set(cacheKey, count, {
       namespace: this.NAMESPACE,
       ttl: options.ttl || this.DEFAULT_TTL,
       tags: ['notifications', 'unreadCount', `user:${userId}`],
@@ -669,7 +685,7 @@ export class NotificationCacheUtils {
    */
   static async getCachedUserUnreadCount(userId: string): Promise<number | null> {
     const cacheKey = `user:${userId}:unreadCount`;
-    return simpleCacheService.get(cacheKey, {
+    return hybridCacheService.get(cacheKey, {
       namespace: this.NAMESPACE,
       strategy: 'hybrid',
     });
@@ -678,8 +694,8 @@ export class NotificationCacheUtils {
   /**
    * Invalidate user notification caches
    */
-  static invalidateUserNotificationCaches(userId: string) {
-    simpleCacheService.invalidate({
+  static async invalidateUserNotificationCaches(userId: string): Promise<void> {
+    await hybridCacheService.invalidate({
       pattern: `user:${userId}:notifications:*`,
     });
   }
@@ -687,13 +703,16 @@ export class NotificationCacheUtils {
   /**
    * Invalidate specific notification caches
    */
-  static invalidateNotificationCaches(type: 'notifications' | 'unreadCount', userId?: string) {
+  static async invalidateNotificationCaches(
+    type: 'notifications' | 'unreadCount',
+    userId?: string
+  ): Promise<void> {
     if (userId) {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `user:${userId}:${type}:*`,
       });
     } else {
-      simpleCacheService.invalidate({
+      await hybridCacheService.invalidate({
         pattern: `${type}:*`,
       });
     }

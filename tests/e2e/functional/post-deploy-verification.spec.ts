@@ -205,15 +205,15 @@ export async function verifySearchFunctionalityCritical(page: Page) {
       await page.waitForFunction(
         () => {
           const searchInput = document.querySelector(
-            'input[type="search"], input[placeholder*="search"], [data-testid*="search"]'
+            'input[type="search"], input[placeholder*="search"], [data-testid*="search"], [data-testid="search-input"]'
           );
-          return searchInput && searchInput.offsetParent !== null; // Check if visible
+          return searchInput && (searchInput as HTMLElement).offsetParent !== null; // Check if visible
         },
         { timeout: TIMEOUTS.MEDIUM }
       );
 
       const searchInput = page.locator(
-        'input[type="search"], input[placeholder*="search"], [data-testid*="search"]'
+        'input[type="search"], input[placeholder*="search"], [data-testid*="search"], [data-testid="search-input"]'
       );
       await expect(searchInput.first()).toBeVisible({ timeout: TIMEOUTS.SHORT });
 

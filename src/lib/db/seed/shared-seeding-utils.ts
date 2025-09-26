@@ -197,7 +197,7 @@ export async function seedTeams(
   // Invalidate NBA Hub counts cache since teams count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('teams');
     console.log('✅ Invalidated NBA Hub teams count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub teams count cache:', cacheError);
@@ -398,7 +398,7 @@ export async function seedGames(
   // Invalidate NBA Hub counts cache since games count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    NBAHubCacheUtils.invalidateSpecificCountCaches('games');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('games');
     console.log('✅ Invalidated NBA Hub games count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub games count cache:', cacheError);
@@ -513,7 +513,7 @@ export async function seedPlayers(
   // Invalidate NBA Hub counts cache since players count changed
   try {
     const { NBAHubCacheUtils } = await import('@/lib/cache');
-    NBAHubCacheUtils.invalidateSpecificCountCaches('players');
+    await NBAHubCacheUtils.invalidateSpecificCountCaches('players');
     console.log('✅ Invalidated NBA Hub players count cache');
   } catch (cacheError) {
     console.warn('Failed to invalidate NBA Hub players count cache:', cacheError);

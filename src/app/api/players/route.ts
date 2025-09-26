@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { simpleCacheService } from '@/lib/cache';
+import { hybridCacheService } from '@/lib/cache';
 import { API_LIMITS } from '@/lib/constants';
 import {
   getPlayers,
@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
       const optionsCacheTTL = 60 * 60 * 1000; // 1 hour for filter options
 
       if (!bypassCache) {
-        const cachedOptions = simpleCacheService.get(optionsCacheKey);
+        const cachedOptions = await hybridCacheService.get(optionsCacheKey);
         if (cachedOptions) {
           logger.cache('hit', optionsCacheKey);
           return NextResponse.json(cachedOptions);
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
       };
 
       // Cache the filter options
-      simpleCacheService.set(optionsCacheKey, options, {
+      await hybridCacheService.set(optionsCacheKey, options, {
         ttl: optionsCacheTTL,
         tags: ['players', 'nba', 'filter-options'],
       });
@@ -219,7 +219,7 @@ export async function GET(request: NextRequest) {
 
       // Test cache service availability
       try {
-        const cachedData = simpleCacheService.get(cacheKey);
+        const cachedData = await hybridCacheService.get(cacheKey);
         console.log('🔍 Cache lookup result:', {
           key: cacheKey,
           found: cachedData !== null,
@@ -292,7 +292,7 @@ export async function GET(request: NextRequest) {
     };
 
     // Cache the response
-    simpleCacheService.set(cacheKey, response, {
+    await hybridCacheService.set(cacheKey, response, {
       ttl: cacheTTL,
       tags: ['players', 'nba', 'filtered'],
     });

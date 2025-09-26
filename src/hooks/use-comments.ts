@@ -385,8 +385,8 @@ export function useComments(
   }, [refetch]);
 
   // Clear cache for this parent
-  const clearCache = useCallback(() => {
-    CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
+  const clearCache = useCallback(async () => {
+    await CommentCacheUtils.invalidateCommentCaches(undefined, parentId, parentType);
     setCachedComments(null);
     setIsCacheHit(false);
   }, [parentId, parentType]);
