@@ -58,7 +58,8 @@ export function HeaderRightSection({ isMenuExpanded }: IHeaderRightSectionProps)
 
   return (
     <div
-      className={`pr-10 flex items-center gap-2 sm:gap-4 justify-end ${isMenuExpanded ? 'hidden md:flex' : ''}`}
+      className={`pr-1 xs:pr-2 sm:pr-4 md:pr-6 lg:pr-10 flex items-center gap-0.5 xs:gap-1 sm:gap-2 md:gap-3 lg:gap-4 justify-end min-w-0 flex-shrink-0 header-right-section ${isMenuExpanded ? 'hidden md:flex' : ''}`}
+      data-right-section
     >
       {/* Universal Search Bar */}
       <div className="flex items-center">

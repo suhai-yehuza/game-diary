@@ -1,20 +1,22 @@
 'use client';
 
 import { SignUp } from '@clerk/nextjs';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function ClerkSignUp() {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    // Force footer alignment after component mounts
+    // Fix footer alignment for Clerk components
     const fixFooterAlignment = () => {
-      const footerAction = document.querySelector('[data-testid="footer-action"]');
+      const footerAction = document.querySelector('[data-testid="footer-action"]') as HTMLElement;
       if (footerAction) {
         footerAction.setAttribute(
           'style',
           'display: flex !important; align-items: center !important; justify-content: center !important; gap: 0.5rem !important;'
         );
 
-        // Also fix child elements
+        // Handle child elements
         const children = footerAction.querySelectorAll('*');
         children.forEach(child => {
           if (child instanceof HTMLElement) {
@@ -27,15 +29,18 @@ export default function ClerkSignUp() {
       }
     };
 
-    // Run immediately and also after a short delay to ensure DOM is ready
-    fixFooterAlignment();
-    const timeoutId = setTimeout(fixFooterAlignment, 100);
+    // Set up timeout to fix footer alignment
+    timeoutRef.current = setTimeout(fixFooterAlignment, 100);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md space-y-8" data-testid="clerk-sign-up">
         <SignUp />
       </div>

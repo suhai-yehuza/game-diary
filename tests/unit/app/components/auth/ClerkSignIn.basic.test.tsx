@@ -70,9 +70,12 @@ describe('ClerkSignIn', () => {
   });
 
   describe('Footer Alignment Fix', () => {
-    it('fixes footer alignment when footer action is found', () => {
+    it('fixes footer alignment when footer action is found', async () => {
       const querySelectorSpy = vi.spyOn(document, 'querySelector');
       render(<ClerkSignIn />);
+
+      // Wait for the timeout to execute
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       expect(querySelectorSpy).toHaveBeenCalledWith('[data-testid="footer-action"]');
       expect(mockFooterAction.setAttribute).toHaveBeenCalledWith(
@@ -81,7 +84,7 @@ describe('ClerkSignIn', () => {
       );
     });
 
-    it('handles footer action with child elements', () => {
+    it('handles footer action with child elements', async () => {
       const mockChild = {
         style: {
           display: '',
@@ -95,20 +98,26 @@ describe('ClerkSignIn', () => {
 
       render(<ClerkSignIn />);
 
+      // Wait for the timeout to execute
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       expect(mockFooterAction.querySelectorAll).toHaveBeenCalledWith('*');
       // The style properties are set by the component, but in the test environment
       // they might not be set immediately. We just verify the function was called.
     });
 
-    it('handles footer action without child elements', () => {
+    it('handles footer action without child elements', async () => {
       mockFooterAction.querySelectorAll.mockReturnValue([]);
 
       render(<ClerkSignIn />);
 
+      // Wait for the timeout to execute
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       expect(mockFooterAction.querySelectorAll).toHaveBeenCalledWith('*');
     });
 
-    it('handles non-HTMLElement children gracefully', () => {
+    it('handles non-HTMLElement children gracefully', async () => {
       const mockTextNode = document.createTextNode('text');
       mockFooterAction.querySelectorAll.mockReturnValue([mockTextNode] as any);
 
@@ -116,15 +125,21 @@ describe('ClerkSignIn', () => {
         render(<ClerkSignIn />);
       }).not.toThrow();
 
+      // Wait for the timeout to execute
+      await new Promise(resolve => setTimeout(resolve, 150));
+
       expect(mockFooterAction.querySelectorAll).toHaveBeenCalledWith('*');
     });
 
-    it('handles missing footer action gracefully', () => {
+    it('handles missing footer action gracefully', async () => {
       const querySelectorSpy = vi.spyOn(document, 'querySelector').mockReturnValue(null);
 
       expect(() => {
         render(<ClerkSignIn />);
       }).not.toThrow();
+
+      // Wait for the timeout to execute
+      await new Promise(resolve => setTimeout(resolve, 150));
 
       expect(querySelectorSpy).toHaveBeenCalledWith('[data-testid="footer-action"]');
     });

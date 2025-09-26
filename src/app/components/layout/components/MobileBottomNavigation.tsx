@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import React, { useState, useEffect } from 'react';
 
+import {
+  TOUCH_TARGET_BASE,
+  FLUID_TYPOGRAPHY,
+} from '@/app/components/layout/components/breakpoints';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { useMenuContext } from '@/app/components/providers';
 import type { IBottomNavItem } from '@/types';
@@ -96,21 +100,38 @@ export function MobileBottomNavigation() {
               <button
                 key={href}
                 onClick={action}
-                className={`flex flex-col items-center justify-center min-h-touch-xl min-w-touch-xl rounded-lg transition-all duration-200 touch-target ${
+                className={`flex flex-col items-center justify-center rounded-lg transition-all duration-200 touch-target ${
                   isMenuActive
                     ? 'text-brand-primary bg-brand-primary/20'
                     : 'text-text-inverse hover:text-text-inverse'
                 }`}
-                style={{ pointerEvents: 'auto' }}
+                style={{
+                  pointerEvents: 'auto',
+                  minHeight: TOUCH_TARGET_BASE.minHeight,
+                  minWidth: TOUCH_TARGET_BASE.minWidth,
+                  padding: TOUCH_TARGET_BASE.padding,
+                }}
                 aria-label={label}
                 aria-expanded={isMenuActive}
               >
                 <Icon
-                  className={`w-6 h-6 mb-1 transition-transform duration-200 ${
+                  className={`mb-1 transition-transform duration-200 ${
                     isMenuActive ? 'scale-110' : ''
                   }`}
+                  style={{
+                    width: FLUID_TYPOGRAPHY.mobileNavIcon,
+                    height: FLUID_TYPOGRAPHY.mobileNavIcon,
+                  }}
                 />
-                <span className="text-xs font-medium">{label}</span>
+                <span
+                  className="font-medium"
+                  style={{
+                    fontSize: FLUID_TYPOGRAPHY.mobileNavLabel,
+                    lineHeight: TOUCH_TARGET_BASE.lineHeight,
+                  }}
+                >
+                  {label}
+                </span>
               </button>
             );
           }
@@ -119,22 +140,37 @@ export function MobileBottomNavigation() {
             <Link
               key={href}
               href={href}
-              className={`flex flex-col items-center justify-center min-h-touch-xl min-w-touch-xl rounded-lg transition-all duration-200 touch-target ${
+              className={`flex flex-col items-center justify-center rounded-lg transition-all duration-200 touch-target ${
                 active
                   ? 'text-brand-primary bg-brand-primary/20'
                   : 'text-text-inverse hover:text-text-inverse'
               }`}
-              style={{ pointerEvents: 'auto' }}
+              style={{
+                pointerEvents: 'auto',
+                minHeight: TOUCH_TARGET_BASE.minHeight,
+                minWidth: TOUCH_TARGET_BASE.minWidth,
+                padding: TOUCH_TARGET_BASE.padding,
+              }}
               onClick={handleTouch}
               aria-label={label}
               aria-current={active ? 'page' : undefined}
             >
               <Icon
-                className={`w-6 h-6 mb-1 transition-transform duration-200 ${
-                  active ? 'scale-110' : ''
-                }`}
+                className={`mb-1 transition-transform duration-200 ${active ? 'scale-110' : ''}`}
+                style={{
+                  width: FLUID_TYPOGRAPHY.mobileNavIcon,
+                  height: FLUID_TYPOGRAPHY.mobileNavIcon,
+                }}
               />
-              <span className="text-xs font-medium">{label}</span>
+              <span
+                className="font-medium"
+                style={{
+                  fontSize: FLUID_TYPOGRAPHY.mobileNavLabel,
+                  lineHeight: TOUCH_TARGET_BASE.lineHeight,
+                }}
+              >
+                {label}
+              </span>
             </Link>
           );
         })}

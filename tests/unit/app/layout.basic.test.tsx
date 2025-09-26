@@ -56,10 +56,6 @@ vi.mock('@/app/components/LiveGamesBanner', () => ({
   LiveGamesBanner: () => <div data-testid="live-games-banner">LiveGamesBanner</div>,
 }));
 
-vi.mock('@/app/components/performance/LiveGamesMonitor', () => ({
-  LiveGamesMonitor: () => <div data-testid="live-games-monitor">LiveGamesMonitor</div>,
-}));
-
 vi.mock('@/app/components/providers', () => ({
   ClientProviders: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="client-providers">{children}</div>

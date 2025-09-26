@@ -89,8 +89,8 @@ describe('Header', () => {
     expect(screen.getByTestId('sign-in-button')).toBeInTheDocument();
     // Logo image
     expect(screen.getByAltText('Game Diary Logo')).toBeInTheDocument();
-    // Home link
-    expect(screen.getByRole('link', { name: 'Home' })).toBeInTheDocument();
+    // Home link (use getAllByRole to handle multiple instances)
+    expect(screen.getAllByRole('link', { name: 'Home' })).toHaveLength(2);
     // NBA link
     expect(screen.getByRole('link', { name: 'NBA' })).toBeInTheDocument();
     // NFL link

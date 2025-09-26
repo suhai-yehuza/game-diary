@@ -102,7 +102,7 @@ function AuthControlsContent() {
           <SignInButton mode="modal">
             <div
               data-testid="sign-in-button"
-              className="px-4 py-2 bg-brand-primary text-text-inverse rounded-lg shadow-md hover:bg-brand-primary-hover transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-theme-primary cursor-pointer"
+              className="px-2 xs:px-3 sm:px-4 py-1.5 sm:py-2 bg-brand-primary text-text-inverse rounded-lg shadow-md hover:bg-brand-primary-hover transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-primary/40 focus-visible:ring-offset-2 focus-visible:ring-offset-theme-primary cursor-pointer text-xs xs:text-sm sm:text-base whitespace-nowrap min-w-0 flex-shrink-0 auth-button"
               role="button"
               tabIndex={0}
               aria-label="Sign In"

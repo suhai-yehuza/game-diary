@@ -4,7 +4,10 @@ import { Search, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import React, { useState, useEffect, useRef, Suspense, useCallback } from 'react';
 
-import { MOBILE_BREAKPOINT } from '@/app/components/layout/components/breakpoints';
+import {
+  MOBILE_BREAKPOINT,
+  FLUID_TYPOGRAPHY,
+} from '@/app/components/layout/components/breakpoints';
 import { SearchSuggestions } from '@/app/components/search/SearchSuggestions';
 
 // Common search input component
@@ -50,6 +53,7 @@ function SearchInput({
         style={{
           textShadow: 'none',
           backgroundColor: 'transparent',
+          fontSize: FLUID_TYPOGRAPHY.searchInput,
         }}
         value={value}
         onChange={onChange}

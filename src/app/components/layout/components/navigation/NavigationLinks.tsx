@@ -6,7 +6,6 @@ import { AdminNavWithAuth } from '@/app/components/layout/components/navigation/
 import { NavItem } from '@/app/components/layout/components/navigation/NavItem';
 import { useMobileDetection } from '@/app/components/layout/components/SearchBar';
 import { SPORTS_CONFIG } from '@/app/components/sports/SportsConfig';
-import { useMounted } from '@/hooks/use-mounted';
 import type { INavigationLinksProps } from '@/types';
 
 export function NavigationLinks({
@@ -16,16 +15,7 @@ export function NavigationLinks({
   closeMenu,
   isStacked = false,
 }: INavigationLinksProps) {
-  const mounted = useMounted();
   const isMobile = useMobileDetection();
-
-  // In mock mode, always render regardless of mount status
-  if (process.env.MOCK_MODE === 'true') {
-    // Force render in mock mode - bypass useMounted check
-  } else if (!mounted && process.env.NODE_ENV === 'production') {
-    // In production, wait for mount to prevent hydration mismatches
-    return null;
-  }
 
   // Only close menu on mobile
   const handleNavClick = () => {

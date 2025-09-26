@@ -9,7 +9,6 @@ import { E2ETestSetup } from '@/app/components/E2ETestSetup';
 import { Footer } from '@/app/components/layout/Footer';
 import { HeaderWrapper } from '@/app/components/layout/HeaderWrapper';
 import { LiveGamesBanner } from '@/app/components/LiveGamesBanner';
-import { LiveGamesMonitor } from '@/app/components/performance/LiveGamesMonitor';
 import { ClientProviders } from '@/app/components/providers';
 import { isTestOrCIEnvironment } from '@/lib/utils/e2e-test-setup';
 
@@ -200,7 +199,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </ClientProviders>
         <Analytics />
         <SpeedInsights />
-        <LiveGamesMonitor />
       </body>
     </html>
   );
