@@ -1,6 +1,8 @@
 'use client';
 
 import { X, AlertTriangle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { toast } from 'sonner';
 
 import { Button } from '@/app/components/ui/button';
@@ -28,6 +30,12 @@ export function DeleteGameLogModal({
   onClose,
   onSuccess,
 }: IDeleteGameLogModalProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Handle mounting state for portal
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [deleteGameLog, { loading, error: deleteError }] = useOptimizedMutation(DELETE_GAME_LOG, {
     context: {
       component: 'DeleteGameLogModal',
@@ -116,59 +124,74 @@ export function DeleteGameLogModal({
 
   if (!isOpen) return null;
 
-  return (
+  // Don't render anything until mounted (prevents hydration issues)
+  if (!isMounted) return null;
+
+  const modalContent = (
     <div className="fixed inset-0 flex items-center justify-center z-50 transition-all">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <Card className="relative w-full max-w-md mx-4 p-6">
+      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <Card
+        className="relative w-full max-w-md mx-4 p-6 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-2xl"
+        style={{
+          backgroundColor: '#ffffff',
+          color: '#1f2937',
+        }}
+      >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-theme-primary flex items-center gap-2">
-            <AlertTriangle className="w-5 h-5" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-red-500" />
             Delete Game Log
           </h2>
           <button
             onClick={onClose}
-            className="text-theme-muted hover:text-theme-secondary transition-colors"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="mb-6">
-          <p className="text-theme-primary mb-4">
+          <p className="text-gray-900 dark:text-white mb-4">
             Are you sure you want to{' '}
-            <span className="font-semibold text-semantic-error">permanently delete</span> this game
-            log? This action cannot be undone.
+            <span className="font-semibold text-red-600 dark:text-red-400">permanently delete</span>{' '}
+            this game log? This action cannot be undone.
           </p>
-          <div className="bg-bg-theme-secondary p-3 rounded-lg">
-            <p className="text-sm text-theme-secondary">
-              <strong>Game:</strong>{' '}
+          <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg border border-gray-200 dark:border-gray-600">
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+              <strong className="text-gray-900 dark:text-white">Game:</strong>{' '}
               {gameLog.game?.home_team?.name && gameLog.game?.away_team?.name
                 ? `${gameLog.game.home_team.name} vs ${gameLog.game.away_team.name}`
                 : `Game ID: ${gameLog.game_id || 'Unknown'}`}
             </p>
-            <p className="text-sm text-theme-secondary">
-              <strong>Rating:</strong> {gameLog.rating_for_game}/5
+            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+              <strong className="text-gray-900 dark:text-white">Rating:</strong>{' '}
+              {gameLog.rating_for_game}/5
             </p>
             {gameLog.notes && (
-              <p className="text-sm text-theme-secondary">
-                <strong>Notes:</strong> {gameLog.notes}
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                <strong className="text-gray-900 dark:text-white">Notes:</strong> {gameLog.notes}
               </p>
             )}
-            <p className="text-sm text-theme-secondary mt-2">
+            <p className="text-sm text-red-600 dark:text-red-400 mt-3 font-medium">
               <em>This action cannot be undone.</em>
             </p>
           </div>
         </div>
 
         <div className="flex gap-3 justify-end">
-          <Button variant="outline" onClick={onClose} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={loading}
+            className="border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+          >
             Cancel
           </Button>
           <Button
             variant="destructive"
             onClick={() => void handleDelete()}
             disabled={loading}
-            className="bg-semantic-error hover:bg-semantic-error/90"
+            className="bg-red-600 hover:bg-red-700 text-white border-red-600 hover:border-red-700"
           >
             {loading ? 'Deleting...' : 'Delete Game Log'}
           </Button>
@@ -176,8 +199,8 @@ export function DeleteGameLogModal({
 
         {/* Display mutation errors */}
         {deleteError && (
-          <div className="mt-4 p-3 bg-semantic-error/10 border border-semantic-error/20 rounded-lg">
-            <p className="text-sm text-semantic-error">
+          <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-sm text-red-600 dark:text-red-400">
               Error: {deleteError.message || 'Failed to delete game log'}
             </p>
           </div>
@@ -185,4 +208,7 @@ export function DeleteGameLogModal({
       </Card>
     </div>
   );
+
+  // Use portal to render modal at document body level
+  return createPortal(modalContent, document.body);
 }
