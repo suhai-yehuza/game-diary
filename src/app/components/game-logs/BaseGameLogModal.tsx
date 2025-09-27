@@ -870,485 +870,505 @@ export function GameLogModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
+      className="fixed inset-0 z-[9999] flex items-start justify-center p-2 sm:p-4 md:p-6 overflow-y-auto"
       onClick={onClose}
     >
-      <Card
-        className="relative w-full max-w-sm sm:max-w-md md:max-w-lg max-h-[90vh] overflow-y-auto border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000]"
-        onClick={e => e.stopPropagation()}
-        style={{
-          backgroundColor: '#f8fafc', // Light slate background that works on both themes
-          color: '#1e293b', // Dark slate text for excellent contrast
-        }}
-      >
-        <div className="p-4 sm:p-6" style={{ color: '#1e293b' }}>
-          <div className="flex justify-between items-center mb-6">
-            <div>
-              <h2 className="text-xl font-semibold" style={{ color: '#0f172a' }}>
-                {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
-              </h2>
-              <p className="text-sm mt-1" style={{ color: '#475569' }}>
-                {mode === 'create' ? 'Add a new game log entry' : 'Update your game log details'}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="rounded-full p-2 hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-500"
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {!isUserAuthenticated && (
-            <div className="mb-6 p-4 bg-semantic-warning/10 border border-semantic-warning/20 rounded-lg">
-              <div className="flex items-center gap-3">
-                <div className="flex-shrink-0 w-8 h-8 bg-semantic-warning/20 rounded-full flex items-center justify-center">
-                  <svg
-                    className="w-4 h-4 text-semantic-warning"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-semantic-warning">
-                    Authentication Required
-                  </p>
-                  <p className="text-xs text-theme-muted mt-1">
-                    You must be signed in to {mode} a game log.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <form onSubmit={e => void handleSubmit(handleFormSubmit)(e)} className="space-y-6">
-            {/* Game Selection - Only for create mode */}
-            {mode === 'create' && (
-              <div className="relative">
-                <label className="block text-sm font-medium text-theme-primary mb-1">
-                  Find/Search for Games *
-                </label>
-                {selectedGameName ? (
-                  <div className="flex items-center gap-3 p-3 border-2 border-brand-primary/30 rounded-lg bg-brand-primary/10">
-                    <div className="flex-1">
-                      <p className="font-semibold text-sm text-theme-primary">{selectedGameName}</p>
-                      <p className="text-xs text-theme-muted">Game ID: {selectedGameId}</p>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedGameId('');
-                        setSelectedGameName('');
-                        setValue('gameId', '');
-                        setSearchTerm('');
-                        setShowSearchResults(false);
-                      }}
-                      className="border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary hover:text-semantic-error"
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg my-4 sm:my-8 md:my-12">
+        <Card
+          className="relative w-full max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-4rem)] border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000] flex flex-col"
+          onClick={e => e.stopPropagation()}
+          style={{
+            backgroundColor: '#f8fafc', // Light slate background that works on both themes
+            color: '#1e293b', // Dark slate text for excellent contrast
+          }}
+        >
+          <form
+            onSubmit={e => void handleSubmit(handleFormSubmit)(e)}
+            className="flex flex-col h-full"
+          >
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-3 sm:p-4 md:p-6" style={{ color: '#1e293b' }}>
+                <div className="flex justify-between items-start gap-3 mb-6">
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-xl font-semibold" style={{ color: '#0f172a' }}>
+                      {mode === 'create' ? 'Create New Game Log' : 'Edit Game Log'}
+                    </h2>
+                    <p className="text-sm mt-1" style={{ color: '#475569' }}>
+                      {mode === 'create'
+                        ? 'Add a new game log entry'
+                        : 'Update your game log details'}
+                    </p>
                   </div>
-                ) : (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={onClose}
+                    className="rounded-full p-2 w-8 h-8 min-w-8 max-w-8 flex-shrink-0 hover:bg-gray-200 dark:hover:bg-gray-700 text-slate-500"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {!isUserAuthenticated && (
+                  <div className="mb-6 p-4 bg-semantic-warning/10 border border-semantic-warning/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-shrink-0 w-8 h-8 bg-semantic-warning/20 rounded-full flex items-center justify-center">
+                        <svg
+                          className="w-4 h-4 text-semantic-warning"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                          />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-semantic-warning">
+                          Authentication Required
+                        </p>
+                        <p className="text-xs text-theme-muted mt-1">
+                          You must be signed in to {mode} a game log.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Game Selection - Only for create mode */}
+                {mode === 'create' && (
                   <div className="relative">
-                    <div className="relative">
-                      <Search
-                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4"
-                        style={{ left: '12px' }}
-                      />
-                      <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={handleSearchInputChange}
-                        onFocus={() => setShowSearchResults(true)}
-                        onBlur={() => {
-                          // Use setTimeout to allow click events on dropdown items to fire first
-                          setTimeout(() => setShowSearchResults(false), 150);
-                        }}
-                        className="w-full pl-14 pr-8 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-                        style={{ paddingLeft: '60px' }}
-                        placeholder="Search by team name, arena, or date..."
-                      />
-                      {searchTerm && (
-                        <button
+                    <label className="block text-sm font-medium text-theme-primary mb-1">
+                      Find/Search for Games *
+                    </label>
+                    {selectedGameName ? (
+                      <div className="flex items-center gap-3 p-3 border-2 border-brand-primary/30 rounded-lg bg-brand-primary/10">
+                        <div className="flex-1">
+                          <p className="font-semibold text-sm text-theme-primary">
+                            {selectedGameName}
+                          </p>
+                          <p className="text-xs text-theme-muted">Game ID: {selectedGameId}</p>
+                        </div>
+                        <Button
                           type="button"
+                          variant="outline"
+                          size="sm"
                           onClick={() => {
-                            setSearchTerm('');
                             setSelectedGameId('');
                             setSelectedGameName('');
                             setValue('gameId', '');
-                            setSearchResults([]);
+                            setSearchTerm('');
                             setShowSearchResults(false);
                           }}
-                          className="absolute right-2 top-1/2 transform -translate-y-1/2 text-theme-muted hover:text-theme-secondary w-4 h-4 flex items-center justify-center"
-                          aria-label="Clear search"
+                          className="border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary hover:text-semantic-error w-8 h-8 min-w-8 max-w-8 min-h-8 max-h-8 p-0 flex-shrink-0"
                         >
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Season selector */}
-                    <div className="mt-2">
-                      <select
-                        value={selectedSeason}
-                        onChange={e => {
-                          const val = e.target.value;
-                          if (val === 'all' || val === 'latest') setSelectedSeason(val);
-                          else setSelectedSeason(Number(val));
-                        }}
-                        className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-                      >
-                        <option value="latest">
-                          {`${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
-                        </option>
-                        <option value="all">All Seasons</option>
-                        {SEASONS.map(season => (
-                          <option key={season} value={season}>
-                            {season}-{season + 1} Season
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {/* Search Results Dropdown */}
-                    {showSearchResults && (
-                      <div className="absolute z-50 w-full mt-1 bg-surface-popover border border-theme-primary rounded-md shadow-lg max-h-48 overflow-y-auto">
-                        {/* Loading state */}
-                        {searchLoading && (
-                          <div className="p-3 text-center text-theme-muted text-sm">
-                            <div className="flex items-center justify-center gap-2">
-                              <div className="w-4 h-4 border-2 border-theme-muted border-t-brand-primary rounded-full animate-spin" />
-                              <p>Searching for games...</p>
-                            </div>
-                          </div>
-                        )}
-
-                        {searchError && (
-                          <div className="p-3 text-center text-semantic-error text-sm">
-                            <p>Error: {searchError}</p>
-                          </div>
-                        )}
-
-                        {!searchLoading &&
-                          !searchError &&
-                          searchResults.length === 0 &&
-                          searchTerm.trim() && (
-                            <div className="p-3 text-center text-theme-muted text-sm">
-                              <p>No games found matching your search.</p>
-                              <p className="text-xs mt-1">Try a different search term.</p>
-                            </div>
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="relative">
+                        <div className="relative">
+                          <Search
+                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-500 w-4 h-4"
+                            style={{ left: '12px' }}
+                          />
+                          <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={handleSearchInputChange}
+                            onFocus={() => setShowSearchResults(true)}
+                            onBlur={() => {
+                              // Use setTimeout to allow click events on dropdown items to fire first
+                              setTimeout(() => setShowSearchResults(false), 150);
+                            }}
+                            className="w-full pl-14 pr-8 py-3 sm:py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                            style={{ paddingLeft: '60px' }}
+                            placeholder="Search by team name, arena, or date..."
+                          />
+                          {searchTerm && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSearchTerm('');
+                                setSelectedGameId('');
+                                setSelectedGameName('');
+                                setValue('gameId', '');
+                                setSearchResults([]);
+                                setShowSearchResults(false);
+                              }}
+                              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-theme-muted hover:text-theme-secondary w-6 h-6 min-w-6 max-w-6 min-h-6 max-h-6 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700"
+                              aria-label="Clear search"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
                           )}
+                        </div>
 
-                        {!searchLoading && !searchError && searchResults.length > 0 && (
-                          <div className="py-1 search-results">
-                            {/* Debug: Rendering search results */}
-                            {searchResults.map(game => (
-                              <div
-                                key={game.id}
-                                onClick={() => handleGameSelect(game.id.toString(), game.name)}
-                                className="px-3 py-2 hover:bg-bg-theme-secondary cursor-pointer border-b border-theme-primary last:border-b-0"
-                              >
-                                <div className="font-medium text-theme-primary text-sm mb-0.5">
-                                  {game.name}
-                                </div>
-                                <div className="flex items-center gap-3 text-xs text-black">
-                                  <div className="flex items-center gap-1">
-                                    <Calendar className="w-3 h-3" />
-                                    {game.date}
-                                  </div>
-                                  <div className="flex items-center gap-1">
-                                    <MapPin className="w-3 h-3" />
-                                    {game.arena}
-                                  </div>
+                        {/* Season selector */}
+                        <div className="mt-2">
+                          <select
+                            value={selectedSeason}
+                            onChange={e => {
+                              const val = e.target.value;
+                              if (val === 'all' || val === 'latest') setSelectedSeason(val);
+                              else setSelectedSeason(Number(val));
+                            }}
+                            className="w-full px-2 py-3 sm:py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                          >
+                            <option value="latest">
+                              {`${LATEST_SEASON}-${LATEST_SEASON + 1} Season (Latest)`}
+                            </option>
+                            <option value="all">All Seasons</option>
+                            {SEASONS.map(season => (
+                              <option key={season} value={season}>
+                                {season}-{season + 1} Season
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {/* Search Results Dropdown */}
+                        {showSearchResults && (
+                          <div className="absolute z-50 w-full mt-1 bg-surface-popover border border-theme-primary rounded-md shadow-lg max-h-48 overflow-y-auto">
+                            {/* Loading state */}
+                            {searchLoading && (
+                              <div className="p-3 text-center text-theme-muted text-sm">
+                                <div className="flex items-center justify-center gap-2">
+                                  <div className="w-4 h-4 border-2 border-theme-muted border-t-brand-primary rounded-full animate-spin" />
+                                  <p>Searching for games...</p>
                                 </div>
                               </div>
-                            ))}
-                            {searchResults.length > 0 && (
-                              <div className="px-3 py-2 text-xs text-theme-muted border-t border-theme-primary">
-                                Showing {searchResults.length} result
-                                {searchResults.length !== 1 ? 's' : ''}
+                            )}
+
+                            {searchError && (
+                              <div className="p-3 text-center text-semantic-error text-sm">
+                                <p>Error: {searchError}</p>
+                              </div>
+                            )}
+
+                            {!searchLoading &&
+                              !searchError &&
+                              searchResults.length === 0 &&
+                              searchTerm.trim() && (
+                                <div className="p-3 text-center text-theme-muted text-sm">
+                                  <p>No games found matching your search.</p>
+                                  <p className="text-xs mt-1">Try a different search term.</p>
+                                </div>
+                              )}
+
+                            {!searchLoading && !searchError && searchResults.length > 0 && (
+                              <div className="py-1 search-results">
+                                {/* Debug: Rendering search results */}
+                                {searchResults.map(game => (
+                                  <div
+                                    key={game.id}
+                                    onClick={() => handleGameSelect(game.id.toString(), game.name)}
+                                    className="px-3 py-2 hover:bg-bg-theme-secondary cursor-pointer border-b border-theme-primary last:border-b-0"
+                                  >
+                                    <div className="font-medium text-theme-primary text-sm mb-0.5">
+                                      {game.name}
+                                    </div>
+                                    <div className="flex items-center gap-3 text-xs text-black">
+                                      <div className="flex items-center gap-1">
+                                        <Calendar className="w-3 h-3" />
+                                        {game.date}
+                                      </div>
+                                      <div className="flex items-center gap-1">
+                                        <MapPin className="w-3 h-3" />
+                                        {game.arena}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                {searchResults.length > 0 && (
+                                  <div className="px-3 py-2 text-xs text-theme-muted border-t border-theme-primary">
+                                    Showing {searchResults.length} result
+                                    {searchResults.length !== 1 ? 's' : ''}
+                                  </div>
+                                )}
+                              </div>
+                            )}
+
+                            {!searchLoading &&
+                              !searchError &&
+                              searchTerm.trim().length > 0 &&
+                              searchTerm.trim().length < 3 && (
+                                <div className="p-3 text-center text-neutral-600 text-sm">
+                                  <p>Type at least 3 characters to search...</p>
+                                  <p className="text-xs mt-1">
+                                    Current: {searchTerm.trim().length}/3 characters
+                                  </p>
+                                </div>
+                              )}
+
+                            {!searchLoading && !searchError && !searchTerm.trim() && (
+                              <div className="p-3 text-center text-neutral-600 text-sm">
+                                <p>Type at least 3 characters to search for games...</p>
+                                <p className="text-xs mt-1">Search by team name, arena, or date</p>
                               </div>
                             )}
                           </div>
                         )}
-
-                        {!searchLoading &&
-                          !searchError &&
-                          searchTerm.trim().length > 0 &&
-                          searchTerm.trim().length < 3 && (
-                            <div className="p-3 text-center text-neutral-600 text-sm">
-                              <p>Type at least 3 characters to search...</p>
-                              <p className="text-xs mt-1">
-                                Current: {searchTerm.trim().length}/3 characters
-                              </p>
-                            </div>
-                          )}
-
-                        {!searchLoading && !searchError && !searchTerm.trim() && (
-                          <div className="p-3 text-center text-neutral-600 text-sm">
-                            <p>Type at least 3 characters to search for games...</p>
-                            <p className="text-xs mt-1">Search by team name, arena, or date</p>
-                          </div>
-                        )}
                       </div>
+                    )}
+
+                    {mode === 'create' && 'gameId' in errors && errors.gameId && (
+                      <p className="text-semantic-error text-sm mt-1">
+                        {(errors.gameId as { message?: string })?.message}
+                      </p>
                     )}
                   </div>
                 )}
 
-                {mode === 'create' && 'gameId' in errors && errors.gameId && (
-                  <p className="text-semantic-error text-sm mt-1">
-                    {(errors.gameId as { message?: string })?.message}
-                  </p>
-                )}
-              </div>
-            )}
-
-            {/* Rating */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">Rating *</label>
-              <div className="flex items-center gap-1 rating-stars">
-                {[1, 2, 3, 4, 5].map(star => (
-                  <button
-                    key={star}
-                    type="button"
-                    onClick={() => handleRatingChange(star)}
-                    className="focus:outline-none"
-                  >
-                    <Star
-                      className={`w-5 h-5 ${star <= rating ? 'star-selected' : 'star-unselected'}`}
-                    />
-                  </button>
-                ))}
-                <span className="ml-1 text-sm text-theme-muted">({rating}/5)</span>
-              </div>
-              <input type="hidden" {...register('rating_for_game')} value={rating} />
-              {errors.rating_for_game && (
-                <p className="text-semantic-error text-xs">{errors.rating_for_game.message}</p>
-              )}
-            </div>
-
-            {/* Privacy Level */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">
-                Privacy Level *
-              </label>
-              <select
-                {...register('classification')}
-                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-              >
-                <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
-                <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
-                <option value={CLASSIFICATION.PUBLIC}>Public (Everyone)</option>
-              </select>
-              {errors.classification && (
-                <p className="text-semantic-error text-xs mt-1">{errors.classification.message}</p>
-              )}
-            </div>
-
-            {/* Watched Date */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">
-                Watched Date
-              </label>
-              <div className="relative">
-                <input
-                  type="date"
-                  {...register('watched_date')}
-                  className="w-full px-2 py-1.5 pr-8 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary [&::-webkit-calendar-picker-indicator]:opacity-0"
-                  id="watched-date-input"
-                />
-                <div
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 cursor-pointer hover:bg-bg-theme-secondary rounded transition-colors"
-                  onClick={() => {
-                    const input = document.getElementById('watched-date-input') as HTMLInputElement;
-                    if (input) {
-                      if (isDatePickerOpen) {
-                        // Close the date picker by blurring the input
-                        input.blur();
-                        setIsDatePickerOpen(false);
-                      } else {
-                        // Open the date picker
-                        input.focus();
-                        if (typeof input.showPicker === 'function') {
-                          input.showPicker();
-                        } else {
-                          input.click();
-                        }
-                        setIsDatePickerOpen(true);
-                      }
-                    }
-                  }}
-                >
-                  <Calendar className="w-4 h-4 text-white" />
-                </div>
-              </div>
-            </div>
-
-            {/* Watched Setting */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">
-                How did you watch?
-              </label>
-              <select
-                {...register('watched_setting')}
-                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-              >
-                <option value={WATCHED_SETTING.TV}>TV</option>
-                <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
-                <option value={WATCHED_SETTING.PHONE}>Phone</option>
-                <option value={WATCHED_SETTING.ARENA}>Arena</option>
-                <option value={WATCHED_SETTING.BAR}>Bar</option>
-                <option value={WATCHED_SETTING.HOME}>Home</option>
-                <option value={WATCHED_SETTING.OTHER}>Other</option>
-              </select>
-            </div>
-
-            {/* Watched Location */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">
-                Location (optional)
-              </label>
-              <input
-                type="text"
-                {...register('watched_location')}
-                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-                placeholder="e.g., Home, Arena, Bar"
-              />
-            </div>
-
-            {/* Watched Scope */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-1">
-                What did you watch?
-              </label>
-              <select
-                {...register('watched_scope')}
-                className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
-              >
-                <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
-                <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
-                <option value={WATCHED_SCOPE.HIGHLIGHTS}>Highlights</option>
-                <option value={WATCHED_SCOPE.PRE_GAME}>Pre-Game</option>
-                <option value={WATCHED_SCOPE.POST_GAME}>Post-Game</option>
-                <option value={WATCHED_SCOPE.SHORTS}>Shorts</option>
-                <option value={WATCHED_SCOPE.OTHER}>Other</option>
-              </select>
-            </div>
-
-            {/* Notes */}
-            <div className="border border-theme-primary rounded-lg overflow-hidden bg-bg-theme-secondary">
-              <button
-                type="button"
-                onClick={() => setIsNotesExpanded(!isNotesExpanded)}
-                className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-theme-primary hover:bg-bg-theme-tertiary transition-colors"
-              >
-                {isNotesExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-                Notes (optional)
-              </button>
-              {isNotesExpanded && (
-                <textarea
-                  {...register('notes')}
-                  rows={3}
-                  className="w-full px-4 py-3 border-0 bg-transparent focus:outline-none focus:ring-0 text-sm resize-none text-theme-primary placeholder:text-theme-muted"
-                  placeholder="Share your thoughts about this game..."
-                />
-              )}
-            </div>
-
-            {/* Tags */}
-            <div>
-              <label className="block text-sm font-medium text-theme-primary mb-2">Tags</label>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <div className="flex flex-wrap items-center gap-2 p-3 border border-theme-primary rounded-lg bg-bg-theme-secondary min-h-[44px] flex-1">
-                    {(() => {
-                      const tagColors = generateDistinctTagColors(tags);
-                      return tags.map(tag => (
-                        <span
-                          key={tag}
-                          className={`px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1 border ${tagColors[tag]}`}
-                        >
-                          {tag}
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTag(tag)}
-                            className="text-white hover:text-semantic-error/80 transition-colors"
-                          >
-                            <X className="w-2 h-2" />
-                          </button>
-                        </span>
-                      ));
-                    })()}
-                    <input
-                      type="text"
-                      value={newTag}
-                      onChange={e => setNewTag(e.target.value)}
-                      onKeyPress={handleKeyPress}
-                      className="flex-1 min-w-[120px] border-none outline-none bg-transparent placeholder:text-theme-muted text-sm text-theme-primary"
-                      placeholder={tags.length === 0 ? 'Type a tag and press Enter' : ''}
-                    />
+                {/* Rating */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Rating *
+                  </label>
+                  <div className="flex items-center gap-1 rating-stars">
+                    {[1, 2, 3, 4, 5].map(star => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => handleRatingChange(star)}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`w-5 h-5 ${star <= rating ? 'star-selected' : 'star-unselected'}`}
+                        />
+                      </button>
+                    ))}
+                    <span className="ml-1 text-sm text-theme-muted">({rating}/5)</span>
                   </div>
-                  {newTag.trim() && (
-                    <Button
-                      type="button"
-                      onClick={handleAddTag}
-                      size="sm"
-                      className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm text-xs whitespace-nowrap transition-all duration-200"
-                    >
-                      Add Tag
-                    </Button>
+                  <input type="hidden" {...register('rating_for_game')} value={rating} />
+                  {errors.rating_for_game && (
+                    <p className="text-semantic-error text-xs">{errors.rating_for_game.message}</p>
                   )}
                 </div>
+
+                {/* Privacy Level */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Privacy Level *
+                  </label>
+                  <select
+                    {...register('classification')}
+                    className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                  >
+                    <option value={CLASSIFICATION.PRIVATE}>Private (Only you)</option>
+                    <option value={CLASSIFICATION.PROTECTED}>Protected (Friends only)</option>
+                    <option value={CLASSIFICATION.PUBLIC}>Public (Everyone)</option>
+                  </select>
+                  {errors.classification && (
+                    <p className="text-semantic-error text-xs mt-1">
+                      {errors.classification.message}
+                    </p>
+                  )}
+                </div>
+
+                {/* Watched Date */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Watched Date
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="date"
+                      {...register('watched_date')}
+                      className="w-full px-2 py-3 sm:py-1.5 pr-8 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary [&::-webkit-calendar-picker-indicator]:opacity-0"
+                      id="watched-date-input"
+                    />
+                    <div
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 cursor-pointer hover:bg-bg-theme-secondary rounded transition-colors"
+                      onClick={() => {
+                        const input = document.getElementById(
+                          'watched-date-input'
+                        ) as HTMLInputElement;
+                        if (input) {
+                          if (isDatePickerOpen) {
+                            // Close the date picker by blurring the input
+                            input.blur();
+                            setIsDatePickerOpen(false);
+                          } else {
+                            // Open the date picker
+                            input.focus();
+                            if (typeof input.showPicker === 'function') {
+                              input.showPicker();
+                            } else {
+                              input.click();
+                            }
+                            setIsDatePickerOpen(true);
+                          }
+                        }
+                      }}
+                    >
+                      <Calendar className="w-4 h-4 text-white" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Watched Setting */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    How did you watch?
+                  </label>
+                  <select
+                    {...register('watched_setting')}
+                    className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                  >
+                    <option value={WATCHED_SETTING.TV}>TV</option>
+                    <option value={WATCHED_SETTING.LAPTOP}>Laptop/Computer</option>
+                    <option value={WATCHED_SETTING.PHONE}>Phone</option>
+                    <option value={WATCHED_SETTING.ARENA}>Arena</option>
+                    <option value={WATCHED_SETTING.BAR}>Bar</option>
+                    <option value={WATCHED_SETTING.HOME}>Home</option>
+                    <option value={WATCHED_SETTING.OTHER}>Other</option>
+                  </select>
+                </div>
+
+                {/* Watched Location */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    Location (optional)
+                  </label>
+                  <input
+                    type="text"
+                    {...register('watched_location')}
+                    className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                    placeholder="e.g., Home, Arena, Bar"
+                  />
+                </div>
+
+                {/* Watched Scope */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-1">
+                    What did you watch?
+                  </label>
+                  <select
+                    {...register('watched_scope')}
+                    className="w-full px-2 py-1.5 border border-theme-primary rounded-md focus:outline-none focus:ring-2 focus:ring-brand-primary text-sm bg-surface-card text-theme-primary"
+                  >
+                    <option value={WATCHED_SCOPE.FULL_GAME}>Full Game</option>
+                    <option value={WATCHED_SCOPE.HALF_GAME}>Half Game</option>
+                    <option value={WATCHED_SCOPE.HIGHLIGHTS}>Highlights</option>
+                    <option value={WATCHED_SCOPE.PRE_GAME}>Pre-Game</option>
+                    <option value={WATCHED_SCOPE.POST_GAME}>Post-Game</option>
+                    <option value={WATCHED_SCOPE.SHORTS}>Shorts</option>
+                    <option value={WATCHED_SCOPE.OTHER}>Other</option>
+                  </select>
+                </div>
+
+                {/* Notes */}
+                <div className="border border-theme-primary rounded-lg overflow-hidden bg-bg-theme-secondary">
+                  <button
+                    type="button"
+                    onClick={() => setIsNotesExpanded(!isNotesExpanded)}
+                    className="w-full flex items-center gap-2 px-4 py-3 text-sm font-medium text-theme-primary hover:bg-bg-theme-tertiary transition-colors"
+                  >
+                    {isNotesExpanded ? (
+                      <ChevronDown className="w-4 h-4" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4" />
+                    )}
+                    Notes (optional)
+                  </button>
+                  {isNotesExpanded && (
+                    <textarea
+                      {...register('notes')}
+                      rows={3}
+                      className="w-full px-4 py-3 border-0 bg-transparent focus:outline-none focus:ring-0 text-sm resize-none text-theme-primary placeholder:text-theme-muted"
+                      placeholder="Share your thoughts about this game..."
+                    />
+                  )}
+                </div>
+
+                {/* Tags */}
+                <div>
+                  <label className="block text-sm font-medium text-theme-primary mb-2">Tags</label>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 p-3 border border-theme-primary rounded-lg bg-bg-theme-secondary min-h-[44px] flex-1">
+                        {(() => {
+                          const tagColors = generateDistinctTagColors(tags);
+                          return tags.map(tag => (
+                            <span
+                              key={tag}
+                              className={`px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1 border ${tagColors[tag]}`}
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveTag(tag)}
+                                className="text-white hover:text-semantic-error/80 transition-colors"
+                              >
+                                <X className="w-2 h-2" />
+                              </button>
+                            </span>
+                          ));
+                        })()}
+                        <input
+                          type="text"
+                          value={newTag}
+                          onChange={e => setNewTag(e.target.value)}
+                          onKeyPress={handleKeyPress}
+                          className="flex-1 min-w-[120px] border-none outline-none bg-transparent placeholder:text-theme-muted text-sm text-theme-primary"
+                          placeholder={tags.length === 0 ? 'Type a tag and press Enter' : ''}
+                        />
+                      </div>
+                      {newTag.trim() && (
+                        <Button
+                          type="button"
+                          onClick={handleAddTag}
+                          size="sm"
+                          className="px-4 py-2 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm text-xs whitespace-nowrap transition-all duration-200"
+                        >
+                          Add Tag
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
               </div>
+              <div className="h-4">&nbsp;</div>
             </div>
 
-            {/* Submit Buttons */}
-            <div className="flex gap-3 pt-6 border-t border-theme-primary">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSubmitting || loading}
-                className="flex-1 h-11 border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary font-medium transition-all duration-200"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || loading || !isFormValid || !isUserAuthenticated}
-                className="flex-1 h-11 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
-              >
-                {isSubmitting || loading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    {mode === 'create' ? 'Creating...' : 'Updating...'}
-                  </div>
-                ) : mode === 'create' ? (
-                  'Create Game Log'
-                ) : (
-                  'Update Game Log'
-                )}
-              </Button>
+            {/* Submit Buttons - Fixed at bottom */}
+            <div className="flex-shrink-0 border-t border-theme-primary bg-inherit p-3 sm:p-4 md:p-6">
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isSubmitting || loading}
+                  className="flex-1 h-11 border-theme-primary bg-bg-theme-secondary text-theme-primary hover:bg-bg-theme-tertiary font-medium transition-all duration-200"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || loading || !isFormValid || !isUserAuthenticated}
+                  className="flex-1 h-11 bg-brand-primary hover:bg-brand-primary-hover text-white font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+                >
+                  {isSubmitting || loading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      {mode === 'create' ? 'Creating...' : 'Updating...'}
+                    </div>
+                  ) : mode === 'create' ? (
+                    'Create Game Log'
+                  ) : (
+                    'Update Game Log'
+                  )}
+                </Button>
+              </div>
             </div>
           </form>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 
