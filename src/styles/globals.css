@@ -2,6 +2,90 @@
 @import 'tailwindcss';
 
 /* =================================================================
+   MOBILE BUTTON OVERLAP FIX
+   ================================================================= */
+@layer components {
+  .mobile-button-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 1rem !important;
+    box-sizing: border-box !important;
+  }
+
+  .mobile-button-container .mobile-button {
+    width: 100% !important;
+    max-width: 240px !important;
+    min-width: 200px !important;
+    display: block !important;
+    flex-shrink: 0 !important;
+    margin: 0 auto !important;
+    box-sizing: border-box !important;
+  }
+
+  @media (min-width: 640px) {
+    .mobile-button-container {
+      flex-direction: row !important;
+      gap: 1.5rem !important;
+      padding: 0 !important;
+    }
+
+    .mobile-button-container .mobile-button {
+      max-width: 384px !important;
+    }
+  }
+}
+
+/* =================================================================
+   MOBILE MENU HEADER FIX
+   ================================================================= */
+@layer components {
+  /* Force dark text for mobile menu header in light theme */
+  .mobile-menu-header h2 {
+    color: rgb(17, 24, 39) !important; /* text-gray-900 */
+  }
+
+  .dark .mobile-menu-header h2 {
+    color: rgb(255, 255, 255) !important; /* text-white */
+  }
+
+  /* Force dark text for mobile menu close button in light theme */
+  .mobile-menu-header button svg {
+    color: rgb(17, 24, 39) !important; /* text-gray-900 */
+  }
+
+  .dark .mobile-menu-header button svg {
+    color: rgb(255, 255, 255) !important; /* text-white */
+  }
+}
+
+/* =================================================================
+   AGGRESSIVE MOBILE MENU HEADER FIX
+   ================================================================= */
+/* Force visibility with maximum specificity */
+div[class*='flex items-center justify-between'] h2 {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+
+.dark div[class*='flex items-center justify-between'] h2 {
+  color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
+div[class*='flex items-center justify-between'] button svg {
+  color: rgb(17, 24, 39) !important;
+  -webkit-text-fill-color: rgb(17, 24, 39) !important;
+}
+
+.dark div[class*='flex items-center justify-between'] button svg {
+  color: rgb(255, 255, 255) !important;
+  -webkit-text-fill-color: rgb(255, 255, 255) !important;
+}
+
+/* =================================================================
    DESIGN SYSTEM FOUNDATION
    ================================================================= */
 
