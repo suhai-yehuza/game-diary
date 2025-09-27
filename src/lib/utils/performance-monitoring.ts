@@ -2,9 +2,9 @@ import type { IPerformanceMetrics } from '@/types';
 
 import { analytics } from './analytics';
 
-// TEMPORARILY DISABLED: Performance monitoring to reduce analytics costs
-// Set this to true to re-enable performance monitoring
-const PERFORMANCE_MONITORING_ENABLED = false;
+// Performance monitoring re-enabled
+// Set this to false to disable performance monitoring
+const PERFORMANCE_MONITORING_ENABLED = true;
 
 // Performance monitoring utility
 export const performanceMonitoring = {

@@ -1,8 +1,15 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import type { ISearchEvent } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * POST /api/analytics/search
@@ -14,10 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!searchEvent.query || typeof searchEvent.query !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'Invalid search event data' },
-        { status: 400 }
-      );
+      return createCorsResponse({ success: false, error: 'Invalid search event data' }, 400);
     }
 
     // Log search event (in production, this would be sent to analytics service)
@@ -34,7 +38,7 @@ export async function POST(request: NextRequest) {
     // 2. Store in database for analysis
     // 3. Update search suggestions based on popular queries
 
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       message: 'Search event tracked successfully',
     });
@@ -44,12 +48,12 @@ export async function POST(request: NextRequest) {
       action: 'Track search event',
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: 'Failed to track search event',
       },
-      { status: 500 }
+      500
     );
   }
 }

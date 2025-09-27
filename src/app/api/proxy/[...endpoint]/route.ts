@@ -1,7 +1,7 @@
-import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 import { getRapidApiConfig } from '@/lib/config/app.config';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { MOCK_LIVE_GAMES } from '@src/lib/mock/liveGamesMock';
 import { MOCK_NBA_GAMES } from '@src/lib/mock/nbaGamesMock';
@@ -11,6 +11,13 @@ import { MOCK_NBA_TEAMS } from '@src/lib/mock/nbaTeamsMock';
 
 // Simple in-memory cache for pending requests (deduplication)
 const pendingRequests = new Map<string, Promise<unknown>>();
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(
   request: NextRequest,
@@ -35,7 +42,7 @@ export async function GET(
     if (pendingRequests.has(fullUrl)) {
       console.log(`[API Proxy] Waiting for pending request: ${fullUrl}`);
       const cachedData = await pendingRequests.get(fullUrl);
-      return NextResponse.json(cachedData);
+      return createCorsResponse(cachedData);
     }
 
     // Check if we're in a test environment or using fallback config
@@ -80,7 +87,7 @@ export async function GET(
 
       // Cache logic removed
 
-      return NextResponse.json(mockResponse);
+      return createCorsResponse(mockResponse);
     }
 
     // Create the request promise
@@ -114,7 +121,7 @@ export async function GET(
 
     try {
       const data = await requestPromise;
-      return NextResponse.json(data);
+      return createCorsResponse(data);
     } finally {
       // Clean up pending request
       pendingRequests.delete(fullUrl);
@@ -127,7 +134,7 @@ export async function GET(
     });
 
     // Return a graceful error response instead of 500
-    return NextResponse.json(
+    return createCorsResponse(
       {
         get: 'games',
         parameters: {},
@@ -135,7 +142,7 @@ export async function GET(
         results: 0,
         response: [],
       },
-      { status: 200 } // Return 200 with empty response instead of 500
+      200 // Return 200 with empty response instead of 500
     );
   }
 }

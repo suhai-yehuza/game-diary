@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { simpleCacheService } from '@/lib/cache';
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { db } from '@/lib/db';
 import { basketball_teams } from '@/lib/db/schema';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
@@ -16,6 +16,13 @@ import type { IRawTeamStatsApiResponse, IRawTeamStatsResponse } from '@/types';
 loadEnvironmentVariables();
 
 // Interfaces moved to types/custom/001-base.types.ts
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * GET /api/teams/[teamId]/stats
@@ -40,7 +47,7 @@ export async function GET(
       const cachedData = simpleCacheService.get(cacheKey);
       if (cachedData) {
         logger.info('Team stats cache hit', { teamId, season, cacheKey });
-        return NextResponse.json(cachedData);
+        return createCorsResponse(cachedData);
       }
     }
 
@@ -51,16 +58,16 @@ export async function GET(
 
     // Validate teamId
     if (!teamId || teamId.trim().length === 0) {
-      return NextResponse.json({ success: false, error: 'Team ID is required' }, { status: 400 });
+      return createCorsResponse({ success: false, error: 'Team ID is required' }, 400);
     }
 
     // Validate season
     const currentYear = new Date().getFullYear();
     const seasonYear = parseInt(season);
     if (isNaN(seasonYear) || seasonYear < 2000 || seasonYear > currentYear + 1) {
-      return NextResponse.json(
+      return createCorsResponse(
         { success: false, error: 'Invalid season. Must be between 2000 and current year + 1' },
-        { status: 400 }
+        400
       );
     }
 
@@ -75,7 +82,7 @@ export async function GET(
     });
 
     if (!team) {
-      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
+      return createCorsResponse({ success: false, error: 'Team not found' }, 404);
     }
 
     // Check if we're in test/mock mode OR if external API is not available
@@ -149,7 +156,7 @@ export async function GET(
         logger.warn('Failed to cache team stats mock data', { error: cacheError, teamId, season });
       }
 
-      return NextResponse.json(mockResponse);
+      return createCorsResponse(mockResponse);
     }
 
     // Get external API configuration
@@ -244,7 +251,7 @@ export async function GET(
         });
       }
 
-      return NextResponse.json(fallbackResponse);
+      return createCorsResponse(fallbackResponse);
     }
 
     logger.info('Team stats API response structure', {
@@ -282,7 +289,7 @@ export async function GET(
         tags: ['team-stats', `team-${teamId}`, `season-${season}`],
       });
 
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: emptyResponse,
       });
@@ -297,9 +304,9 @@ export async function GET(
         teamStats: teamStats ? Object.keys(teamStats) : 'undefined',
         responseLength: statsData.response.length,
       });
-      return NextResponse.json(
+      return createCorsResponse(
         { success: false, error: 'Invalid team statistics data structure from external API' },
-        { status: 500 }
+        500
       );
     }
 
@@ -385,7 +392,7 @@ export async function GET(
       teamName: team.name,
     });
 
-    return NextResponse.json(responseData);
+    return createCorsResponse(responseData);
   } catch (error) {
     logger.error('Error fetching team statistics', {
       error: String(error),
@@ -397,13 +404,13 @@ export async function GET(
       action: 'GET /api/teams/[teamId]/stats',
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      500
     );
   }
 }

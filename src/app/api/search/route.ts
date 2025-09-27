@@ -1,10 +1,10 @@
 import { sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 // import { cache } from '@/lib/cache'; // DISABLED: Using only NBA API cache now
 import { createDatabaseClient } from '@/lib/db';
 // import { CacheNamespace } from '@/types'; // Unused import
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 
 // Helper function to safely convert values to strings
@@ -71,6 +71,13 @@ function sanitizeGameLogData(gameLog: Record<string, unknown>) {
   return safeGameLog;
 }
 
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -78,7 +85,7 @@ export async function GET(request: NextRequest) {
 
     // Input validation
     if (!query || query.length < 2) {
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: {
           users: [],
@@ -99,7 +106,7 @@ export async function GET(request: NextRequest) {
     // Check if we're in test/mock mode
     if (process.env.MOCK_MODE === 'true' || process.env.NODE_ENV === 'test') {
       // Return mock data for test environment
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         results: [],
         total: 0,
@@ -129,7 +136,7 @@ export async function GET(request: NextRequest) {
       db = createDatabaseClient();
     } catch (_dbError) {
       // If database connection fails, return empty results with success
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         results: [],
         total: 0,
@@ -443,7 +450,7 @@ export async function GET(request: NextRequest) {
 
     // DISABLED: Database caching
 
-    return NextResponse.json(response);
+    return createCorsResponse(response);
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -452,7 +459,7 @@ export async function GET(request: NextRequest) {
       requestId: request.headers.get('x-request-id') || undefined,
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: 'Internal server error',
@@ -470,7 +477,7 @@ export async function GET(request: NextRequest) {
         },
         total: 0,
       },
-      { status: 500 }
+      500
     );
   }
 }
