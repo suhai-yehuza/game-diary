@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { X, Search, Calendar, MapPin, Star, ChevronDown, ChevronRight } from 'lucide-react';
 import { useRouter as _useRouter } from 'next/navigation';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
@@ -225,6 +226,8 @@ export function GameLogModal({
   preSelectedGame,
 }: IGameLogModalProps) {
   const { user } = useUser();
+  const [isMounted, setIsMounted] = useState(false);
+
   const [rating, setRating] = useState(mode === 'edit' ? (gameLog?.rating_for_game ?? 3) : 3);
   const [tags, setTags] = useState<string[]>(mode === 'edit' ? (gameLog?.tags ?? []) : []);
   const [newTag, setNewTag] = useState('');
@@ -252,6 +255,11 @@ export function GameLogModal({
   const [selectedSeason, setSelectedSeason] = useState<'latest' | number | 'all'>('latest');
   const [isNotesExpanded, setIsNotesExpanded] = useState(false);
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+
+  // Handle mounting state for portal
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Handle date picker close events
   useEffect(() => {
@@ -857,7 +865,10 @@ export function GameLogModal({
   const loading = createLoading || updateLoading;
   const isFormValid = mode === 'create' ? isValid && selectedGameId : isValid;
 
-  return (
+  // Don't render anything until mounted (prevents hydration issues)
+  if (!isMounted) return null;
+
+  const modalContent = (
     <div
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6"
       onClick={onClose}
@@ -1340,4 +1351,7 @@ export function GameLogModal({
       </Card>
     </div>
   );
+
+  // Use portal to render modal at document body level
+  return createPortal(modalContent, document.body);
 }
