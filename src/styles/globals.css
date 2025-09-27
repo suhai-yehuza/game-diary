@@ -6383,11 +6383,55 @@ html .cl-formFieldInput {
     0 0 0 1px rgba(0, 0, 0, 0.05) !important; /* Layered shadows for depth */
   border-radius: 12px !important; /* Modern rounded corners */
   max-height: 85vh !important; /* Increased height to show footer */
-  max-width: 500px !important; /* Standard modal width */
-  width: 90% !important; /* Responsive width */
+  /* Remove fixed width constraints to allow responsive centering */
   overflow: hidden !important; /* Prevent scrolling */
   display: flex !important; /* Use flexbox for layout */
   flex-direction: column !important; /* Stack content vertically */
+}
+
+/* Mobile-specific modal centering */
+@media (max-width: 640px) {
+  .game-log-modal {
+    width: 100% !important; /* Full width on mobile */
+    max-width: 100% !important; /* Remove max-width constraint on mobile */
+    margin: 0 auto !important; /* Center horizontally */
+    position: relative !important;
+    left: 0 !important;
+    right: 0 !important;
+    transform: none !important;
+  }
+
+  /* Force modal container to be perfectly centered on mobile only */
+  .fixed.inset-0 {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0.5rem !important;
+  }
+
+  /* Ensure the modal wrapper is centered on mobile only */
+  .fixed.inset-0 > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    display: flex !important;
+    justify-content: center !important;
+  }
+}
+
+/* Desktop and tablet - restore responsive behavior */
+@media (min-width: 641px) {
+  .game-log-modal {
+    width: auto !important; /* Allow responsive width on desktop */
+    max-width: 500px !important; /* Restore desktop max-width */
+    margin: 0 auto !important; /* Center horizontally */
+  }
+
+  .fixed.inset-0 > div {
+    width: auto !important; /* Allow responsive width on desktop */
+    max-width: 500px !important; /* Restore desktop max-width */
+    margin: 0 !important;
+  }
 }
 
 /* Force theme independence - Override ALL theme classes */

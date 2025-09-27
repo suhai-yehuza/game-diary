@@ -870,23 +870,35 @@ export function GameLogModal({
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[9999] flex items-start justify-center p-2 sm:p-4 md:p-6 overflow-y-auto"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto overscroll-contain"
       onClick={onClose}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+      }}
     >
-      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg my-4 sm:my-8 md:my-12">
+      <div className="w-full max-w-sm sm:max-w-md md:max-w-lg">
         <Card
-          className="relative w-full max-h-[calc(100vh-1rem)] sm:max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-4rem)] border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000] flex flex-col"
+          className="relative w-full max-h-[calc(100vh-2rem)] sm:max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-4rem)] border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl animate-in fade-in-0 zoom-in-95 duration-200 game-log-modal z-[10000] flex flex-col"
           onClick={e => e.stopPropagation()}
           style={{
             backgroundColor: '#f8fafc', // Light slate background that works on both themes
             color: '#1e293b', // Dark slate text for excellent contrast
+            maxHeight: 'calc(100vh - 2rem)', // Ensure mobile compatibility with centered positioning
+            minHeight: '0', // Allow shrinking on very small screens
           }}
         >
           <form
             onSubmit={e => void handleSubmit(handleFormSubmit)(e)}
-            className="flex flex-col h-full"
+            className="flex flex-col h-full min-h-0"
           >
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto min-h-0 overscroll-contain">
               <div className="p-3 sm:p-4 md:p-6" style={{ color: '#1e293b' }}>
                 <div className="flex justify-between items-start gap-3 mb-6">
                   <div className="flex-1 min-w-0">
@@ -1337,7 +1349,7 @@ export function GameLogModal({
             </div>
 
             {/* Submit Buttons - Fixed at bottom */}
-            <div className="flex-shrink-0 border-t border-theme-primary bg-inherit p-3 sm:p-4 md:p-6">
+            <div className="flex-shrink-0 border-t border-theme-primary bg-inherit p-3 sm:p-4 md:p-6 sticky bottom-0 z-10">
               <div className="flex gap-3">
                 <Button
                   type="button"
