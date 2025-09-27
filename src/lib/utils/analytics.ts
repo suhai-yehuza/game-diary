@@ -2,9 +2,9 @@ import { track } from '@vercel/analytics';
 
 import type { AnalyticsEvent, IAnalyticsProperties } from '@/types';
 
-// TEMPORARILY DISABLED: Custom analytics tracking to reduce costs
-// Set this to true to re-enable custom analytics events
-const ANALYTICS_ENABLED = false;
+// Analytics tracking re-enabled
+// Set this to false to disable custom analytics events
+const ANALYTICS_ENABLED = true;
 
 // Enhanced analytics tracking with custom properties
 export const analytics = {

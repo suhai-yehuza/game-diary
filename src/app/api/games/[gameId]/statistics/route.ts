@@ -4,8 +4,16 @@ import { NextResponse } from 'next/server';
 import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { logger } from '@/lib/utils/logger';
 import type { IGameStatsApiResponse } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(
   request: NextRequest,
@@ -15,12 +23,12 @@ export async function GET(
     const { gameId } = await params;
 
     if (!gameId) {
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Game ID is required',
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -38,12 +46,12 @@ export async function GET(
         gameId,
         nbaGameId,
       });
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Game statistics not available - this game does not have a valid NBA API game ID',
         },
-        { status: 404 }
+        404
       );
     }
 
@@ -57,7 +65,7 @@ export async function GET(
         nbaGameId,
         cacheKey,
       });
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: cachedData,
       });
@@ -81,13 +89,13 @@ export async function GET(
         nbaGameId,
         errors: gameStatsData.errors,
       });
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'External API returned errors',
           details: gameStatsData.errors,
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -134,7 +142,7 @@ export async function GET(
       tags: ['game-stats', `game-${nbaGameId}`],
     });
 
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       data: gameStatsData,
     });
@@ -144,12 +152,12 @@ export async function GET(
       gameId: (await params).gameId,
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      500
     );
   }
 }

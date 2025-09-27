@@ -1,5 +1,4 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { hybridCacheService } from '@/lib/cache';
 import { API_LIMITS } from '@/lib/constants';
@@ -9,9 +8,17 @@ import {
   getUniqueCountries,
   getUniquePositions,
 } from '@/lib/db/services/players.service';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import type { IPlayersApiResponse, IPlayerFilters } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * GET /api/players
@@ -70,7 +77,7 @@ export async function GET(request: NextRequest) {
           timestamp: new Date().toISOString(),
           mock: true,
         };
-        return NextResponse.json(mockFilterOptions);
+        return createCorsResponse(mockFilterOptions);
       }
 
       // Return mock players data
@@ -111,7 +118,7 @@ export async function GET(request: NextRequest) {
         mock: true,
       };
 
-      return NextResponse.json(mockPlayers);
+      return createCorsResponse(mockPlayers);
     }
 
     // Special endpoint for filter options
@@ -125,7 +132,7 @@ export async function GET(request: NextRequest) {
         const cachedOptions = await hybridCacheService.get(optionsCacheKey);
         if (cachedOptions) {
           logger.cache('hit', optionsCacheKey);
-          return NextResponse.json(cachedOptions);
+          return createCorsResponse(cachedOptions);
         }
       }
 
@@ -152,7 +159,7 @@ export async function GET(request: NextRequest) {
         tags: ['players', 'nba', 'filter-options'],
       });
 
-      return NextResponse.json(options);
+      return createCorsResponse(options);
     }
 
     // Build filters
@@ -230,7 +237,7 @@ export async function GET(request: NextRequest) {
         if (cachedData) {
           console.log('✅ Cache HIT for key:', cacheKey);
           logger.cache('hit', cacheKey);
-          return NextResponse.json(cachedData);
+          return createCorsResponse(cachedData);
         } else {
           console.log('❌ Cache MISS for key:', cacheKey);
         }
@@ -303,7 +310,7 @@ export async function GET(request: NextRequest) {
       cached: true,
     });
 
-    return NextResponse.json(response);
+    return createCorsResponse(response);
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
@@ -312,7 +319,7 @@ export async function GET(request: NextRequest) {
       requestId: request.headers.get('x-request-id') || undefined,
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         get: 'players',
         parameters: {},
@@ -320,7 +327,7 @@ export async function GET(request: NextRequest) {
         results: 0,
         response: [],
       },
-      { status: 500 }
+      500
     );
   }
 }

@@ -176,7 +176,7 @@ Examples:
 Environment Variables:
   DATABASE_URL                  Database connection URL
   NEXT_PUBLIC_RAPID_API_KEY     RapidAPI key for NBA data
-  NEXT_PUBLIC_RAPID_API_HOST    RapidAPI host (default: api-nba-v1.p.rapidapi.com)
+  NEXT_PUBLIC_RAPID_API_HOST    RapidAPI host (default: v2.nba.api-sports.io)
 `);
 }
 

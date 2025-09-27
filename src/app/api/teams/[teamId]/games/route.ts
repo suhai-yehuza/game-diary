@@ -1,12 +1,12 @@
 import { eq } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { API_LIMITS } from '@/lib/constants';
 import { db } from '@/lib/db';
 import { basketball_teams } from '@/lib/db/schema';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
@@ -14,6 +14,13 @@ import type { IGamesApiResponse, IGameResponse, IExternalGame } from '@/types';
 
 // Ensure environment variables are loaded
 loadEnvironmentVariables();
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * GET /api/teams/[teamId]/games
@@ -37,16 +44,16 @@ export async function GET(
 
     // Validate teamId
     if (!teamId || teamId.trim().length === 0) {
-      return NextResponse.json({ success: false, error: 'Team ID is required' }, { status: 400 });
+      return createCorsResponse({ success: false, error: 'Team ID is required' }, 400);
     }
 
     // Validate season
     const currentYear = new Date().getFullYear();
     const seasonYear = parseInt(season);
     if (isNaN(seasonYear) || seasonYear < 2000 || seasonYear > currentYear + 1) {
-      return NextResponse.json(
+      return createCorsResponse(
         { success: false, error: 'Invalid season. Must be between 2000 and current year + 1' },
-        { status: 400 }
+        400
       );
     }
 
@@ -97,7 +104,7 @@ export async function GET(
         },
       ];
 
-      return NextResponse.json(mockGames);
+      return createCorsResponse(mockGames);
     }
 
     // Check if team exists in database
@@ -111,7 +118,7 @@ export async function GET(
     });
 
     if (!team) {
-      return NextResponse.json({ success: false, error: 'Team not found' }, { status: 404 });
+      return createCorsResponse({ success: false, error: 'Team not found' }, 404);
     }
 
     // Get external API configuration
@@ -125,9 +132,9 @@ export async function GET(
     });
 
     if (!gamesData?.response || !Array.isArray(gamesData.response)) {
-      return NextResponse.json(
+      return createCorsResponse(
         { success: false, error: 'No games data received from external API' },
-        { status: 500 }
+        500
       );
     }
 
@@ -255,7 +262,7 @@ export async function GET(
       gameCount: transformedGames.length,
     });
 
-    return NextResponse.json(responseData);
+    return createCorsResponse(responseData);
   } catch (error) {
     logger.error('Error fetching team games', {
       error: String(error),
@@ -267,13 +274,13 @@ export async function GET(
       action: 'GET /api/teams/[teamId]/games',
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      500
     );
   }
 }

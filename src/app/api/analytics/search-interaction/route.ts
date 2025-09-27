@@ -1,8 +1,15 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import type { ISearchInteractionEvent } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * POST /api/analytics/search-interaction
@@ -14,10 +21,7 @@ export async function POST(request: NextRequest) {
 
     // Validate required fields
     if (!interactionEvent.query || typeof interactionEvent.query !== 'string') {
-      return NextResponse.json(
-        { success: false, error: 'Invalid interaction event data' },
-        { status: 400 }
-      );
+      return createCorsResponse({ success: false, error: 'Invalid interaction event data' }, 400);
     }
 
     // Log interaction event (in production, this would be sent to analytics service)
@@ -34,7 +38,7 @@ export async function POST(request: NextRequest) {
     // 2. Store in database for user behavior analysis
     // 3. Update UI recommendations based on interaction patterns
 
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       message: 'Search interaction event tracked successfully',
     });
@@ -44,12 +48,12 @@ export async function POST(request: NextRequest) {
       action: 'Track search interaction event',
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: 'Failed to track search interaction event',
       },
-      { status: 500 }
+      500
     );
   }
 }

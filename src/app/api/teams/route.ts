@@ -1,13 +1,20 @@
 import { and, eq, sql, desc, asc } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { hybridCacheService } from '@/lib/cache';
 import { db } from '@/lib/db';
 import { basketball_teams } from '@/lib/db/schema';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -69,7 +76,7 @@ export async function GET(request: NextRequest) {
         mock: true,
       };
 
-      return NextResponse.json(mockTeams);
+      return createCorsResponse(mockTeams);
     }
 
     logger.info('Teams API request', {
@@ -119,7 +126,7 @@ export async function GET(request: NextRequest) {
       const cachedData = await hybridCacheService.get(cacheKey);
       if (cachedData) {
         logger.info('Teams cache hit', { key: cacheKey, isAllTeamsRequest });
-        return NextResponse.json(cachedData);
+        return createCorsResponse(cachedData);
       }
     }
 
@@ -215,7 +222,7 @@ export async function GET(request: NextRequest) {
         ttl: cacheTTL,
         tags: ['teams', 'nba'],
       });
-      return NextResponse.json(emptyResponse);
+      return createCorsResponse(emptyResponse);
     }
 
     // Transform basketball_teams to match the expected API response format
@@ -283,14 +290,14 @@ export async function GET(request: NextRequest) {
       cached: true,
     });
 
-    return NextResponse.json(response);
+    return createCorsResponse(response);
   } catch (error) {
     // Use centralized error handling
     errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
       component: 'API',
       action: 'GET /api/teams',
     });
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return createCorsResponse({ error: 'Internal Server Error' }, 500);
   }
 }
 

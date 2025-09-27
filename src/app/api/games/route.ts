@@ -1,10 +1,10 @@
 import { eq, desc, and, sql } from 'drizzle-orm';
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { hybridCacheService, getGamesCacheTTL, generateGamesCacheKey } from '@/lib/cache';
 import { db } from '@/lib/db';
 import { basketball_games } from '@/lib/db/schema';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { loadEnvironmentVariables } from '@/lib/utils/env-loader';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
@@ -12,6 +12,13 @@ import type { IDatabaseGame } from '@/types';
 
 // Ensure environment variables are loaded
 loadEnvironmentVariables();
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 /**
  * GET /api/games
@@ -66,7 +73,7 @@ export async function GET(request: NextRequest) {
         mock: true,
       };
 
-      return NextResponse.json(mockGames);
+      return createCorsResponse(mockGames);
     }
 
     logger.info('Games API request', {
@@ -79,17 +86,11 @@ export async function GET(request: NextRequest) {
 
     // Validate parameters
     if (page < 1) {
-      return NextResponse.json(
-        { success: false, error: 'Page must be greater than 0' },
-        { status: 400 }
-      );
+      return createCorsResponse({ success: false, error: 'Page must be greater than 0' }, 400);
     }
 
     if (limit < 1 || limit > 100) {
-      return NextResponse.json(
-        { success: false, error: 'Limit must be between 1 and 100' },
-        { status: 400 }
-      );
+      return createCorsResponse({ success: false, error: 'Limit must be between 1 and 100' }, 400);
     }
 
     const offset = (page - 1) * limit;
@@ -107,7 +108,7 @@ export async function GET(request: NextRequest) {
       const cachedData = await hybridCacheService.get(cacheKey);
       if (cachedData) {
         logger.cache('hit', cacheKey);
-        return NextResponse.json({
+        return createCorsResponse({
           ...cachedData,
           cacheInfo: {
             hit: true,
@@ -264,7 +265,7 @@ export async function GET(request: NextRequest) {
       ttl: cacheTTL,
     });
 
-    return NextResponse.json(responseData);
+    return createCorsResponse(responseData);
   } catch (error) {
     logger.error('Error fetching games', { error: String(error) });
 
@@ -273,13 +274,13 @@ export async function GET(request: NextRequest) {
       action: 'GET /api/games',
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      500
     );
   }
 }

@@ -1,12 +1,19 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { simpleCacheService } from '@/lib/cache';
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { logger } from '@/lib/utils/logger';
 import type { IStandingsApiResponse } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -48,7 +55,7 @@ export async function GET(request: NextRequest) {
         mock: true,
       };
 
-      return NextResponse.json(mockStandings);
+      return createCorsResponse(mockStandings);
     }
 
     logger.info('Standings API request', {
@@ -61,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     // Validate required parameters
     if (!season || season.trim().length === 0) {
-      return NextResponse.json({ success: false, error: 'Season is required' }, { status: 400 });
+      return createCorsResponse({ success: false, error: 'Season is required' }, 400);
     }
 
     // Get API configuration and create API client
@@ -77,7 +84,7 @@ export async function GET(request: NextRequest) {
       const cachedData = simpleCacheService.get(cacheKey);
       if (cachedData) {
         logger.info('Standings cache hit', { season, conference, division, team, cacheKey });
-        return NextResponse.json(cachedData);
+        return createCorsResponse(cachedData);
       }
     }
 
@@ -108,7 +115,7 @@ export async function GET(request: NextRequest) {
         errors: standingsData.errors,
       });
 
-      return NextResponse.json({ success: false, error: 'External API error' }, { status: 502 });
+      return createCorsResponse({ success: false, error: 'External API error' }, 502);
     }
 
     // Check if external API has no data - return empty array instead of error
@@ -148,7 +155,7 @@ export async function GET(request: NextRequest) {
         ].filter(Boolean),
       });
 
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: emptyResponse,
       });
@@ -295,7 +302,7 @@ export async function GET(request: NextRequest) {
       resultsCount: processedData?.results || 0,
     });
 
-    return NextResponse.json(responseData);
+    return createCorsResponse(responseData);
   } catch (error) {
     logger.error('Error fetching standings', {
       error,
@@ -306,7 +313,7 @@ export async function GET(request: NextRequest) {
       action: 'GET /api/standings',
     });
 
-    return NextResponse.json({ success: false, error: 'Internal Server Error' }, { status: 500 });
+    return createCorsResponse({ success: false, error: 'Internal Server Error' }, 500);
   }
 }
 

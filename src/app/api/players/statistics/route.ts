@@ -1,11 +1,18 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { logger } from '@/lib/utils/logger';
 import type { IPlayerStatsApiResponse } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,22 +22,22 @@ export async function GET(request: NextRequest) {
     const gameId = searchParams.get('game');
 
     if (!playerId) {
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Player ID is required',
         },
-        { status: 400 }
+        400
       );
     }
 
     if (!season) {
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Season is required',
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -51,13 +58,13 @@ export async function GET(request: NextRequest) {
           gameId,
           nbaGameId,
         });
-        return NextResponse.json(
+        return createCorsResponse(
           {
             success: false,
             error:
               'Player statistics not available - this game does not have a valid NBA API game ID',
           },
-          { status: 404 }
+          404
         );
       }
     }
@@ -74,7 +81,7 @@ export async function GET(request: NextRequest) {
         nbaGameId,
         cacheKey,
       });
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: cachedData,
       });
@@ -113,13 +120,13 @@ export async function GET(request: NextRequest) {
         gameId,
         errors: playerStatsData.errors,
       });
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'External API returned errors',
           details: playerStatsData.errors,
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -141,7 +148,7 @@ export async function GET(request: NextRequest) {
       tags: cacheTags,
     });
 
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       data: playerStatsData,
     });
@@ -151,12 +158,12 @@ export async function GET(request: NextRequest) {
       searchParams: Object.fromEntries(new URL(request.url).searchParams),
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      500
     );
   }
 }

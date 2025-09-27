@@ -1,11 +1,18 @@
 import type { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
 
 import { simpleCacheService } from '@/lib/cache/simple-cache-service';
 import { getRapidApiConfig } from '@/lib/config/app.config';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
+import { createCorsResponse, handleCorsOptions } from '@/lib/utils/cors';
 import { logger } from '@/lib/utils/logger';
 import type { ITeamPlayersApiResponse } from '@/types';
+
+/**
+ * Handle CORS preflight requests
+ */
+export function OPTIONS() {
+  return handleCorsOptions();
+}
 
 export async function GET(
   request: NextRequest,
@@ -17,22 +24,22 @@ export async function GET(
     const season = searchParams.get('season');
 
     if (!teamId) {
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Team ID is required',
         },
-        { status: 400 }
+        400
       );
     }
 
     if (!season) {
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'Season is required',
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -46,7 +53,7 @@ export async function GET(
         season,
         cacheKey,
       });
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: cachedData,
       });
@@ -71,13 +78,13 @@ export async function GET(
         season,
         errors: teamPlayersData.errors,
       });
-      return NextResponse.json(
+      return createCorsResponse(
         {
           success: false,
           error: 'External API returned errors',
           details: teamPlayersData.errors,
         },
-        { status: 400 }
+        400
       );
     }
 
@@ -106,7 +113,7 @@ export async function GET(
         tags: ['team-players', `team-${teamId}`, `season-${season}`],
       });
 
-      return NextResponse.json({
+      return createCorsResponse({
         success: true,
         data: emptyResponse,
       });
@@ -124,7 +131,7 @@ export async function GET(
       tags: ['team-players', `team-${teamId}`, `season-${season}`],
     });
 
-    return NextResponse.json({
+    return createCorsResponse({
       success: true,
       data: teamPlayersData,
     });
@@ -135,12 +142,12 @@ export async function GET(
       searchParams: Object.fromEntries(new URL(request.url).searchParams),
     });
 
-    return NextResponse.json(
+    return createCorsResponse(
       {
         success: false,
         error: error instanceof Error ? error.message : 'Unknown error',
       },
-      { status: 500 }
+      500
     );
   }
 }
