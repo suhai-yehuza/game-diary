@@ -2,6 +2,7 @@ import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { dbManager } from '@/lib/db';
+import { ErrorHandler, errorHandlers } from '@/lib/utils/error-handler';
 
 /**
  * @swagger
@@ -68,6 +69,7 @@ import { dbManager } from '@/lib/db';
  */
 export async function GET(_request: NextRequest) {
   const startTime = Date.now();
+  const errorHandler = ErrorHandler.getInstance();
 
   try {
     // Always use the mocked approach for consistency with tests
@@ -75,13 +77,26 @@ export async function GET(_request: NextRequest) {
     let databaseHealthy = false;
     let databaseError = null;
 
-    try {
-      // Use the mocked dbManager.testConnection
-      databaseHealthy = await dbManager.testConnection();
+    // Use centralized error handling for database connection test
+    const dbResult = await errorHandler.handleAsync(
+      () => dbManager.testConnection(),
+      {
+        component: 'health-check',
+        action: 'database-connection-test',
+        category: 'DATABASE' as any,
+      },
+      {
+        enableRetry: false,
+        showUserMessage: false,
+      }
+    );
+
+    if (dbResult !== undefined) {
+      databaseHealthy = dbResult;
       if (!databaseHealthy) {
         databaseError = 'Database check failed';
       }
-    } catch (_error) {
+    } else {
       databaseHealthy = false;
       databaseError = 'Database check failed';
     }
@@ -127,8 +142,15 @@ export async function GET(_request: NextRequest) {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
-  } catch (_error) {
+  } catch (error) {
     const responseTime = Date.now() - startTime;
+
+    // Use centralized error handling for the main health check error
+    errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
+      component: 'health-check',
+      action: 'system-health-check',
+      metadata: { responseTime },
+    });
 
     return NextResponse.json(
       {
