@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
-import { db, dbManager } from '@/lib/db';
+import { dbManager } from '@/lib/db';
 
 /**
  * @swagger
@@ -81,7 +81,7 @@ export async function GET(_request: NextRequest) {
       if (!databaseHealthy) {
         databaseError = 'Database check failed';
       }
-    } catch (error) {
+    } catch (_error) {
       databaseHealthy = false;
       databaseError = 'Database check failed';
     }
@@ -127,7 +127,7 @@ export async function GET(_request: NextRequest) {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
       },
     });
-  } catch (error) {
+  } catch (_error) {
     const responseTime = Date.now() - startTime;
 
     return NextResponse.json(
