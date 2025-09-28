@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 
 import { dbManager } from '@/lib/db';
 import { ErrorHandler, errorHandlers } from '@/lib/utils/error-handler';
+import { ErrorCategory } from '@/types';
 
 /**
  * @swagger
@@ -77,28 +78,33 @@ export async function GET(_request: NextRequest) {
     let databaseHealthy = false;
     let databaseError = null;
 
-    // Use centralized error handling for database connection test
-    const dbResult = await errorHandler.handleAsync(
-      () => dbManager.testConnection(),
-      {
-        component: 'health-check',
-        action: 'database-connection-test',
-        category: 'DATABASE' as any,
-      },
-      {
-        enableRetry: false,
-        showUserMessage: false,
-      }
-    );
+    // In integration test mode with mock mode, assume database is healthy
+    if (process.env.MOCK_MODE === 'true') {
+      databaseHealthy = true;
+    } else {
+      // Use centralized error handling for database connection test
+      const dbResult = await errorHandler.handleAsync(
+        () => dbManager.testConnection(),
+        {
+          component: 'health-check',
+          action: 'database-connection-test',
+          category: ErrorCategory.DATABASE,
+        },
+        {
+          enableRetry: false,
+          showUserMessage: false,
+        }
+      );
 
-    if (dbResult !== undefined) {
-      databaseHealthy = dbResult;
-      if (!databaseHealthy) {
+      if (dbResult !== undefined) {
+        databaseHealthy = dbResult;
+        if (!databaseHealthy) {
+          databaseError = 'Database check failed';
+        }
+      } else {
+        databaseHealthy = false;
         databaseError = 'Database check failed';
       }
-    } else {
-      databaseHealthy = false;
-      databaseError = 'Database check failed';
     }
 
     const hasClerk = !!process.env.CLERK_SECRET_KEY;

@@ -14,6 +14,17 @@ vi.mock('@/lib/db', () => ({
 }));
 
 vi.mock('@/lib/utils/error-handler', () => ({
+  ErrorHandler: {
+    getInstance: vi.fn().mockReturnValue({
+      handleAsync: vi.fn().mockImplementation(async fn => {
+        try {
+          return await fn();
+        } catch (error) {
+          return undefined;
+        }
+      }),
+    }),
+  },
   errorHandlers: {
     api: vi.fn(),
     database: vi.fn(),
