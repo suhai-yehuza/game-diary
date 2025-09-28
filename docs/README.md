@@ -7,14 +7,16 @@ Welcome to the comprehensive documentation for the Game Diary application. This 
 ### 🚀 Getting Started
 
 - **[README.md](../README.md)** - Main project overview and setup
-- **[ARCHITECTURE.md](../ARCHITECTURE.md)** - System architecture and design patterns
-- **[DEPLOYMENT_FLOW.md](../DEPLOYMENT_FLOW.md)** - Deployment processes and workflows
+- **[ARCHITECTURE.md](./ARCHITECTURE.md)** - System architecture and design patterns
+- **[API_ROUTES.md](./API_ROUTES.md)** - Complete API routes overview
 
 ### 🔌 API Documentation
 
-- **[API_ROUTES.md](./API_ROUTES.md)** - Complete API routes overview
 - **[API_REFERENCE.md](./API_REFERENCE.md)** - Detailed API reference with examples
-- **[API_QUICK_REFERENCE.md](./API_QUICK_REFERENCE.md)** - Quick reference for developers
+- **[API_ROUTES.md](./API_ROUTES.md)** - Complete API routes overview
+- **[Database Schema](../src/lib/db/migrations/README.md)** - Database documentation
+- **Interactive Swagger UI** - Available at `/api/docs` with OpenAPI 3.0 specification
+- **OpenAPI JSON** - Available at `/api/openapi.json` for client generation
 
 ### 💾 Cache & Redis
 
@@ -29,40 +31,45 @@ Welcome to the comprehensive documentation for the Game Diary application. This 
 
 ### 🎨 UI & Design
 
-- **[COLOR_SYSTEM_GUIDE.md](../docs/COLOR_SYSTEM_GUIDE.md)** - Color system and design tokens
-- **[REACTIONS_IMPLEMENTATION.md](../REACTIONS_IMPLEMENTATION.md)** - User reactions system
+- **Design System** - Custom Tailwind CSS design system with centralized tokens
+- **Component Library** - Reusable UI components with accessibility support
+- **Theme System** - Dark/light mode with user preferences
+- **Responsive Design** - Mobile-first approach with touch-friendly interfaces
 
 ### 🔧 Development Tools
 
-- **[GIT_BEST_PRACTICES.md](../docs/GIT_BEST_PRACTICES.md)** - Git workflow and best practices
-- **[PREVIEW_DEPLOYMENTS.md](../docs/PREVIEW_DEPLOYMENTS.md)** - Preview deployment system
+- **TypeScript** - Strict type checking and modern language features
+- **ESLint & Prettier** - Code quality and formatting
+- **Husky** - Git hooks for quality assurance
+- **Testing** - Unit, integration, and E2E testing with Vitest and Playwright
 
 ### 📊 Analytics & Performance
 
-- **[ANALYTICS_IMPLEMENTATION.md](../ANALYTICS_IMPLEMENTATION.md)** - Analytics system implementation
-- **[SPEED_INSIGHTS_IMPLEMENTATION.md](../SPEED_INSIGHTS_IMPLEMENTATION.md)** - Performance monitoring
-- **[NBA_GAMES_IMPROVEMENTS.md](../NBA_GAMES_IMPROVEMENTS.md)** - NBA data improvements
+- **Vercel Analytics** - User behavior tracking and insights
+- **Speed Insights** - Core Web Vitals monitoring
+- **Custom Metrics** - Application-specific performance tracking
+- **Bundle Analysis** - Regular bundle size monitoring and optimization
 
 ## 🎯 Quick Start
 
 ### For Developers
 
 1. **Setup**: Follow the [main README](../README.md) for installation
-2. **API**: Check [API Quick Reference](./API_QUICK_REFERENCE.md) for common endpoints
-3. **Testing**: Use [testing conventions](../docs/test-naming-convention.md)
-4. **Development**: Follow [Git best practices](../docs/GIT_BEST_PRACTICES.md)
+2. **API**: Check [API Reference](./API_REFERENCE.md) for detailed examples
+3. **Architecture**: Review [Architecture](./ARCHITECTURE.md) for system design
+4. **Testing**: Use comprehensive testing suite with Vitest and Playwright
 
 ### For API Users
 
 1. **Overview**: Start with [API Routes](./API_ROUTES.md)
 2. **Reference**: Use [API Reference](./API_REFERENCE.md) for detailed examples
-3. **Quick Reference**: Keep [API Quick Reference](./API_QUICK_REFERENCE.md) handy
+3. **Database**: Check [Database Schema](../src/lib/db/migrations/README.md) for data structure
 
 ### For DevOps
 
-1. **Deployment**: Follow [Deployment Flow](../DEPLOYMENT_FLOW.md)
-2. **Architecture**: Review [Architecture](../ARCHITECTURE.md)
-3. **Monitoring**: Check health endpoints and analytics
+1. **Architecture**: Review [Architecture](./ARCHITECTURE.md) for system design
+2. **Monitoring**: Check health endpoints and analytics
+3. **Deployment**: Follow Vercel deployment best practices
 
 ## 🔍 API Quick Navigation
 
@@ -70,9 +77,9 @@ Welcome to the comprehensive documentation for the Game Diary application. This 
 
 - **Health**: `/api/health`, `/api/cache/health`
 - **Users**: `/api/user/*`, `/api/user/me`, `/api/user/game-logs`
-- **Players**: `/api/players`, `/api/players/[id]`
-- **Teams**: `/api/teams`, `/api/teams/[id]`
-- **Games**: `/api/games`, `/api/games/[id]`
+- **Sports Data**: `/api/players`, `/api/teams`, `/api/games`
+- **Game Logs**: `/api/game-logs`, `/api/game-logs/[id]`
+- **Social**: `/api/comments`, `/api/reactions`, `/api/friendships`
 - **Search**: `/api/search`
 
 ### Cache Management
@@ -86,6 +93,11 @@ Welcome to the comprehensive documentation for the Game Diary application. This 
 - **Admin**: `/api/admin/*`
 - **Webhooks**: `/api/webhooks/*`
 - **GraphQL**: `/api/graphql`
+
+### API Documentation
+
+- **Swagger UI**: `/api/docs` - Interactive API documentation
+- **OpenAPI JSON**: `/api/openapi.json` - Machine-readable API specification
 
 ## 🧪 Testing & Development
 
@@ -129,25 +141,27 @@ pnpm check-env
 
 ### Core Components
 
-- **Next.js 13+ App Router** - Modern React framework
-- **TypeScript** - Type-safe development
-- **PostgreSQL** - Primary database
-- **Redis** - Caching and session storage
-- **Upstash Redis** - External Redis service
+- **Next.js 15 App Router** - Modern React framework with server components
+- **TypeScript 5.8** - Type-safe development with strict configuration
+- **PostgreSQL** - Primary database with Drizzle ORM
+- **Redis** - Caching and session storage with Upstash integration
+- **Clerk** - Authentication and user management
+- **Vercel** - Deployment and hosting platform
 
 ### Cache Strategy
 
-- **Memory Cache** - Fast local access
-- **Redis Cache** - Persistent distributed cache
+- **Memory Cache** - Fast local access with LRU eviction
+- **Redis Cache** - Persistent distributed cache with TTL
 - **Hybrid Approach** - Intelligent fallback system
-- **Namespace Support** - Organized cache management
+- **Namespace Support** - Organized cache management by feature
 
 ### Security Features
 
-- **JWT Authentication** - Secure token-based auth
-- **Rate Limiting** - API abuse prevention
+- **Clerk Authentication** - Secure user management and social features
+- **Rate Limiting** - API abuse prevention with Upstash
 - **Input Validation** - Zod schema validation
 - **Error Handling** - Centralized error management
+- **Row-Level Security** - Database-level access control
 
 ## 🚀 Performance & Monitoring
 
@@ -255,6 +269,29 @@ pnpm check-env
 - **Database Maintenance** - Schema updates and optimization
 - **Performance Monitoring** - Continuous improvement
 
+## 🎯 Key Features
+
+### Sports Tracking
+
+- **Multi-Sport Support** - NBA, NFL, MLB, NHL, and MLS
+- **Live Games** - Real-time game updates and notifications
+- **Game Logging** - Track and share game watching experiences
+- **Player & Team Data** - Comprehensive sports statistics
+
+### Social Features
+
+- **User Profiles** - Personalized user dashboards
+- **Comments & Reactions** - Engage with game logs and other users
+- **Friend Connections** - Build your sports community
+- **Activity Feeds** - Stay updated with friends' activities
+
+### Technical Excellence
+
+- **Performance Optimized** - Bundle analysis and lazy loading
+- **Mobile-First Design** - Responsive design with touch support
+- **Accessibility** - WCAG compliant with keyboard navigation
+- **Real-time Updates** - Live data synchronization
+
 ---
 
 ## 📞 Contact & Support
@@ -266,6 +303,6 @@ pnpm check-env
 
 ---
 
-**Last Updated**: January 2024
+**Last Updated**: January 2025
 **Version**: 1.0.0
-**Maintained By**: Development Team
+**Maintained By**: Game Diary Development Team

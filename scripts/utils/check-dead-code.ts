@@ -191,8 +191,8 @@ class ResultFormatter {
   }
 
   formatEmptyFiles(emptyFiles: string[]): void {
-    // Ignore transient Playwright artifact empties
-    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    // Ignore transient Playwright artifact empties and placeholder GIF files
+    const ignoredPatterns = [/test-results\/.+\.webm$/, /assets\/gifs\/.+\.gif$/];
     const actionable = emptyFiles.filter(
       f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
     );
@@ -213,7 +213,7 @@ class ResultFormatter {
 
   printSummary(results: DeadCodeResults): void {
     const { tsPruneResults, tsUnusedExportsResults, emptyFiles } = results;
-    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    const ignoredPatterns = [/test-results\/.+\.webm$/, /assets\/gifs\/.+\.gif$/];
     const actionableEmpty = emptyFiles.filter(
       f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
     );
@@ -258,7 +258,7 @@ async function main(): Promise<void> {
     // Exit with appropriate code
     // Exit with code 1 if ts-unused-exports finds any issues or if there are empty files
     const hasTsUnusedExportsIssues = Object.keys(results.tsUnusedExportsResults).length > 0;
-    const ignoredPatterns = [/test-results\/.+\.webm$/];
+    const ignoredPatterns = [/test-results\/.+\.webm$/, /assets\/gifs\/.+\.gif$/];
     const actionableEmptyAtExit = results.emptyFiles.filter(
       f => !ignoredPatterns.some(p => p.test(path.relative(process.cwd(), f)))
     );

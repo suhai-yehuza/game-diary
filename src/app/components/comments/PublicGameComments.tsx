@@ -49,7 +49,6 @@ export function PublicGameComments({ gameId, showComments = false }: IPublicGame
           <span className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
             Public Comments {commentCount > 0 ? `(${commentCount})` : ''}
           </span>
-          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">Optimized</span>
         </div>
       </div>
 

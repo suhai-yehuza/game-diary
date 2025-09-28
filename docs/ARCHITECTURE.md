@@ -1,6 +1,6 @@
-# 🏗️ Placeholder - Architecture & Optimization Guide
+# 🏗️ Game Diary Architecture & Optimization Guide
 
-This document provides a comprehensive overview of the Placeholder application architecture, optimization strategies, and development guidelines.
+This document provides a comprehensive overview of the Game Diary application architecture, optimization strategies, and development guidelines.
 
 ## 📋 Table of Contents
 
@@ -15,12 +15,13 @@ This document provides a comprehensive overview of the Placeholder application a
 
 ## 🎯 Overview
 
-Placeholder is a modern, full-stack web application built with:
+Game Diary is a modern, full-stack sports tracking application built with:
 
-- **Frontend**: Next.js 14 (App Router), TypeScript, Tailwind CSS
-- **Backend**: GraphQL with Apollo Server, PostgreSQL, Redis
-- **Infrastructure**: Vercel (hosting), Neon (database), UpStash (Redis)
-- **Monitoring**: Custom performance monitoring, bundle analysis
+- **Frontend**: Next.js 15 (App Router), React 19, TypeScript 5.8, Tailwind CSS
+- **Backend**: GraphQL with Apollo Server, PostgreSQL with Drizzle ORM, Redis
+- **Infrastructure**: Vercel (hosting), Neon (database), Upstash (Redis)
+- **Authentication**: Clerk for user management and social features
+- **Monitoring**: Vercel Analytics, Speed Insights, custom performance monitoring
 
 ### Key Design Principles
 
@@ -94,17 +95,17 @@ graph TB
 
 ```
 game-diary/
-├── 📁 src/                    # Source code
-│   ├── 📁 app/               # Next.js App Router
-│   │   ├── 📁 api/           # API routes
-│   │   ├── 📁 protected/     # Auth-required pages
-│   │   ├── 📁 sports/        # Sports-specific pages
-│   │   └── 📁 _components/   # App-level shared components
-│   ├── 📁 components/        # React components
+├── 📁 src/                  # Source code
+│   ├── 📁 app/              # Next.js App Router
+│   │   ├── 📁 api/          # API routes
+│   │   ├── 📁 protected/    # Auth-required pages
+│   │   ├── 📁 sports/       # Sports-specific pages
+│   │   └── 📁 _components/  # App-level shared components
+│   ├── 📁 components/       # React components
 │   │   ├── 📁 ui/           # Design system components
 │   │   ├── 📁 features/     # Feature-specific components
 │   │   └── 📁 common/       # Shared business components
-│   ├── 📁 lib/               # Core library code
+│   ├── 📁 lib/              # Core library code
 │   │   ├── 📁 core/         # Essential services
 │   │   ├── 📁 graphql/      # GraphQL schema & resolvers
 │   │   ├── 📁 db/           # Database layer
@@ -112,8 +113,8 @@ game-diary/
 │   └── 📁 hooks/            # Custom React hooks
 ├── 📁 scripts/              # Build and automation scripts
 ├── 📁 docs/                 # Documentation
-├── 📁 public/              # Static assets
-└── 📁 coverage/            # Test coverage and performance reports
+├── 📁 public/               # Static assets
+└── 📁 coverage/             # Test coverage and performance reports
 ```
 
 ### Component Architecture
