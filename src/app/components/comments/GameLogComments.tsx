@@ -94,7 +94,6 @@ export function GameLogComments({ gameLog, showComments = false }: IGameLogComme
           <span className="text-lg font-semibold text-theme-primary">
             Comments {commentCount > 0 ? `(${commentCount})` : ''}
           </span>
-          <span className="text-xs text-semantic-success font-medium">Optimized</span>
         </div>
       </div>
 

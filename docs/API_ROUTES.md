@@ -1,35 +1,35 @@
 # API Routes Documentation
 
-This document provides comprehensive documentation for all API routes in the `src/app/api` directory of the game-diary application.
+This document provides comprehensive documentation for all API routes in the Game Diary application, organized by functionality and use case.
 
-## Table of Contents
+## 📋 Table of Contents
 
 - [Overview](#overview)
 - [Authentication & Authorization](#authentication--authorization)
 - [Cache Management](#cache-management)
 - [Health & Monitoring](#health--monitoring)
 - [User Management](#user-management)
-- [Player Management](#player-management)
-- [Team Management](#team-management)
-- [Game Management](#game-management)
-- [NBA Data](#nba-data)
+- [Sports Data](#sports-data)
+- [Game Logging](#game-logging)
+- [Social Features](#social-features)
 - [Search Functionality](#search-functionality)
 - [Admin Operations](#admin-operations)
 - [Webhooks](#webhooks)
 - [GraphQL](#graphql)
-- [Proxy & Utilities](#proxy--utilities)
 - [Error Handling](#error-handling)
 
-## Overview
+## 🎯 Overview
 
-The API is built using Next.js 13+ App Router with the following features:
+The Game Diary API is built using Next.js 15 App Router with the following features:
 
 - **RESTful endpoints** for CRUD operations
-- **TypeScript** for type safety
-- **Middleware** for authentication and validation
+- **GraphQL API** for complex queries and real-time updates
+- **TypeScript** for type safety and developer experience
+- **Middleware** for authentication, validation, and rate limiting
 - **Error handling** with centralized error management
-- **Rate limiting** and security measures
-- **Comprehensive logging** and monitoring
+- **Advanced caching** with Redis and memory layers
+- **Comprehensive logging** and performance monitoring
+- **Real-time features** for live game updates
 
 ## Authentication & Authorization
 

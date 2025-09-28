@@ -1,14 +1,25 @@
 # API Reference
 
-This document provides detailed API reference information for the game-diary application, including request/response examples, error codes, and implementation details.
+This document provides comprehensive API reference information for the Game Diary application, including request/response examples, error codes, and implementation details.
 
-## Base URL
+## 🌐 Base URLs
 
 ```
 Development: http://localhost:3000/api
 Staging: https://staging.game-diary.io/api
 Production: https://www.game-diary.io/api
 ```
+
+## 🎯 Overview
+
+The Game Diary API is a comprehensive REST and GraphQL API that provides:
+
+- **Sports Data**: NBA, NFL, MLB, NHL, and MLS game information
+- **User Management**: Authentication, profiles, and social features
+- **Game Logging**: Track and share game watching experiences
+- **Social Features**: Comments, reactions, and friend connections
+- **Real-time Updates**: Live game data and notifications
+- **Advanced Caching**: Redis-based caching with intelligent fallback
 
 ## Authentication
 
