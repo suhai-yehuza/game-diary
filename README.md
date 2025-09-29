@@ -1,29 +1,25 @@
-# Game Diary
+# Game Diary [Visit Site](https://www.game-diary.io/)
 
 A comprehensive sports game logging and tracking application that allows users to track their game watching experiences, connect with fellow sports fans, and share thoughts on live games across NBA, NFL, MLB, NHL, and MLS.
 
-![Game Diary Dashboard Overview](https://media.giphy.com/media/l0HlNQ03J5JxX6lva/giphy.gif)
+![Game Diary Dashboard Overview](https://www.loom.com/share/5b738fe3982e4e99a13c4a389e8ea973?sid=f42bd596-8a66-4a91-8035-5ee291dba1b0)
 
 ## 🎯 Features
 
 ### Core Functionality
 
-![Game Logging Flow](https://media.giphy.com/media/xT9IgzoKnwFNmISR8I/giphy.gif)
+![Game Logging Flow](https://www.loom.com/share/d812df7218dc4050afb01e90c943526f?sid=8d736c3f-9928-40bc-820e-a8ee2a2b925b)
 
 - **Game Logging**: Track and log your sports watching experiences
 - **Multi-Sport Support**: NBA, NFL, MLB, NHL, and MLS coverage
 - **Live Games**: Real-time game tracking and updates
 - **Social Features**: Connect with friends, share experiences, and build community
 
-![Social Features Demo](https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif)
-
 - **Comments & Reactions**: Engage with game logs through comments and emoji reactions
 - **User Dashboard**: Personalized dashboard with activity tracking
 - **Search & Discovery**: Find games, players, teams, and other users
 
 ### Technical Features
-
-![Theme & Responsiveness](https://media.giphy.com/media/26tn33aiTi1jkl6H6/giphy.gif)
 
 - **Real-time Updates**: Live game data and notifications
 - **Advanced Caching**: Redis-based caching with intelligent fallback
@@ -161,8 +157,6 @@ pnpm kill:3000             # Kill all processes on port 3000
 
 ### API Documentation
 
-![API Documentation](https://media.giphy.com/media/3o7abldj0b3rxrZUxW/giphy.gif)
-
 - `pnpm api:docs` - View interactive API documentation (Swagger UI)
 - `pnpm api:openapi` - Access OpenAPI JSON specification
 
@@ -239,6 +233,36 @@ game-diary/
 - **Vercel Analytics**: User behavior tracking
 - **Speed Insights**: Core Web Vitals monitoring
 - **Custom Metrics**: Application-specific performance tracking
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+Our automated CI/CD pipeline ensures code quality and seamless deployments:
+
+![GitHub Actions - Workflow Overview](assets/screenshots/github-actions/Screenshot%202025-09-28%20at%2020.10.50.png)
+
+![GitHub Actions - Build Process](assets/screenshots/github-actions/Screenshot%202025-09-28%20at%2020.11.07.png)
+
+![GitHub Actions - Test Execution](assets/screenshots/github-actions/Screenshot%202025-09-28%20at%2020.11.24.png)
+
+![GitHub Actions - Deployment Status](assets/screenshots/github-actions/Screenshot%202025-09-28%20at%2020.11.55.png)
+
+### Vercel Deployment
+
+Seamless deployment and monitoring through Vercel:
+
+![Vercel - Project Overview](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.12.52.png)
+
+![Vercel - Deployment History](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.13.09.png)
+
+![Vercel - Performance Analytics](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.13.32.png)
+
+![Vercel - Function Monitoring](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.14.19.png)
+
+![Vercel - Environment Configuration](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.14.50.png)
+
+![Vercel - Domain Management](assets/screenshots/vercel/Screenshot%202025-09-28%20at%2020.15.01.png)
 
 ## 📚 Documentation
 
