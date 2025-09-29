@@ -1,47 +1,149 @@
-# Game Diary [Visit Site](https://www.game-diary.io/)
+<div align="center">
 
-A comprehensive sports game logging and tracking application that allows users to track their game watching experiences, connect with fellow sports fans, and share thoughts on live games across NBA, NFL, MLB, NHL, and MLS.
+# 🏀 Game Diary
 
-![Game Diary Dashboard Overview](https://www.loom.com/share/5b738fe3982e4e99a13c4a389e8ea973?sid=f42bd596-8a66-4a91-8035-5ee291dba1b0)
+[![🚀 Try Game Diary Live](https://img.shields.io/badge/🚀_Try_Game_Diary_Live-FF4757?style=for-the-badge&logo=vercel&logoColor=white)](https://www.game-diary.io/)
+[![📂 GitHub Repo](https://img.shields.io/badge/📂_GitHub_Repo-4A90E2?style=for-the-badge&logo=github&logoColor=white)](https://github.com/suhai-yehuza/game-diary)
+
+_A comprehensive sports game logging and tracking application that allows users to track their game watching experiences, connect with fellow sports fans, and share thoughts on live games across NBA, NFL, MLB, NHL, and MLS._
+
+</div>
+
+## 📺 Demo Videos
+
+### 🎯 Dashboard Overview
+
+<div align="center">
+
+[![Watch Dashboard Demo](https://img.shields.io/badge/📺_Watch_Dashboard_Demo-FF9F43?style=for-the-badge&logo=loom&logoColor=white)](https://www.loom.com/share/5b738fe3982e4e99a13c4a389e8ea973)
+
+**🎬 Complete Dashboard Walkthrough**
+_See the full application interface, user dashboard, and core features in action_
+
+</div>
 
 ## 🎯 Features
 
-### Core Functionality
+### 🎮 Game Logging Flow
 
-![Game Logging Flow](https://www.loom.com/share/d812df7218dc4050afb01e90c943526f?sid=8d736c3f-9928-40bc-820e-a8ee2a2b925b)
+<div align="center">
+
+[![Watch Game Logging Demo](https://img.shields.io/badge/🎮_Watch_Game_Logging_Demo-5A6C7D?style=for-the-badge&logo=loom&logoColor=white)](https://www.loom.com/share/d812df7218dc4050afb01e90c943526f)
+
+**🎬 Game Logging Process**
+_Learn how to track games, add reactions, and engage with the community_
+
+</div>
+
+### 🚀 Core Features
+
+<table>
+<tr>
+<td width="50%">
+
+#### 🎮 **Game Management**
 
 - **Game Logging**: Track and log your sports watching experiences
 - **Multi-Sport Support**: NBA, NFL, MLB, NHL, and MLS coverage
 - **Live Games**: Real-time game tracking and updates
-- **Social Features**: Connect with friends, share experiences, and build community
-
-- **Comments & Reactions**: Engage with game logs through comments and emoji reactions
-- **User Dashboard**: Personalized dashboard with activity tracking
 - **Search & Discovery**: Find games, players, teams, and other users
 
-### Technical Features
+</td>
+<td width="50%">
+
+#### 👥 **Social Features**
+
+- **Social Features**: Connect with friends, share experiences, and build community
+- **Comments & Reactions**: Engage with game logs through comments and emoji reactions
+- **User Dashboard**: Personalized dashboard with activity tracking
+- **Real-time Updates**: Live notifications and activity feeds
+
+</td>
+</tr>
+</table>
+
+### ⚡ Technical Features
+
+<table>
+<tr>
+<td width="33%">
+
+#### 🚀 **Performance**
 
 - **Real-time Updates**: Live game data and notifications
 - **Advanced Caching**: Redis-based caching with intelligent fallback
 - **Performance Optimization**: Bundle analysis, lazy loading, and code splitting
+
+</td>
+<td width="33%">
+
+#### 📱 **User Experience**
+
 - **Mobile-First Design**: Responsive design with touch-friendly interfaces
 - **Dark Mode Support**: Complete theme system with user preferences
 - **Accessibility**: WCAG compliant with keyboard navigation support
 
+</td>
+<td width="33%">
+
+#### 🔒 **Security & Quality**
+
+- **Data Encryption**: Sensitive information protection
+- **Type Safety**: Full TypeScript implementation
+- **Testing**: Comprehensive unit, integration, and E2E testing
+
+</td>
+</tr>
+</table>
+
 ## 🏗️ Architecture
 
-### Technology Stack
+### 🛠️ Technology Stack
 
-- **Frontend**: Next.js 15, React 19, TypeScript 5.8
-- **Styling**: Tailwind CSS with custom design system
-- **Database**: PostgreSQL with Drizzle ORM
-- **Caching**: Redis with Upstash integration
-- **Authentication**: Clerk for user management
-- **External APIs**: RapidAPI for sports data integration
-- **Email Services**: SendGrid for transactional emails
-- **Security**: Data encryption for sensitive information
-- **Deployment**: Vercel with edge functions
-- **Monitoring**: Vercel Analytics & Speed Insights
+<table>
+<tr>
+<td width="25%">
+
+#### 🎨 **Frontend**
+
+- **Next.js 15** - React framework
+- **React 19** - UI library
+- **TypeScript 5.8** - Type safety
+- **Tailwind CSS** - Styling system
+
+</td>
+<td width="25%">
+
+#### 🗄️ **Backend**
+
+- **PostgreSQL** - Database
+- **Drizzle ORM** - Database layer
+- **Redis** - Caching layer
+- **Clerk** - Authentication
+
+</td>
+<td width="25%">
+
+#### 🌐 **External Services**
+
+- **RapidAPI** - Sports data
+- **SendGrid** - Email services
+- **Upstash** - Redis hosting
+- **Vercel** - Deployment
+
+</td>
+<td width="25%">
+
+#### 📊 **Monitoring**
+
+- **Vercel Analytics** - User tracking
+- **Speed Insights** - Performance
+- **Custom Metrics** - App monitoring
+- **Error Tracking** - Issue detection
+
+</td>
+</tr>
+</table>
 
 ### Key Components
 
