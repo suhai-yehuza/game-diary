@@ -328,6 +328,7 @@
     "truncate:internal": "tsx scripts/db/database-manager.ts truncate --scope=internal",
     "typecheck": "pnpm exec tsc --noEmit --incremental",
     "validate": "./scripts/validation-pipeline.sh",
+    "validate:agents-docs": "tsx scripts/validate-agents-documentation.ts",
     "validate:all": "pnpm validate:ci && pnpm db:triggers && pnpm test:e2e:performance",
     "validate:ci": "pnpm lint && pnpm typecheck && pnpm test:unit && pnpm db:triggers && pnpm db:test:all-triggers",
     "validate:circular": "./scripts/validation-pipeline.sh circular",

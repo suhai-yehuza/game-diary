@@ -18,11 +18,37 @@ const RESUME_FREQUENT_POLLING_AFTER_MS = 600000; // Resume frequent polling afte
 
 // Helper function to transform external API games to internal format
 function transformExternalGamesToInternal(games: IExternalGame[]): IGameResponse[] {
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔄 Transforming external games:', {
+      inputCount: games.length,
+      firstGame: games[0]
+        ? {
+            id: games[0].id,
+            date: games[0].date,
+            teams: games[0].teams,
+            status: games[0].status,
+          }
+        : null,
+    });
+  }
+
   return games
     .filter(game => {
       // Only include games with valid dates
       const gameDate = typeof game.date === 'string' ? game.date : game.date?.start;
-      return gameDate && gameDate.trim() !== '' && !isNaN(new Date(gameDate).getTime());
+      const isValidDate =
+        gameDate && gameDate.trim() !== '' && !isNaN(new Date(gameDate).getTime());
+
+      if (process.env.NODE_ENV === 'development' && !isValidDate) {
+        console.warn('⚠️ Filtering out game with invalid date:', {
+          id: game.id,
+          date: game.date,
+          gameDate,
+          isValidDate,
+        });
+      }
+
+      return isValidDate;
     })
     .map(game => ({
       id: game.season ? `${game.season}-${game.id.toString()}` : game.id.toString(),
@@ -157,12 +183,26 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
         ? '/api/mock-server?action=mock-data&type=live-games'
         : `${INTERNAL_PROXY_ENDPOINTS.GAMES}?live=all`;
 
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔄 Fetching live games from: ${endpoint}`);
+      }
+
       const response = await fetch(endpoint);
       if (!response.ok) {
         throw new Error(`API request failed: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('📊 Live games API response:', {
+          hasResults: 'results' in data,
+          hasResponse: 'response' in data,
+          results: data.results,
+          responseLength: data.response?.length,
+          useMockData,
+        });
+      }
 
       // Handle mock server response format
       if (useMockData && typeof data === 'object' && data !== null && 'data' in data) {
@@ -187,12 +227,18 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
           setLastLiveGamesFound(Date.now());
         }
       } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('⚠️ Invalid games API response format:', data);
+        }
         setLiveGames(null);
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
       setError(error.message);
       setLiveGames(null);
+      if (process.env.NODE_ENV === 'development') {
+        console.error('❌ Live games fetch error:', error.message);
+      }
     } finally {
       setLoading(false);
     }
@@ -270,7 +316,31 @@ export function useLiveGames(options: IUseLiveGamesOptions = {}): IUseLiveGamesR
   }, [getAdaptivePollingInterval, liveGames?.response]);
 
   const games = useMemo(() => {
-    return liveGames?.response ? transformExternalGamesToInternal(liveGames.response) : [];
+    if (!liveGames?.response) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 No live games response data');
+      }
+      return [];
+    }
+
+    const transformed = transformExternalGamesToInternal(liveGames.response);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔄 Live games transformation:', {
+        originalCount: liveGames.response.length,
+        transformedCount: transformed.length,
+        firstGame: transformed[0]
+          ? {
+              id: transformed[0].id,
+              homeTeam: transformed[0].home_team,
+              awayTeam: transformed[0].away_team,
+              status: transformed[0].status,
+            }
+          : null,
+      });
+    }
+
+    return transformed;
   }, [liveGames?.response]);
 
   // Helper function to format time since last live games

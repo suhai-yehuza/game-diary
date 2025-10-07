@@ -342,7 +342,7 @@ describe('GameLogModal Component', () => {
     // Wait for loading to complete and find season select
     await waitFor(
       () => {
-        const seasonSelect = screen.getByDisplayValue('2024-2025 Season (Latest)');
+        const seasonSelect = screen.getByDisplayValue('2025-2026 Season (Latest)');
         fireEvent.change(seasonSelect, { target: { value: 'all' } });
         expect(seasonSelect).toBeInTheDocument();
       },

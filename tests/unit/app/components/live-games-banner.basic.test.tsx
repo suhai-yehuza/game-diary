@@ -384,8 +384,8 @@ describe('LiveGamesBanner', () => {
     render(<LiveGamesBanner />);
 
     const logos = screen.getAllByTestId('team-logo');
-    // The component duplicates games for seamless scrolling, so we expect 4 logos (2 teams × 2 instances)
-    expect(logos).toHaveLength(4);
+    // With a single game, we expect 2 logos (visitors and home team)
+    expect(logos).toHaveLength(2);
     expect(logos[0]).toHaveAttribute('src', '/lakers.png');
     expect(logos[1]).toHaveAttribute('src', '/warriors.png');
   });

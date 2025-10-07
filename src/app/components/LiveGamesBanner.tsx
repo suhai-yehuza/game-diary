@@ -107,7 +107,26 @@ export function LiveGamesBanner() {
   const [isLoading, setIsLoading] = useState(false);
 
   // Get the games to display using our centralized logic
-  const displayGames = useMemo(() => getDisplayGames(games), [games]);
+  const displayGames = useMemo(() => {
+    const result = getDisplayGames(games);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎯 LiveGamesBanner displayGames:', {
+        inputGames: games?.length || 0,
+        displayGames: result.length,
+        firstGame: result[0]
+          ? {
+              id: result[0].id,
+              homeTeam: result[0].home_team,
+              awayTeam: result[0].away_team,
+              status: result[0].status,
+            }
+          : null,
+      });
+    }
+
+    return result;
+  }, [games]);
 
   // Update last updated timestamp when games change
   useEffect(() => {
@@ -122,6 +141,9 @@ export function LiveGamesBanner() {
       setIsLoading(true);
       const timer = setTimeout(() => setIsLoading(false), 1000);
       return () => clearTimeout(timer);
+    } else {
+      // If we have games, stop loading immediately
+      setIsLoading(false);
     }
   }, [displayGames]);
 
@@ -153,7 +175,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] bg-brand-primary text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-2xl border-b-4 border-pink-300"
+      className="fixed top-0 left-0 right-0 z-[60] text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-2xl border-b-4 border-pink-300"
       style={
         {
           position: 'fixed',
@@ -163,6 +185,8 @@ export function LiveGamesBanner() {
           // Ensure proper stacking context for WebKit
           transform: 'translateZ(0)',
           willChange: 'transform',
+          background: '#dc2626',
+          boxShadow: '0 8px 32px rgba(220, 38, 38, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
         } as React.CSSProperties
       }
       role="banner"
@@ -208,10 +232,24 @@ export function LiveGamesBanner() {
             <div className="relative flex items-center">
               <div
                 data-testid="live-indicator"
-                className="w-3 h-3 bg-semantic-error rounded-full shadow-lg shadow-semantic-error/50 animate-live-dot-glow"
+                className="w-3 h-3 rounded-full shadow-lg animate-live-dot-glow"
+                style={{
+                  background: '#00ffff',
+                  boxShadow: '0 0 20px #00ffff, 0 0 40px #00ffff',
+                }}
               />
-              <div className="absolute w-3 h-3 bg-semantic-error rounded-full animate-ping opacity-75" />
-              <div className="absolute inset-0 w-3 h-3 bg-semantic-error/20 rounded-full blur-sm scale-150" />
+              <div
+                className="absolute w-3 h-3 rounded-full animate-ping opacity-75"
+                style={{
+                  background: '#00ffff',
+                }}
+              />
+              <div
+                className="absolute inset-0 w-3 h-3 rounded-full blur-sm scale-150"
+                style={{
+                  background: 'rgba(0, 255, 255, 0.3)',
+                }}
+              />
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-xs font-bold leading-none">
@@ -239,152 +277,223 @@ export function LiveGamesBanner() {
 
         {/* Scrolling games area - takes up remaining space */}
         <div className="flex-1 overflow-hidden bg-theme-muted/10">
-          <div
-            className={`flex items-center space-x-1 xs:space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6 h-full ${
-              isPaused ? 'animate-none' : 'animate-scroll-left'
-            }`}
-          >
-            {/* Add responsive padding to start games further from the edges and account for info panel */}
-            <div className="w-[60px] xs:w-[80px] sm:w-[100px] md:w-[120px] lg:w-[140px] xl:w-[160px] 2xl:w-[180px]" />
-            {displayGames.map((game: IGameResponse, index: number) => (
-              <React.Fragment key={game.id}>
-                <div
-                  data-testid="game"
-                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
-                  onClick={() => handleGameClick(game)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleGameClick(game);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${game.teams?.visitors.name} ${game.scores?.visitors.points} at ${game.teams?.home.name} ${game.scores?.home.points}, ${typeof game.status === 'object' ? game.status.short : game.status}`}
-                >
-                  {/* Away Team */}
-                  <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
-                    <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
-                      <Image
-                        src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
-                        alt={`${game.teams?.visitors.name} logo`}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
-                        loading="lazy"
-                      />
+          {displayGames.length === 1 ? (
+            // Single game - no animation, just center it
+            <div className="flex items-center justify-center h-full">
+              {displayGames.map((game: IGameResponse, _index: number) => (
+                <React.Fragment key={game.id}>
+                  <div
+                    data-testid="game"
+                    className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
+                    onClick={() => handleGameClick(game)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleGameClick(game);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${game.teams?.visitors.name} ${game.scores?.visitors.points} at ${game.teams?.home.name} ${game.scores?.home.points}, ${typeof game.status === 'object' ? game.status.short : game.status}`}
+                  >
+                    {/* Away Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.visitors.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.visitors.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.visitors.points}</span>
                     </div>
-                    <span className="text-xs font-medium">{game.teams?.visitors.code}</span>
-                    <span className="text-xs font-bold">{game.scores?.visitors.points}</span>
-                  </div>
 
-                  {/* @ */}
-                  <span className="text-xs text-text-inverse/80">@</span>
+                    {/* @ */}
+                    <span className="text-xs text-text-inverse/80">@</span>
 
-                  {/* Home Team */}
-                  <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
-                    <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
-                      <Image
-                        src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
-                        alt={`${game.teams?.home.name} logo`}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
-                        loading="lazy"
-                      />
+                    {/* Home Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.home.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.home.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.home.points}</span>
                     </div>
-                    <span className="text-xs font-medium">{game.teams?.home.code}</span>
-                    <span className="text-xs font-bold">{game.scores?.home.points}</span>
-                  </div>
 
-                  {/* Game Status */}
-                  {(typeof game.status === 'object' ? game.status.clock : null) && (
-                    <span className="text-xs text-gray-200 ml-0.5 xs:ml-1 sm:ml-2">
-                      {typeof game.status === 'object' ? game.status.clock : null}
+                    {/* Game Status */}
+                    {(typeof game.status === 'object' ? game.status.clock : null) && (
+                      <span className="text-xs text-gray-200 ml-0.5 xs:ml-1 sm:ml-2">
+                        {typeof game.status === 'object' ? game.status.clock : null}
+                      </span>
+                    )}
+                    {/* Quarter */}
+                    <span className="text-xs text-gray-200 ml-0.5 xs:ml-0.5 sm:ml-1">
+                      {typeof game.status === 'object' ? game.status.short : game.status}
                     </span>
-                  )}
-                  {/* Quarter */}
-                  <span className="text-xs text-gray-200 ml-0.5 xs:ml-0.5 sm:ml-1">
-                    {typeof game.status === 'object' ? game.status.short : game.status}
-                  </span>
-                </div>
+                  </div>
+                </React.Fragment>
+              ))}
+            </div>
+          ) : (
+            // Multiple games - use scrolling animation
+            <div
+              className={`flex items-center space-x-1 xs:space-x-2 sm:space-x-3 md:space-x-4 lg:space-x-6 h-full ${
+                isPaused ? 'animate-none' : 'animate-scroll-left'
+              }`}
+            >
+              {/* Add responsive padding to start games further from the edges and account for info panel */}
+              <div className="w-[60px] xs:w-[80px] sm:w-[100px] md:w-[120px] lg:w-[140px] xl:w-[160px] 2xl:w-[180px]" />
+              {displayGames.map((game: IGameResponse, index: number) => (
+                <React.Fragment key={game.id}>
+                  <div
+                    data-testid="game"
+                    className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
+                    onClick={() => handleGameClick(game)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleGameClick(game);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${game.teams?.visitors.name} ${game.scores?.visitors.points} at ${game.teams?.home.name} ${game.scores?.home.points}, ${typeof game.status === 'object' ? game.status.short : game.status}`}
+                  >
+                    {/* Away Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.visitors.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.visitors.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.visitors.points}</span>
+                    </div>
 
-                {/* Separator between games */}
-                {index < displayGames.length - 1 && (
+                    {/* @ */}
+                    <span className="text-xs text-text-inverse/80">@</span>
+
+                    {/* Home Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.home.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.home.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.home.points}</span>
+                    </div>
+
+                    {/* Game Status */}
+                    {(typeof game.status === 'object' ? game.status.clock : null) && (
+                      <span className="text-xs text-gray-200 ml-0.5 xs:ml-1 sm:ml-2">
+                        {typeof game.status === 'object' ? game.status.clock : null}
+                      </span>
+                    )}
+                    {/* Quarter */}
+                    <span className="text-xs text-gray-200 ml-0.5 xs:ml-0.5 sm:ml-1">
+                      {typeof game.status === 'object' ? game.status.short : game.status}
+                    </span>
+                  </div>
+
+                  {/* Separator between games */}
+                  {index < displayGames.length - 1 && (
+                    <div className="w-px h-2.5 xs:h-3 sm:h-4 bg-gray-600 flex-shrink-0" />
+                  )}
+                </React.Fragment>
+              ))}
+
+              {/* Duplicate first few games for seamless scrolling */}
+              {displayGames.slice(0, 3).map((game: IGameResponse) => (
+                <React.Fragment key={`duplicate-${game.id}`}>
                   <div className="w-px h-2.5 xs:h-3 sm:h-4 bg-gray-600 flex-shrink-0" />
-                )}
-              </React.Fragment>
-            ))}
-
-            {/* Duplicate first few games for seamless scrolling */}
-            {displayGames.slice(0, 3).map((game: IGameResponse) => (
-              <React.Fragment key={`duplicate-${game.id}`}>
-                <div className="w-px h-2.5 xs:h-3 sm:h-4 bg-gray-600 flex-shrink-0" />
-                <div
-                  data-testid="game"
-                  className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
-                  onClick={() => handleGameClick(game)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      handleGameClick(game);
-                    }
-                  }}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`${game.teams?.visitors.name} ${game.scores?.visitors.points} at ${game.teams?.home.name} ${game.scores?.home.points}, ${typeof game.status === 'object' ? game.status.short : game.status}`}
-                >
-                  {/* Away Team */}
-                  <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
-                    <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
-                      <Image
-                        src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
-                        alt={`${game.teams?.visitors.name} logo`}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
-                        loading="lazy"
-                      />
+                  <div
+                    data-testid="game"
+                    className="flex items-center space-x-0.5 xs:space-x-1 sm:space-x-2 flex-shrink-0 cursor-pointer hover:bg-text-inverse/10 rounded-lg px-1 xs:px-1.5 sm:px-2 py-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-text-inverse/30 focus:ring-offset-2 focus:ring-offset-theme-muted"
+                    onClick={() => handleGameClick(game)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        handleGameClick(game);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`${game.teams?.visitors.name} ${game.scores?.visitors.points} at ${game.teams?.home.name} ${game.scores?.home.points}, ${typeof game.status === 'object' ? game.status.short : game.status}`}
+                  >
+                    {/* Away Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.visitors?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.visitors.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.visitors.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.visitors.points}</span>
                     </div>
-                    <span className="text-xs font-medium">{game.teams?.visitors.code}</span>
-                    <span className="text-xs font-bold">{game.scores?.visitors.points}</span>
-                  </div>
 
-                  {/* @ */}
-                  <span className="text-xs text-text-inverse/80">@</span>
+                    {/* @ */}
+                    <span className="text-xs text-text-inverse/80">@</span>
 
-                  {/* Home Team */}
-                  <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
-                    <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
-                      <Image
-                        src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
-                        alt={`${game.teams?.home.name} logo`}
-                        fill
-                        className="object-contain"
-                        sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
-                        loading="lazy"
-                      />
+                    {/* Home Team */}
+                    <div className="flex items-center space-x-0.5 xs:space-x-0.5 sm:space-x-1">
+                      <div className="w-2 h-2 xs:w-2.5 xs:h-2.5 sm:w-3 sm:h-3 relative">
+                        <Image
+                          src={game.teams?.home?.logo || '/defaults/default-player-logo.svg'}
+                          alt={`${game.teams?.home.name} logo`}
+                          fill
+                          className="object-contain"
+                          sizes="(max-width: 475px) 8px, (max-width: 640px) 10px, (max-width: 768px) 12px, 12px"
+                          loading="lazy"
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{game.teams?.home.code}</span>
+                      <span className="text-xs font-bold">{game.scores?.home.points}</span>
                     </div>
-                    <span className="text-xs font-medium">{game.teams?.home.code}</span>
-                    <span className="text-xs font-bold">{game.scores?.home.points}</span>
-                  </div>
 
-                  {/* Game Status */}
-                  {(typeof game.status === 'object' ? game.status.clock : null) && (
-                    <span className="text-xs text-gray-200 ml-0.5 xs:ml-1 sm:ml-2">
-                      {typeof game.status === 'object' ? game.status.clock : null}
+                    {/* Game Status */}
+                    {(typeof game.status === 'object' ? game.status.clock : null) && (
+                      <span className="text-xs text-gray-200 ml-0.5 xs:ml-1 sm:ml-2">
+                        {typeof game.status === 'object' ? game.status.clock : null}
+                      </span>
+                    )}
+                    {/* Quarter */}
+                    <span className="text-xs text-gray-200 ml-0.5 xs:ml-0.5 sm:ml-1">
+                      {typeof game.status === 'object' ? game.status.short : game.status}
                     </span>
-                  )}
-                  {/* Quarter */}
-                  <span className="text-xs text-gray-200 ml-0.5 xs:ml-0.5 sm:ml-1">
-                    {typeof game.status === 'object' ? game.status.short : game.status}
-                  </span>
-                </div>
-              </React.Fragment>
-            ))}
-            {/* End padding for continuous scroll */}
-            <div className="w-[50vw]" />
-          </div>
+                  </div>
+                </React.Fragment>
+              ))}
+              {/* End padding for continuous scroll */}
+              <div className="w-[50vw]" />
+            </div>
+          )}
         </div>
       </div>
     </div>
