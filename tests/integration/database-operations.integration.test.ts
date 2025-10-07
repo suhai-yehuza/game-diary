@@ -858,6 +858,15 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test('should retrieve notifications for a user', async () => {
+      // Create a notification first to ensure we have data to retrieve
+      const timestamp = Date.now();
+      const notificationId = `integration-test-notification-retrieve-${timestamp}`;
+
+      await db.execute(`
+        INSERT INTO notifications (id, user_id, type, title, message, created_at)
+        VALUES ('${notificationId}', '${notificationTestUserId}', 'game_log_created', 'Test Notification', 'Test message for retrieval', NOW())
+      `);
+
       const result = (await db.execute(`
         SELECT id, type, title, message, created_at, user_id
         FROM notifications
@@ -879,10 +888,19 @@ describe('Database Operations Integration Tests', () => {
     });
 
     test('should mark notification as read', async () => {
+      // Create a notification first to ensure we have data to update
+      const timestamp = Date.now();
+      const notificationId = `integration-test-notification-update-${timestamp}`;
+
+      await db.execute(`
+        INSERT INTO notifications (id, user_id, type, title, message, created_at)
+        VALUES ('${notificationId}', '${notificationTestUserId}', 'game_log_created', 'Test Notification', 'Test message for update', NOW())
+      `);
+
       const result = (await db.execute(`
         UPDATE notifications
         SET read = true
-        WHERE id = '${testNotificationId}'
+        WHERE id = '${notificationId}'
         RETURNING id, read
       `)) as unknown as { rows: Array<{ id: string; read: boolean }> };
 
