@@ -1591,6 +1591,10 @@ div[class*='flex items-center justify-between'] button svg {
         /* === Touch targets === */ .touch-target {min-height: 44px; min-width: 44px;}
         /* === Floating components === */ .floating-component {position: fixed; z-index: 40;}
         .floating-component-secondary {position: fixed; z-index: 30;}
+        /* === Live Games Banner and Header Layout Fix === */
+        /* Ensure banner stays below header with proper z-index stacking */ [data-testid=
+        'live-games-banner'] {z-index: 40 !important;} /* Ensure header stays above banner */
+        #main-navigation {z-index: 50 !important;}
         /* === Head-to-Head Filters - Beautiful Design === */
         /* Custom styling for the head-to-head filters to match Game Logs design */
         .head2head-filters-card

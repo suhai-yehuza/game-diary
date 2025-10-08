@@ -43,6 +43,9 @@ export function useBannerVisibility() {
         if (bannerElement) {
           const height = bannerElement.getBoundingClientRect().height;
           setBannerHeight(height);
+        } else {
+          // Fallback height if banner element not found yet
+          setBannerHeight(48); // Approximate banner height
         }
       } else {
         setBannerHeight(0);
@@ -78,11 +81,25 @@ export function useBannerVisibility() {
     // Also re-measure when banner visibility changes
     const timeoutId = setTimeout(measureBannerHeight, 100);
 
+    // Use MutationObserver to detect when banner is added to DOM
+    const observer = new MutationObserver(() => {
+      if (shouldDisplayBanner && isClient) {
+        requestAnimationFrame(measureBannerHeight);
+      }
+    });
+
+    // Observe the body for banner additions
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('orientationchange', handleResize);
       clearTimeout(timeoutId);
       clearTimeout(resizeTimeout);
+      observer.disconnect();
     };
   }, [shouldDisplayBanner, isClient]);
 

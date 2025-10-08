@@ -127,9 +127,9 @@ export function Header() {
         ref={headerRef}
         data-testid="header"
         id="main-navigation"
-        className={`fixed ${isScrolled ? 'top-0 left-0 right-0 w-full rounded-none' : 'top-4 left-4 right-4 w-auto rounded-xl'} bg-gray-800 border-gray-600 text-white backdrop-blur-md border shadow-xl z-50 transition-all duration-300 ease-in-out force-dark-header`}
+        className={`fixed ${isScrolled ? 'left-0 right-0 w-full rounded-none' : 'left-4 right-4 w-auto rounded-xl'} bg-gray-800 border-gray-600 text-white backdrop-blur-md border shadow-xl z-50 transition-all duration-300 ease-in-out force-dark-header`}
         style={{
-          marginTop: shouldDisplayBanner ? `${bannerHeight}px` : '0px',
+          top: shouldDisplayBanner ? `${bannerHeight}px` : isScrolled ? '0px' : '16px',
         }}
       >
         {/* Overlay for mobile menu */}
