@@ -175,7 +175,7 @@ export function LiveGamesBanner() {
   return (
     <div
       data-testid="live-games-banner"
-      className="fixed top-0 left-0 right-0 z-[60] text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-2xl border-b-4 border-pink-300"
+      className="fixed top-0 left-0 right-0 z-40 text-white py-0.5 xs:py-1 sm:py-1.5 px-1 xs:px-2 sm:px-4 shadow-2xl border-b-4 border-pink-300"
       style={
         {
           position: 'fixed',
