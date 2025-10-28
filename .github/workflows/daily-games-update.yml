@@ -30,7 +30,7 @@ name: Hourly Basketball Games Update
 on:
   schedule:
     # Weekdays: Every hour from 11 PM to 4 AM UTC (6 PM - 11 PM Eastern)
-    - cron: '0 23-23 * * 1-5' # 11 PM UTC Monday-Friday
+    - cron: '0 23 * * 1-5' # 11 PM UTC Monday-Friday
     - cron: '0 0-3 * * 2-6' # 12 AM - 3 AM UTC Tuesday-Saturday
 
     # Weekends: Every hour from 6 PM to 4 AM UTC (1 PM - 11 PM Eastern)
@@ -39,9 +39,9 @@ on:
     - cron: '0 18-23 * * 6' # 6 PM - 11 PM UTC Saturday
     - cron: '0 0-3 * * 0' # 12 AM - 3 AM UTC Sunday
 
-    # Additional weekend afternoon coverage (1 PM - 6 PM Eastern = 6 PM - 11 PM UTC)
-    - cron: '0 18-22 * * 0' # 6 PM - 10 PM UTC Sunday (1 PM - 5 PM Eastern)
-    - cron: '0 18-22 * * 6' # 6 PM - 10 PM UTC Saturday (1 PM - 5 PM Eastern)
+    # Bridge weekday to weekend transition
+    - cron: '0 23 * * 0' # 11 PM UTC Sunday (bridges weekend to weekday)
+    - cron: '0 23 * * 6' # 11 PM UTC Saturday (bridges weekday to weekend)
 
   workflow_dispatch: # Allow manual triggering
     inputs:

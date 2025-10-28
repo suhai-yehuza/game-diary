@@ -240,35 +240,45 @@ Examples:
     season?: string,
     options?: UpdateOptions
   ): Promise<IGameResponse[]> {
-    const params: Record<string, string> = {
-      date: format(startDate, 'yyyy-MM-dd'),
-    };
+    const allGames: IGameResponse[] = [];
+    const currentDate = new Date(startDate);
 
-    if (season) {
-      params.season = season;
-    }
+    // Iterate through each date in the range
+    while (currentDate <= endDate) {
+      const params: Record<string, string> = {
+        date: format(currentDate, 'yyyy-MM-dd'),
+      };
 
-    logger.info(
-      `📡 Fetching games from NBA API for date: ${options?.date || format(startDate, 'yyyy-MM-dd')}`
-    );
-
-    try {
-      const response = await this.apiClient.fetch<IGamesApiResponse>('/games', params);
-
-      if (!response.response || response.response.length === 0) {
-        logger.info('📭 No games found for the specified date');
-        return [];
+      if (season) {
+        params.season = season;
       }
 
-      logger.info(`📊 Fetched ${response.response.length} games from API`);
-      return response.response as IGameResponse[];
-    } catch (error) {
-      errorHandlers.api(error instanceof Error ? error : new Error(String(error)), {
-        component: 'Daily Games Update',
-        action: 'Fetch games from NBA API',
-      });
-      throw error;
+      logger.info(`📡 Fetching games from NBA API for date: ${format(currentDate, 'yyyy-MM-dd')}`);
+
+      try {
+        const response = await this.apiClient.fetch<IGamesApiResponse>('/games', params);
+
+        if (response.response && response.response.length > 0) {
+          logger.info(
+            `📊 Fetched ${response.response.length} games for ${format(currentDate, 'yyyy-MM-dd')}`
+          );
+          allGames.push(...(response.response as IGameResponse[]));
+        } else {
+          logger.info(`📭 No games found for ${format(currentDate, 'yyyy-MM-dd')}`);
+        }
+      } catch (error) {
+        logger.error(
+          `❌ Error fetching games for ${format(currentDate, 'yyyy-MM-dd')}:`,
+          error instanceof Error ? error : new Error(String(error))
+        );
+      }
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1);
     }
+
+    logger.info(`📊 Total fetched ${allGames.length} games from API across date range`);
+    return allGames;
   }
 
   /**

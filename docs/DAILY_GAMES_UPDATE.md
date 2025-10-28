@@ -172,6 +172,7 @@ The system runs automatically every hour during peak NBA game hours via GitHub A
 
 - **Weekdays**: Every hour from 11 PM - 4 AM UTC (6 PM - 11 PM Eastern)
 - **Weekends**: Every hour from 6 PM - 4 AM UTC (1 PM - 11 PM Eastern)
+- **Transitions**: Bridge runs at 11 PM UTC on Saturday and Sunday to ensure continuous coverage
 
 #### Manual Triggering
 
