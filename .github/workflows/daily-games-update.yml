@@ -1,0 +1,147 @@
+name: Hourly Basketball Games Update
+
+# Runs hourly during peak NBA game hours to keep database current
+#
+# SCHEDULING STRATEGY:
+# ===================
+#
+# NBA games are typically played during these hours (Eastern Time):
+# - Weekdays: 7:00 PM - 11:00 PM (games start around 7-8 PM)
+# - Weekends: 1:00 PM - 11:00 PM (games start earlier on weekends)
+#
+# UTC CONVERSION:
+# ===============
+# - 6 PM Eastern = 11 PM UTC (23:00)
+# - 11 PM Eastern = 4 AM UTC (04:00 next day)
+# - 1 PM Eastern = 6 PM UTC (18:00)
+#
+# CRON SCHEDULE BREAKDOWN:
+# =======================
+# Weekdays (Mon-Fri):
+#   - 11 PM UTC (6 PM Eastern) - Start of evening games
+#   - 12 AM - 3 AM UTC (7 PM - 10 PM Eastern) - Peak game hours
+#
+# Weekends (Sat-Sun):
+#   - 6 PM - 10 PM UTC (1 PM - 5 PM Eastern) - Afternoon games
+#   - 11 PM UTC - 3 AM UTC (6 PM - 10 PM Eastern) - Evening games
+#
+# This ensures we capture games as they start and update throughout
+# the evening, keeping the database current with live game data.
+on:
+  schedule:
+    # Weekdays: Every hour from 11 PM to 4 AM UTC (6 PM - 11 PM Eastern)
+    - cron: '0 23-23 * * 1-5' # 11 PM UTC Monday-Friday
+    - cron: '0 0-3 * * 2-6' # 12 AM - 3 AM UTC Tuesday-Saturday
+
+    # Weekends: Every hour from 6 PM to 4 AM UTC (1 PM - 11 PM Eastern)
+    - cron: '0 18-23 * * 0' # 6 PM - 11 PM UTC Sunday
+    - cron: '0 0-3 * * 1' # 12 AM - 3 AM UTC Monday
+    - cron: '0 18-23 * * 6' # 6 PM - 11 PM UTC Saturday
+    - cron: '0 0-3 * * 0' # 12 AM - 3 AM UTC Sunday
+
+    # Additional weekend afternoon coverage (1 PM - 6 PM Eastern = 6 PM - 11 PM UTC)
+    - cron: '0 18-22 * * 0' # 6 PM - 10 PM UTC Sunday (1 PM - 5 PM Eastern)
+    - cron: '0 18-22 * * 6' # 6 PM - 10 PM UTC Saturday (1 PM - 5 PM Eastern)
+
+  workflow_dispatch: # Allow manual triggering
+    inputs:
+      date:
+        description: 'Specific date to update (YYYY-MM-DD)'
+        required: false
+        type: string
+      season:
+        description: 'Specific season to update (YYYY)'
+        required: false
+        type: string
+      dry-run:
+        description: 'Preview changes without updating database'
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  update-games:
+    name: Update Basketball Games (Hourly)
+    runs-on: ubuntu-latest
+
+    env:
+      NODE_VERSION: '22'
+      PNPM_VERSION: '10'
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+      NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+      NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build project
+        run: pnpm build
+
+      - name: Run type checking
+        run: pnpm typecheck
+
+      - name: Show current time and timezone
+        run: |
+          echo "🕐 Current UTC time: $(date -u)"
+          echo "🕐 Current local time: $(date)"
+          echo "🌍 Timezone: $(date +%Z)"
+          echo "📅 Date: $(date +%Y-%m-%d)"
+          echo ""
+          echo "🎯 TARGET SCHEDULE:"
+          echo "   Weekdays: 6 PM - 11 PM Eastern (11 PM - 4 AM UTC)"
+          echo "   Weekends: 1 PM - 11 PM Eastern (6 PM - 4 AM UTC)"
+          echo ""
+
+      - name: Update basketball games
+        run: |
+          # Build command based on inputs
+          COMMAND="pnpm update:daily-games"
+
+          # Add date parameter if provided
+          if [ -n "${{ github.event.inputs.date }}" ]; then
+            COMMAND="$COMMAND --date=${{ github.event.inputs.date }}"
+          fi
+
+          # Add season parameter if provided
+          if [ -n "${{ github.event.inputs.season }}" ]; then
+            COMMAND="$COMMAND --season=${{ github.event.inputs.season }}"
+          fi
+
+          # Add dry-run flag if requested
+          if [ "${{ github.event.inputs.dry-run }}" = "true" ]; then
+            COMMAND="$COMMAND --dry-run"
+          fi
+
+          echo "Running: $COMMAND"
+          $COMMAND
+
+      - name: Check update results
+        run: |
+          echo "✅ Basketball games update completed successfully"
+          echo "📊 Check the logs above for detailed results"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Basketball games update failed"
+          echo "Please check the logs above for error details"
