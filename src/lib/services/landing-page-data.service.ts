@@ -1004,7 +1004,7 @@ export class LandingPageDataService {
           id: String(player.id),
           name: String(player.name),
           position: String(player.position),
-          currentTeam: 'Unknown Team',
+          currentTeam: String(player.current_team),
           teamLogo: '',
           totalGameLogs: 0,
           publicGameLogs: 0,
