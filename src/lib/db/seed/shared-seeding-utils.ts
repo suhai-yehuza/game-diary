@@ -249,11 +249,24 @@ export function createGameInsertData(
   lead_changes: number;
   nugget: string | null;
 } {
+  // Fix timezone issue: ensure date is interpreted as local time, not UTC
+  const dateString = typeof game.date === 'string' ? game.date : game.date.start;
+  let gameDate: Date;
+
+  if (dateString.includes('T')) {
+    // If it's already a full datetime string, use it as-is
+    gameDate = new Date(dateString);
+  } else {
+    // If it's just a date string (YYYY-MM-DD), append time to avoid UTC interpretation
+    // NBA games are typically played in the evening Eastern Time, so use 7 PM ET (midnight UTC next day)
+    gameDate = new Date(dateString + 'T19:00:00-05:00'); // 7 PM Eastern Time
+  }
+
   return {
     id: `${season}-${game.id?.toString() ?? 'missing-game-id'}`,
     season: season.toString(),
     game_id: game.id?.toString() ?? 'missing-nba-game-id',
-    date: new Date(typeof game.date === 'string' ? game.date : game.date.start),
+    date: gameDate,
     stage: game.stage || 0, // Store the game stage
     teams: game.teams ?? {}, // Store the complete teams object with home and away team data
     status:

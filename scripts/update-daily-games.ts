@@ -197,7 +197,9 @@ Examples:
       if (!this.validateDate(options.date)) {
         throw new Error(`Invalid date format: ${options.date}. Use YYYY-MM-DD format.`);
       }
-      const date = new Date(options.date);
+      // Fix timezone issue: parse date as local time, not UTC
+      const [year, month, day] = options.date.split('-').map(Number);
+      const date = new Date(year, month - 1, day); // month is 0-based
       return {
         startDate: startOfDay(date),
         endDate: endOfDay(date),
@@ -208,9 +210,14 @@ Examples:
       if (!this.validateDate(options.startDate) || !this.validateDate(options.endDate)) {
         throw new Error('Invalid date format. Use YYYY-MM-DD format.');
       }
+      // Fix timezone issue: parse dates as local time, not UTC
+      const [startYear, startMonth, startDay] = options.startDate.split('-').map(Number);
+      const [endYear, endMonth, endDay] = options.endDate.split('-').map(Number);
+      const startDate = new Date(startYear, startMonth - 1, startDay);
+      const endDate = new Date(endYear, endMonth - 1, endDay);
       return {
-        startDate: startOfDay(new Date(options.startDate)),
-        endDate: endOfDay(new Date(options.endDate)),
+        startDate: startOfDay(startDate),
+        endDate: endOfDay(endDate),
       };
     }
 
@@ -218,8 +225,11 @@ Examples:
       if (!this.validateDate(options.startDate)) {
         throw new Error(`Invalid start date format: ${options.startDate}. Use YYYY-MM-DD format.`);
       }
+      // Fix timezone issue: parse date as local time, not UTC
+      const [year, month, day] = options.startDate.split('-').map(Number);
+      const date = new Date(year, month - 1, day);
       return {
-        startDate: startOfDay(new Date(options.startDate)),
+        startDate: startOfDay(date),
         endDate: endOfDay(today),
       };
     }
@@ -300,11 +310,24 @@ Examples:
    * Create game insert data from API response
    */
   private createGameInsertData(game: IGameResponse, season: string) {
+    // Fix timezone issue: ensure date is interpreted as local time, not UTC
+    const dateString = typeof game.date === 'string' ? game.date : game.date.start;
+    let gameDate: Date;
+
+    if (dateString.includes('T')) {
+      // If it's already a full datetime string, use it as-is
+      gameDate = new Date(dateString);
+    } else {
+      // If it's just a date string (YYYY-MM-DD), append time to avoid UTC interpretation
+      // NBA games are typically played in the evening Eastern Time, so use 7 PM ET (midnight UTC next day)
+      gameDate = new Date(dateString + 'T19:00:00-05:00'); // 7 PM Eastern Time
+    }
+
     return {
       id: `${season}-${game.id}`,
       season: season,
       game_id: game.id.toString(),
-      date: new Date(typeof game.date === 'string' ? game.date : game.date.start),
+      date: gameDate,
       stage: game.stage || null,
       teams: game.teams || null,
       status: game.status || null,
