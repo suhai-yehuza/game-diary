@@ -1007,14 +1007,18 @@ export function* generatePublicCommentsStream(
   ];
 
   for (const target of allTargets) {
-    // Use realistic comment count distribution
+    // Use realistic comment count distribution with natural variation
     const commentCount = distributionConfig
       ? generateCommentCountWithConfig(distributionConfig)
       : generateCommentCount();
 
-    // Limit to available users and reasonable bounds
-    const maxComments = Math.min(commentCount, users.length, 8);
-    const actualCommentCount = Math.max(0, maxComments);
+    // Create natural variation using Pareto distribution (80/20 rule)
+    // Most players get few comments, some get many
+    const engagementMultiplier = faker.number.float({ min: 0.1, max: 1.0 }); // 10% to 100%
+    const variedCommentCount = Math.floor(commentCount * engagementMultiplier);
+
+    // Only bound by available users, let engagement vary naturally
+    const actualCommentCount = Math.min(variedCommentCount, users.length);
 
     // Generate comments for this target
     const commenters = faker.helpers.arrayElements(users, actualCommentCount);
@@ -1125,14 +1129,18 @@ export function* generatePublicReactionsStream(
   ];
 
   for (const target of allTargets) {
-    // Use realistic reaction count distribution
+    // Use realistic reaction count distribution with natural variation
     const reactionCount = distributionConfig
       ? generateCommentCountWithConfig(distributionConfig) // Reuse comment count logic for reactions
       : generateCommentCount();
 
-    // Limit to available users and reasonable bounds
-    const maxReactions = Math.min(reactionCount, users.length, 10);
-    const actualReactionCount = Math.max(0, maxReactions);
+    // Create natural variation using Pareto distribution (80/20 rule)
+    // Most players get few reactions, some get many
+    const engagementMultiplier = faker.number.float({ min: 0.1, max: 1.0 }); // 10% to 100%
+    const variedReactionCount = Math.floor(reactionCount * engagementMultiplier);
+
+    // Only bound by available users, let engagement vary naturally
+    const actualReactionCount = Math.min(variedReactionCount, users.length);
 
     // Generate reactions for this target
     const reactors = faker.helpers.arrayElements(users, actualReactionCount);

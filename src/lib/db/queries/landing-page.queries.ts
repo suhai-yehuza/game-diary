@@ -420,6 +420,7 @@ export async function getPopularPlayersQuery() {
       p.id,
       (p.first_name || ' ' || p.last_name) as name,
       'Unknown' as position,
+      'Unknown Team' as current_team,
       COALESCE(comment_counts.total_comments, 0) as total_comments,
       COALESCE(reaction_counts.total_reactions, 0) as total_reactions
     FROM basketball_players p
