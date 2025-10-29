@@ -4,6 +4,7 @@ import { Calendar, Clock, Building2, Trophy, Star, CalendarDays, X } from 'lucid
 import Image from 'next/image';
 
 import { Card, CardContent } from '@/app/components/ui/Card';
+import { formatDateForDisplay } from '@/lib/utils/nba-date-converter';
 import type { IGameCardProps, IGameResponse } from '@/types';
 
 export function GameCard({ game, highlightTeam }: IGameCardProps) {
@@ -11,16 +12,27 @@ export function GameCard({ game, highlightTeam }: IGameCardProps) {
     if (!dateString || dateString.trim() === '') {
       return 'TBD';
     }
-    const date = new Date(dateString);
-    if (isNaN(date.getTime())) {
-      return 'TBD';
+
+    try {
+      return formatDateForDisplay(dateString, {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch (_error) {
+      // Fallback to original logic if utility fails
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return 'TBD';
+      }
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
     }
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
   };
 
   const formatGameTime = (dateString: string) => {

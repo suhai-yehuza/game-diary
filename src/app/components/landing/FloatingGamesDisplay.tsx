@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 
 import { useBannerVisibility } from '@/hooks/use-banner-visibility';
 import { useLiveGames } from '@/hooks/use-live-games';
+import { formatDateForDisplay } from '@/lib/utils/nba-date-converter';
 
 export function FloatingGamesDisplay() {
   const { games: liveGames, loading, error } = useLiveGames();
@@ -118,12 +119,23 @@ export function FloatingGamesDisplay() {
 
   const formatGameDate = (game: typeof currentGame) => {
     const dateString = typeof game.date === 'string' ? game.date : game.date.start;
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
+    if (!dateString) return 'TBD';
+
+    try {
+      return formatDateForDisplay(dateString, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch (_error) {
+      // Fallback to original logic if utility fails
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    }
   };
 
   const formatGameTime = (game: typeof currentGame) => {

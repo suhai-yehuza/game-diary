@@ -10,6 +10,7 @@ import * as schema from '@/lib/db/schema';
 import { createRapidAPIClient } from '@/lib/utils/api-client';
 import { errorHandlers } from '@/lib/utils/error-handler';
 import { formatDuration } from '@/lib/utils/format-duration';
+import { convertNBADateToLocal, debugDateConversion } from '@/lib/utils/nba-date-converter';
 import type {
   Database,
   ITeamsApiResponse,
@@ -249,17 +250,27 @@ export function createGameInsertData(
   lead_changes: number;
   nugget: string | null;
 } {
-  // Fix timezone issue: ensure date is interpreted as local time, not UTC
+  // Use proper NBA API date conversion utility
   const dateString = typeof game.date === 'string' ? game.date : game.date.start;
-  let gameDate: Date;
 
-  if (dateString.includes('T')) {
-    // If it's already a full datetime string, use it as-is
-    gameDate = new Date(dateString);
-  } else {
-    // If it's just a date string (YYYY-MM-DD), append time to avoid UTC interpretation
-    // NBA games are typically played in the evening Eastern Time, so use 7 PM ET (midnight UTC next day)
-    gameDate = new Date(dateString + 'T19:00:00-05:00'); // 7 PM Eastern Time
+  if (!dateString || dateString.trim() === '') {
+    throw new Error(`Invalid date string for game ${game.id}: ${dateString}`);
+  }
+
+  let gameDate: Date;
+  try {
+    gameDate = convertNBADateToLocal(dateString);
+
+    // Debug the conversion in development
+    debugDateConversion(dateString, gameDate, `Seeding Game ${game.id} Date Conversion`);
+  } catch (error) {
+    console.error(`Failed to convert date for game ${game.id}:`, {
+      dateString,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new Error(
+      `Date conversion failed for game ${game.id}: ${error instanceof Error ? error.message : String(error)}`
+    );
   }
 
   return {
