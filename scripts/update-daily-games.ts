@@ -65,11 +65,18 @@ import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 
 // Load environment variables
-const envPath = resolve(process.cwd(), '.env.local');
-if (existsSync(envPath)) {
-  config({ path: envPath });
-} else {
-  config();
+// In CI environments, use existing env vars; otherwise load from .env files
+const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
+
+if (!isCI) {
+  const envPath = resolve(process.cwd(), '.env.local');
+  if (existsSync(envPath)) {
+    // Don't override existing env vars
+    config({ path: envPath, override: false });
+  } else {
+    // Don't override existing env vars
+    config({ override: false });
+  }
 }
 
 import { neon } from '@neondatabase/serverless';
