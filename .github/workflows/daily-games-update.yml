@@ -114,6 +114,12 @@ jobs:
           echo ""
 
       - name: Validate environment variables
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "🔍 Validating required environment variables..."
 
