@@ -16,7 +16,7 @@
  *
  * ## Usage Examples
  * ```bash
- * # Update games for today
+ * # Update games for the last 2 days (yesterday and today)
  * pnpm update:daily-games
  *
  * # Update games for a specific date
@@ -181,7 +181,7 @@ Options:
   --help                   Show this help message
 
 Examples:
-  pnpm update:daily-games                    # Update today's games
+  pnpm update:daily-games                    # Update games for the last 2 days (yesterday and today)
   pnpm update:daily-games --date=2024-01-15  # Update specific date
   pnpm update:daily-games --dry-run          # Preview changes
   pnpm update:daily-games --season=2024      # Update current season
@@ -243,9 +243,10 @@ Examples:
       };
     }
 
-    // Default: update today's games
+    // Default: update games for the last 2 days (yesterday and today)
+    const twoDaysAgo = subDays(today, 1);
     return {
-      startDate: startOfDay(today),
+      startDate: startOfDay(twoDaysAgo),
       endDate: endOfDay(today),
     };
   }
