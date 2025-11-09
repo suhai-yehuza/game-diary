@@ -62,6 +62,7 @@
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { fileURLToPath } from 'url';
 
 // Load environment variables
 const envPath = resolve(process.cwd(), '.env.local');
@@ -565,17 +566,65 @@ async function main() {
       process.exit(0);
     }
   } catch (error) {
-    logger.error(
-      '❌ Daily games update script failed:',
-      error instanceof Error ? error : new Error(String(error))
-    );
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    // Log to both logger and console to ensure visibility
+    console.error('❌ Daily games update script failed:', errorMessage);
+    if (errorStack) {
+      console.error('Stack trace:', errorStack);
+    }
+
+    try {
+      logger.error(
+        '❌ Daily games update script failed:',
+        error instanceof Error ? error : new Error(String(error))
+      );
+    } catch (loggerError) {
+      // If logger fails, at least we have console output
+      console.error('⚠️  Logger also failed:', loggerError);
+    }
+
     process.exit(1);
   }
 }
 
 // Run if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+// Check if this is the main module by comparing file paths
+const __filename = fileURLToPath(import.meta.url);
+const scriptPath = process.argv[1];
+
+// More permissive check - if the script path contains our filename, run it
+const isMainModule =
+  scriptPath && // Only check if we have a script path
+  (scriptPath.endsWith('update-daily-games.ts') ||
+    scriptPath.includes('update-daily-games') ||
+    __filename === resolve(scriptPath) ||
+    __filename.endsWith(scriptPath) ||
+    scriptPath.endsWith(__filename));
+
+// Debug logging in CI environments
+if (process.env.CI || process.env.GITHUB_ACTIONS) {
+  console.log('🔍 Debug: Script execution check');
+  console.log('  __filename:', __filename);
+  console.log('  scriptPath:', scriptPath);
+  console.log('  isMainModule:', isMainModule);
+}
+
+if (isMainModule) {
+  main().catch(error => {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    console.error('❌ Unhandled error in main():', errorMessage);
+    if (errorStack) {
+      console.error('Stack trace:', errorStack);
+    }
+    if (error instanceof Error && error.cause) {
+      console.error('Error cause:', error.cause);
+    }
+    process.exit(1);
+  });
 }
 
 export { DailyGamesUpdater };
