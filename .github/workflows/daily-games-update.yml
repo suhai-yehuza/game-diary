@@ -122,28 +122,47 @@ jobs:
           NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
         run: |
           echo "🔍 Validating required environment variables..."
+          echo ""
+          echo "Debug: Checking secret access..."
+          echo "  DATABASE_URL length: ${#DATABASE_URL}"
+          echo "  POSTGRES_URL length: ${#POSTGRES_URL}"
+          echo "  NEXT_PUBLIC_RAPID_API_KEY length: ${#NEXT_PUBLIC_RAPID_API_KEY}"
+          echo "  NEXT_PUBLIC_RAPID_API_HOST length: ${#NEXT_PUBLIC_RAPID_API_HOST}"
+          echo ""
 
-          if [ -z "$DATABASE_URL" ] && [ -z "$POSTGRES_URL" ]; then
+          # Check if secrets are accessible (even if empty)
+          if [ -z "${DATABASE_URL:-}" ] && [ -z "${POSTGRES_URL:-}" ]; then
             echo "❌ ERROR: DATABASE_URL or POSTGRES_URL must be set"
-            echo "Please ensure the DATABASE_URL secret is configured in GitHub Actions"
+            echo ""
+            echo "Troubleshooting:"
+            echo "  1. Check if DATABASE_URL secret is configured in GitHub Actions"
+            echo "     Go to: Settings → Secrets and variables → Actions"
+            echo "  2. Verify the secret name is exactly 'DATABASE_URL' (case-sensitive)"
+            echo "  3. Ensure the workflow has permission to access secrets"
+            echo ""
+            echo "Current secret values (lengths only):"
+            echo "  secrets.DATABASE_URL length: ${#DATABASE_URL}"
+            echo "  secrets.POSTGRES_URL length: ${#POSTGRES_URL}"
             exit 1
           fi
 
-          if [ -z "$NEXT_PUBLIC_RAPID_API_KEY" ]; then
+          if [ -z "${NEXT_PUBLIC_RAPID_API_KEY:-}" ]; then
             echo "❌ ERROR: NEXT_PUBLIC_RAPID_API_KEY must be set"
+            echo "  secrets.NEXT_PUBLIC_RAPID_API_KEY length: ${#NEXT_PUBLIC_RAPID_API_KEY}"
             exit 1
           fi
 
-          if [ -z "$NEXT_PUBLIC_RAPID_API_HOST" ]; then
+          if [ -z "${NEXT_PUBLIC_RAPID_API_HOST:-}" ]; then
             echo "❌ ERROR: NEXT_PUBLIC_RAPID_API_HOST must be set"
+            echo "  secrets.NEXT_PUBLIC_RAPID_API_HOST length: ${#NEXT_PUBLIC_RAPID_API_HOST}"
             exit 1
           fi
 
           echo "✅ All required environment variables are set"
-          echo "   DATABASE_URL: ${DATABASE_URL:+SET (hidden)}"
-          echo "   POSTGRES_URL: ${POSTGRES_URL:+SET (hidden)}"
-          echo "   NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET (hidden)}"
-          echo "   NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+          echo "   DATABASE_URL: ${DATABASE_URL:+SET (${#DATABASE_URL} chars)}"
+          echo "   POSTGRES_URL: ${POSTGRES_URL:+SET (${#POSTGRES_URL} chars)}"
+          echo "   NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET (${#NEXT_PUBLIC_RAPID_API_KEY} chars)}"
+          echo "   NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET (${#NEXT_PUBLIC_RAPID_API_HOST} chars)}"
 
       - name: Update basketball games
         env:
