@@ -72,6 +72,7 @@ jobs:
       NODE_VERSION: '22'
       PNPM_VERSION: '10'
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      POSTGRES_URL: ${{ secrets.DATABASE_URL }}
       NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
       NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
       NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
@@ -112,8 +113,56 @@ jobs:
           echo "   Weekends: 1 PM - 11 PM Eastern (6 PM - 4 AM UTC)"
           echo ""
 
-      - name: Update basketball games
+      - name: Validate environment variables
         run: |
+          echo "🔍 Validating required environment variables..."
+
+          if [ -z "$DATABASE_URL" ] && [ -z "$POSTGRES_URL" ]; then
+            echo "❌ ERROR: DATABASE_URL or POSTGRES_URL must be set"
+            echo "Please ensure the DATABASE_URL secret is configured in GitHub Actions"
+            exit 1
+          fi
+
+          if [ -z "$NEXT_PUBLIC_RAPID_API_KEY" ]; then
+            echo "❌ ERROR: NEXT_PUBLIC_RAPID_API_KEY must be set"
+            exit 1
+          fi
+
+          if [ -z "$NEXT_PUBLIC_RAPID_API_HOST" ]; then
+            echo "❌ ERROR: NEXT_PUBLIC_RAPID_API_HOST must be set"
+            exit 1
+          fi
+
+          echo "✅ All required environment variables are set"
+          echo "   DATABASE_URL: ${DATABASE_URL:+SET (hidden)}"
+          echo "   POSTGRES_URL: ${POSTGRES_URL:+SET (hidden)}"
+          echo "   NEXT_PUBLIC_RAPID_API_KEY: ${NEXT_PUBLIC_RAPID_API_KEY:+SET (hidden)}"
+          echo "   NEXT_PUBLIC_RAPID_API_HOST: ${NEXT_PUBLIC_RAPID_API_HOST:+SET}"
+
+      - name: Update basketball games
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          POSTGRES_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_RAPID_API_KEY: ${{ secrets.NEXT_PUBLIC_RAPID_API_KEY }}
+          NEXT_PUBLIC_RAPID_API_HOST: ${{ secrets.NEXT_PUBLIC_RAPID_API_HOST }}
+          NEXT_PUBLIC_RAPID_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_RAPID_API_BASE_URL }}
+        run: |
+          # Debug: Verify environment variables are set (without exposing values)
+          echo "🔍 Verifying environment variables in script execution context..."
+          if [ -z "$DATABASE_URL" ] && [ -z "$POSTGRES_URL" ]; then
+            echo "❌ ERROR: Neither DATABASE_URL nor POSTGRES_URL is set in this step"
+            echo "This suggests the secret may not be configured or accessible"
+            exit 1
+          fi
+
+          if [ -n "$DATABASE_URL" ]; then
+            echo "✅ DATABASE_URL is set (length: ${#DATABASE_URL} characters)"
+          fi
+
+          if [ -n "$POSTGRES_URL" ]; then
+            echo "✅ POSTGRES_URL is set (length: ${#POSTGRES_URL} characters)"
+          fi
+
           # Build command based on inputs
           COMMAND="pnpm update:daily-games"
 
