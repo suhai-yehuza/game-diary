@@ -67,6 +67,7 @@ jobs:
   update-games:
     name: Update Basketball Games (Hourly)
     runs-on: ubuntu-latest
+    environment: Production
 
     env:
       NODE_VERSION: '22'
