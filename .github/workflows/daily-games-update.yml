@@ -191,9 +191,16 @@ jobs:
           # Build command based on inputs
           COMMAND="pnpm update:daily-games"
 
-          # Add date parameter if provided
+          # Add date parameter if provided, otherwise use default 2-day range for manual triggers
           if [ -n "${{ github.event.inputs.date }}" ]; then
             COMMAND="$COMMAND --date=${{ github.event.inputs.date }}"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # For manual triggers, explicitly set 2-day range (yesterday and today)
+            # GitHub Actions runs on Ubuntu (GNU date)
+            YESTERDAY=$(date -u -d "yesterday" +%Y-%m-%d)
+            TODAY=$(date -u +%Y-%m-%d)
+            COMMAND="$COMMAND --start-date=$YESTERDAY --end-date=$TODAY"
+            echo "📅 Using default 2-day range: $YESTERDAY to $TODAY"
           fi
 
           # Add season parameter if provided
