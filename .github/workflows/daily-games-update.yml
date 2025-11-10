@@ -65,9 +65,13 @@ permissions:
 
 jobs:
   update-games:
-    name: Update Basketball Games (Hourly)
+    name: Update Basketball Games (Hourly) - ${{ matrix.environment }}
     runs-on: ubuntu-latest
-    environment: Production
+    strategy:
+      matrix:
+        environment: [Production, Staging, Preview]
+      fail-fast: false
+    environment: ${{ matrix.environment }}
 
     env:
       NODE_VERSION: '22'
@@ -108,6 +112,8 @@ jobs:
           echo "🕐 Current local time: $(date)"
           echo "🌍 Timezone: $(date +%Z)"
           echo "📅 Date: $(date +%Y-%m-%d)"
+          echo ""
+          echo "🌍 Environment: ${{ matrix.environment }}"
           echo ""
           echo "🎯 TARGET SCHEDULE:"
           echo "   Weekdays: 6 PM - 11 PM Eastern (11 PM - 4 AM UTC)"
@@ -219,7 +225,7 @@ jobs:
 
       - name: Check update results
         run: |
-          echo "✅ Basketball games update completed successfully"
+          echo "✅ Basketball games update completed successfully for ${{ matrix.environment }}"
           echo "📊 Check the logs above for detailed results"
 
       - name: Notify on failure
