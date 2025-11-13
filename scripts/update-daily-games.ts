@@ -16,7 +16,9 @@
  *
  * ## Usage Examples
  * ```bash
- * # Update games for the last 2 days (yesterday and today)
+ * # Update games for 7 days back and 7 days forward (default for hourly runs)
+ * # - Past games: only updates if not finished
+ * # - Future games: only inserts if they don't exist
  * pnpm update:daily-games
  *
  * # Update games for a specific date
@@ -243,11 +245,16 @@ Examples:
       };
     }
 
-    // Default: update games for the last 2 days (yesterday and today)
-    const twoDaysAgo = subDays(today, 1);
+    // Default: update games for 7 days back and 7 days forward
+    // This ensures we catch:
+    // - Past games (up to 7 days back) - only update if not finished
+    // - Today's games (current games)
+    // - Future scheduled games (up to 7 days ahead) - only insert if they don't exist
+    const sevenDaysBack = subDays(today, 7);
+    const sevenDaysAhead = addDays(today, 7);
     return {
-      startDate: startOfDay(twoDaysAgo),
-      endDate: endOfDay(today),
+      startDate: startOfDay(sevenDaysBack),
+      endDate: endOfDay(sevenDaysAhead),
     };
   }
 
@@ -314,6 +321,41 @@ Examples:
       .limit(1);
 
     return existingGame.length > 0;
+  }
+
+  /**
+   * Check if a game is finished/completed
+   */
+  private isGameFinished(game: IGameResponse): boolean {
+    // Check if scores exist - if both teams have scores, game is finished
+    if (
+      game.scores?.home?.points !== null &&
+      game.scores?.home?.points !== undefined &&
+      game.scores?.visitors?.points !== null &&
+      game.scores?.visitors?.points !== undefined
+    ) {
+      return true;
+    }
+
+    // Check status string or object
+    let statusString = '';
+    if (typeof game.status === 'string') {
+      statusString = game.status.toLowerCase();
+    } else if (game.status && typeof game.status === 'object') {
+      const statusObj = game.status as { short?: string | number; long?: string };
+      const shortStatus =
+        typeof statusObj.short === 'string' ? statusObj.short : String(statusObj.short || '');
+      const longStatus = statusObj.long || '';
+      statusString = (shortStatus || longStatus || '').toLowerCase();
+    }
+
+    // Game is finished if status contains "finished" or "final" or "ft"
+    return (
+      statusString.includes('finished') ||
+      statusString.includes('final') ||
+      statusString === 'ft' ||
+      statusString === '3' // Some APIs use numeric status codes
+    );
   }
 
   /**
@@ -414,9 +456,13 @@ Examples:
 
   /**
    * Update existing games with latest status
+   * - For past games: only update if not finished
+   * - For future games: skip updates (they're scheduled, no need to update until they happen)
    */
   private async updateExistingGames(games: IGameResponse[], season: string): Promise<number> {
     let updatedCount = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of day for comparison
 
     for (const game of games) {
       try {
@@ -425,6 +471,31 @@ Examples:
 
         if (!exists) {
           continue; // Skip if game doesn't exist (will be handled by insert)
+        }
+
+        // Get game date for comparison
+        const dateString = typeof game.date === 'string' ? game.date : game.date.start;
+        let gameDate: Date;
+        try {
+          gameDate = convertNBADateToLocal(dateString);
+          gameDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
+        } catch (error) {
+          logger.warn(`⚠️  Could not parse date for game ${gameId}, skipping update`);
+          continue;
+        }
+
+        // Skip future games - they're scheduled, no need to update until they happen
+        if (gameDate > today) {
+          logger.debug(`⏭️  Game ${gameId} is in the future, skipping update`);
+          continue;
+        }
+
+        // For past games, only update if not finished
+        if (gameDate < today) {
+          if (this.isGameFinished(game)) {
+            logger.debug(`⏭️  Game ${gameId} is finished, skipping update`);
+            continue;
+          }
         }
 
         if (this.isDryRun) {
