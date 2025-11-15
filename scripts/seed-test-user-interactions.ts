@@ -860,10 +860,11 @@ class TestUserInteractionSeeder {
   private async createGameLogs(testUserIds: string[]): Promise<string[]> {
     logger.info('📝 Creating game logs for test users...');
 
-    // Get available games from the database
+    // Get available finished games from the database
     const availableGames = await this.db
       .select({ id: schema.basketball_games.id })
-      .from(schema.basketball_games);
+      .from(schema.basketball_games)
+      .where(sql`LOWER(${schema.basketball_games.status}->>'long') = 'finished'`);
 
     if (availableGames.length === 0) {
       throw new Error('No games found in database. Please seed NBA data first.');

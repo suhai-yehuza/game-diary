@@ -95,6 +95,8 @@ export async function GET(request: NextRequest) {
 
     // Build where conditions
     const whereConditions = [
+      // Only show finished games for game log creation
+      sql`LOWER(${basketball_games.status}->>'long') = 'finished'`,
       // Main search condition (any of the above)
       or(...searchConditions),
     ];

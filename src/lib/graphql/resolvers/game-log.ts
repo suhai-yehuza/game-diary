@@ -288,6 +288,33 @@ export const gameLogMutationResolvers = {
           };
         }
 
+        // Check if game is finished - only finished games can have game logs
+        const gameData = game[0];
+        const gameStatus = gameData.status;
+        let isFinished = false;
+
+        if (typeof gameStatus === 'string') {
+          // If status is a string, check if it contains "finished"
+          isFinished = gameStatus.toLowerCase().includes('finished');
+        } else if (gameStatus && typeof gameStatus === 'object') {
+          // If status is an object, check the 'long' property
+          const statusObj = gameStatus as { long?: string; short?: string };
+          const longStatus = statusObj.long?.toLowerCase() || '';
+          isFinished = longStatus === 'finished';
+        }
+
+        if (!isFinished) {
+          return {
+            gameLog: null,
+            errors: [
+              {
+                message:
+                  'Game logs can only be created for finished games. This game has not finished yet.',
+              },
+            ],
+          };
+        }
+
         // Check if user already has a game log for this game
         const existingGameLog = await getDb()
           ?.select()
@@ -383,15 +410,15 @@ export const gameLogMutationResolvers = {
         }
 
         // Get the game data to include in the response
-        const gameData = game[0] as Record<string, unknown>;
-        const { homeTeam: _homeTeam, awayTeam: _awayTeam } = getTeamObjects(gameData);
+        const gameDataForResponse = game[0] as Record<string, unknown>;
+        const { homeTeam: _homeTeam, awayTeam: _awayTeam } = getTeamObjects(gameDataForResponse);
 
         return {
           gameLog: {
             ...newGameLog,
             game: {
-              id: gameData.id,
-              date: gameData.date,
+              id: gameDataForResponse.id,
+              date: gameDataForResponse.date,
             },
           },
           errors: [],

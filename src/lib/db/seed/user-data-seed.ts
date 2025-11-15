@@ -1,18 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { faker } from '@faker-js/faker';
 import { neon } from '@neondatabase/serverless';
 import { Command } from 'commander';
 import dotenv from 'dotenv';
+import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/neon-http';
 
-import {
-  CLASSIFICATION,
-  WATCHED_SETTING,
-  WATCHED_SCOPE,
-  FRIENDSHIP_STATUS,
-  REACTION_EMOJIS,
-  TARGET_TYPES,
-} from '@/types';
 import type {
   Database,
   IStatisticalSeedingConfig,
@@ -25,6 +19,14 @@ import type {
   ISeedPublicComment,
   ISeedPublicReaction,
   FriendshipStatus,
+} from '@/types';
+import {
+  CLASSIFICATION,
+  WATCHED_SETTING,
+  WATCHED_SCOPE,
+  FRIENDSHIP_STATUS,
+  REACTION_EMOJIS,
+  TARGET_TYPES,
 } from '@/types';
 import { runSeedingWithNotificationBypass } from '@scripts/seeding-notification-bypass';
 import {
@@ -1708,11 +1710,17 @@ export async function seedUserData(
       return totalFriendships;
     });
 
-    // Step 3: Get available games for game logs
-    console.log(`🎮 Getting available games...`);
-    const availableGames = await timeStep('Get available games', () =>
-      db.select({ id: basketball_games.id }).from(basketball_games)
-    );
+    // Step 3: Get available finished games for game logs
+    console.log(`🎮 Getting available finished games...`);
+    const availableGames = await timeStep('Get available finished games', async () => {
+      // Query only finished games for game log seeding
+      const result = await db
+        .select({ id: basketball_games.id })
+        .from(basketball_games)
+        // @ts-expect-error - TypeScript inference issue with Neon HTTP driver - the query is correct at runtime
+        .where(sql`LOWER(${basketball_games.status}->>'long') = 'finished'`);
+      return result;
+    });
     const gameIds = availableGames.map((game: { id: string }) => game.id);
 
     if (gameIds.length === 0) {

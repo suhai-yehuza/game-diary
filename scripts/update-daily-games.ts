@@ -7,8 +7,9 @@
  * It's designed to run daily to keep the database up-to-date with new games.
  *
  * ## Features
- * - **Upsert Updates**: Inserts new games or updates existing ones with latest data
- * - **Overwrites Existing Games**: Updates games even if they already exist to get results once scheduled dates elapse
+ * - **Smart Updates**: Only updates games that transition from "Scheduled" to "Finished"
+ * - **Preserves Finished Games**: Does not overwrite games that are already "Finished"
+ * - **New Game Insertion**: Always inserts new games that don't exist in the database
  * - **Date Range Support**: Can fetch games for specific date ranges
  * - **Error Handling**: Comprehensive error handling with retry logic
  * - **Logging**: Detailed logging for monitoring and debugging
@@ -18,7 +19,7 @@
  * ## Usage Examples
  * ```bash
  * # Update games for 7 days back and 7 days forward (default for hourly runs)
- * # - All games are updated with latest data, including results for past scheduled games
+ * # - New games are inserted, scheduled games that finished are updated with results
  * pnpm update:daily-games
  *
  * # Update games for a specific date
@@ -44,9 +45,10 @@
  *
  * ## Database Operations
  * - Fetches games from NBA API
- * - Uses upsert (insert or update) to overwrite existing games with latest data
- * - Updates all games regardless of their date or finished status
- * - Ensures scheduled games get updated with results once their dates elapse
+ * - Inserts new games that don't exist in the database
+ * - Only updates games that were previously "Scheduled" but are now "Finished"
+ * - Skips updating games that are already "Finished" to preserve existing data
+ * - Ensures scheduled games get updated with results when they finish
  * - Logs all operations for monitoring
  *
  * ## Error Handling
@@ -324,6 +326,52 @@ Examples:
   }
 
   /**
+   * Get the current game status from the database
+   * Returns the status.long value if available, or null if game doesn't exist
+   */
+  private async getCurrentGameStatus(gameId: string, season: string): Promise<string | null> {
+    const existingGame = await this.db
+      .select({ status: schema.basketball_games.status })
+      .from(schema.basketball_games)
+      .where(
+        and(eq(schema.basketball_games.game_id, gameId), eq(schema.basketball_games.season, season))
+      )
+      .limit(1);
+
+    if (existingGame.length === 0) {
+      return null;
+    }
+
+    const gameStatus = existingGame[0].status;
+    if (typeof gameStatus === 'string') {
+      return gameStatus;
+    } else if (gameStatus && typeof gameStatus === 'object') {
+      const statusObj = gameStatus as { long?: string; short?: string };
+      return statusObj.long || null;
+    }
+
+    return null;
+  }
+
+  /**
+   * Check if a game status is "Scheduled"
+   */
+  private isScheduledStatus(status: string | null): boolean {
+    if (!status) return false;
+    const statusLower = status.toLowerCase();
+    return statusLower === 'scheduled';
+  }
+
+  /**
+   * Check if a game status is "Finished"
+   */
+  private isFinishedStatus(status: string | null): boolean {
+    if (!status) return false;
+    const statusLower = status.toLowerCase();
+    return statusLower === 'finished';
+  }
+
+  /**
    * Check if a game is finished/completed
    */
   private isGameFinished(game: IGameResponse): boolean {
@@ -405,8 +453,8 @@ Examples:
 
   /**
    * Insert or update games in database (upsert)
-   * This will overwrite existing games to ensure they have the latest data,
-   * including results once their scheduled dates elapse.
+   * Only updates games that were previously "Scheduled" but are now "Finished"
+   * New games are always inserted, but existing finished games are not overwritten
    */
   private async insertGames(games: IGameResponse[], season: string): Promise<GameUpdateResult> {
     const result: GameUpdateResult = {
@@ -425,9 +473,40 @@ Examples:
         const gameId = game.id.toString();
         const exists = await this.gameExists(gameId, season);
 
+        // Get the new status from API response
+        let newStatus: string | null = null;
+        if (typeof game.status === 'string') {
+          newStatus = game.status;
+        } else if (game.status && typeof game.status === 'object') {
+          const statusObj = game.status as { long?: string; short?: string };
+          newStatus = statusObj.long || null;
+        }
+
+        // If game exists, check if we should update it
+        if (exists) {
+          const currentStatus = await this.getCurrentGameStatus(gameId, season);
+          const wasScheduled = this.isScheduledStatus(currentStatus);
+          const isNowFinished = this.isFinishedStatus(newStatus);
+
+          // Only update if game was previously "Scheduled" and is now "Finished"
+          if (!wasScheduled || !isNowFinished) {
+            if (this.isDryRun) {
+              logger.info(
+                `🔍 [DRY RUN] Would skip game ${gameId}: current status="${currentStatus}", new status="${newStatus}"`
+              );
+            } else {
+              logger.debug(
+                `⏭️  Skipping game ${gameId}: current status="${currentStatus}", new status="${newStatus}" (only updating Scheduled→Finished transitions)`
+              );
+            }
+            result.skippedGames++;
+            continue;
+          }
+        }
+
         if (this.isDryRun) {
           if (exists) {
-            logger.info(`🔍 [DRY RUN] Would update game: ${gameId}`);
+            logger.info(`🔍 [DRY RUN] Would update game: ${gameId} (Scheduled→Finished)`);
             result.updatedGames++;
           } else {
             logger.info(`🔍 [DRY RUN] Would insert game: ${gameId}`);
@@ -463,7 +542,7 @@ Examples:
           });
 
         if (exists) {
-          logger.info(`🔄 Updated existing game: ${gameId}`);
+          logger.info(`🔄 Updated existing game: ${gameId} (Scheduled→Finished)`);
           result.updatedGames++;
         } else {
           logger.info(`✅ Inserted new game: ${gameId}`);
@@ -484,9 +563,8 @@ Examples:
 
   /**
    * Update existing games with latest status
-   * Now updates all games regardless of their date or finished status,
-   * since we want to overwrite games even if they already exist to get
-   * results once their scheduled dates elapse.
+   * Only updates games that were previously "Scheduled" but are now "Finished"
+   * This method is kept for backward compatibility but insertGames handles the logic
    *
    * Note: This method is now largely redundant since insertGames uses upsert,
    * but kept for backward compatibility and to handle edge cases.
@@ -503,13 +581,35 @@ Examples:
           continue; // Skip if game doesn't exist (will be handled by insert)
         }
 
+        // Get the new status from API response
+        let newStatus: string | null = null;
+        if (typeof game.status === 'string') {
+          newStatus = game.status;
+        } else if (game.status && typeof game.status === 'object') {
+          const statusObj = game.status as { long?: string; short?: string };
+          newStatus = statusObj.long || null;
+        }
+
+        // Check if we should update this game
+        const currentStatus = await this.getCurrentGameStatus(gameId, season);
+        const wasScheduled = this.isScheduledStatus(currentStatus);
+        const isNowFinished = this.isFinishedStatus(newStatus);
+
+        // Only update if game was previously "Scheduled" and is now "Finished"
+        if (!wasScheduled || !isNowFinished) {
+          logger.debug(
+            `⏭️  Skipping game ${gameId}: current status="${currentStatus}", new status="${newStatus}" (only updating Scheduled→Finished transitions)`
+          );
+          continue;
+        }
+
         if (this.isDryRun) {
-          logger.info(`🔍 [DRY RUN] Would update game: ${gameId}`);
+          logger.info(`🔍 [DRY RUN] Would update game: ${gameId} (Scheduled→Finished)`);
           updatedCount++;
           continue;
         }
 
-        // Update game with all latest data - no longer skipping future or finished games
+        // Update game with latest data - only for Scheduled→Finished transitions
         const gameData = this.createGameInsertData(game, season);
 
         await this.db
@@ -537,7 +637,7 @@ Examples:
             )
           );
 
-        logger.debug(`🔄 Updated game: ${gameId}`);
+        logger.info(`🔄 Updated game: ${gameId} (Scheduled→Finished)`);
         updatedCount++;
       } catch (error) {
         logger.error(

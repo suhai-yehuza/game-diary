@@ -316,6 +316,7 @@
     "test:paginated-ui": "tsx scripts/testing/test-paginated-ui.ts",
     "test:redis": "tsx scripts/tests/test-redis.ts",
     "test:redis:migration": "tsx scripts/test-redis-migration.ts",
+    "test:redis:prod": "NODE_ENV=production tsx scripts/tests/test-prod-redis.ts",
     "test:sso": "NODE_ENV=development tsx scripts/tests/test-sso-flow.ts",
     "test:strict": "pnpm exec vitest run --reporter=verbose --coverage",
     "test:unit": "pnpm exec vitest run tests/unit --reporter=verbose --coverage",
