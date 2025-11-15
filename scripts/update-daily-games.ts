@@ -7,7 +7,8 @@
  * It's designed to run daily to keep the database up-to-date with new games.
  *
  * ## Features
- * - **Incremental Updates**: Only fetches and adds games that don't exist in the database
+ * - **Upsert Updates**: Inserts new games or updates existing ones with latest data
+ * - **Overwrites Existing Games**: Updates games even if they already exist to get results once scheduled dates elapse
  * - **Date Range Support**: Can fetch games for specific date ranges
  * - **Error Handling**: Comprehensive error handling with retry logic
  * - **Logging**: Detailed logging for monitoring and debugging
@@ -17,8 +18,7 @@
  * ## Usage Examples
  * ```bash
  * # Update games for 7 days back and 7 days forward (default for hourly runs)
- * # - Past games: only updates if not finished
- * # - Future games: only inserts if they don't exist
+ * # - All games are updated with latest data, including results for past scheduled games
  * pnpm update:daily-games
  *
  * # Update games for a specific date
@@ -44,9 +44,9 @@
  *
  * ## Database Operations
  * - Fetches games from NBA API
- * - Checks existing games in database
- * - Inserts only new games (idempotent)
- * - Updates game status for existing games
+ * - Uses upsert (insert or update) to overwrite existing games with latest data
+ * - Updates all games regardless of their date or finished status
+ * - Ensures scheduled games get updated with results once their dates elapse
  * - Logs all operations for monitoring
  *
  * ## Error Handling
@@ -247,9 +247,9 @@ Examples:
 
     // Default: update games for 7 days back and 7 days forward
     // This ensures we catch:
-    // - Past games (up to 7 days back) - only update if not finished
-    // - Today's games (current games)
-    // - Future scheduled games (up to 7 days ahead) - only insert if they don't exist
+    // - Past games (up to 7 days back) - update with latest results
+    // - Today's games (current games) - update with latest status
+    // - Future scheduled games (up to 7 days ahead) - update when they become available
     const sevenDaysBack = subDays(today, 7);
     const sevenDaysAhead = addDays(today, 7);
     return {
@@ -404,7 +404,9 @@ Examples:
   }
 
   /**
-   * Insert new games into database
+   * Insert or update games in database (upsert)
+   * This will overwrite existing games to ensure they have the latest data,
+   * including results once their scheduled dates elapse.
    */
   private async insertGames(games: IGameResponse[], season: string): Promise<GameUpdateResult> {
     const result: GameUpdateResult = {
@@ -423,24 +425,50 @@ Examples:
         const gameId = game.id.toString();
         const exists = await this.gameExists(gameId, season);
 
-        if (exists) {
-          logger.debug(`⏭️  Game ${gameId} already exists, skipping`);
-          result.skippedGames++;
-          continue;
-        }
-
         if (this.isDryRun) {
-          logger.info(`🔍 [DRY RUN] Would insert game: ${gameId}`);
-          result.newGames++;
+          if (exists) {
+            logger.info(`🔍 [DRY RUN] Would update game: ${gameId}`);
+            result.updatedGames++;
+          } else {
+            logger.info(`🔍 [DRY RUN] Would insert game: ${gameId}`);
+            result.newGames++;
+          }
           continue;
         }
 
         const gameData = this.createGameInsertData(game, season);
 
-        await this.db.insert(schema.basketball_games).values(gameData);
+        // Use upsert to insert new games or update existing ones
+        await this.db
+          .insert(schema.basketball_games)
+          .values(gameData)
+          .onConflictDoUpdate({
+            target: schema.basketball_games.id,
+            set: {
+              season: gameData.season,
+              game_id: gameData.game_id,
+              date: gameData.date,
+              stage: gameData.stage,
+              teams: gameData.teams,
+              status: gameData.status,
+              scores: gameData.scores,
+              arena: gameData.arena,
+              periods: gameData.periods,
+              officials: gameData.officials,
+              times_tied: gameData.times_tied,
+              lead_changes: gameData.lead_changes,
+              nugget: gameData.nugget,
+              updated_at: new Date(),
+            },
+          });
 
-        logger.info(`✅ Inserted new game: ${gameId}`);
-        result.newGames++;
+        if (exists) {
+          logger.info(`🔄 Updated existing game: ${gameId}`);
+          result.updatedGames++;
+        } else {
+          logger.info(`✅ Inserted new game: ${gameId}`);
+          result.newGames++;
+        }
       } catch (error) {
         logger.error(
           `❌ Error processing game ${game.id}:`,
@@ -456,13 +484,15 @@ Examples:
 
   /**
    * Update existing games with latest status
-   * - For past games: only update if not finished
-   * - For future games: skip updates (they're scheduled, no need to update until they happen)
+   * Now updates all games regardless of their date or finished status,
+   * since we want to overwrite games even if they already exist to get
+   * results once their scheduled dates elapse.
+   *
+   * Note: This method is now largely redundant since insertGames uses upsert,
+   * but kept for backward compatibility and to handle edge cases.
    */
   private async updateExistingGames(games: IGameResponse[], season: string): Promise<number> {
     let updatedCount = 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Set to start of day for comparison
 
     for (const game of games) {
       try {
@@ -473,47 +503,31 @@ Examples:
           continue; // Skip if game doesn't exist (will be handled by insert)
         }
 
-        // Get game date for comparison
-        const dateString = typeof game.date === 'string' ? game.date : game.date.start;
-        let gameDate: Date;
-        try {
-          gameDate = convertNBADateToLocal(dateString);
-          gameDate.setHours(0, 0, 0, 0); // Set to start of day for comparison
-        } catch (error) {
-          logger.warn(`⚠️  Could not parse date for game ${gameId}, skipping update`);
-          continue;
-        }
-
-        // Skip future games - they're scheduled, no need to update until they happen
-        if (gameDate > today) {
-          logger.debug(`⏭️  Game ${gameId} is in the future, skipping update`);
-          continue;
-        }
-
-        // For past games, only update if not finished
-        if (gameDate < today) {
-          if (this.isGameFinished(game)) {
-            logger.debug(`⏭️  Game ${gameId} is finished, skipping update`);
-            continue;
-          }
-        }
-
         if (this.isDryRun) {
           logger.info(`🔍 [DRY RUN] Would update game: ${gameId}`);
           updatedCount++;
           continue;
         }
 
-        // Update game status and scores
+        // Update game with all latest data - no longer skipping future or finished games
+        const gameData = this.createGameInsertData(game, season);
+
         await this.db
           .update(schema.basketball_games)
           .set({
-            status: game.status || null,
-            scores: game.scores || null,
-            periods: game.periods || null,
-            times_tied: game.timesTied || null,
-            lead_changes: game.leadChanges || null,
-            nugget: game.nugget || null,
+            season: gameData.season,
+            game_id: gameData.game_id,
+            date: gameData.date,
+            stage: gameData.stage,
+            teams: gameData.teams,
+            status: gameData.status,
+            scores: gameData.scores,
+            arena: gameData.arena,
+            periods: gameData.periods,
+            officials: gameData.officials,
+            times_tied: gameData.times_tied,
+            lead_changes: gameData.lead_changes,
+            nugget: gameData.nugget,
             updated_at: new Date(),
           })
           .where(
