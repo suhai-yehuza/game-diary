@@ -35,7 +35,6 @@ NOTES
 > db:studio
 ===== ===== ===== ===== =====
 
-
 # Future changes to schema
 ===== ===== ===== ===== =====
 # 1. Edit schema files (src/lib/db/schema/*) or custom db files (src/lib/db/migrations/*)
