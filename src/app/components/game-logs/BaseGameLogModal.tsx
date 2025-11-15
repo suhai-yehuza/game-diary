@@ -340,7 +340,7 @@ export function GameLogModal({
   // Set gameId form value when selectedGameId changes (create mode only)
   useEffect(() => {
     if (mode === 'create') {
-      setValue('gameId', selectedGameId);
+      setValue('gameId', selectedGameId, { shouldValidate: true });
     }
   }, [selectedGameId, setValue, mode]);
 
@@ -1133,6 +1133,25 @@ export function GameLogModal({
                         {(errors.gameId as { message?: string })?.message}
                       </p>
                     )}
+                    {mode === 'create' &&
+                      !selectedGameId &&
+                      searchTerm.trim().length >= 3 &&
+                      !searchLoading &&
+                      searchResults.length > 0 && (
+                        <p className="text-semantic-warning text-sm mt-1">
+                          Please select a game from the results above to continue.
+                        </p>
+                      )}
+                    {mode === 'create' &&
+                      !selectedGameId &&
+                      searchTerm.trim().length >= 3 &&
+                      !searchLoading &&
+                      searchResults.length === 0 &&
+                      !searchError && (
+                        <p className="text-theme-muted text-sm mt-1">
+                          No games found. Try a different search term or select a different season.
+                        </p>
+                      )}
                   </div>
                 )}
 

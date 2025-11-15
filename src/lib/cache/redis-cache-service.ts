@@ -30,17 +30,26 @@ class RedisCacheService {
       async () => {
         this.redis = Redis.fromEnv();
 
-        // Test Redis connection
-        await this.redis.set('test:connection', 'ping', { ex: 10 });
-        const result = await this.redis.get('test:connection');
+        // Test Redis connection with both read and write operations
+        const testKey = 'test:connection';
+        const testValue = 'ping';
 
-        if (result === 'ping') {
-          await this.redis.del('test:connection');
+        // Test write operation
+        await this.redis.set(testKey, testValue, { ex: 10 });
+
+        // Test read operation
+        const readResult = await this.redis.get(testKey);
+
+        if (readResult === testValue) {
+          // Test delete operation (another write)
+          await this.redis.del(testKey);
           this.isRedisAvailable = true;
-          logger.info('Redis connection established');
+          logger.info('Redis connection established with read/write capabilities');
           return true;
         } else {
-          throw new Error('Redis connection test failed');
+          throw new Error(
+            `Redis connection test failed: expected "${testValue}", got "${String(readResult)}"`
+          );
         }
       },
       {
@@ -53,6 +62,9 @@ class RedisCacheService {
     if (!result) {
       this.isRedisAvailable = false;
       this.redis = null;
+      logger.warn(
+        'Redis initialization failed. Cache will fall back to memory-only mode. Check Redis credentials and permissions.'
+      );
     }
   }
 
@@ -130,6 +142,13 @@ class RedisCacheService {
         // Also store in memory for faster access
         this.setMemoryCache(cacheKey, data, ttl);
         return;
+      } else {
+        // Log warning when Redis write fails but we have a connection
+        logger.warn(
+          `Redis write failed for key: ${cacheKey}, falling back to memory cache. Redis may be in read-only mode or experiencing write issues.`
+        );
+        // Mark Redis as potentially unavailable if writes consistently fail
+        // This will be reset on next successful connection test
       }
     }
 
@@ -298,7 +317,7 @@ class RedisCacheService {
   }
 
   /**
-   * Test Redis connection
+   * Test Redis connection (read and write)
    */
   async testConnection(): Promise<boolean> {
     if (!this.redis) {
@@ -318,6 +337,54 @@ class RedisCacheService {
         category: ErrorCategory.DATABASE,
       }
     );
+
+    return result ?? false;
+  }
+
+  /**
+   * Test Redis write operation specifically
+   * Returns true if write succeeds, false otherwise
+   */
+  async testWrite(): Promise<boolean> {
+    if (!this.redis) {
+      logger.warn('Redis not initialized, cannot test write operation');
+      return false;
+    }
+
+    const testKey = `test:write:${Date.now()}`;
+    const testValue = 'write-test';
+
+    const result = await this.errorHandler.handleAsync(
+      async () => {
+        // Test write
+        await this.redis?.set(testKey, testValue, { ex: 10 });
+
+        // Verify write by reading back
+        const readResult = await this.redis?.get(testKey);
+
+        // Cleanup
+        await this.redis?.del(testKey);
+
+        if (readResult === testValue) {
+          logger.info('Redis write test: SUCCESS');
+          return true;
+        } else {
+          logger.warn(
+            `Redis write test: FAILED - wrote "${testValue}" but read "${String(readResult)}"`
+          );
+          return false;
+        }
+      },
+      {
+        component: 'RedisCacheService',
+        action: 'testWrite',
+        category: ErrorCategory.DATABASE,
+      }
+    );
+
+    if (!result) {
+      logger.error('Redis write test: FAILED - write operation threw an error');
+    }
 
     return result ?? false;
   }

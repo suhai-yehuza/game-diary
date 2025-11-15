@@ -33,6 +33,9 @@ export async function GET() {
     const cacheStats = await hybridCacheService.getStats();
     const connectionTest = await hybridCacheService.testConnections();
 
+    // Test Redis write operation specifically
+    const writeTest = await redisCacheService.testWrite();
+
     // Get Redis-specific stats
     const redisStats = redisCacheService.getStats();
 
@@ -58,6 +61,7 @@ export async function GET() {
         redis: {
           available: healthStatus.redis,
           connectionTest: connectionTest.redis,
+          writeTest: writeTest,
           stats: {
             available: redisStats.redisAvailable,
             memorySize: redisStats.memorySize,
@@ -92,6 +96,19 @@ export async function GET() {
         redisAvailable: healthStatus.redis,
       });
       healthData.status = 'degraded';
+    }
+
+    // Warn if Redis is available but write test fails (read-only mode)
+    if (healthStatus.redis && !writeTest) {
+      logger.error(
+        'Redis is connected but write operations are failing - Redis may be in read-only mode',
+        {
+          redisAvailable: healthStatus.redis,
+          writeTest,
+        }
+      );
+      healthData.status = 'degraded';
+      healthData.cache.redis.writeTest = false;
     }
 
     return NextResponse.json(healthData, {
