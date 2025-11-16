@@ -7,10 +7,11 @@ async function warmTeamsCache() {
   try {
     logger.info('teams-cache', 'warming-started');
 
+    const baseUrl = process.env.WARMUP_BASE_URL || 'http://localhost:3000';
+    console.log(`🔥 Warming teams cache from: ${baseUrl}`);
+
     // Warm up teams cache by fetching all teams with optimal parameters
-    const response = await fetch(
-      'http://localhost:3000/api/teams?limit=100&sortBy=name&sortDirection=asc'
-    );
+    const response = await fetch(`${baseUrl}/api/teams?limit=100&sortBy=name&sortDirection=asc`);
     if (!response.ok) {
       throw new Error(`Failed to warm teams cache: ${response.status} ${response.statusText}`);
     }
@@ -33,7 +34,7 @@ async function warmTeamsCache() {
       for (const team of teamsToWarm) {
         try {
           // Warm individual team data
-          const teamResponse = await fetch(`http://localhost:3000/api/teams/${team.id}`);
+          const teamResponse = await fetch(`${baseUrl}/api/teams/${team.id}`);
           if (teamResponse.ok) {
             console.log(`  ✅ Team ${team.name} (ID: ${team.id}) data warmed`);
           }
@@ -41,7 +42,7 @@ async function warmTeamsCache() {
           // Warm team stats for current season
           const currentYear = new Date().getFullYear();
           const statsResponse = await fetch(
-            `http://localhost:3000/api/teams/${team.id}/stats?season=${currentYear}`
+            `${baseUrl}/api/teams/${team.id}/stats?season=${currentYear}`
           );
           if (statsResponse.ok) {
             console.log(`  ✅ Team ${team.name} stats for ${currentYear} warmed`);

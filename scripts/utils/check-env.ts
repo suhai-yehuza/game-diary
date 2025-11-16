@@ -24,8 +24,8 @@ if (fs.existsSync(envPath)) {
   dotenv.config({ path: envPath });
 }
 
-// Then load .env.local as override
-const localEnvPath = path.join(projectRoot, '.env.local');
+// Then load .env.development as override
+const localEnvPath = path.join(projectRoot, '.env.development');
 if (fs.existsSync(localEnvPath)) {
   dotenv.config({ path: localEnvPath, override: true });
 }
@@ -74,10 +74,10 @@ if (process.env.NODE_ENV === 'development') {
   // eslint-disable-next-line no-console
   console.log('  1. .env.development (prioritized)');
   // eslint-disable-next-line no-console
-  console.log('  2. .env.local (override)');
+  console.log('  2. .env.development (override)');
 } else {
   // eslint-disable-next-line no-console
-  console.log('  1. .env.local');
+  console.log('  1. .env.development');
   // eslint-disable-next-line no-console
   console.log('  2. .env.development');
 }

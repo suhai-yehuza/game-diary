@@ -170,7 +170,7 @@ _Learn how to track games, add reactions, and engage with the community_
 
    ```bash
    # Copy development environment
-   cp .env.development .env.local
+   cp .env.development .env.development
 
    # Or set environment directly
    export NODE_ENV=development

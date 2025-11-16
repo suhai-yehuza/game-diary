@@ -7,12 +7,13 @@ async function warmPlayersCache() {
   try {
     logger.info('players-cache', 'warming-started');
 
-    // Warm up players cache by fetching data
-    console.log('🔥 Warming players cache...');
+    const baseUrl = process.env.WARMUP_BASE_URL || 'http://localhost:3000';
+    console.log(`🔥 Warming players cache from: ${baseUrl}`);
 
+    // Warm up players cache by fetching data
     const [filterOptionsResponse, playersResponse] = await Promise.all([
-      fetch('http://localhost:3000/api/players?options=true'),
-      fetch('http://localhost:3000/api/players?limit=100'),
+      fetch(`${baseUrl}/api/players?options=true`),
+      fetch(`${baseUrl}/api/players?limit=100`),
     ]);
 
     if (!filterOptionsResponse.ok || !playersResponse.ok) {

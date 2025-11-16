@@ -73,7 +73,12 @@ import { fileURLToPath } from 'url';
 const isCI = process.env.CI === 'true' || process.env.GITHUB_ACTIONS === 'true';
 
 if (!isCI) {
-  const envPath = resolve(process.cwd(), '.env.local');
+  // Use .env.production if NODE_ENV=production, otherwise use .env.development
+  const isProduction = process.env.NODE_ENV === 'production';
+  const envPath = isProduction
+    ? resolve(process.cwd(), '.env.production')
+    : resolve(process.cwd(), '.env.development');
+
   if (existsSync(envPath)) {
     // Don't override existing env vars
     config({ path: envPath, override: false });
@@ -487,16 +492,72 @@ Examples:
           const currentStatus = await this.getCurrentGameStatus(gameId, season);
           const wasScheduled = this.isScheduledStatus(currentStatus);
           const isNowFinished = this.isFinishedStatus(newStatus);
+          const isCurrentlyFinished = this.isFinishedStatus(currentStatus);
 
-          // Only update if game was previously "Scheduled" and is now "Finished"
-          if (!wasScheduled || !isNowFinished) {
+          // Debug logging to understand why games are being skipped
+          logger.debug(
+            `🔍 Game ${gameId} status check: current="${currentStatus}", api="${newStatus}", wasScheduled=${wasScheduled}, isNowFinished=${isNowFinished}, isCurrentlyFinished=${isCurrentlyFinished}`
+          );
+
+          // Always update if:
+          // 1. Game was "Scheduled" and is now "Finished" (overwrite with latest scores/data)
+          // 2. Game is not currently "Finished" but API says it's "Finished" (catches Live→Finished, etc.)
+          // Skip only if:
+          // - Game is already "Finished" AND was NOT previously "Scheduled" (preserve existing finished games that weren't scheduled)
+          // - API says game is not finished
+          if (wasScheduled && isNowFinished) {
+            // Game was scheduled and is now finished - ALWAYS update to get latest scores/data
             if (this.isDryRun) {
               logger.info(
-                `🔍 [DRY RUN] Would skip game ${gameId}: current status="${currentStatus}", new status="${newStatus}"`
+                `🔍 [DRY RUN] Would update game ${gameId}: Scheduled→Finished (overwriting with latest data)`
+              );
+            } else {
+              logger.info(
+                `🔄 Updating game ${gameId}: Scheduled→Finished (overwriting with latest scores/data)`
+              );
+            }
+            // Continue to update below
+          } else if (isCurrentlyFinished && !wasScheduled && isNowFinished) {
+            // Game is already finished and was NOT scheduled - preserve existing data
+            if (this.isDryRun) {
+              logger.info(
+                `🔍 [DRY RUN] Would skip game ${gameId}: already finished (was not scheduled, preserving existing data)`
               );
             } else {
               logger.debug(
-                `⏭️  Skipping game ${gameId}: current status="${currentStatus}", new status="${newStatus}" (only updating Scheduled→Finished transitions)`
+                `⏭️  Skipping game ${gameId}: already finished (was not scheduled, preserving existing data)`
+              );
+            }
+            result.skippedGames++;
+            continue;
+          } else if (!isNowFinished) {
+            // API says game is not finished - skip updates for non-finished games
+            if (this.isDryRun) {
+              logger.info(
+                `🔍 [DRY RUN] Would skip game ${gameId}: API status is not finished (current="${currentStatus}", api="${newStatus}")`
+              );
+            } else {
+              logger.debug(`⏭️  Skipping game ${gameId}: API status is not finished`);
+            }
+            result.skippedGames++;
+            continue;
+          } else if (!isCurrentlyFinished && isNowFinished) {
+            // Game is not currently finished but API says it's finished - update it
+            if (this.isDryRun) {
+              logger.info(`🔍 [DRY RUN] Would update game ${gameId}: ${currentStatus}→Finished`);
+            } else {
+              logger.info(`🔄 Updating game ${gameId}: ${currentStatus}→Finished`);
+            }
+            // Continue to update below
+          } else {
+            // Edge case - log and skip
+            if (this.isDryRun) {
+              logger.info(
+                `🔍 [DRY RUN] Would skip game ${gameId}: unexpected status combination (current="${currentStatus}", api="${newStatus}")`
+              );
+            } else {
+              logger.debug(
+                `⏭️  Skipping game ${gameId}: unexpected status combination (current="${currentStatus}", api="${newStatus}")`
               );
             }
             result.skippedGames++;
@@ -506,7 +567,11 @@ Examples:
 
         if (this.isDryRun) {
           if (exists) {
-            logger.info(`🔍 [DRY RUN] Would update game: ${gameId} (Scheduled→Finished)`);
+            // Get current status for dry-run logging
+            const currentStatusForDryRun = await this.getCurrentGameStatus(gameId, season);
+            logger.info(
+              `🔍 [DRY RUN] Would update game: ${gameId} (${currentStatusForDryRun || 'unknown'}→Finished)`
+            );
             result.updatedGames++;
           } else {
             logger.info(`🔍 [DRY RUN] Would insert game: ${gameId}`);
@@ -516,6 +581,16 @@ Examples:
         }
 
         const gameData = this.createGameInsertData(game, season);
+
+        // Log what we're about to upsert
+        let apiStatus: string | null = null;
+        if (typeof game.status === 'string') {
+          apiStatus = game.status;
+        } else if (game.status && typeof game.status === 'object') {
+          const statusObj = game.status as { long?: string; short?: string };
+          apiStatus = statusObj.long || null;
+        }
+        logger.debug(`🔄 Upserting game ${gameId}: status="${apiStatus}", exists=${exists}`);
 
         // Use upsert to insert new games or update existing ones
         await this.db
@@ -529,7 +604,7 @@ Examples:
               date: gameData.date,
               stage: gameData.stage,
               teams: gameData.teams,
-              status: gameData.status,
+              status: gameData.status, // This should update the status from API
               scores: gameData.scores,
               arena: gameData.arena,
               periods: gameData.periods,
@@ -541,12 +616,27 @@ Examples:
             },
           });
 
-        if (exists) {
-          logger.info(`🔄 Updated existing game: ${gameId} (Scheduled→Finished)`);
-          result.updatedGames++;
+        // Check if game was actually updated or inserted
+        // Note: We check exists before the upsert, but the upsert handles both cases
+        // So we need to check again after to see if it was an update or insert
+        const stillExists = await this.gameExists(gameId, season);
+        if (stillExists) {
+          // Game exists - check if status changed (it was an update)
+          const finalStatus = await this.getCurrentGameStatus(gameId, season);
+          if (exists) {
+            // Game existed before, so this was an update
+            logger.info(`🔄 Updated existing game: ${gameId} (now ${finalStatus})`);
+            result.updatedGames++;
+          } else {
+            // Game didn't exist before but exists now - this shouldn't happen with upsert
+            // but log it as a new game to be safe
+            logger.info(`✅ Inserted new game: ${gameId}`);
+            result.newGames++;
+          }
         } else {
-          logger.info(`✅ Inserted new game: ${gameId}`);
-          result.newGames++;
+          // Game doesn't exist - this shouldn't happen after upsert, but log as error
+          logger.warn(`⚠️  Game ${gameId} was not inserted/updated successfully`);
+          result.errors++;
         }
       } catch (error) {
         logger.error(
@@ -594,22 +684,49 @@ Examples:
         const currentStatus = await this.getCurrentGameStatus(gameId, season);
         const wasScheduled = this.isScheduledStatus(currentStatus);
         const isNowFinished = this.isFinishedStatus(newStatus);
+        const isCurrentlyFinished = this.isFinishedStatus(currentStatus);
 
-        // Only update if game was previously "Scheduled" and is now "Finished"
-        if (!wasScheduled || !isNowFinished) {
+        // Always update if:
+        // 1. Game was "Scheduled" and is now "Finished" (ALWAYS overwrite with latest scores/data)
+        // 2. Game is not currently "Finished" but API says it's "Finished" (catches Live→Finished, etc.)
+        // Skip only if:
+        // - Game is already "Finished" AND was NOT previously "Scheduled" (preserve existing finished games that weren't scheduled)
+        // - API says game is not finished
+        if (wasScheduled && isNowFinished) {
+          // Game was scheduled and is now finished - ALWAYS update to get latest scores/data
+          logger.info(
+            `🔄 Updating game ${gameId}: Scheduled→Finished (overwriting with latest scores/data)`
+          );
+          // Continue to update below
+        } else if (isCurrentlyFinished && !wasScheduled && isNowFinished) {
+          // Game is already finished and was NOT scheduled - preserve existing data
           logger.debug(
-            `⏭️  Skipping game ${gameId}: current status="${currentStatus}", new status="${newStatus}" (only updating Scheduled→Finished transitions)`
+            `⏭️  Skipping game ${gameId}: already finished (was not scheduled, preserving existing data)`
+          );
+          continue;
+        } else if (!isNowFinished) {
+          // API says game is not finished - skip updates for non-finished games
+          logger.debug(`⏭️  Skipping game ${gameId}: API status is not finished`);
+          continue;
+        } else if (!isCurrentlyFinished && isNowFinished) {
+          // Game is not currently finished but API says it's finished - update it
+          logger.info(`🔄 Updating game ${gameId}: ${currentStatus}→Finished`);
+          // Continue to update below
+        } else {
+          // Edge case - log and skip
+          logger.debug(
+            `⏭️  Skipping game ${gameId}: unexpected status combination (current="${currentStatus}", api="${newStatus}")`
           );
           continue;
         }
 
         if (this.isDryRun) {
-          logger.info(`🔍 [DRY RUN] Would update game: ${gameId} (Scheduled→Finished)`);
+          logger.info(`🔍 [DRY RUN] Would update game: ${gameId} (${currentStatus}→Finished)`);
           updatedCount++;
           continue;
         }
 
-        // Update game with latest data - only for Scheduled→Finished transitions
+        // Update game with latest data
         const gameData = this.createGameInsertData(game, season);
 
         await this.db
@@ -637,7 +754,7 @@ Examples:
             )
           );
 
-        logger.info(`🔄 Updated game: ${gameId} (Scheduled→Finished)`);
+        logger.info(`🔄 Updated game: ${gameId} (${currentStatus}→Finished)`);
         updatedCount++;
       } catch (error) {
         logger.error(
@@ -648,6 +765,65 @@ Examples:
     }
 
     return updatedCount;
+  }
+
+  /**
+   * Invalidate landing page cache after games are updated
+   * This ensures the "Latest Results" section shows the most recent games
+   */
+  private async invalidateLandingPageCache(): Promise<void> {
+    try {
+      // Try direct Redis cache invalidation first (if Redis is available)
+      const redisUrl = process.env.UPSTASH_REDIS_REST_URL || process.env.REDIS_URL;
+      if (redisUrl) {
+        try {
+          const { Redis } = await import('@upstash/redis');
+          const redis = Redis.fromEnv();
+
+          // Delete the specific cache key for latest results
+          const cacheKey = 'landingPage:landing-page-data:latestResults';
+          await redis.del(cacheKey);
+          logger.info(`✅ Directly invalidated Redis cache key: ${cacheKey}`);
+          return; // Success, no need to try API
+        } catch (redisError) {
+          logger.debug('Could not invalidate via direct Redis access, trying API...', {
+            error: redisError instanceof Error ? redisError.message : String(redisError),
+          });
+        }
+      }
+
+      // Fallback: Try to invalidate cache via API endpoint
+      const appUrl =
+        process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_URL || 'https://www.game-diary.io';
+      const cacheInvalidationUrl = `${appUrl}/api/landing-page/cache?section=latest-results`;
+
+      logger.info(`📡 Attempting to invalidate cache via API: ${cacheInvalidationUrl}`);
+
+      const response = await fetch(cacheInvalidationUrl, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // Add timeout to prevent hanging
+        signal: AbortSignal.timeout(10000), // 10 second timeout
+      });
+
+      if (response.ok) {
+        logger.info('✅ Cache invalidated via API endpoint');
+      } else {
+        logger.warn(`⚠️  Cache invalidation API returned status ${response.status}`);
+        // Fallback: log that manual cache invalidation may be needed
+        logger.info(
+          '💡 Tip: You may need to manually invalidate the cache or wait for TTL expiration'
+        );
+      }
+    } catch (error) {
+      // If API call fails, log but don't throw - cache will expire naturally via TTL
+      logger.warn('⚠️  Could not invalidate cache (will expire via TTL):', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+      logger.info('💡 Cache will automatically refresh when TTL expires (5 minutes)');
+    }
   }
 
   /**
@@ -721,6 +897,21 @@ Examples:
       logger.info(`   Skipped games: ${finalResult.skippedGames}`);
       logger.info(`   Errors: ${finalResult.errors}`);
       logger.info(`   Duration: ${finalResult.duration}ms`);
+
+      // Invalidate landing page cache if games were updated
+      if (!this.isDryRun && (finalResult.newGames > 0 || finalResult.updatedGames > 0)) {
+        try {
+          logger.info('🔄 Invalidating landing page cache after game updates...');
+          await this.invalidateLandingPageCache();
+          logger.info('✅ Landing page cache invalidated successfully');
+        } catch (cacheError) {
+          logger.warn(
+            '⚠️  Failed to invalidate landing page cache (non-critical):',
+            cacheError instanceof Error ? cacheError : new Error(String(cacheError))
+          );
+          // Don't fail the entire update if cache invalidation fails
+        }
+      }
 
       return finalResult;
     } catch (error) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Utility script to sync .env.development to .env.local
+ * Utility script to sync .env.development to .env.development
  * This ensures that .env.development always takes priority
  */
 
@@ -19,7 +19,7 @@ console.log('🔄 Environment Sync Utility');
 console.log('===========================\n');
 
 const envDevelopmentPath = path.join(projectRoot, '.env.development');
-const envLocalPath = path.join(projectRoot, '.env.local');
+const envLocalPath = path.join(projectRoot, '.env.development');
 
 // Check if .env.development exists
 if (!fs.existsSync(envDevelopmentPath)) {
@@ -32,7 +32,7 @@ try {
   // Read .env.development
   const envDevelopmentContent = fs.readFileSync(envDevelopmentPath, 'utf8');
 
-  // Write to .env.local (this will override .env.local with .env.development content)
+  // Write to .env.development (this will override .env.development with .env.development content)
   fs.writeFileSync(envLocalPath, envDevelopmentContent);
 
   // eslint-disable-next-line no-console

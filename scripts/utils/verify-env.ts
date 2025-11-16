@@ -16,7 +16,7 @@ const isDevOrTest = process.env.NODE_ENV === 'development' || process.env.NODE_E
 
 if (!isCI()) {
   if (isDevOrTest) {
-    // For development/test, load .env.local as override synchronously
+    // For development/test, load .env.development as override synchronously
     dotenvFlow.config();
   } else {
     // For production/staging, only load environment-specific files synchronously
